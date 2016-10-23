@@ -16,8 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <string>
+#include <iostream>
 
 #include "core/CommandLine.h"
+#include "util/CommandLineParser.h"
 
 namespace core
 {
@@ -30,6 +32,21 @@ CommandLine::CommandLine(int &argc, char **argv)
 CommandLine::~CommandLine()
 {
 	delete clp;
+}
+
+void CommandLine::run() const
+{
+	if(clp->optionExists("-h") || clp->optionExists("-?") || clp->optionExists("--help")) {
+		help();
+		return;
+	}
+
+	std::cout << "no arguments\n";
+}
+
+void CommandLine::help() const
+{
+	std::cout << "help\n";
 }
 
 }

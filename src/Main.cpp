@@ -22,5 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, char **argv)
 {
 	core::CommandLine cl(argc, argv);
+	cl.run();
 	return 0;
 }

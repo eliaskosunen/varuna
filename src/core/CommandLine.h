@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <string>
 
 #include "util/CommandLineParser.h"
@@ -26,8 +28,14 @@ class CommandLine
 {
     util::CommandLineParser *clp;
 
+	void help() const;
+	void version() const;
+	void license() const;
+
 public:
 	CommandLine(int &argc, char **argv);
 	~CommandLine();
+
+	void run() const;
 };
 }
