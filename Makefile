@@ -61,20 +61,28 @@ ifdef WIN32
 endif
 
 # Abstract build rules.
-.PHONY: all build tests dirs
-all: build tests
+.PHONY: all build tests html dirs
+all: build tests html
+build_all: build tests
 build: $(BIN)
 tests: $(TESTS_BIN)
 clean: 
-	@echo [RM] $(call rm_rf,build bin/*)
+	@echo [RM] $(call rm_rf,build html bin/*)
 clean_deps:
 	@echo [RM] $(call rm_rf,$(FILES_DEP))
+clean_html:
+	@echo [RM] $(call rm_rf,html)
 
 # Directories
-dirs: | bin/ build/ $(patsubst src/%,build/%,build/tests/%$(sort $(dir $(SRC))))
+dirs: | bin/ build/ html/ $(patsubst src/%,build/%,build/tests/%$(sort $(dir $(SRC))))
 %/:
 	@echo [MKDIR] $@
 	@$(call mkdir,$@)
+
+# Documentation build with Doxygen
+html: Doxyfile $(FILES_CPP) $(FILES_HPP) | html/
+	@echo [DOXYGEN]
+	@doxygen > html/doxygen.log
 
 # Build rules for binaries.
 $(BIN): $(patsubst src/%,build/%.o,$(SRC))
