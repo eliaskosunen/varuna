@@ -1,6 +1,6 @@
 APPNAME = Lang
 
-CXX := c++
+CXX := g++
 CXXFLAGS := -O -g -std=c++11 -Wall -pedantic
 LINKFLAGS := -O -g
 INCLUDE_DIRS := -Iinclude -Isrc -isystem ext/include
@@ -72,6 +72,7 @@ clean_deps:
 	@echo [RM] $(call rm_rf,$(FILES_DEP))
 clean_html:
 	@echo [RM] $(call rm_rf,html)
+clean_all: clean clean_deps clean_html
 
 # Directories
 dirs: | bin/ build/ html/ $(patsubst src/%,build/%,build/tests/%$(sort $(dir $(SRC))))
@@ -93,8 +94,8 @@ $(BIN): | dirs
 	@$(CXX) $(LINKFLAGS) $(LIB_DIRS) -o $@ $(filter %.o,$^) $(LIBS)
 
 $(TESTS_BIN): | dirs
-	@echo [LINK] $@
-	@$(CXX) $(LINKFLAGS) $(LIB_DIRS) -o $@ $(filter %.o,$^) $(TESTS_LIBS)
+	@echo [LINK TESTS] $@
+	@$(CXX) $(LINKFLAGS) $(LIB_DIRS) -o $@ $(filter %.o,$^) $(filter-out build/Main.cpp.o,$(patsubst src/%,build/%.o,$(SRC))) $(TESTS_LIBS)
 
 # Include dependencies; generation rules are below.
 -include $(FILES_DEP)

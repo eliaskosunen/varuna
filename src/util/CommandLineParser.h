@@ -15,5 +15,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+#include <vector>
+#include <string>
+
+namespace util
+{
+
+/**
+	@author
+		iain: http://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
+	*/
+class CommandLineParser
+{
+    std::vector<std::string> tokens;
+
+  public:
+    CommandLineParser(int &argc, char **argv);
+	CommandLineParser(int &argc, const char **argv);
+
+    const std::string &getOption(const std::string &option) const;
+    bool optionExists(const std::string &option) const;
+
+	int size() const;
+	bool empty() const;
+};
+}

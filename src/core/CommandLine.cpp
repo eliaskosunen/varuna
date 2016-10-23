@@ -15,5 +15,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+#include <string>
+
+#include "core/CommandLine.h"
+
+namespace core
+{
+
+CommandLine::CommandLine(int &argc, char **argv)
+{
+	clp = new util::CommandLineParser(argc, argv);
+}
+
+CommandLine::~CommandLine()
+{
+	delete clp;
+}
+
+}
