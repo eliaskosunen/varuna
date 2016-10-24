@@ -54,8 +54,8 @@ TEST_CASE("StreamReader tests", "[util]") {
 	util::StreamReader sr;
 
 	SECTION("Reading file") {
-		std::string str = sr.readFile("./bin/test.txt");
+		std::string str = sr.readFile("./test.txt");
 
-		REQUIRE(str == "Test ");
+		REQUIRE(str == "TEST \n");
 	}
 }

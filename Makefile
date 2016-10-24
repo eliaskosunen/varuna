@@ -1,6 +1,7 @@
 APPNAME = varuna
 
-CXX := g++
+CC = gcc
+CXX = g++
 CXXFLAGS := -O -g -std=c++11 -Wall -pedantic
 LINKFLAGS := -O -g
 INCLUDE_DIRS := -Iinclude -Isrc -isystem ext/include
@@ -112,8 +113,10 @@ build/tests/%.dep: src/tests/% | dirs
 # Compilation
 build/%.o: src/% build/%.dep | dirs
 	@echo [CXX] $<
+	@echo [CXX COMPILER]: $(CXX)
 	@$(CXX) $(CXXFLAGS) $(CXXFLAGS2) $(INCLUDE_DIRS) $(CXX_VER) $< -c -o $@
 
 build/tests/%.o: src/tests/% build/tests/%.dep | dirs
 	@echo [CXX TESTS] $<
+	@echo [CXX COMPILER]: $(CXX)
 	@$(CXX) $(CXXFLAGS) $(CXXFLAGS2) $(INCLUDE_DIRS) $(CXX_VER) $< -c -o $@
