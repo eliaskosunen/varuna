@@ -1,5 +1,7 @@
 # Varuna
 
+[![Build Status](https://travis-ci.org/eliaskosunen/varuna.svg?branch=develop)](https://travis-ci.org/eliaskosunen/varuna)
+
 ## License
 
 Varuna is a programming language, released under the GNU GPL.
