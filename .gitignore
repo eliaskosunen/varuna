@@ -4,3 +4,5 @@ build/
 html/
 latex/
 Doxyfile.bak
+*.anjuta*
+.anjuta/

@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "core/lexer/Lexer.h"
 
 #include <string>
 
@@ -23,12 +23,9 @@ namespace core
 {
 	namespace lexer
 	{
-		class Lexer
+		void Lexer::run(std::string &str)
 		{
-		public:
-			Lexer() {}
-
-			void run(std::string &str);
-		};
+			
+		}
 	}
 }
