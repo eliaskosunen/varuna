@@ -1,4 +1,4 @@
-APPNAME = Lang
+APPNAME = varuna
 
 CXX := g++
 CXXFLAGS := -O -g -std=c++11 -Wall -pedantic

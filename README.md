@@ -1,8 +1,8 @@
-# Language
+# Varuna
 
 ## License
 
-Language is a programming language, released under the GNU GPL.
+Varuna is a programming language, released under the GNU GPL.
 The GNU GPL is included in the file LICENSE.
 
 Copyright (C) 2016 Elias Kosunen

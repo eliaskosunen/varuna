@@ -1,1 +1,1 @@
-valgrind --leak-check=full bin/Lang
+valgrind --leak-check=full bin/varuna
