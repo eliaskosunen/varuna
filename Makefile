@@ -15,49 +15,49 @@ FILES_DEP := $(patsubst src/%,build/%.dep,$(FILES_CPP))
 
 SRC := $(filter-out src/tests/%,$(FILES_CPP))
 BIN := bin/$(APPNAME)
-LIBS := 
+LIBS :=
 
 TESTS_SRC := $(wildcard src/tests/*.cpp)
 TESTS_BIN := bin/test
-TESTS_LIBS := 
+TESTS_LIBS :=
 
 # Hack for OS differences.
 # On Windows, echo '1' produces literally '1' instead of 1.
 ifeq "$(shell echo '1')" "'1'"
-  WIN32 := 1
-  mkdir = $(shell mkdir $(subst /,\,$(1)/dummy.mkdir) && rmdir $(subst /,\,$(1)/dummy.mkdir))
-  rm_rf = $(foreach F,$(subst /,\,$(1)),$(shell rmdir /Q /S $(F) 2>NUL >NUL || del /Q /S $(F) 2>NUL >NUL)) $(1)
+	WIN32 := 1
+	mkdir = $(shell mkdir $(subst /,\,$(1)/dummy.mkdir) && rmdir $(subst /,\,$(1)/dummy.mkdir))
+	rm_rf = $(foreach F,$(subst /,\,$(1)),$(shell rmdir /Q /S $(F) 2>NUL >NUL || del /Q /S $(F) 2>NUL >NUL)) $(1)
 
-  # Get the version number from git; we must first check manually that git.exe exists
-  ifeq "$(findstring git,$(shell for %%i in (git.exe) do @echo.%%~$$PATH:i))" "git"
-    VERSION := $(strip $(shell git describe 2>NUL))
-  endif
+	# Get the version number from git; we must first check manually that git.exe exists
+	ifeq "$(findstring git,$(shell for %%i in (git.exe) do @echo.%%~$$PATH:i))" "git"
+		VERSION := $(strip $(shell git describe 2>NUL))
+	endif
 else
-  mkdir = $(shell mkdir -p $(1))
-  rm_rf = $(shell rm -rf $(1)) $(1)
+	mkdir = $(shell mkdir -p $(1))
+	rm_rf = $(shell rm -rf $(1)) $(1)
 
-  # Get the version number from git
-  VERSION := $(strip $(shell git describe 2>/dev/null))
+	# Get the version number from git
+	VERSION := $(strip $(shell git describe 2>/dev/null))
 
-  # Something needs pthread.
-  LIBS += -lpthread
+	# Something needs pthread.
+	LIBS += -lpthread
 
-  # Mac OS X needs different libraries
-  ifeq "$(shell uname -s)" "Darwin"
-    LIBS := $(patsubst -l%,-framework %,$(LIBS))
-  endif
+	# Mac OS X needs different libraries
+	ifeq "$(shell uname -s)" "Darwin"
+		LIBS := $(patsubst -l%,-framework %,$(LIBS))
+	endif
 
-  ifeq "$(findstring mingw,$(CXX))" "mingw"
-    WIN32 := 1
-  endif
+	ifeq "$(findstring mingw,$(CXX))" "mingw"
+		WIN32 := 1
+	endif
 endif
 
 ifdef WIN32
-  BIN := $(BIN).exe
-  TESTS_BIN := $(TESTS_BIN).exe
-  LIBS := $(LIBS) -lws2_32
-  TESTS_LIBS := $(TESTS_LIBS) -lws2_32
-  CXXFLAGS2 := -D_WIN32_WINNT=0x0501
+	BIN := $(BIN).exe
+	TESTS_BIN := $(TESTS_BIN).exe
+	LIBS := $(LIBS) -lws2_32
+	TESTS_LIBS := $(TESTS_LIBS) -lws2_32
+	CXXFLAGS2 := -D_WIN32_WINNT=0x0501
 endif
 
 # Abstract build rules.
@@ -66,7 +66,7 @@ all: build tests html
 build_all: build tests
 build: $(BIN)
 tests: $(TESTS_BIN)
-clean: 
+clean:
 	@echo [RM] $(call rm_rf,build html bin/*)
 clean_deps:
 	@echo [RM] $(call rm_rf,$(FILES_DEP))

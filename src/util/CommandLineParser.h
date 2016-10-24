@@ -24,21 +24,24 @@ namespace util
 {
 
 /**
-	@author
-		iain: http://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
-	*/
+@author
+	iain: http://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
+*/
 class CommandLineParser
 {
-    std::vector<std::string> tokens;
+	std::vector<std::string> tokens;
 
-  public:
-    CommandLineParser(int &argc, char **argv);
+public:
+	static const std::string DEFAULT;
+
+	CommandLineParser(int &argc, char **argv);
 	CommandLineParser(int &argc, const char **argv);
 
-    const std::string &getOption(const std::string &option) const;
-    bool optionExists(const std::string &option) const;
+	const std::string &getOption(const std::string &option) const;
+	bool optionExists(const std::string &option) const;
 
 	int size() const;
 	bool empty() const;
 };
+
 }

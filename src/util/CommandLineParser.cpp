@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace util
 {
 
+const std::string CommandLineParser::DEFAULT = "";
+
 CommandLineParser::CommandLineParser(int &argc, char **argv)
 {
 	for(int i = 1; i < argc; ++i)
@@ -47,7 +49,7 @@ const std::string &CommandLineParser::getOption(const std::string &option) const
 	{
 		return *itr;
 	}
-	return "";
+	return DEFAULT;
 }
 
 bool CommandLineParser::optionExists(const std::string &option) const

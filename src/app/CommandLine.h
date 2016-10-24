@@ -26,7 +26,7 @@ namespace app
 
 class CommandLine
 {
-    util::CommandLineParser *clp;
+	util::CommandLineParser *clp;
 
 	void help() const;
 	void version() const;
