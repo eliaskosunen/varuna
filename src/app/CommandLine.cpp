@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "app/CommandLine.h"
 #include "util/CommandLineParser.h"
+#include "util/StreamReader.h"
+#include "core/preprocessor/Preprocessor.h"
 
 namespace app
 {
@@ -48,6 +50,20 @@ namespace app
 		}
 
 		std::cout << "File: " << file << "\n";
+
+		util::StreamReader sr;
+		std::string filec = sr.readFile(file);
+		if(filec.empty() || filec == "ERROR") {
+			std::cerr << "Error reading file\n";
+			return;
+		}
+
+		std::cout << "File contents:\n" << filec << "\n";
+
+		std::cout << "Preprocessing\n";
+		core::preprocessor::Preprocessor prep;
+		prep.run(filec);
+		std::cout << "Preprocessed file:\n" << filec << "\n";
 	}
 
 	void CommandLine::help() const
