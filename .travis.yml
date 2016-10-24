@@ -21,6 +21,7 @@ matrix:
             - g++-5
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+         - COMPILERS="gcc-5 g++-5"
 
     - os: linux
       addons:
@@ -31,6 +32,7 @@ matrix:
             - g++-6
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+        - COMPILERS="gcc-6 g++-6"
 
     - os: linux
       addons:
@@ -42,6 +44,7 @@ matrix:
             - clang-3.6
       env:
         - MATRIX_EVAL="CC=clang-3.6 && CXX=clang++-3.6"
+        - COMPILERS="clang-3.6 clang++-3.6"
 
     - os: linux
       addons:
@@ -53,8 +56,9 @@ matrix:
             - clang-3.8
       env:
         - MATRIX_EVAL="CC=clang-3.8 && CXX=clang++-3.8"
+        - COMPILERS="clang-3.8 clang++-3.8"
 
 before_install:
     - eval "${MATRIX_EVAL}"
 
-script: ./build.sh
+script: ./build.sh ${COMPILERS} -nohtml
