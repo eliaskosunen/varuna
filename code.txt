@@ -1,0 +1,6 @@
+import io;
+
+function main(): void
+{
+	io.stdout.writeln("Hello World!");
+}
