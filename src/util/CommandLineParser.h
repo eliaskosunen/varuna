@@ -42,6 +42,8 @@ namespace util
 
 		int size() const;
 		bool empty() const;
+
+		bool isDefault(const std::string &str) const { return str == DEFAULT; }
 	};
 
 }

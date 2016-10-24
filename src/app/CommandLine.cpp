@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-	
+
 	CommandLine::CommandLine(int &argc, char **argv)
 	{
 		clp = new util::CommandLineParser(argc, argv);
@@ -41,7 +41,13 @@ namespace app
 			return;
 		}
 
-		std::cout << "no arguments\n";
+		std::string file = clp->getOption("-f");
+		if(clp->isDefault(file)) {
+			std::cout << "No file given\n";
+			return;
+		}
+
+		std::cout << "File: " << file << "\n";
 	}
 
 	void CommandLine::help() const

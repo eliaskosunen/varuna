@@ -18,14 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 #include "app/CommandLine.h"
-#include "util/StreamReader.h"
 
 int main(int argc, char **argv)
 {
 	app::CommandLine cl(argc, argv);
 	cl.run();
-
-	util::StreamReader sr;
-	std::string str = sr.readFile("./bin/test.txt");
 	return 0;
 }
