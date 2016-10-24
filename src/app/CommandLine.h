@@ -24,19 +24,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace app
 {
 
-class CommandLine
-{
-	util::CommandLineParser *clp;
+	class CommandLine
+	{
+		util::CommandLineParser *clp;
 
-	void help() const;
-	void version() const;
-	void license() const;
+		void help() const;
+		void version() const;
+		void license() const;
 
-public:
-	CommandLine(int &argc, char **argv);
-	~CommandLine();
+	public:
+		CommandLine(int &argc, char **argv);
+		~CommandLine();
 
-	void run() const;
-};
-
+		void run() const;
+	};
+	
 }

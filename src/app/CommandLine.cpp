@@ -23,30 +23,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-
-CommandLine::CommandLine(int &argc, char **argv)
-{
-	clp = new util::CommandLineParser(argc, argv);
-}
-
-CommandLine::~CommandLine()
-{
-	delete clp;
-}
-
-void CommandLine::run() const
-{
-	if(clp->optionExists("-h") || clp->optionExists("-?") || clp->optionExists("--help")) {
-		help();
-		return;
+	
+	CommandLine::CommandLine(int &argc, char **argv)
+	{
+		clp = new util::CommandLineParser(argc, argv);
 	}
 
-	std::cout << "no arguments\n";
-}
+	CommandLine::~CommandLine()
+	{
+		delete clp;
+	}
 
-void CommandLine::help() const
-{
-	std::cout << "help\n";
-}
+	void CommandLine::run() const
+	{
+		if(clp->optionExists("-h") || clp->optionExists("-?") || clp->optionExists("--help")) {
+			help();
+			return;
+		}
+
+		std::cout << "no arguments\n";
+	}
+
+	void CommandLine::help() const
+	{
+		std::cout << "help\n";
+	}
 
 }

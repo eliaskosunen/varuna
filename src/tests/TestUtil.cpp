@@ -15,9 +15,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string>
+#include <iostream>
+
 #include "catch.hpp"
 
 #include "util/CommandLineParser.h"
+#include "util/StreamReader.h"
 
 TEST_CASE("CommandLineParser works properly", "[util]") {
 	int argc1 = 3;
@@ -44,4 +48,14 @@ TEST_CASE("CommandLineParser works properly", "[util]") {
 	util::CommandLineParser clp3(argc3, argv3);
 	REQUIRE(clp3.size() == 0);
 	REQUIRE(clp3.empty() == true);
+}
+
+TEST_CASE("StreamReader tests", "[util]") {
+	util::StreamReader sr;
+
+	SECTION("Reading file") {
+		std::string str = sr.readFile("./bin/test.txt");
+
+		REQUIRE(str == "Test ");
+	}
 }

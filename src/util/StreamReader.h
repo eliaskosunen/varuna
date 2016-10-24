@@ -17,31 +17,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <vector>
+#include <istream>
 #include <string>
 
 namespace util
 {
-
-	/**
-	@author
-		iain: http://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
-	*/
-	class CommandLineParser
+	class StreamReader
 	{
-		std::vector<std::string> tokens;
-
 	public:
-		static const std::string DEFAULT;
+		StreamReader() {}
 
-		CommandLineParser(int &argc, char **argv);
-		CommandLineParser(int &argc, const char **argv);
-
-		const std::string &getOption(const std::string &option) const;
-		bool optionExists(const std::string &option) const;
-
-		int size() const;
-		bool empty() const;
+		std::string readStream(std::istream &stream) const;
+		std::string readFile(const std::string &filename) const;
 	};
-
 }
