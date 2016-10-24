@@ -61,4 +61,4 @@ matrix:
 before_install:
     - eval "${MATRIX_EVAL}"
 
-script: ./build.sh ${COMPILERS} -nohtml
+script: ./build.sh ${COMPILERS} -nohtml -notests
