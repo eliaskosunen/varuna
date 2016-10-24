@@ -1,6 +1,6 @@
 # Varuna
 
-[![Build Status](https://travis-ci.org/eliaskosunen/varuna.svg?branch=develop)](https://travis-ci.org/eliaskosunen/varuna)
+[![Build Status](https://travis-ci.org/eliaskosunen/varuna.svg?branch=master)](https://travis-ci.org/eliaskosunen/varuna)
 
 ## License
 
