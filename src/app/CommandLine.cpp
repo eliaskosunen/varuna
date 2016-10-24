@@ -18,10 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <iostream>
 
-#include "core/CommandLine.h"
+#include "app/CommandLine.h"
 #include "util/CommandLineParser.h"
 
-namespace core
+namespace app
 {
 
 CommandLine::CommandLine(int &argc, char **argv)

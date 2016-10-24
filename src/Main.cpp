@@ -15,13 +15,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "core/CommandLine.h"
+#include "app/CommandLine.h"
 
 #include <iostream>
 
 int main(int argc, char **argv)
 {
-	core::CommandLine cl(argc, argv);
+	app::CommandLine cl(argc, argv);
 	cl.run();
 	return 0;
 }
