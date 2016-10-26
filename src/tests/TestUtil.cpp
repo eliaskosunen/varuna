@@ -22,8 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "util/CommandLineParser.h"
 #include "util/StreamReader.h"
+#include "util/StringUtils.h"
 
-TEST_CASE("CommandLineParser works properly", "[util]")
+TEST_CASE("CommandLineParser tests", "[util]")
 {
 	int argc1 = 3;
 	const char *argv1[] = {"foo", "arg1", "arg2"};
@@ -61,4 +62,19 @@ TEST_CASE("StreamReader tests", "[util]")
 
 		REQUIRE(str == "TEST \n");
 	}
+}
+
+TEST_CASE("StringUtils tests", "[util]")
+{
+	using namespace util;
+
+	REQUIRE(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
+	REQUIRE(StringUtils::ltrimCopy("   foo") == "foo");
+	REQUIRE(StringUtils::rtrimCopy("foo   ") == "foo");
+	REQUIRE(StringUtils::trimCopy("  foo  ") == "foo");
+	REQUIRE(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
+	REQUIRE(StringUtils::cstrToString("foo") == "foo");
+	REQUIRE(StringUtils::charToString('a') == "a");
+	REQUIRE(StringUtils::isCharWhitespace(' ') == true);
+	REQUIRE(StringUtils::isCharWhitespace('a') == false);
 }

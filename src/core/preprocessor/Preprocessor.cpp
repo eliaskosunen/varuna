@@ -33,19 +33,14 @@ namespace core
 			std::string processed;
 			std::vector<std::string> vec = util::StringUtils::split(str, '\n');
 
-			std::cout << "str.empty(): " << str.empty() << "\n";
-			std::cout << "vec.empty(): " << vec.empty() << "\n";
-
 			for(auto it = vec.begin(); it != vec.end(); ++it)
 			{
 				std::string row = *it;
 				const char *rowCstr = row.c_str();
-				std::cout << "\nrow: " << row << "\n";
 				const char *commentSymbolPos = std::strchr(rowCstr, '#');
 				if(commentSymbolPos != 0)
 				{
 					int pos = commentSymbolPos - rowCstr;
-					std::cout << "pos: " << pos << "\n";
 					row.erase(row.begin() + pos, row.end());
 				}
 
@@ -55,7 +50,6 @@ namespace core
 				util::StringUtils::trim(row);
 				util::StringUtils::trimConsecutiveSpaces(row);
 
-				std::cout << "\nprocessed row: " << row << "\n";
 				processed.append(row);
 			}
 
