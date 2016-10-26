@@ -39,6 +39,34 @@ namespace core
 			return false;
 		}
 
+		bool Lexer::isArgOperator(const char &curr)
+		{
+			switch (curr) {
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+			case '%':
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isControlOperator(const char &curr)
+		{
+			switch(curr)
+			{
+			case '{':
+			case '}':
+			case '(':
+			case ')':
+			case ':':
+			case ';':
+				return true;
+			}
+			return false;
+		}
+
 		bool Lexer::isTerminatingOperator(const char &curr)
 		{
 			switch(curr)
@@ -48,6 +76,7 @@ namespace core
 			case '(':
 			case ')':
 			case ';':
+			case ':':
 			case '"':
 				return true;
 			}
@@ -90,8 +119,33 @@ namespace core
 						buffer.push_back(currentChar);
 						continue;
 					}
+					// Control operator
+					if(isControlOperator(currentChar))
+					{
+						currentToken.setType(TOKEN_CONTROL_OPERATOR);
+						buffer.push_back(currentChar);
 
-					currentToken.setType(TOKEN_KEYWORD_OR_IDENTIFIER);
+						currentToken.reset();
+						buffer.clear();
+						continue;
+					}
+					// Argument operator
+					if(isArgOperator(currentChar))
+					{
+						currentToken.setType(TOKEN_CONTROL_OPERATOR);
+						buffer.push_back(currentChar);
+
+						currentToken.reset();
+						buffer.clear();
+						continue;
+					}
+					if(isalnum(currentChar) || currentChar == '_')
+					{
+						currentToken.setType(TOKEN_KEYWORD_OR_IDENTIFIER);
+						buffer.push_back(currentChar);
+						continue;
+					}
+					currentToken.setType(TOKEN_UNKNOWN);
 					buffer.push_back(currentChar);
 					continue;
 				}
@@ -119,6 +173,27 @@ namespace core
 
 						currentToken.reset();
 						buffer.clear();
+
+						if(isTerminatingOperator(currentChar))
+						{
+							if(isControlOperator(currentChar))
+							{
+								currentToken.setType(TOKEN_CONTROL_OPERATOR);
+							}
+							else if(isArgOperator(currentChar))
+							{
+								currentToken.setType(TOKEN_ARG_OPERATOR);
+							}
+							else
+							{
+								// TODO: Raise error for invalid operator
+							}
+
+							currentToken.setValue(util::StringUtils::charToString(currentChar));
+							tokens.push_back(currentToken);
+
+							currentToken.reset();
+						}
 						continue;
 					}
 					else
