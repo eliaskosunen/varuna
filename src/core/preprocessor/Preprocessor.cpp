@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/preprocessor/Preprocessor.h"
 
 #include <string>
+#include <algorithm>
+#include <iostream>
+#include <cstring>
 
 #include "util/StringUtils.h"
 
@@ -27,13 +30,34 @@ namespace core
 	{
 		std::string Preprocessor::run(const std::string &str) const
 		{
-			std::string processed = str;;
+			std::string processed;
+			std::vector<std::string> vec = util::StringUtils::split(str, '\n');
 
-			util::StringUtils::replaceAll(processed, "\t", " ");
-			util::StringUtils::replaceAll(processed, "\n", " ");
-			util::StringUtils::replaceAll(processed, "\r", "");
-			util::StringUtils::trim(processed);
-			util::StringUtils::trimConsecutiveSpaces(processed);
+			std::cout << "str.empty(): " << str.empty() << "\n";
+			std::cout << "vec.empty(): " << vec.empty() << "\n";
+
+			for(auto it = vec.begin(); it != vec.end(); ++it)
+			{
+				std::string row = *it;
+				const char *rowCstr = row.c_str();
+				std::cout << "\nrow: " << row << "\n";
+				const char *commentSymbolPos = std::strchr(rowCstr, '#');
+				if(commentSymbolPos != 0)
+				{
+					int pos = commentSymbolPos - rowCstr;
+					std::cout << "pos: " << pos << "\n";
+					row.erase(row.begin() + pos, row.end());
+				}
+
+				util::StringUtils::replaceAll(row, "\t", " ");
+				util::StringUtils::replaceAll(row, "\n", " ");
+				util::StringUtils::replaceAll(row, "\r", "");
+				util::StringUtils::trim(row);
+				util::StringUtils::trimConsecutiveSpaces(row);
+
+				std::cout << "\nprocessed row: " << row << "\n";
+				processed.append(row);
+			}
 
 			return processed;
 		}

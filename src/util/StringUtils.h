@@ -122,5 +122,26 @@ namespace util
 		{
 			return std::isspace(static_cast<unsigned char>(c));
 		}
+
+		/**
+		@author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
+		*/
+		static void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+			std::stringstream ss;
+			ss.str(s);
+			std::string item;
+			while (std::getline(ss, item, delim)) {
+				elems.push_back(item);
+			}
+		}
+
+		/**
+		@author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
+		*/
+		static std::vector<std::string> split(const std::string &s, char delim) {
+			std::vector<std::string> elems;
+			split(s, delim, elems);
+			return elems;
+		}
 	};
 }
