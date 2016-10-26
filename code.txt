@@ -1,6 +1,10 @@
-import io;
+import IO;
+import System;
 
-function main(): void
+function main(): Void
 {
-	io.stdout.writeln(42);
+	Integer number;
+	number = io.stdin.getln();
+	IO.stdout.writeln(number);
+	System.errorlevel(0);
 }

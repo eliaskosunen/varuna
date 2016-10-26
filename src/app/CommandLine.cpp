@@ -64,13 +64,13 @@ namespace app
 
 		std::cout << "Preprocessing\n";
 		core::preprocessor::Preprocessor prep;
-		prep.run(filec);
-		std::cout << "Preprocessed file:\n" << filec << "\n\n";
+		std::string code = prep.run(filec);
+		std::cout << "Preprocessed file:\n" << code << "\n\n";
 
 		std::cout << "Lexer output:\n";
 
 		core::lexer::Lexer lexer;
-		core::lexer::TokenVector tokens = lexer.run(filec);
+		core::lexer::TokenVector tokens = lexer.run(code);
 		for(const auto &t : tokens)
 		{
 			std::cout << "Token(" << t.typeToString() << "): " << t.getValue() << "\n";

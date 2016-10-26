@@ -25,13 +25,17 @@ namespace core
 {
 	namespace preprocessor
 	{
-		void Preprocessor::run(std::string &str) const
+		std::string Preprocessor::run(const std::string &str) const
 		{
-			util::StringUtils::replaceAll(str, "\t", " ");
-			util::StringUtils::replaceAll(str, "\n", " ");
-			util::StringUtils::replaceAll(str, "\r", "");
-			util::StringUtils::trim(str);
-			util::StringUtils::trimConsecutiveSpaces(str);
+			std::string processed = str;;
+
+			util::StringUtils::replaceAll(processed, "\t", " ");
+			util::StringUtils::replaceAll(processed, "\n", " ");
+			util::StringUtils::replaceAll(processed, "\r", "");
+			util::StringUtils::trim(processed);
+			util::StringUtils::trimConsecutiveSpaces(processed);
+
+			return processed;
 		}
 	}
 }

@@ -31,7 +31,7 @@ namespace core
 			TOKEN_UNKNOWN,			/// Unknown
 			TOKEN_IDENTIFIER,		/// Variables, functions etc.
 			TOKEN_LITERAL_NUMBER,	/// Number literals
-			TOKEN_ARG_OPERATOR,	/// Operators with arguments: + - * / etc.
+			TOKEN_ARG_OPERATOR,		/// Operators with arguments: + - * / etc.
 			TOKEN_KEYWORD,			/// Reserved words: if while function etc.
 			TOKEN_CONTROL_OPERATOR,	/// Operators without arguments: { } [ ]
 

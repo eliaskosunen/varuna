@@ -28,7 +28,7 @@ namespace core
 		public:
 			Preprocessor() {}
 
-			void run(std::string &str) const;
+			std::string run(const std::string &str) const;
 		};
 	}
 }

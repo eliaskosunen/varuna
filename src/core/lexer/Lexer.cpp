@@ -32,7 +32,8 @@ namespace core
 		bool Lexer::isKeyword(const std::string &buf)
 		{
 			if(
-				buf == "import" || buf == "function" || buf == "void"
+				buf == "import" || buf == "function" || buf == "Void" ||
+				buf == "Integer"
 			)
 			{
 				return true;
@@ -48,6 +49,7 @@ namespace core
 			case '*':
 			case '/':
 			case '%':
+			case '=':
 				return true;
 			}
 			return false;
