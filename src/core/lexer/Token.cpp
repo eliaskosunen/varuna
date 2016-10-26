@@ -47,14 +47,16 @@ namespace core
 				return "UNKNOWN";
 			case TOKEN_IDENTIFIER:
 				return "IDENTIFIER";
-			case TOKEN_LITERAL:
-				return "LITERAL";
-			case TOKEN_OPERATOR:
-				return "OPERATOR";
+			case TOKEN_LITERAL_NUMBER:
+				return "LITERAL_NUMBER";
+			case TOKEN_ARG_OPERATOR:
+				return "ARG_OPERATOR";
 			case TOKEN_KEYWORD:
 				return "KEYWORD";
 			case TOKEN_CONTROL_OPERATOR:
 				return "CONTROL_OPERATOR";
+			case TOKEN_KEYWORD_OR_IDENTIFIER:
+				return "KEYWORD/IDENTIFIER";
 			}
 			return "DEFAULT";
 		}
@@ -83,7 +85,7 @@ namespace core
 			return params.at(key);
 		}
 
-		void Token::setParam(const std::string &key, const std::string &value, bool override)
+		void Token::setParam(const std::string &key, const std::string value, bool override)
 		{
 			if(paramExists(key))
 			{
@@ -118,6 +120,13 @@ namespace core
 		void Token::clearParams()
 		{
 			params.clear();
+		}
+
+		void Token::reset()
+		{
+			setType(TOKEN_DEFAULT);
+			setValue("");
+			clearParams();
 		}
 	}
 }

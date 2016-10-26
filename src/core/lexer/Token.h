@@ -30,10 +30,12 @@ namespace core
 
 			TOKEN_UNKNOWN,			/// Unknown
 			TOKEN_IDENTIFIER,		/// Variables, functions etc.
-			TOKEN_LITERAL,			/// String literals, numbers
-			TOKEN_OPERATOR,			/// Operators: + - * / etc.
+			TOKEN_LITERAL_NUMBER,	/// Number literals
+			TOKEN_ARG_OPERATOR,	/// Operators with arguments: + - * / etc.
 			TOKEN_KEYWORD,			/// Reserved words: if while function etc.
-			TOKEN_CONTROL_OPERATOR	/// Operators without arguments: { } [ ]
+			TOKEN_CONTROL_OPERATOR,	/// Operators without arguments: { } [ ]
+
+			TOKEN_KEYWORD_OR_IDENTIFIER	/// Used by Lexer
 		};
 
 		class Token
@@ -59,13 +61,15 @@ namespace core
 
 			const ParamMap &getParams() const;
 			const std::string &getParam(const std::string &key) const;
-			void setParam(const std::string &key, const std::string &value, bool override = true);
+			void setParam(const std::string &key, const std::string value, bool override = true);
 			void removeParam(const std::string &key);
 			bool paramExists(const std::string &key) const;
 			bool isParamsEmpty() const;
 			void clearParams();
 
 			std::string typeToString() const;
+
+			void reset();
 		};
 	}
 }

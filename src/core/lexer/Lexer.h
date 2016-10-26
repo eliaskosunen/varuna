@@ -30,7 +30,9 @@ namespace core
 
 		class Lexer
 		{
-			TokenType identifyBuffer(const std::string &buf);
+			bool isKeyword(const std::string &buf);
+			bool isTerminatingOperator(const char &curr);
+
 		public:
 			Lexer() {}
 

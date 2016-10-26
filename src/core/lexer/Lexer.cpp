@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vector>
+#include <locale>
 
 #include "core/lexer/Token.h"
 #include "util/StringUtils.h"
@@ -27,9 +28,30 @@ namespace core
 {
 	namespace lexer
 	{
-		TokenType Lexer::identifyBuffer(const std::string &buf)
+		bool Lexer::isKeyword(const std::string &buf)
 		{
-			return TOKEN_DEFAULT;
+			if(
+				buf == "import" || buf == "function" || buf == "void"
+			)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isTerminatingOperator(const char &curr)
+		{
+			switch(curr)
+			{
+			case '{':
+			case '}':
+			case '(':
+			case ')':
+			case ';':
+			case '"':
+				return true;
+			}
+			return false;
 		}
 
 		TokenVector Lexer::run(const std::string &str)
@@ -38,15 +60,91 @@ namespace core
 			std::string buffer;
 			buffer.reserve(8);
 			std::string::const_iterator strpointer = str.begin();
-			std::string::const_iterator strendpointer = str.end();
+			const std::string::const_iterator strendpointer = str.end();
+			Token currentToken;
 
 			for(; strpointer != strendpointer; ++strpointer)
 			{
-				Token t;
-				//t.setType(identifyBuffer(buffer));
+				/*Token t;
+				t.setType(identifyBuffer(buffer));
 				t.setType(TOKEN_DEFAULT);
 				t.setValue(util::StringUtils::charToString(*strpointer));
-				tokens.push_back(t);
+				tokens.push_back(t);*/
+
+				const char currentChar = *strpointer;
+
+				// Empty buffer
+				// Either start of file, or a new token
+				if(buffer.empty())
+				{
+					// Whitespace, skip
+					if(util::StringUtils::isCharWhitespace(currentChar))
+					{
+						continue;
+					}
+					// Number literals
+					// '-' to detect negative numbers
+					if(std::isdigit(currentChar) || *strpointer == '-')
+					{
+						currentToken.setType(TOKEN_LITERAL_NUMBER);
+						buffer.push_back(currentChar);
+						continue;
+					}
+
+					currentToken.setType(TOKEN_KEYWORD_OR_IDENTIFIER);
+					buffer.push_back(currentChar);
+					continue;
+				}
+				// Buffer not empty
+				else
+				{
+					// Whitespace or terminating operator
+					// Token over
+					if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
+					{
+						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
+						{
+							if(isKeyword(buffer))
+							{
+								currentToken.setType(TOKEN_KEYWORD);
+							}
+							else
+							{
+								currentToken.setType(TOKEN_IDENTIFIER);
+							}
+						}
+
+						currentToken.setValue(buffer);
+						tokens.push_back(currentToken);
+
+						currentToken.reset();
+						buffer.clear();
+						continue;
+					}
+					else
+					{
+						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
+						{
+							if(isalnum(currentChar) || currentChar == '_')
+							{
+								buffer.push_back(currentChar);
+								continue;
+							}
+							else
+							{
+								// TODO: Raise error for invalid keyword/identifier
+							}
+						}
+					}
+				}
+
+				currentToken.setType(TOKEN_DEFAULT);
+				currentToken.setValue(util::StringUtils::charToString(*strpointer));
+				tokens.push_back(currentToken);
+
+				currentToken.reset();
+				buffer.clear();
+				continue;
 			}
 
 			return tokens;

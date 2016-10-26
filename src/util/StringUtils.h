@@ -117,5 +117,10 @@ namespace util
 			ss << c;
 			return ss.str();
 		}
+
+		static bool isCharWhitespace(const char &c)
+		{
+			return std::isspace(static_cast<unsigned char>(c));
+		}
 	};
 }
