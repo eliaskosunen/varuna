@@ -28,6 +28,7 @@ namespace core
 	{
 		class Lexer
 		{
+			TokenType identifyBuffer(const std::string &buf);
 		public:
 			Lexer() {}
 

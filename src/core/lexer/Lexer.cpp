@@ -26,9 +26,19 @@ namespace core
 {
 	namespace lexer
 	{
+		TokenType Lexer::identifyBuffer(const std::string &buf)
+		{
+			return TOKEN_DEFAULT;
+		}
+
 		std::vector<Token> Lexer::run(std::string &str)
 		{
 			std::vector<Token> tokens;
+			std::string buffer;
+			buffer.reserve(8);
+
+
+
 			return tokens;
 		}
 	}

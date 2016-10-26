@@ -15,34 +15,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "core/lexer/Token.h"
 
 namespace core
 {
 	namespace lexer
 	{
-		enum TokenType
+		Token::Token(TokenType _type) : type(_type) {}
+
+		void Token::setType(TokenType _type)
 		{
-			TOKEN_DEFAULT,
+			type = _type;
+		}
 
-			TOKEN_UNKNOWN,			/// Unknown
-			TOKEN_IDENTIFIER,		/// Variables, functions etc.
-			TOKEN_LITERAL,			/// String literals, numbers
-			TOKEN_OPERATOR,			/// Operators: + - * / etc.
-			TOKEN_KEYWORD,			/// Reserved words: if while function etc.
-			TOKEN_CONTROL_OPERATOR	/// Operators without arguments: { } [ ]
-		};
-
-		class Token
+		TokenType Token::getType() const
 		{
-		protected:
-			TokenType type;
-
-		public:
-			Token(TokenType _type = TOKEN_DEFAULT);
-
-			void setType(TokenType _type);
-			TokenType getType() const;
-		};
+			return type;
+		}
 	}
 }
