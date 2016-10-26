@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cctype>
 #include <locale>
 #include <string>
+#include <sstream>
 
 namespace util
 {
@@ -101,6 +102,20 @@ namespace util
 		{
 			trimConsecutiveSpaces(str);
 			return str;
+		}
+
+		static std::string cstrToString(const char *cstr)
+		{
+			std::stringstream ss;
+			ss << cstr;
+			return ss.str();
+		}
+
+		static std::string charToString(const char &c)
+		{
+			std::stringstream ss;
+			ss << c;
+			return ss.str();
 		}
 	};
 }

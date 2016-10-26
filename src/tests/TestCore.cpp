@@ -16,3 +16,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "catch.hpp"
+
+#include <string>
+
+#include "core/lexer/Token.h"
+
+TEST_CASE("Test Token", "[core]")
+{
+	using namespace core::lexer;
+
+	Token t;
+	REQUIRE(t.getType() == TOKEN_DEFAULT);
+	t.setType(TOKEN_UNKNOWN);
+	REQUIRE(t.getType() == TOKEN_UNKNOWN);
+	REQUIRE(t.typeToString() == "UNKNOWN");
+
+	SECTION("Test params")
+	{
+		REQUIRE(t.isParamsEmpty() == true);
+		REQUIRE(t.getParam("UNEXISTANT") == Token::DEFAULT_PARAM);
+
+		t.setParam("KEY", "VALUE");
+		REQUIRE(t.paramExists("KEY") == true);
+		REQUIRE(t.getParam("KEY") == "VALUE");
+		REQUIRE(t.isParamsEmpty() == false);
+
+		t.setParam("KEY", "NEWVALUE");
+		REQUIRE(t.paramExists("KEY") == true);
+		REQUIRE(t.getParam("KEY") == "NEWVALUE");
+		REQUIRE(t.isParamsEmpty() == false);
+
+		t.setParam("KEY", "NOTOVERRIDE", false);
+		REQUIRE(t.paramExists("KEY") == true);
+		REQUIRE(t.getParam("KEY") == "NEWVALUE");
+		REQUIRE(t.isParamsEmpty() == false);
+
+		t.setParam("NEWKEY", "VALUE");
+		REQUIRE(t.paramExists("NEWKEY") == true);
+		REQUIRE(t.paramExists("KEY") == true);
+		REQUIRE(t.getParam("NEWKEY") == "VALUE");
+		REQUIRE(t.getParam("KEY") == "NEWVALUE");
+		t.removeParam("NEWKEY");
+		REQUIRE(t.paramExists("NEWKEY") == false);
+		REQUIRE(t.paramExists("KEY") == true);
+		REQUIRE(t.getParam("NEWKEY") == Token::DEFAULT_PARAM);
+
+		t.clearParams();
+		REQUIRE(t.isParamsEmpty() == true);
+	}
+}

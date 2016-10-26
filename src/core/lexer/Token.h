@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
+#include <map>
 
 namespace core
 {
@@ -40,13 +41,31 @@ namespace core
 		protected:
 			TokenType type;
 
+			typedef std::map<std::string, std::string> ParamMap;
+			ParamMap params;
+
+			std::string value;
+
 		public:
+			const static std::string DEFAULT_PARAM;
+
 			Token(TokenType _type = TOKEN_DEFAULT);
 
 			void setType(TokenType _type);
 			TokenType getType() const;
 
-			std::string toString() const;
+			void setValue(std::string val);
+			const std::string &getValue() const;
+
+			const ParamMap &getParams() const;
+			const std::string &getParam(const std::string &key) const;
+			void setParam(const std::string &key, const std::string &value, bool override = true);
+			void removeParam(const std::string &key);
+			bool paramExists(const std::string &key) const;
+			bool isParamsEmpty() const;
+			void clearParams();
+
+			std::string typeToString() const;
 		};
 	}
 }

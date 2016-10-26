@@ -73,7 +73,7 @@ namespace app
 		core::lexer::TokenVector tokens = lexer.run(filec);
 		for(const auto &t : tokens)
 		{
-			std::cout << "Token(" << t.toString() << ")\n";
+			std::cout << "Token(" << t.typeToString() << "): " << t.getValue() << "\n";
 		}
 	}
 

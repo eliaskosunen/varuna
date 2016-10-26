@@ -23,7 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/CommandLineParser.h"
 #include "util/StreamReader.h"
 
-TEST_CASE("CommandLineParser works properly", "[util]") {
+TEST_CASE("CommandLineParser works properly", "[util]")
+{
 	int argc1 = 3;
 	const char *argv1[] = {"foo", "arg1", "arg2"};
 	util::CommandLineParser clp1(argc1, argv1);
@@ -50,10 +51,12 @@ TEST_CASE("CommandLineParser works properly", "[util]") {
 	REQUIRE(clp3.empty() == true);
 }
 
-TEST_CASE("StreamReader tests", "[util]") {
+TEST_CASE("StreamReader tests", "[util]")
+{
 	util::StreamReader sr;
 
-	SECTION("Reading file") {
+	SECTION("Reading file")
+	{
 		std::string str = sr.readFile("./test.txt");
 
 		REQUIRE(str == "TEST \n");

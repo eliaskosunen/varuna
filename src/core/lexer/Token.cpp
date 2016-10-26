@@ -23,7 +23,9 @@ namespace core
 {
 	namespace lexer
 	{
-		Token::Token(TokenType _type) : type(_type) {}
+		const std::string Token::DEFAULT_PARAM = "";
+
+		Token::Token(TokenType _type) : type(_type), value("") {}
 
 		void Token::setType(TokenType _type)
 		{
@@ -35,7 +37,7 @@ namespace core
 			return type;
 		}
 
-		std::string Token::toString() const
+		std::string Token::typeToString() const
 		{
 			switch(type)
 			{
@@ -55,6 +57,67 @@ namespace core
 				return "CONTROL_OPERATOR";
 			}
 			return "DEFAULT";
+		}
+
+		void Token::setValue(std::string val)
+		{
+			value = val;
+		}
+
+		const std::string &Token::getValue() const
+		{
+			return value;
+		}
+
+		const Token::ParamMap &Token::getParams() const
+		{
+			return params;
+		}
+
+		const std::string &Token::getParam(const std::string &key) const
+		{
+			if(!paramExists(key))
+			{
+				return DEFAULT_PARAM;
+			}
+			return params.at(key);
+		}
+
+		void Token::setParam(const std::string &key, const std::string &value, bool override)
+		{
+			if(paramExists(key))
+			{
+				if(!override)
+				{
+					return;
+				}
+				removeParam(key);
+			}
+			params.insert(std::make_pair(key, value));
+		}
+
+		void Token::removeParam(const std::string &key)
+		{
+			if(!paramExists(key))
+			{
+				return;
+			}
+			params.erase(key);
+		}
+
+		bool Token::paramExists(const std::string &key) const
+		{
+			return (bool)params.count(key);
+		}
+
+		bool Token::isParamsEmpty() const
+		{
+			return params.empty();
+		}
+
+		void Token::clearParams()
+		{
+			params.clear();
 		}
 	}
 }

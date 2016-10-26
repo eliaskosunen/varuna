@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 #include "core/lexer/Token.h"
+#include "util/StringUtils.h"
 
 namespace core
 {
@@ -36,11 +37,17 @@ namespace core
 			TokenVector tokens;
 			std::string buffer;
 			buffer.reserve(8);
-			auto strpointer = str.begin();
+			std::string::const_iterator strpointer = str.begin();
+			std::string::const_iterator strendpointer = str.end();
 
-			Token t;
-			t.setType(identifyBuffer(buffer));
-			tokens.push_back(t);
+			for(; strpointer != strendpointer; ++strpointer)
+			{
+				Token t;
+				//t.setType(identifyBuffer(buffer));
+				t.setType(TOKEN_DEFAULT);
+				t.setValue(util::StringUtils::charToString(*strpointer));
+				tokens.push_back(t);
+			}
 
 			return tokens;
 		}
