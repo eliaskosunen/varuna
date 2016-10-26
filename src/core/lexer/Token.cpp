@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/lexer/Token.h"
 
+#include <string>
+
 namespace core
 {
 	namespace lexer
@@ -31,6 +33,28 @@ namespace core
 		TokenType Token::getType() const
 		{
 			return type;
+		}
+
+		std::string Token::toString() const
+		{
+			switch(type)
+			{
+			case TOKEN_DEFAULT:
+				return "DEFAULT";
+			case TOKEN_UNKNOWN:
+				return "UNKNOWN";
+			case TOKEN_IDENTIFIER:
+				return "IDENTIFIER";
+			case TOKEN_LITERAL:
+				return "LITERAL";
+			case TOKEN_OPERATOR:
+				return "OPERATOR";
+			case TOKEN_KEYWORD:
+				return "KEYWORD";
+			case TOKEN_CONTROL_OPERATOR:
+				return "CONTROL_OPERATOR";
+			}
+			return "DEFAULT";
 		}
 	}
 }

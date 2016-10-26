@@ -31,13 +31,16 @@ namespace core
 			return TOKEN_DEFAULT;
 		}
 
-		std::vector<Token> Lexer::run(std::string &str)
+		TokenVector Lexer::run(const std::string &str)
 		{
-			std::vector<Token> tokens;
+			TokenVector tokens;
 			std::string buffer;
 			buffer.reserve(8);
+			auto strpointer = str.begin();
 
-
+			Token t;
+			t.setType(identifyBuffer(buffer));
+			tokens.push_back(t);
 
 			return tokens;
 		}

@@ -26,13 +26,15 @@ namespace core
 {
 	namespace lexer
 	{
+		typedef std::vector<Token> TokenVector;
+
 		class Lexer
 		{
 			TokenType identifyBuffer(const std::string &buf);
 		public:
 			Lexer() {}
 
-			std::vector<Token> run(std::string &str);
+			TokenVector run(const std::string &str);
 		};
 	}
 }

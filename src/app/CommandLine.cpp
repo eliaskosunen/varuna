@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/CommandLineParser.h"
 #include "util/StreamReader.h"
 #include "core/preprocessor/Preprocessor.h"
+#include "core/lexer/Token.h"
+#include "core/lexer/Lexer.h"
 
 namespace app
 {
@@ -63,7 +65,16 @@ namespace app
 		std::cout << "Preprocessing\n";
 		core::preprocessor::Preprocessor prep;
 		prep.run(filec);
-		std::cout << "Preprocessed file:\n" << filec << "\n";
+		std::cout << "Preprocessed file:\n" << filec << "\n\n";
+
+		std::cout << "Lexer output:\n";
+
+		core::lexer::Lexer lexer;
+		core::lexer::TokenVector tokens = lexer.run(filec);
+		for(const auto &t : tokens)
+		{
+			std::cout << "Token(" << t.toString() << ")\n";
+		}
 	}
 
 	void CommandLine::help() const
