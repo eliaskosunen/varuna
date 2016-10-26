@@ -17,21 +17,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "core/lexer/Token.h"
-
 namespace core
 {
 	namespace lexer
 	{
-		class Lexer
+		class Token
 		{
 		public:
-			Lexer() {}
+			enum class TokenType
+			{
+				TOKEN_DEFAULT,
 
-			std::vector<Token> run(std::string &str);
+				TOKEN_IDENTIFIER,		/// Variables, functions etc.
+				TOKEN_LITERAL,			/// String literals, numbers
+				TOKEN_OPERATOR,			/// Operators: + - * / etc.
+				TOKEN_KEYWORD,			/// Reserved words: if while function etc.
+				TOKEN_CONTROL_OPERATOR	/// Operators without arguments: { } [ ]
+			} type;
+
+			Token(TokenType _type) : type(_type) {}
+			virtual ~Token() {}
 		};
 	}
 }

@@ -18,14 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/lexer/Lexer.h"
 
 #include <string>
+#include <vector>
+
+#include "core/lexer/Token.h"
 
 namespace core
 {
 	namespace lexer
 	{
-		void Lexer::run(std::string &str)
+		std::vector<Token> Lexer::run(std::string &str)
 		{
-			
+			std::vector<Token> tokens;
+			return tokens;
 		}
 	}
 }
