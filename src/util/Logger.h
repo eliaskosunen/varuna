@@ -15,20 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch/catch.hpp"
+#pragma once
 
-namespace tests
-{
-    inline unsigned int factorial(unsigned int number) {
-        return number > 1 ? factorial(number-1) * number : 1;
-    }
-}
+#include "spdlog/spdlog.h"
 
-TEST_CASE("General test", "[factorial]")
+namespace util
 {
-    REQUIRE(tests::factorial(0) == 1);
-    REQUIRE(tests::factorial(1) == 1);
-    REQUIRE(tests::factorial(2) == 2);
-    REQUIRE(tests::factorial(3) == 6);
-    REQUIRE(tests::factorial(10) == 3628800);
+	extern std::shared_ptr<spdlog::logger> logger;
 }

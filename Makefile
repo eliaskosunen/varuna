@@ -4,7 +4,7 @@ CC = gcc
 CXX = g++
 CXXFLAGS := -O -g -std=c++11 -Wall -pedantic
 LINKFLAGS := -O -g
-INCLUDE_DIRS := -Iinclude -Isrc -isystem ext/include
+INCLUDE_DIRS := -Ithird-party/include -Isrc -isystem ext/include
 LIB_DIRS := -Lext/lib
 
 VERSION :=

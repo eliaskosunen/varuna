@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstring>
 
 #include "util/StringUtils.h"
+#include "util/Logger.h"
 
 namespace core
 {
@@ -41,6 +42,7 @@ namespace core
 				if(commentSymbolPos != 0)
 				{
 					int pos = commentSymbolPos - rowCstr;
+					util::logger->info("pos: {}", pos);
 					row.erase(row.begin() + pos, row.end());
 				}
 
