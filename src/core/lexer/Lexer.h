@@ -38,7 +38,7 @@ namespace core
 		public:
 			Lexer() {}
 
-			TokenVector run(const std::string &str);
+			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
 		};
 	}
 }

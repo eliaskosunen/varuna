@@ -90,7 +90,12 @@ namespace app
 
 		util::logger->debug("Starting lexer.");
 		core::lexer::Lexer lexer;
-		core::lexer::TokenVector tokens = lexer.run(code);
+		bool lexerError = false;
+		core::lexer::TokenVector tokens = lexer.run(code, lexerError, file);
+		if(lexerError)
+		{
+			return;
+		}
 		util::logger->debug("Lexing finished.");
 		for(const auto &t : tokens)
 		{

@@ -87,7 +87,7 @@ namespace core
 			return false;
 		}
 
-		TokenVector Lexer::run(const std::string &str)
+		TokenVector Lexer::run(const std::string &str, bool &error, const std::string &filename)
 		{
 			TokenVector tokens;
 			std::string buffer;
@@ -95,6 +95,8 @@ namespace core
 			std::string::const_iterator strpointer = str.begin();
 			const std::string::const_iterator strendpointer = str.end();
 			Token currentToken;
+			unsigned int currentLine = 1;
+			error = false;
 
 			for(; strpointer != strendpointer; ++strpointer)
 			{
@@ -105,127 +107,134 @@ namespace core
 				tokens.push_back(t);*/
 
 				const char currentChar = *strpointer;
-				
-				std::cout << "\ncurrentChar: '" << currentChar << "'\n";
+
+				util::loggerBasic->trace("");
+				util::logger->trace("Current character: '{}'", currentChar);
+
+				if(currentChar == '\n')
+				{
+					++currentLine;
+				}
 
 				// Empty buffer
 				// Either start of file, or a new token
 				if(buffer.empty())
 				{
-					std::cout << "buffer empty: '" << buffer << "'\n";
+					util::logger->trace("Buffer is empty");
 					// Whitespace, skip
 					if(util::StringUtils::isCharWhitespace(currentChar))
 					{
-						std::cout << "currentChar is whitespace: '" << currentChar << "'\n";
+						util::logger->trace("Current character is whitespace");
 						continue;
 					}
 					// Number literals
 					// '-' to detect negative numbers
 					if(std::isdigit(currentChar) || *strpointer == '-')
 					{
-						std::cout << "currentChar is number literal: '" << currentChar << "'\n";
+						util::logger->trace("Current character is a number literal");
 						currentToken.setType(TOKEN_LITERAL_NUMBER);
 						buffer.push_back(currentChar);
-						std::cout << "pushed buffer: '" << buffer << "'\n";
+						util::logger->trace("Pushed the current character into the buffer. Buffer now: '{}'", buffer);
 						continue;
 					}
 					// Control operator
 					if(isControlOperator(currentChar))
 					{
-						std::cout << "currentChar is control operator: '" << currentChar << "'\n";
+						util::logger->trace("Current character is a control operator");
 						currentToken.setType(TOKEN_CONTROL_OPERATOR);
 						buffer.push_back(currentChar);
 						currentToken.setValue(buffer);
 						tokens.push_back(currentToken);
-						std::cout << "pushed buffer and token: '" << buffer << "'\n";
+						util::logger->trace("Pushed token into the token list");
 
 						currentToken.reset();
 						buffer.clear();
-						std::cout << "cleared buffer: '" << buffer << "'\n";
+						util::logger->trace("Cleared buffer");
 						continue;
 					}
 					// Argument operator
 					if(isArgOperator(currentChar))
 					{
-						std::cout << "currentChar is arg operator: '" << currentChar << "'\n";
+						util::logger->trace("Current character is an argument operator");
 						currentToken.setType(TOKEN_ARG_OPERATOR);
 						buffer.push_back(currentChar);
 						currentToken.setValue(buffer);
 						tokens.push_back(currentToken);
-						std::cout << "pushed buffer and token: '" << buffer << "'\n";
+						util::logger->trace("Pushed token into the token list");
 
 						currentToken.reset();
 						buffer.clear();
-						std::cout << "cleared buffer: '" << buffer << "'\n";
+						util::logger->trace("Cleared buffer");
 						continue;
 					}
 					if(isalpha(currentChar) || currentChar == '_')
 					{
-						std::cout << "currentChar is keyword or identifier: '" << currentChar << "'\n";
+						util::logger->trace("Current character is either a keyword or an identifier");
 						currentToken.setType(TOKEN_KEYWORD_OR_IDENTIFIER);
 						buffer.push_back(currentChar);
-						std::cout << "pushed buffer: '" << buffer << "'\n";
+						util::logger->trace("Pushed current character into the buffer. Buffer now: '{}'", buffer);
 						continue;
 					}
-					std::cout << "currentChar is unknown: '" << currentChar << "'\n";
+					util::logger->trace("Current character is an unknown type");
 					currentToken.setType(TOKEN_UNKNOWN);
 					buffer.push_back(currentChar);
-					std::cout << "pushed buffer: '" << buffer << "'\n";
+					util::logger->trace("Pushed token into the token list");
 					continue;
 				}
 				// Buffer not empty
 				else
 				{
-					std::cout << "buffer not empty: '" << buffer << "'\n";
+					util::logger->trace("The buffer is not empty. Buffer: '{}'", buffer);
 					// Whitespace or terminating operator
 					// Token over
 					if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
 					{
-						std::cout << "currentChar is whitespace or terminating operator: '" << currentChar << "'\n";
+						util::logger->trace("Current character is either whitespace or a terminating operator");
 						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
 						{
 							if(isKeyword(buffer))
 							{
 								currentToken.setType(TOKEN_KEYWORD);
-								std::cout << "currentToken is keyword: '" << buffer << "'\n";
+								util::logger->trace("Current token is a keyword");
 							}
 							else
 							{
 								currentToken.setType(TOKEN_IDENTIFIER);
-								std::cout << "currentToken is identifier: '" << buffer << "'\n";
+								util::logger->trace("Current token is an identifier");
 							}
 						}
 
 						currentToken.setValue(buffer);
 						tokens.push_back(currentToken);
-						std::cout << "pushed token: '" << buffer << "'\n";
+						util::logger->trace("Pushed token into the token list");
 
 						currentToken.reset();
 						buffer.clear();
-						std::cout << "cleared buffer: '" << buffer << "'\n";
+						util::logger->trace("Cleared buffer");
 
 						if(isTerminatingOperator(currentChar))
 						{
-							std::cout << "currentChar is terminating operator: '" << currentChar << "'\n";
+							util::logger->trace("Current character is a terminating operator");
 							if(isControlOperator(currentChar))
 							{
-								std::cout << "currentChar is control operator: '" << currentChar << "'\n";
+								util::logger->trace("Current character is a control operator");
 								currentToken.setType(TOKEN_CONTROL_OPERATOR);
 							}
 							else if(isArgOperator(currentChar))
 							{
-								std::cout << "currentChar is arg operator: '" << currentChar << "'\n";
+								util::logger->trace("Current character is an argument operator");
 								currentToken.setType(TOKEN_ARG_OPERATOR);
 							}
 							else
 							{
-								std::cout << "invalid operator: '" << currentChar << "'\n";
-								// TODO: Raise error for invalid operator
+								util::logger->error("Lexer Error: Invalid operator: '{}'. On {}:{}", currentChar, filename, currentLine);
+								error = true;
+								return tokens;
 							}
 
 							currentToken.setValue(util::StringUtils::charToString(currentChar));
 							tokens.push_back(currentToken);
-							std::cout << "pushed token: '" << currentChar << "'\n";
+							util::logger->trace("Pushed token into the token list");
 
 							currentToken.reset();
 						}
@@ -233,38 +242,38 @@ namespace core
 					}
 					else
 					{
-						std::cout << "currentChar is not whitespace or terminating operator: '" << currentChar << "'\n";
+						util::logger->trace("Current character is NOT whitespace or a terminating operator");
 						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
 						{
-							std::cout << "currentToken is keyword/identifier: '" << buffer << "'\n";
+							util::logger->trace("Current token is a keyword or an identifier");
 							if(isalnum(currentChar) || currentChar == '_' || currentChar == '.')
 							{
 								buffer.push_back(currentChar);
-								std::cout << "pushed buffer: '" << buffer << "'\n";
+								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
 								continue;
 							}
 							else
 							{
-								std::cout << "invalid keyword/identifier: '" << currentChar << "'\n";
-								// TODO: Raise error for invalid keyword/identifier
-								continue;
+								util::logger->error("Lexer Error: Invalid keyword/identifier: '{}'. On {}:{}", currentChar, filename, currentLine);
+								error = true;
+								return tokens;
 							}
 						}
 
 						if(currentToken.getType() == TOKEN_LITERAL_NUMBER)
 						{
-							std::cout << "currentToken is number literal: '" << buffer << "'\n";
+							util::logger->trace("Current token is a number literal");
 							if(isdigit(currentChar))
 							{
 								buffer.push_back(currentChar);
-								std::cout << "pushed buffer: '" << buffer << "'\n";
+								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
 								continue;
 							}
 							else
 							{
-								std::cout << "invalid number: '" << currentChar << "'\n";
-								// TODO: Raise error for number
-								continue;
+								util::logger->error("Lexer Error: Invalid number literal: '{}'. On {}:{}", currentChar, filename, currentLine);
+								error = true;
+								return tokens;
 							}
 						}
 					}
@@ -286,7 +295,7 @@ namespace core
 				continue;
 			}
 
-			std::cout << "\n";
+			util::logger->trace("\n");
 
 			return tokens;
 		}

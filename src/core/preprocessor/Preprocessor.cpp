@@ -49,11 +49,11 @@ namespace core
 				}
 
 				util::StringUtils::replaceAll(row, "\t", " ");
-				util::StringUtils::replaceAll(row, "\n", " ");
-				util::StringUtils::replaceAll(row, "\r", "");
+				util::StringUtils::replaceAll(row, "\r", " ");
 				util::StringUtils::trim(row);
 				util::StringUtils::trimConsecutiveSpaces(row);
 				util::logger->trace("Finished row, contents: '{}'", row);
+				row.push_back('\n');
 
 				processed.append(row);
 			}
