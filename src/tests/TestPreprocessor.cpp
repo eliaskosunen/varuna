@@ -20,9 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "core/preprocessor/Preprocessor.h"
+#include "util/Logger.h"
 
 TEST_CASE("Test Preprocessor", "[preprocessor]")
 {
+	util::initLogger();
 	core::preprocessor::Preprocessor prep;
 	REQUIRE(prep.run("a") == "a");
 

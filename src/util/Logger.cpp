@@ -28,6 +28,11 @@ namespace util
 
 	void initLogger()
 	{
+		static bool set = false;
+		if(set)
+		{
+			return;
+		}
 		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
 	}
 }
