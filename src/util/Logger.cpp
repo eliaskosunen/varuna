@@ -34,7 +34,8 @@ namespace util
 		{
 			return;
 		}
-		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
-		spdlog::set_pattern("%v");
+		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] [%n] %v");
+		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
+		loggerBasic->set_pattern("%v");
 	}
 }

@@ -105,7 +105,6 @@ namespace core
 				tokens.push_back(t);*/
 
 				const char currentChar = *strpointer;
-
 				
 				std::cout << "\ncurrentChar: '" << currentChar << "'\n";
 
