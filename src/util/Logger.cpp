@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
-	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("console");
+	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_st("console_color");
+	std::shared_ptr<spdlog::logger> loggerBasic = spdlog::stdout_logger_st("console_nocolor");
 
 	void initLogger()
 	{
@@ -34,5 +35,6 @@ namespace util
 			return;
 		}
 		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
+		spdlog::set_pattern("%v");
 	}
 }

@@ -39,10 +39,12 @@ namespace core
 				std::string row = *it;
 				const char *rowCstr = row.c_str();
 				const char *commentSymbolPos = std::strchr(rowCstr, '#');
+				util::logger->trace("New row, contents: '{}'", row);
+
 				if(commentSymbolPos != 0)
 				{
 					int pos = commentSymbolPos - rowCstr;
-					util::logger->info("pos: {}", pos);
+					util::logger->trace("Comment symbol found, position: {}", pos);
 					row.erase(row.begin() + pos, row.end());
 				}
 
@@ -51,6 +53,7 @@ namespace core
 				util::StringUtils::replaceAll(row, "\r", "");
 				util::StringUtils::trim(row);
 				util::StringUtils::trimConsecutiveSpaces(row);
+				util::logger->trace("Finished row, contents: '{}'", row);
 
 				processed.append(row);
 			}

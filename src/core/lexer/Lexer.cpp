@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/lexer/Token.h"
 #include "util/StringUtils.h"
+#include "util/Logger.h"
 
 namespace core
 {
@@ -105,6 +106,7 @@ namespace core
 
 				const char currentChar = *strpointer;
 
+				
 				std::cout << "\ncurrentChar: '" << currentChar << "'\n";
 
 				// Empty buffer
