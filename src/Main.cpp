@@ -18,9 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 #include "app/CommandLine.h"
+#include "util/Logger.h"
 
 int main(int argc, char **argv)
 {
+	util::initLogger();
 	app::CommandLine cl(argc, argv);
 	cl.run();
 	return 0;

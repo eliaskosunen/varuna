@@ -22,4 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace util
 {
 	extern std::shared_ptr<spdlog::logger> logger;
+
+	void initLogger();
 }
