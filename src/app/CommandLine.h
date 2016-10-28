@@ -30,7 +30,7 @@ namespace app
 
 		void help() const;
 		void version() const;
-		void license() const;
+		void copyright() const;
 
 	public:
 		CommandLine(int &argc, char **argv);
@@ -38,5 +38,5 @@ namespace app
 
 		void run() const;
 	};
-	
+
 }

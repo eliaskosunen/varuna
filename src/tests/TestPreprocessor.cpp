@@ -15,14 +15,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch.hpp"
+#include "catch/catch.hpp"
 
 #include <string>
 
 #include "core/preprocessor/Preprocessor.h"
+#include "util/Logger.h"
 
 TEST_CASE("Test Preprocessor", "[preprocessor]")
 {
+	util::initLogger();
 	core::preprocessor::Preprocessor prep;
 	REQUIRE(prep.run("a") == "a");
 

@@ -15,30 +15,27 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "util/Logger.h"
 
 #include <string>
-#include <vector>
+#include <iostream>
 
-#include "core/lexer/Token.h"
+#include "spdlog/spdlog.h"
 
-namespace core
+namespace util
 {
-	namespace lexer
+	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_st("console_color");
+	std::shared_ptr<spdlog::logger> loggerBasic = spdlog::stdout_logger_st("console_nocolor");
+
+	void initLogger()
 	{
-		typedef std::vector<Token> TokenVector;
-
-		class Lexer
+		static bool set = false;
+		if(set)
 		{
-			bool isKeyword(const std::string &buf);
-			bool isArgOperator(const char &curr);
-			bool isControlOperator(const char &curr);
-			bool isTerminatingOperator(const char &curr);
-
-		public:
-			Lexer() {}
-
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
-		};
+			return;
+		}
+		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] [%n] %v");
+		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
+		loggerBasic->set_pattern("%v");
 	}
 }

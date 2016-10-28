@@ -2,9 +2,9 @@ APPNAME = varuna
 
 CC = gcc
 CXX = g++
-CXXFLAGS := -O -g -std=c++11 -Wall -pedantic
+CXXFLAGS := -pthread -O -g -std=c++11 -Wall -pedantic
 LINKFLAGS := -O -g
-INCLUDE_DIRS := -Iinclude -Isrc -isystem ext/include
+INCLUDE_DIRS := -Ithird-party/include -Isrc -isystem ext/include
 LIB_DIRS := -Lext/lib
 
 VERSION :=
@@ -16,11 +16,11 @@ FILES_DEP := $(patsubst src/%,build/%.dep,$(FILES_CPP))
 
 SRC := $(filter-out src/tests/%,$(FILES_CPP))
 BIN := bin/$(APPNAME)
-LIBS :=
+LIBS := -pthread
 
 TESTS_SRC := $(wildcard src/tests/*.cpp)
 TESTS_BIN := bin/test
-TESTS_LIBS :=
+TESTS_LIBS := -pthread
 
 # Hack for OS differences.
 # On Windows, echo '1' produces literally '1' instead of 1.
@@ -113,10 +113,8 @@ build/tests/%.dep: src/tests/% | dirs
 # Compilation
 build/%.o: src/% build/%.dep | dirs
 	@echo [CXX] $<
-	@echo [CXX COMPILER]: $(CXX)
 	@$(CXX) $(CXXFLAGS) $(CXXFLAGS2) $(INCLUDE_DIRS) $(CXX_VER) $< -c -o $@
 
 build/tests/%.o: src/tests/% build/tests/%.dep | dirs
 	@echo [CXX TESTS] $<
-	@echo [CXX COMPILER]: $(CXX)
 	@$(CXX) $(CXXFLAGS) $(CXXFLAGS2) $(INCLUDE_DIRS) $(CXX_VER) $< -c -o $@

@@ -17,28 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "spdlog/spdlog.h"
 
-#include "core/lexer/Token.h"
-
-namespace core
+namespace util
 {
-	namespace lexer
-	{
-		typedef std::vector<Token> TokenVector;
+	extern std::shared_ptr<spdlog::logger> logger;
+	extern std::shared_ptr<spdlog::logger> loggerBasic;
 
-		class Lexer
-		{
-			bool isKeyword(const std::string &buf);
-			bool isArgOperator(const char &curr);
-			bool isControlOperator(const char &curr);
-			bool isTerminatingOperator(const char &curr);
-
-		public:
-			Lexer() {}
-
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
-		};
-	}
+	void initLogger();
 }

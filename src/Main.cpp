@@ -16,12 +16,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
+#include <stdexcept>
 
 #include "app/CommandLine.h"
+#include "util/Logger.h"
 
 int main(int argc, char **argv)
 {
-	app::CommandLine cl(argc, argv);
-	cl.run();
-	return 0;
+	try
+	{
+		util::initLogger();
+		app::CommandLine cl(argc, argv);
+		cl.run();
+		return 0;
+	}
+	catch(const spdlog::spdlog_ex &e)
+	{
+		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
+	}
+	catch(const std::exception &e)
+	{
+		std::cerr << "EXCEPTION: " << e.what() << "\n";
+	}
+	return 1;
 }

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstring>
 
 #include "util/StringUtils.h"
+#include "util/Logger.h"
 
 namespace core
 {
@@ -38,17 +39,21 @@ namespace core
 				std::string row = *it;
 				const char *rowCstr = row.c_str();
 				const char *commentSymbolPos = std::strchr(rowCstr, '#');
+				util::logger->trace("New row, contents: '{}'", row);
+
 				if(commentSymbolPos != 0)
 				{
 					int pos = commentSymbolPos - rowCstr;
+					util::logger->trace("Comment symbol found, position: {}", pos);
 					row.erase(row.begin() + pos, row.end());
 				}
 
 				util::StringUtils::replaceAll(row, "\t", " ");
-				util::StringUtils::replaceAll(row, "\n", " ");
-				util::StringUtils::replaceAll(row, "\r", "");
+				util::StringUtils::replaceAll(row, "\r", " ");
 				util::StringUtils::trim(row);
 				util::StringUtils::trimConsecutiveSpaces(row);
+				util::logger->trace("Finished row, contents: '{}'", row);
+				row.push_back('\n');
 
 				processed.append(row);
 			}

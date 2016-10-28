@@ -1,11 +1,11 @@
 # code.txt
 import IO;
-import System;
+#import System;
 
 function main(): Void
 {
 	Integer number;
 	number = io.stdin.getln(); # Get user input
 	IO.stdout.writeln(number);
-	System.errorlevel(0);
+	#System.errorlevel(0f0);
 }
