@@ -14,6 +14,7 @@ env:
 before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    - sudo add-apt-repository "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main"
     - sudo apt-get update
     - sudo apt-get install -qq $CXX
 
