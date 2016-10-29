@@ -33,14 +33,12 @@ TEST_CASE("Test Preprocessor", "[preprocessor]")
 		REQUIRE(prep.run(" a ") == "a");
 		REQUIRE(prep.run("  a ") == "a");
 		REQUIRE(prep.run("\ta\t") == "a");
-		REQUIRE(prep.run("\na\n") == "a");
-		REQUIRE(prep.run("\n\t a \t\n") == "a");
 	}
 
 	SECTION("Test comments")
 	{
 		REQUIRE(prep.run("foo#bar") == "foo");
 		REQUIRE(prep.run("foo #bar") == "foo");
-		REQUIRE(prep.run("#bar\n\tfoo") == "foo");
+		REQUIRE(prep.run("#bar\n\tfoo") == "\nfoo");
 	}
 }

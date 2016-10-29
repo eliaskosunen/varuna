@@ -99,7 +99,7 @@ namespace app
 		util::logger->debug("Lexing finished.");
 		for(const auto &t : tokens)
 		{
-			util::logger->trace("Token: ({}): {}", t.typeToString(), t.getValue());
+			util::logger->trace("Token: ({}: {}): {}", t.categoryToString(), t.typeToString(), t.getValue());
 		}
 	}
 

@@ -58,6 +58,13 @@ namespace core
 				processed.append(row);
 			}
 
+			if(processed.length() > 0)
+			{
+				if(processed.back() == '\n')
+				{
+					processed.pop_back();
+				}
+			}
 			return processed;
 		}
 	}

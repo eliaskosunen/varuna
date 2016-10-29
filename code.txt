@@ -1,11 +1,17 @@
 # code.txt
 import IO;
-#import System;
 
-function main(): Void
+function main(List of String args): Void
 {
 	Integer number;
 	number = io.stdin.getln(); # Get user input
 	IO.stdout.writeln(number);
-	#System.errorlevel(0f0);
+	if(number == 42 and true != false)
+	{
+
+	}
+	foreach(args as String arg)
+	{
+		IO.stdout.writeln(arg);
+	}
 }
