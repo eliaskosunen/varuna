@@ -13,6 +13,7 @@ env:
 
 before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update
     - sudo apt-get install -qq $CXX
 
