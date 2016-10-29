@@ -16,9 +16,9 @@ before_install:
     - sudo apt-get update
     - sudo apt-get install build-essential
     - sudo apt-get install llvm
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y --force-yes
-    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" -y --force-yes
-    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main" -y --force-yes
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test --force-yes
+    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" --force-yes
+    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main" --force-yes
     - sudo apt-get update
     - sudo apt-get install -qq $CXX
 
