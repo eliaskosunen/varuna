@@ -14,12 +14,10 @@ env:
 before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
     - sudo apt-get update
-    - sudo apt-get install build-essential
-    - sudo apt-get install llvm
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main" -y
+    - sudo cat "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main" >> /etc/apt/sources.list
     - sudo apt-get update
-    - sudo apt-get install -qq $CXX
+    - sudo apt-get -qq --assume-yes install $CXX lldb-3.8
 
 script:
     - ./build.sh ${COMPILERS} -nohtml -notests
