@@ -13,7 +13,7 @@ env:
 
 before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
-    - sudo apt-get update
+    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo cat "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main" >> /etc/apt/sources.list
     - sudo apt-get update
