@@ -17,10 +17,10 @@ before_install:
     - sudo apt-get install build-essential
     - sudo apt-get install llvm
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main"
-    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main"
+    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" -y
+    - sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main" -y
     - sudo apt-get update
     - sudo apt-get install -qq $CXX
 
 script:
-    - ./build.sh ${COMPILERS} -nohtml
+    - ./build.sh ${COMPILERS} -nohtml -notests
