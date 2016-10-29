@@ -17,7 +17,7 @@ before_install:
     - sudo apt-key update
     - sudo apt-get update
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
+    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
     - sudo apt-key update
     - sudo apt-get update
     - sudo apt-get -qq --assume-yes install $CXX lldb-3.8
