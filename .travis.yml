@@ -1,9 +1,16 @@
 language: generic
 os:
-  - linux
+    - linux
 
 git:
-  depth: 5
+    depth: 5
+
+env:
+    global:
+        # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+        #   via the "travis encrypt" command using the project repo's public key
+        - secure: "nzSjAeFRieL9gxYQ9HVrFWPakLoYWK8jeiHxBRa5zAobsz4hiVbqQoaae1ajQiyN/r2zlOs67cT2NlcVk/dMYKePLpxWCMI0zxJ/e/EfOLI3f6Iht4wIorE/y9dHKdJ7qtpNiMHtmLI1U22NiSgjpExVYUAMbUHTqBMAMe4Ya+SBPGFv6ROhos04SnIEE4S34Zh+Lcx3fqcSBn9R/pP7YdVQTYYSFOvGTx1k/52XlrtdGMI9+0d5+CDdc6lIO52xuZEx+9MHSLsjL7FjDTmtLkUG9DeVPrlf1XCvwzMJuWwzgSL6BzRQB0+B6mLaVA0NHIDZMD6u9pT/3tcATQKhrW7VV7rckNN9B5fOMLAN1ipbsvSsdyGmc3vDjMdS5ukRyX/9C2pgWlxPy1iSAnHpl1ldxtsbveRdeYR2ggKQ+qCdxoDUTQV63ZoQVVmrb81sWWbqYYuJkvVd1w6X/JxzlGU1MmVSNynhDsOS+wozEzdZLSWHau6zZHcNVAbRM9qPLd4/u9tdcKpNNNoBUj7BuNr/tGISMWVqRbCG8Q1pjYOAtGg1v01wgxNc3pCNVY1+JmhHqt7YI0FbdskaKugc0PdyJfM2jTyVM7kx7blm3QLH0nTcy899rPw8ClJmJY+SqobBajQeCn7Sv75aw6zGevhF6o3X2pIZ9rscDMXBoVA="
+
 
 matrix:
   include:
@@ -54,6 +61,16 @@ matrix:
         - COMPILERS="clang-3.8 clang++-3.8"
 
 before_install:
+    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
     - eval "${MATRIX_EVAL}"
+
+addons:
+  coverity_scan:
+    project:
+      name: "eliaskosunen/varuna"
+      description: "Varuna programming language"
+    notification_email: elias.kosunen@gmail.com
+    build_command: ./build.sh -nohtml -notests
+    branch_pattern: master
 
 script: ./build.sh ${COMPILERS} -nohtml -notests
