@@ -13,8 +13,12 @@ env:
 
 before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
+    - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+    - sudo apt-key update
+    - sudo apt-get update
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
+    - sudo apt-key update
     - sudo apt-get update
     - sudo apt-get -qq --assume-yes install $CXX lldb-3.8
 
