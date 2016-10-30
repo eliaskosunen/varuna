@@ -45,11 +45,11 @@ namespace core
 
 				// Datatypes
 				buf == "None" || buf == "Void" || buf == "Integer" || buf == "Float" ||
-				buf == "Decimal" || buf == "String" || buf == "Char" ||
+				buf == "Double" || buf == "Decimal" || buf == "String" || buf == "Char" ||
 				buf == "UInteger" || buf == "BigInteger" ||
 				buf == "Int8" || buf == "Int16" || buf == "Int32" || buf == "Int64" ||
 				buf == "UInt8" || buf == "UInt16" || buf == "UInt32" || buf == "UInt64" ||
-				buf == "List" || buf == "Dict" || buf == "Array" || buf == "LinkedList"
+				buf == "List" || buf == "Dict" || buf == "Array"
 			)
 			{
 				return true;
@@ -69,7 +69,7 @@ namespace core
 				buf == "!" || buf == "&&" || buf == "||" ||
 				buf == "{" || buf == "}" || buf == "(" || buf == ")" ||
 				buf == "[" || buf == "]" ||
-				buf == ":" || buf == ";"
+				buf == ":" || buf == ";" || buf == "."
 			)
 			{
 				return true;
@@ -86,7 +86,7 @@ namespace core
 				curr == '!' || curr == '&' || curr == '|' ||
 				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
 				curr == '[' || curr == ']' ||
-				curr == ':' || curr == ';'
+				curr == ':' || curr == ';' || curr == '.'
 			)
 			{
 				return true;
@@ -98,8 +98,8 @@ namespace core
 		{
 			if(
 				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
-				curr == '[' || curr == ']' ||
-				curr == ':' || curr == ';' || curr == '"'
+				curr == '[' || curr == ']' || curr == '"' ||
+				curr == ':' || curr == ';' || curr == '.'
 			)
 			{
 				return true;
@@ -155,13 +155,22 @@ namespace core
 					}
 					// Number literals
 					// '-' to detect negative numbers
-					if(std::isdigit(currentChar) || *strpointer == '-')
+					if(std::isdigit(currentChar) || currentChar == '-')
 					{
 						util::logger->trace("Current character is a number literal");
 						currentToken.setCategory(TOKEN_CAT_LITERAL);
 						currentToken.setType(TOKEN_LITERAL_DEFAULT_NUMBER);
 						buffer.push_back(currentChar);
 						util::logger->trace("Pushed the current character into the buffer. Buffer now: '{}'", buffer);
+						continue;
+					}
+					// String literal
+					if(currentChar == '"')
+					{
+						util::logger->trace("Current character is a string literal");
+						currentToken.setCategory(TOKEN_CAT_LITERAL);
+						currentToken.setType(TOKEN_LITERAL_STRING);
+						buffer.push_back(currentChar);
 						continue;
 					}
 					// Operator
@@ -229,13 +238,16 @@ namespace core
 
 						if(isTerminatingOperator(currentChar))
 						{
-							currentToken.setCategory(TOKEN_CAT_OPERATOR);
-							currentToken.setType(TOKEN_OPERATOR);
-							currentToken.setValue(util::StringUtils::charToString(currentChar));
-							tokens.push_back(currentToken);
-							util::logger->trace("Pushed token into the token list");
+							if(currentChar != '"')
+							{
+								currentToken.setCategory(TOKEN_CAT_OPERATOR);
+								currentToken.setType(TOKEN_OPERATOR);
+								currentToken.setValue(util::StringUtils::charToString(currentChar));
+								tokens.push_back(currentToken);
+								util::logger->trace("Pushed token into the token list");
 
-							currentToken.reset();
+								currentToken.reset();
+							}
 						}
 						continue;
 					}
@@ -245,7 +257,7 @@ namespace core
 						if(currentToken.getCategory() == TOKEN_CAT_WORD)
 						{
 							util::logger->trace("Current token is a word");
-							if(isalnum(currentChar) || currentChar == '_' || currentChar == '.')
+							if(isalnum(currentChar) || currentChar == '_')
 							{
 								buffer.push_back(currentChar);
 								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
@@ -274,6 +286,18 @@ namespace core
 								error = true;
 								return tokens;
 							}
+						}
+
+						if(currentToken.getType() == TOKEN_LITERAL_STRING)
+						{
+							if(buffer == "\"")
+							{
+								buffer.clear();
+							}
+							util::logger->trace("Current token is a string literal");
+							buffer.push_back(currentChar);
+							util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+							continue;
 						}
 
 						if(currentToken.getCategory() == TOKEN_CAT_OPERATOR)
