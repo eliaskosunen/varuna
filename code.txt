@@ -16,4 +16,6 @@ function main(List of String args): Void
 	}
 	Integer number2 = -2;
 	String stringtest = "Test String \n for function \" \\ ;";
+	Char chartest = 'A';
+	Char chartest2 = '\n';
 }

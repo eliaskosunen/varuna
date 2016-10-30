@@ -173,6 +173,15 @@ namespace core
 						buffer.push_back(currentChar);
 						continue;
 					}
+					// Character literal
+					if(currentChar == '\'')
+					{
+						util::logger->trace("Current character is a character literal");
+						currentToken.setCategory(TOKEN_CAT_LITERAL);
+						currentToken.setType(TOKEN_LITERAL_CHAR);
+						buffer.push_back(currentChar);
+						continue;
+					}
 					// Operator
 					if(isBeginningOfOperator(currentChar))
 					{
@@ -235,6 +244,45 @@ namespace core
 						}
 
 						if(buffer == "\"")
+						{
+							buffer.clear();
+						}
+
+						buffer.push_back(currentChar);
+						util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+
+						continue;
+					}
+					else if(currentToken.getType() == TOKEN_LITERAL_CHAR)
+					{
+						util::logger->trace("Current token is a character literal");
+
+						const bool currentCharIsUnescapedQuote = (currentChar == '\'' && *(strpointer - 1) != '\\');
+
+						if(*(strpointer - 1) == '\\')
+						{
+							if(currentChar == '\'' || currentChar == '\\')
+							{
+								buffer.pop_back();
+							}
+						}
+
+						if(currentCharIsUnescapedQuote)
+						{
+							util::logger->trace("Current character is \"'\"");
+
+							currentToken.setValue(buffer);
+							tokens.push_back(currentToken);
+							util::logger->trace("Pushed token into the token list");
+
+							currentToken.reset();
+							buffer.clear();
+							util::logger->trace("Cleared buffer");
+
+							continue;
+						}
+
+						if(buffer == "'")
 						{
 							buffer.clear();
 						}
