@@ -15,5 +15,5 @@ function main(List of String args): Void
 		IO.stdout.writeln(arg);
 	}
 	Integer number2 = -2;
-	String stringtest = "TestString";
+	String stringtest = "Test String \n for function \" \\ ;";
 }

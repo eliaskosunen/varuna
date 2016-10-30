@@ -205,7 +205,46 @@ namespace core
 					util::logger->trace("The buffer is not empty. Buffer: '{}'", buffer);
 					// Whitespace or terminating operator
 					// Token over
-					if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
+					if(currentToken.getType() == TOKEN_LITERAL_STRING)
+					{
+						util::logger->trace("Current token is a string literal");
+
+						const bool currentCharIsUnescapedQuotes = (currentChar == '"' && *(strpointer - 1) != '\\');
+
+						if(*(strpointer - 1) == '\\')
+						{
+							if(currentChar == '"' || currentChar == '\\')
+							{
+								buffer.pop_back();
+							}
+						}
+
+						if(currentCharIsUnescapedQuotes)
+						{
+							util::logger->trace("Current character is a '\"'");
+
+							currentToken.setValue(buffer);
+							tokens.push_back(currentToken);
+							util::logger->trace("Pushed token into the token list");
+
+							currentToken.reset();
+							buffer.clear();
+							util::logger->trace("Cleared buffer");
+
+							continue;
+						}
+
+						if(buffer == "\"")
+						{
+							buffer.clear();
+						}
+
+						buffer.push_back(currentChar);
+						util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+
+						continue;
+					}
+					else if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
 					{
 						util::logger->trace("Current character is either whitespace or a terminating operator");
 						if(currentToken.getCategory() == TOKEN_CAT_WORD)
@@ -238,22 +277,19 @@ namespace core
 
 						if(isTerminatingOperator(currentChar))
 						{
-							if(currentChar != '"')
-							{
-								currentToken.setCategory(TOKEN_CAT_OPERATOR);
-								currentToken.setType(TOKEN_OPERATOR);
-								currentToken.setValue(util::StringUtils::charToString(currentChar));
-								tokens.push_back(currentToken);
-								util::logger->trace("Pushed token into the token list");
+							currentToken.setCategory(TOKEN_CAT_OPERATOR);
+							currentToken.setType(TOKEN_OPERATOR);
+							currentToken.setValue(util::StringUtils::charToString(currentChar));
+							tokens.push_back(currentToken);
+							util::logger->trace("Pushed token into the token list");
 
-								currentToken.reset();
-							}
+							currentToken.reset();
 						}
 						continue;
 					}
 					else
 					{
-						util::logger->trace("Current character is NOT whitespace or a terminating operator");
+						util::logger->trace("Current character is not whitespace or a terminating operator");
 						if(currentToken.getCategory() == TOKEN_CAT_WORD)
 						{
 							util::logger->trace("Current token is a word");
