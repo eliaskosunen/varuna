@@ -69,7 +69,7 @@ namespace core
 				buf == "!" || buf == "&&" || buf == "||" ||
 				buf == "{" || buf == "}" || buf == "(" || buf == ")" ||
 				buf == "[" || buf == "]" ||
-				buf == ":" || buf == ";" || buf == "."
+				buf == ":" || buf == ";" || buf == "." || buf == ","
 			)
 			{
 				return true;
@@ -86,7 +86,7 @@ namespace core
 				curr == '!' || curr == '&' || curr == '|' ||
 				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
 				curr == '[' || curr == ']' ||
-				curr == ':' || curr == ';' || curr == '.'
+				curr == ':' || curr == ';' || curr == '.' || curr == ','
 			)
 			{
 				return true;
@@ -99,7 +99,7 @@ namespace core
 			if(
 				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
 				curr == '[' || curr == ']' || curr == '"' ||
-				curr == ':' || curr == ';' || curr == '.'
+				curr == ':' || curr == ';' || curr == '.' || curr == ','
 			)
 			{
 				return true;
@@ -315,6 +315,21 @@ namespace core
 							}
 						}
 
+						if(currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER)
+						{
+							currentToken.setType(TOKEN_LITERAL_INTEGER);
+						}
+
+						if(currentChar == '.' && (
+							currentToken.getType() == TOKEN_LITERAL_INTEGER ||
+							currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER ||
+							currentToken.getType() == TOKEN_LITERAL_FLOAT
+						))
+						{
+							buffer.push_back(currentChar);
+							continue;
+						}
+
 						currentToken.setValue(buffer);
 						tokens.push_back(currentToken);
 						util::logger->trace("Pushed token into the token list");
@@ -355,10 +370,16 @@ namespace core
 							}
 						}
 
-						if(currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER)
+						if(currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER || currentToken.getType() == TOKEN_LITERAL_INTEGER || currentToken.getType() == TOKEN_LITERAL_INTEGER)
 						{
 							util::logger->trace("Current token is a number literal");
-							if(isdigit(currentChar))
+
+							if(currentChar == '.')
+							{
+								currentToken.setType(TOKEN_LITERAL_FLOAT);
+							}
+
+							if(isdigit(currentChar) || currentChar == '.')
 							{
 								buffer.push_back(currentChar);
 								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
