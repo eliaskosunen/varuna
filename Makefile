@@ -1,8 +1,9 @@
 APPNAME = varuna
 
+STD := 11
 CC = gcc
 CXX = g++
-CXXFLAGS := -pthread -O -g -std=c++14 -Wall -pedantic -Wextra -Werror -fprofile-arcs -ftest-coverage
+CXXFLAGS := -pthread -O -g -std=c++$(STD) -Wall -pedantic -Wextra -Werror -fprofile-arcs -ftest-coverage
 LINKFLAGS := -O -g
 INCLUDE_DIRS := -Ithird-party/include -Isrc -isystem ext/include
 LIB_DIRS := -Lext/lib
@@ -84,7 +85,7 @@ dirs: | bin/ build/ html/ $(patsubst src/%,build/%,build/tests/%$(sort $(dir $(S
 # Documentation build with Doxygen
 html: Doxyfile $(FILES_CPP) $(FILES_HPP) | html/
 	@echo [DOXYGEN]
-	@doxygen > html/doxygen.log
+	@doxygen 1> html/doxygen.log 2> html/doxygen-error.log
 
 # Build rules for binaries.
 $(BIN): $(patsubst src/%,build/%.o,$(SRC))

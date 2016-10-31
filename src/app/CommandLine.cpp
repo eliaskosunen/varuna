@@ -26,10 +26,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/lexer/Token.h"
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
+#include "util/Compatibility.h"
 
 namespace app
 {
-	CommandLine::CommandLine(int &argc, char **argv) : clp(std::make_unique<util::CommandLineParser>(argc, argv))
+	CommandLine::CommandLine(const int &argc, char **argv) : clp(util::make_unique<util::CommandLineParser>(argc, argv))
 	{
 
 	}

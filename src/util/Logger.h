@@ -21,8 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
+	/**
+	 * Colored and stylized logger.
+	 * @see The spdlog documentation
+	 */
 	extern std::shared_ptr<spdlog::logger> logger;
+	/**
+	 * Unstylized logger.
+	 * @see The spdlog documentation
+	 */
 	extern std::shared_ptr<spdlog::logger> loggerBasic;
 
+	/**
+	 * Set logger styles
+	 */
 	void initLogger();
 }

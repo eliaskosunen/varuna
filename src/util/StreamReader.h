@@ -22,12 +22,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
+	/**
+	 * Read an istream
+	 */
 	class StreamReader
 	{
 	public:
+		/**
+		 * Constructor
+		 */
 		StreamReader() {}
 
+		/**
+		 * Read an istream
+		 * @param  stream Stream to read
+		 * @return        Contents of the stream
+		 */
 		std::string readStream(std::istream &stream) const;
+		/**
+		 * Read a file
+		 * @param  filename Name of the file to read
+		 * @return          Contents of the file
+		 */
 		std::string readFile(const std::string &filename) const;
 	};
 }

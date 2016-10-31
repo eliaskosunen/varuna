@@ -26,7 +26,7 @@ namespace util
 
 	const std::string CommandLineParser::DEFAULT = "";
 
-	CommandLineParser::CommandLineParser(int &argc, char **argv)
+	CommandLineParser::CommandLineParser(const int &argc, char **argv)
 	{
 		for(int i = 1; i < argc; ++i)
 		{
@@ -34,7 +34,7 @@ namespace util
 		}
 	}
 
-	CommandLineParser::CommandLineParser(int &argc, const char **argv)
+	CommandLineParser::CommandLineParser(const int &argc, const char **argv)
 	{
 		for(int i = 1; i < argc; ++i)
 		{
@@ -66,5 +66,5 @@ namespace util
 	{
 		return tokens.empty();
 	}
-	
+
 }

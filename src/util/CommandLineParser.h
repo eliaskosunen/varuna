@@ -34,8 +34,8 @@ namespace util
 	public:
 		static const std::string DEFAULT;
 
-		CommandLineParser(int &argc, char **argv);
-		CommandLineParser(int &argc, const char **argv);
+		CommandLineParser(const int &argc, char **argv);
+		CommandLineParser(const int &argc, const char **argv);
 
 		const std::string &getOption(const std::string &option) const;
 		bool optionExists(const std::string &option) const;

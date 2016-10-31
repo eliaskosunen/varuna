@@ -18,13 +18,14 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
     - sudo apt-get update -qq
-    - sudo pip install cpp-coveralls
+    #- sudo pip install cpp-coveralls
 
 install:
     - sudo apt-get --allow-unauthenticated -qq --assume-yes install $CXX lldb-3.8
     #- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
 
 script:
-    - ./build.sh ${COMPILERS} -nohtml -notests ${COVPARAM}
+    #- ./build.sh ${COMPILERS} -nohtml -notests ${COVPARAM}
+    - ./build.sh ${COMPILERS} -nohtml -notests
 after_success:
-    - if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi
+    #- if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi

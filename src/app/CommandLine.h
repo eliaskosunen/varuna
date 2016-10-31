@@ -24,19 +24,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-
+	/**
+	 * Class for handling command line arguments properly
+	 */
 	class CommandLine
 	{
+		/**
+		 * Command line parser
+		 */
 		std::unique_ptr<util::CommandLineParser> clp;
 
+		/**
+		 * Show help
+		 */
 		void help() const;
+		/**
+		 * Show version information
+		 */
 		void version() const;
+		/**
+		 * Show copyright and license information
+		 */
 		void copyright() const;
 
 	public:
-		CommandLine(int &argc, char **argv);
+		/**
+		 * CommandLine constructor
+		 * @param argc Command line argument count
+		 * @param argv Command line argument vector
+		 */
+		CommandLine(const int &argc, char **argv);
 
+		/**
+		 * Run application.
+		 * Processes the command line arguments and
+		 * reacts to them properly
+		 */
 		void run() const;
 	};
-
 }

@@ -15,39 +15,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * \file
- * Main file of the application
- */
+#include <memory>
 
-#include <iostream>
-#include <stdexcept>
+#define CPP_STD_VERSION	__cplusplus
+#define CPP_STD_98		199711L
+#define CPP_STD_11		201103L
+#define CPP_STD_14		201402L
 
-#include "app/CommandLine.h"
-#include "util/Logger.h"
-
-/**
- * The entry point of the application
- * @param  argc Argument count
- * @param  argv Argument vector
- * @return      Application return value
- */
-int main(int argc, char **argv)
+namespace util
 {
-	try
+
+#if CPP_STD_VERSION <= CPP_STD_11
+	/**
+	 * std::make_unique was added to the standard in C++14.
+	 * Implement our own version of it if standard is C++11 or lower
+	 */
+	template<typename T, typename... Args>
+	std::unique_ptr<T> make_unique(Args&&... args)
 	{
-		util::initLogger();
-		app::CommandLine cl(argc, argv);
-		cl.run();
-		return 0;
+		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 	}
-	catch(const spdlog::spdlog_ex &e)
+#elif CPP_STD_VERSION >= CPP_STD_14
+	template<typename T, typename... Args>
+	std::unique_ptr<T> make_unique(Args&&... args)
 	{
-		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
+		return std::make_unique<T>(args...);
 	}
-	catch(const std::exception &e)
-	{
-		std::cerr << "EXCEPTION: " << e.what() << "\n";
-	}
-	return 1;
+#endif
 }
