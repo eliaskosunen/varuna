@@ -1,1 +1,1 @@
-valgrind --leak-check=full bin/varuna -f code.txt
+valgrind --leak-check=full bin/varuna code.va

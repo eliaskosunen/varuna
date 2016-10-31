@@ -49,12 +49,17 @@ namespace util
 			std::ifstream s;
 			s.exceptions(std::ios::badbit | std::ios::failbit);
 			s.open(filename.c_str(), std::ios::binary | std::ios::in);
-			if(s) {
-				std::stringstream ss;
-				ss << s.rdbuf();
-				s.close();
-				return ss.str();
+
+			if(!s.is_open() || s.fail())
+			{
+				util::logger->warn("File not open gracefully");
+				return "ERROR";
 			}
+
+			std::stringstream ss;
+			ss << s.rdbuf();
+			s.close();
+			return ss.str();
 		}
 		catch(const std::ios_base::failure &e)
 		{
