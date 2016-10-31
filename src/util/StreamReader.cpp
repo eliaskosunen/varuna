@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstring>
 
 #include "util/StreamReader.h"
+#include "util/Logger.h"
 
 #if defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION >= 1000)
 #define HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR 1
@@ -70,15 +71,10 @@ namespace util
 			// like libstdc++
 			// https://github.com/mirrors/gcc/blob/master/libstdc%2B%2B-v3/include/bits/ios_base.h#L209
 			//
-			std::cerr << "libc++ error #" << e.code().value()
-					<< ": " << e.code().message()
-					<< "\n";
+			util::logger->error("Error reading file: libc++ error #{}: {}", e.code().value(), e.code().message());
+		#else
+			util::logger->error("Error reading file: libc error #{}: {}", errno, strerror(errno));
 		#endif
-			std::cerr << "libc error #" << errno
-					<< ": " << ::strerror(errno)
-					<< "\n";
-
-			std::cerr << "handled\n";
 
 		}
 		return "ERROR";
