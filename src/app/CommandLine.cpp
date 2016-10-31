@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <iostream>
+#include <memory>
 
 #include "app/CommandLine.h"
 #include "util/CommandLineParser.h"
@@ -31,12 +32,7 @@ namespace app
 
 	CommandLine::CommandLine(int &argc, char **argv)
 	{
-		clp = new util::CommandLineParser(argc, argv);
-	}
-
-	CommandLine::~CommandLine()
-	{
-		delete clp;
+		clp = std::make_unique(new util::CommandLineParser(argc, argv));
 	}
 
 	void CommandLine::run() const

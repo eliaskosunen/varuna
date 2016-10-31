@@ -2,7 +2,7 @@ APPNAME = varuna
 
 CC = gcc
 CXX = g++
-CXXFLAGS := -pthread -O -g -std=c++11 -Wall -pedantic
+CXXFLAGS := -pthread -O -g -std=c++11 -Wall -pedantic -Wextra -Weffc++ -Werror -fprofile-arcs -ftest-coverage
 LINKFLAGS := -O -g
 INCLUDE_DIRS := -Ithird-party/include -Isrc -isystem ext/include
 LIB_DIRS := -Lext/lib
@@ -16,11 +16,11 @@ FILES_DEP := $(patsubst src/%,build/%.dep,$(FILES_CPP))
 
 SRC := $(filter-out src/tests/%,$(FILES_CPP))
 BIN := bin/$(APPNAME)
-LIBS := -pthread
+LIBS := -pthread -lgcov
 
 TESTS_SRC := $(wildcard src/tests/*.cpp)
 TESTS_BIN := bin/test
-TESTS_LIBS := -pthread
+TESTS_LIBS := -pthread -lgcov
 
 # Hack for OS differences.
 # On Windows, echo '1' produces literally '1' instead of 1.

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include "util/CommandLineParser.h"
 
@@ -26,7 +27,7 @@ namespace app
 
 	class CommandLine
 	{
-		util::CommandLineParser *clp;
+		std::unique_ptr<util::CommandLineParser> clp;
 
 		void help() const;
 		void version() const;
@@ -34,7 +35,6 @@ namespace app
 
 	public:
 		CommandLine(int &argc, char **argv);
-		~CommandLine();
 
 		void run() const;
 	};

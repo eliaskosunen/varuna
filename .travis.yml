@@ -15,12 +15,17 @@ before_install:
     - export COMPILERS="CC=$CC CXX=$CXX"
     - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
     - sudo apt-key update
-    - sudo apt-get update
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
-    - sudo apt-key update
-    - sudo apt-get update
+    - sudo apt-get update -qq
+    - sudo pip install codecov
+
+install:
     - sudo apt-get --allow-unauthenticated -qq --assume-yes install $CXX lldb-3.8
+    - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
 
 script:
     - ./build.sh ${COMPILERS} -nohtml -notests
+
+after_success:
+    - codecov
