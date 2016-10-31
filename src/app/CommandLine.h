@@ -29,6 +29,9 @@ namespace app
 	 */
 	class CommandLine
 	{
+		/**
+		 * Command line parser
+		 */
 		std::unique_ptr<util::CommandLineParser> clp;
 
 		/**

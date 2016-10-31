@@ -23,8 +23,6 @@ namespace core
 {
 	namespace lexer
 	{
-		const std::string Token::DEFAULT_PARAM = "";
-
 		TokenType Token::getTypeFromCategory(TokenCategory _cat) const
 		{
 			switch(_cat)

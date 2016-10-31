@@ -23,11 +23,22 @@ namespace core
 {
 	namespace preprocessor
 	{
+		/**
+		 * Preprocessor class
+		 */
 		class Preprocessor
 		{
 		public:
+			/**
+			 * Constructor
+			 */
 			Preprocessor() {}
 
+			/**
+			 * Run the preprocessor
+			 * @param  str Unprocessed code
+			 * @return     Processed code
+			 */
 			std::string run(const std::string &str) const;
 		};
 	}

@@ -17,15 +17,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
+#define CPP_STD_VERSION	__cplusplus
+#define CPP_STD_98		199711L
+#define CPP_STD_11		201103L
+#define CPP_STD_14		201402L
+
 namespace util
 {
-#ifdef CPP_STD_11
+#if CPP_STD_VERSION <= CPP_STD_11
 	template<typename T, typename... Args>
 	std::unique_ptr<T> make_unique(Args&&... args)
 	{
 		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 	}
-#else
+#elif CPP_STD_VERSION >= CPP_STD_14
 	template<typename T, typename... Args>
 	std::unique_ptr<T> make_unique(Args&&... args)
 	{

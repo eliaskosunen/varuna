@@ -24,67 +24,130 @@ namespace core
 {
 	namespace lexer
 	{
+		/**
+		 * Token category
+		 */
 		enum TokenCategory
 		{
-			TOKEN_CAT_DEFAULT,
-			TOKEN_CAT_UNKNOWN,
+			TOKEN_CAT_DEFAULT,	///< Default category
+			TOKEN_CAT_UNKNOWN,	///< Unknown token
 
-			TOKEN_CAT_WORD,
-			TOKEN_CAT_LITERAL,
-			TOKEN_CAT_OPERATOR
+			TOKEN_CAT_WORD,		///< Word: keyword or identifier
+			TOKEN_CAT_LITERAL,	///< Literal: numbers, strings...
+			TOKEN_CAT_OPERATOR	///< Operator
 		};
 
 		enum TokenType
 		{
-			TOKEN_DEFAULT,
-			TOKEN_UNKNOWN,
+			TOKEN_DEFAULT,					///< Default type
+			TOKEN_UNKNOWN,					///< Unknown type
 
-			TOKEN_WORD_DEFAULT,
-			TOKEN_WORD_KEYWORD,
-			TOKEN_WORD_IDENTIFIER,
+			TOKEN_WORD_DEFAULT,				///< Default (not yet defined/finished) word
+			TOKEN_WORD_KEYWORD,				///< Keyword
+			TOKEN_WORD_IDENTIFIER,			///< Identifier
 
-			TOKEN_LITERAL_DEFAULT,
-			TOKEN_LITERAL_DEFAULT_NUMBER,
-			TOKEN_LITERAL_STRING,
-			TOKEN_LITERAL_INTEGER,
-			TOKEN_LITERAL_FLOAT,
-			TOKEN_LITERAL_CHAR,
-			TOKEN_LITERAL_BOOLEAN,
-			TOKEN_LITERAL_NONE,
+			TOKEN_LITERAL_DEFAULT,			///< Default literal
+			TOKEN_LITERAL_DEFAULT_NUMBER,	///< Default (not yet finished) number literal
+			TOKEN_LITERAL_STRING,			///< String literal
+			TOKEN_LITERAL_INTEGER,			///< Integer literal
+			TOKEN_LITERAL_FLOAT,			///< Float literal
+			TOKEN_LITERAL_CHAR,				///< Character literal
+			TOKEN_LITERAL_BOOLEAN,			///< Boolean literal
+			TOKEN_LITERAL_NONE,				///< None literal
 
-			TOKEN_OPERATOR
+			TOKEN_OPERATOR					///< Operator
 		};
 
+		/**
+		 * Token class
+		 */
 		class Token
 		{
-		protected:
+		private:
+			/**
+			 * Category
+			 */
 			TokenCategory cat;
+			/**
+			 * Type
+			 */
 			TokenType type;
 
+			/**
+			 * Textual value
+			 */
 			std::string value;
 
+			/**
+			 * Get the default type of category
+			 * @param  _cat Category
+			 * @return      Type
+			 */
 			TokenType getTypeFromCategory(TokenCategory _cat) const;
+			/**
+			 * Get the category of type
+			 * @param  _type Type
+			 * @return       Category
+			 */
 			TokenCategory getCategoryFromType(TokenType _type) const;
 
 		public:
-			const static std::string DEFAULT_PARAM;
-
+			/**
+			 * Default constructor
+			 */
 			Token() : Token(TOKEN_DEFAULT) {}
 			Token(TokenCategory _cat);
 			Token(TokenType _type);
 
+			/**
+			 * Set the category of the token.
+			 * Does not set the type
+			 * @param _cat Category
+			 */
 			void setCategory(TokenCategory _cat);
+			/**
+			 * Get the category of the token
+			 * @return Category
+			 */
 			TokenCategory getCategory() const;
 
+			/**
+			 * Set the type of the token.
+			 * Does not set the category
+			 * @param _type Type
+			 */
 			void setType(TokenType _type);
+			/**
+			 * Get the type of the token
+			 * @return Type
+			 */
 			TokenType getType() const;
 
+			/**
+			 * Set the textual value of the token
+			 * @param val Value
+			 */
 			void setValue(std::string val);
+			/**
+			 * Get the textual value of the token
+			 * @return Value
+			 */
 			const std::string &getValue() const;
 
+			/**
+			 * Get the category of the token as string
+			 * @return Category as string
+			 */
 			std::string categoryToString() const;
+			/**
+			 * Get the type of the token as string
+			 * @return Type as string
+			 */
 			std::string typeToString() const;
 
+			/**
+			 * Reset token to default values
+			 */
 			void reset();
 		};
 	}
