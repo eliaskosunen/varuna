@@ -8,7 +8,7 @@ git:
 env:
     matrix:
         - CXX="g++-5" CC="gcc-5" COV=1 GCOV="gcov-5" COVPARAM="-cov"
-        - CXX="g++-6" CC="gcc-6" COV=0 COVPARAM=""
+        - CXX="g++-4.9" CC="gcc-4.9" COV=0 COVPARAM=""
         - CXX="clang++-3.8" CC="clang-3.8" COV=0 COVPARAM=""
 
 before_install:
