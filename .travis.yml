@@ -28,4 +28,4 @@ script:
     - ./build.sh ${COMPILERS} -nohtml -notests
 
 after_success:
-    - if [ ${COV} = 1 ] then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" fi
+    - if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi
