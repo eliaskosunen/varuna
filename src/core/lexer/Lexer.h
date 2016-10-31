@@ -28,19 +28,67 @@ namespace core
 	{
 		typedef std::vector<Token> TokenVector;
 
+		/**
+		 * Lexer class
+		 */
 		class Lexer
 		{
+			/**
+			 * Is the given string a keyword
+			 * @param  buf Current buffer
+			 * @return     true = keyword
+			 */
 			bool isKeyword(const std::string &buf);
+			/**
+			 * Is the given string an entire operator
+			 * @param  buf Current buffer
+			 * @return     true = operator
+			 */
 			bool isWholeOperator(const std::string &buf);
+			/**
+			 * Is the current character a beginning of an operator
+			 * @param  curr Current character
+			 * @return      true = operator
+			 */
 			bool isBeginningOfOperator(const char &curr);
+			/**
+			 * Is the current character an operator that terminates a words
+			 * @param  curr Current character
+			 * @return      true = operator
+			 */
 			bool isTerminatingOperator(const char &curr);
+			/**
+			 * Is the given string an operator instead of a word
+			 * @param  buf Current buffer
+			 * @return     true = operator
+			 */
 			bool isWordOperator(const std::string &buf);
+			/**
+			 * Is the given string a boolean literal (true, false) instead of a word
+			 * @param  buf Current buffer
+			 * @return     true = boolean literal
+			 */
 			bool isBooleanLiteral(const std::string &buf);
+			/**
+			 * Is the given string a none literal (none) instead of a word
+			 * @param  buf Current buffer
+			 * @return     true = none literal
+			 */
 			bool isNoneLiteral(const std::string &buf);
 
 		public:
+			/**
+			 * Lexer constructor
+			 */
 			Lexer() {}
 
+			/**
+			 * Run the lexer.
+			 * @param  str      Preprocessed code
+			 * @param  error    Reference, will be set to true in case of an error
+			 * @param  filename Name of the current code file, used for error messages
+			 * @return          Vector of parsed tokens
+			 */
 			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
 		};
 	}
