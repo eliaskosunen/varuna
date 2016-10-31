@@ -11,3 +11,11 @@ if [[ $@ != *-nohtml* ]]
 then
 	make html
 fi
+
+if [[ $@ == *-cov* ]]
+then
+	for filename in `find . | egrep '\.cpp'`;
+	do
+		gcov-5 -n -o . $filename > /dev/null; 
+	done
+fi

@@ -25,7 +25,8 @@ install:
     #- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
 
 script:
-    - ./build.sh ${COMPILERS} -nohtml -notests
+    - if [ ${COV} = 0 ]; ./build.sh ${COMPILERS} -nohtml -notests ; fi
+    - if [ ${COV} = 1 ]; ./build.sh ${COMPILERS} -nohtml -notests -cov ; fi
 
 after_success:
     - if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi

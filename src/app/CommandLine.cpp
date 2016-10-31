@@ -29,10 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-
-	CommandLine::CommandLine(int &argc, char **argv)
+	CommandLine::CommandLine(int &argc, char **argv) : clp(std::make_unique<util::CommandLineParser>(argc, argv))
 	{
-		clp = std::make_unique(new util::CommandLineParser(argc, argv));
+
 	}
 
 	void CommandLine::run() const
