@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <memory>
 
-#include "util/CommandLineParser.h"
+#include "tclap/CmdLine.h"
 
 namespace app
 {
@@ -29,19 +29,11 @@ namespace app
 	 */
 	class CommandLine
 	{
-		/**
-		 * Command line parser
-		 */
-		std::unique_ptr<util::CommandLineParser> clp;
+		const int &argc;
+		char **argv;
 
-		/**
-		 * Show help
-		 */
-		void help() const;
-		/**
-		 * Show version information
-		 */
-		void version() const;
+		TCLAP::CmdLine cmd;
+
 		/**
 		 * Show copyright and license information
 		 */
@@ -60,6 +52,6 @@ namespace app
 		 * Processes the command line arguments and
 		 * reacts to them properly
 		 */
-		void run() const;
+		int run();
 	};
 }

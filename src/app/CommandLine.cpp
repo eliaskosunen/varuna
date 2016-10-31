@@ -15,93 +15,79 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "app/CommandLine.h"
+
 #include <string>
 #include <iostream>
-#include <memory>
+#include <vector>
 
-#include "app/CommandLine.h"
-#include "util/CommandLineParser.h"
-#include "util/StreamReader.h"
-#include "core/preprocessor/Preprocessor.h"
-#include "core/lexer/Token.h"
-#include "core/lexer/Lexer.h"
+#include "tclap/CmdLine.h"
+
 #include "util/Logger.h"
-#include "util/Compatibility.h"
+#include "core/Run.h"
 
 namespace app
 {
-	CommandLine::CommandLine(const int &argc, char **argv) : clp(util::make_unique<util::CommandLineParser>(argc, argv))
+	CommandLine::CommandLine(const int &_argc, char **_argv)
+		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "0.1")
 	{
 
 	}
 
-	void CommandLine::run() const
+	int CommandLine::run()
 	{
-		if(clp->optionExists("--logging=trace"))
+		try
 		{
-			spdlog::set_level(spdlog::level::trace);
+			TCLAP::ValueArg<std::string> loggingArg("l", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
+			cmd.add(loggingArg);
+
+			TCLAP::SwitchArg licenseArg("c", "copyright", "Print the license and copyright information", false);
+			cmd.add(licenseArg);
+
+			TCLAP::UnlabeledMultiArg<std::string> fileArg("file", "Files to process", false, "List of files to process");
+			cmd.add(fileArg);
+
+			cmd.parse(argc, argv);
+
+			bool license = licenseArg.getValue();
+			if(license)
+			{
+				copyright();
+				return 0;
+			}
+
+			std::string logging = loggingArg.getValue();
+			if(logging == "trace")
+			{
+				spdlog::set_level(spdlog::level::trace);
+			}
+			else if(logging == "debug")
+			{
+				spdlog::set_level(spdlog::level::debug);
+			}
+			else if(logging == "info")
+			{
+				spdlog::set_level(spdlog::level::info);
+			}
+			else
+			{
+				throw TCLAP::ArgException("Unsupported value for --logging, see --help", loggingArg.longID());
+			}
+
+			std::vector<std::string> files = fileArg.getValue();
+			if(files.size() == 0)
+			{
+				throw TCLAP::ArgException("File to process is required, see --help", fileArg.longID());
+			}
+
+			return core::run(files[0]);
 		}
-		else if(clp->optionExists("--logging=debug"))
+		catch(TCLAP::ArgException &e)
 		{
-			spdlog::set_level(spdlog::level::debug);
+			util::logger->error("Command line error: {}: {}", e.error(), e.argId());
+			return 1;
 		}
-		else if(clp->optionExists("--logging=default") || clp->optionExists("--logging=info"))
-		{
-			spdlog::set_level(spdlog::level::info);
-		}
-
-		if(clp->optionExists("-cp") || clp->optionExists("--copyright") || clp->optionExists("--license"))
-		{
-			copyright();
-			return;
-		}
-
-		if(clp->optionExists("-h") || clp->optionExists("-?") || clp->optionExists("--help")) {
-			help();
-			return;
-		}
-
-		std::string file = clp->getOption("-f");
-		if(clp->isDefault(file) || file.empty()) {
-			util::logger->error("No file given! No '-f' command line parameter found.");
-			return;
-		}
-
-		util::logger->trace("File to process: '{}'", file);
-
-		util::StreamReader sr;
-		std::string filec = sr.readFile(file);
-		if(filec.empty() || filec == "ERROR") {
-			util::logger->error("Failed to read input file '{}'. Check if the file exists.", file);
-			return;
-		}
-
-		util::logger->trace("File contents:\n{}\n", filec);
-
-		util::logger->debug("Starting preprocessor.");
-		core::preprocessor::Preprocessor prep;
-		std::string code = prep.run(filec);
-		util::logger->debug("Preprocessing finished.");
-		util::logger->trace("Preprocessed file:\n{}\n", code);
-
-		util::logger->debug("Starting lexer.");
-		core::lexer::Lexer lexer;
-		bool lexerError = false;
-		core::lexer::TokenVector tokens = lexer.run(code, lexerError, file);
-		if(lexerError)
-		{
-			return;
-		}
-		util::logger->debug("Lexing finished.");
-		for(const auto &t : tokens)
-		{
-			util::logger->trace("Token: ({}: {}): {}", t.categoryToString(), t.typeToString(), t.getValue());
-		}
-	}
-
-	void CommandLine::help() const
-	{
-		util::loggerBasic->info("Help");
+		return -1;
 	}
 
 	void CommandLine::copyright() const
@@ -113,6 +99,7 @@ namespace app
 		util::loggerBasic->info("\nVaruna uses the following third-party software. To see the full license details, see the file LICENSE.thirdparty.txt");
 		util::loggerBasic->info("Spdlog - Copyright (c) 2016 Gabi Melman. Licensed under the MIT License");
 		util::loggerBasic->info("Catch - Licensed under the Boost Software License");
+		util::loggerBasic->info("TCLAP - Copyright (c) 2003 Michael E. Smoot. Licensed under the MIT License");
 	}
 
 }

@@ -15,38 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * \file
- * Main file of the application
- */
+#pragma once
 
-#include <iostream>
-#include <stdexcept>
+#include <string>
 
-#include "app/CommandLine.h"
-#include "util/Logger.h"
-
-/**
- * The entry point of the application
- * @param  argc Argument count
- * @param  argv Argument vector
- * @return      Application return value
- */
-int main(int argc, char **argv)
+namespace core
 {
-	try
-	{
-		util::initLogger();
-		app::CommandLine cl(argc, argv);
-		return cl.run();
-	}
-	catch(const spdlog::spdlog_ex &e)
-	{
-		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
-	}
-	catch(const std::exception &e)
-	{
-		std::cerr << "EXCEPTION: " << e.what() << "\n";
-	}
-	return 1;
+	int run(const std::string &filename);
 }
