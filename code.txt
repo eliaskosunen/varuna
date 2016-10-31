@@ -1,11 +1,18 @@
 # code.txt
-import IO;
-#import System;
+import io;
 
-function main(): Void
+function main(List of String args): Void
 {
-	Integer number;
-	number = io.stdin.getln(); # Get user input
-	IO.stdout.writeln(number);
-	#System.errorlevel(0f0);
+	io.stdout.writeln("Hello World!");
+	String input = io.stdin.getln("What's your name?");
+	if(input == "John Doe")
+	{
+		io.stdout.writeln("My man!");
+	}
+	else
+	{
+		io.stdout.println("I don't know you, {}", input);
+	}
+	Bool boolean = true;
+	None n = none;
 }

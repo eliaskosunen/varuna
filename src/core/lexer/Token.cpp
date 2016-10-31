@@ -25,7 +25,69 @@ namespace core
 	{
 		const std::string Token::DEFAULT_PARAM = "";
 
-		Token::Token(TokenType _type) : type(_type), value("") {}
+		TokenType Token::getTypeFromCategory(TokenCategory _cat) const
+		{
+			switch(_cat)
+			{
+			case TOKEN_CAT_DEFAULT:
+				return TOKEN_DEFAULT;
+			case TOKEN_CAT_UNKNOWN:
+				return TOKEN_UNKNOWN;
+			case TOKEN_CAT_WORD:
+				return TOKEN_WORD_DEFAULT;
+			case TOKEN_CAT_LITERAL:
+				return TOKEN_LITERAL_DEFAULT;
+			case TOKEN_CAT_OPERATOR:
+				return TOKEN_OPERATOR;
+			}
+			return TOKEN_UNKNOWN;
+		}
+
+		TokenCategory Token::getCategoryFromType(TokenType _type) const
+		{
+			switch (_type) {
+			case TOKEN_DEFAULT:
+				return TOKEN_CAT_DEFAULT;
+			case TOKEN_UNKNOWN:
+				return TOKEN_CAT_UNKNOWN;
+			case TOKEN_WORD_DEFAULT:
+			case TOKEN_WORD_KEYWORD:
+			case TOKEN_WORD_IDENTIFIER:
+				return TOKEN_CAT_WORD;
+			case TOKEN_LITERAL_DEFAULT:
+			case TOKEN_LITERAL_DEFAULT_NUMBER:
+			case TOKEN_LITERAL_STRING:
+			case TOKEN_LITERAL_INTEGER:
+			case TOKEN_LITERAL_FLOAT:
+			case TOKEN_LITERAL_CHAR:
+			case TOKEN_LITERAL_BOOLEAN:
+			case TOKEN_LITERAL_NONE:
+				return TOKEN_CAT_LITERAL;
+			case TOKEN_OPERATOR:
+				return TOKEN_CAT_OPERATOR;
+			}
+			return TOKEN_CAT_UNKNOWN;
+		}
+
+		Token::Token(TokenCategory _cat) : value("")
+		{
+			cat = _cat;
+			type = getTypeFromCategory(_cat);
+		}
+		Token::Token(TokenType _type) : value("")
+		{
+			type = _type;
+			cat = getCategoryFromType(_type);
+		}
+
+		void Token::setCategory(TokenCategory _cat)
+		{
+			cat = _cat;
+		}
+		TokenCategory Token::getCategory() const
+		{
+			return cat;
+		}
 
 		void Token::setType(TokenType _type)
 		{
@@ -37,6 +99,25 @@ namespace core
 			return type;
 		}
 
+		std::string Token::categoryToString() const
+		{
+			switch(cat)
+			{
+			case TOKEN_CAT_DEFAULT:
+				return "DEFAULT";
+			case TOKEN_CAT_UNKNOWN:
+				return "UNKNOWN";
+
+			case TOKEN_CAT_WORD:
+				return "WORD";
+			case TOKEN_CAT_LITERAL:
+				return "LITERAL";
+			case TOKEN_CAT_OPERATOR:
+				return "OPERATOR";
+			}
+			return "DEFAULT";
+		}
+
 		std::string Token::typeToString() const
 		{
 			switch(type)
@@ -45,18 +126,33 @@ namespace core
 				return "DEFAULT";
 			case TOKEN_UNKNOWN:
 				return "UNKNOWN";
-			case TOKEN_IDENTIFIER:
-				return "IDENTIFIER";
-			case TOKEN_LITERAL_NUMBER:
-				return "LITERAL_NUMBER";
-			case TOKEN_ARG_OPERATOR:
-				return "ARG_OPERATOR";
-			case TOKEN_KEYWORD:
-				return "KEYWORD";
-			case TOKEN_CONTROL_OPERATOR:
-				return "CONTROL_OPERATOR";
-			case TOKEN_KEYWORD_OR_IDENTIFIER:
-				return "KEYWORD/IDENTIFIER";
+
+			case TOKEN_WORD_DEFAULT:
+				return "WORD_DEFAULT";
+			case TOKEN_WORD_KEYWORD:
+				return "WORD_KEYWORD";
+			case TOKEN_WORD_IDENTIFIER:
+				return "WORD_IDENTIFIER";
+
+			case TOKEN_LITERAL_DEFAULT:
+				return "LITERAL_DEFAULT";
+			case TOKEN_LITERAL_DEFAULT_NUMBER:
+				return "LITERAL_DEFAULT_NUMBER";
+			case TOKEN_LITERAL_STRING:
+				return "LITERAL_STRING";
+			case TOKEN_LITERAL_INTEGER:
+				return "LITERAL_INTEGER";
+			case TOKEN_LITERAL_FLOAT:
+				return "LITERAL_FLOAT";
+			case TOKEN_LITERAL_CHAR:
+				return "LITERAL_CHAR";
+			case TOKEN_LITERAL_BOOLEAN:
+				return "LITERAL_BOOLEAN";
+			case TOKEN_LITERAL_NONE:
+				return "LITERAL_NONE";
+
+			case TOKEN_OPERATOR:
+				return "OPERATOR";
 			}
 			return "DEFAULT";
 		}
@@ -71,62 +167,11 @@ namespace core
 			return value;
 		}
 
-		const Token::ParamMap &Token::getParams() const
-		{
-			return params;
-		}
-
-		const std::string &Token::getParam(const std::string &key) const
-		{
-			if(!paramExists(key))
-			{
-				return DEFAULT_PARAM;
-			}
-			return params.at(key);
-		}
-
-		void Token::setParam(const std::string &key, const std::string value, bool override)
-		{
-			if(paramExists(key))
-			{
-				if(!override)
-				{
-					return;
-				}
-				removeParam(key);
-			}
-			params.insert(std::make_pair(key, value));
-		}
-
-		void Token::removeParam(const std::string &key)
-		{
-			if(!paramExists(key))
-			{
-				return;
-			}
-			params.erase(key);
-		}
-
-		bool Token::paramExists(const std::string &key) const
-		{
-			return (bool)params.count(key);
-		}
-
-		bool Token::isParamsEmpty() const
-		{
-			return params.empty();
-		}
-
-		void Token::clearParams()
-		{
-			params.clear();
-		}
-
 		void Token::reset()
 		{
 			setType(TOKEN_DEFAULT);
+			setCategory(TOKEN_CAT_DEFAULT);
 			setValue("");
-			clearParams();
 		}
 	}
 }

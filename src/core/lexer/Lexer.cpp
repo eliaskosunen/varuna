@@ -33,8 +33,22 @@ namespace core
 		bool Lexer::isKeyword(const std::string &buf)
 		{
 			if(
-				buf == "import" || buf == "function" || buf == "Void" ||
-				buf == "Integer"
+				// Control words, commands
+				buf == "import" || buf == "function" || buf == "declare" ||
+				buf == "export" || buf == "class" || buf == "override" ||
+				buf == "final" || buf == "extend" || buf == "abstract" ||
+				buf == "public" || buf == "protected" || buf == "private" ||
+				buf == "if" || buf == "while" || buf == "for" || buf == "foreach" ||
+				buf == "switch" || buf == "case" || buf == "break" ||
+				buf == "return" || buf == "continue" ||
+
+				// Datatypes
+				buf == "None" || buf == "Void" || buf == "Integer" || buf == "Float" ||
+				buf == "Double" || buf == "Decimal" || buf == "String" || buf == "Char" ||
+				buf == "UInteger" || buf == "BigInteger" || buf == "Bool" ||
+				buf == "Int8" || buf == "Int16" || buf == "Int32" || buf == "Int64" ||
+				buf == "UInt8" || buf == "UInt16" || buf == "UInt32" || buf == "UInt64" ||
+				buf == "List" || buf == "Dict" || buf == "Array"
 			)
 			{
 				return true;
@@ -42,30 +56,38 @@ namespace core
 			return false;
 		}
 
-		bool Lexer::isArgOperator(const char &curr)
+		bool Lexer::isWholeOperator(const std::string &buf)
 		{
-			switch (curr) {
-			case '+':
-			case '-':
-			case '*':
-			case '/':
-			case '%':
-			case '=':
+			if(
+				buf == "+" || buf == "-" || buf == "*" || buf == "/" ||
+				buf == "%" || buf == "^" || buf == "=" ||
+				buf == "+=" || buf == "-=" || buf == "*=" || buf == "/=" ||
+				buf == "%=" || buf == "^=" ||
+				buf == "==" || buf == "<=" || buf == ">=" || buf == "!=" ||
+				buf == "<" || buf == ">" ||
+				buf == "!" || buf == "&&" || buf == "||" ||
+				buf == "{" || buf == "}" || buf == "(" || buf == ")" ||
+				buf == "[" || buf == "]" ||
+				buf == ":" || buf == ";" || buf == "." || buf == ","
+			)
+			{
 				return true;
 			}
 			return false;
 		}
 
-		bool Lexer::isControlOperator(const char &curr)
+		bool Lexer::isBeginningOfOperator(const char &curr)
 		{
-			switch(curr)
+			if(
+				curr == '+' || curr == '-' || curr == '*' || curr == '/' ||
+				curr == '%' || curr == '^' || curr == '=' ||
+				curr == '<' || curr == '>' ||
+				curr == '!' || curr == '&' || curr == '|' ||
+				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
+				curr == '[' || curr == ']' ||
+				curr == ':' || curr == ';' || curr == '.' || curr == ','
+			)
 			{
-			case '{':
-			case '}':
-			case '(':
-			case ')':
-			case ':':
-			case ';':
 				return true;
 			}
 			return false;
@@ -73,15 +95,44 @@ namespace core
 
 		bool Lexer::isTerminatingOperator(const char &curr)
 		{
-			switch(curr)
+			if(
+				curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
+				curr == '[' || curr == ']' || curr == '"' ||
+				curr == ':' || curr == ';' || curr == '.' || curr == ','
+			)
 			{
-			case '{':
-			case '}':
-			case '(':
-			case ')':
-			case ';':
-			case ':':
-			case '"':
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isWordOperator(const std::string &buf)
+		{
+			if(
+				buf == "and" || buf == "or" || buf == "not" ||
+				buf == "as" || buf == "of"
+			)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isBooleanLiteral(const std::string &buf)
+		{
+			if(
+				buf == "true" || buf == "false"
+			)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isNoneLiteral(const std::string &buf)
+		{
+			if(buf == "none")
+			{
 				return true;
 			}
 			return false;
@@ -100,12 +151,6 @@ namespace core
 
 			for(; strpointer != strendpointer; ++strpointer)
 			{
-				/*Token t;
-				t.setType(identifyBuffer(buffer));
-				t.setType(TOKEN_DEFAULT);
-				t.setValue(util::StringUtils::charToString(*strpointer));
-				tokens.push_back(t);*/
-
 				const char currentChar = *strpointer;
 
 				util::loggerBasic->trace("");
@@ -129,53 +174,54 @@ namespace core
 					}
 					// Number literals
 					// '-' to detect negative numbers
-					if(std::isdigit(currentChar) || *strpointer == '-')
+					if(std::isdigit(currentChar) || currentChar == '-')
 					{
 						util::logger->trace("Current character is a number literal");
-						currentToken.setType(TOKEN_LITERAL_NUMBER);
+						currentToken.setCategory(TOKEN_CAT_LITERAL);
+						currentToken.setType(TOKEN_LITERAL_DEFAULT_NUMBER);
 						buffer.push_back(currentChar);
 						util::logger->trace("Pushed the current character into the buffer. Buffer now: '{}'", buffer);
 						continue;
 					}
-					// Control operator
-					if(isControlOperator(currentChar))
+					// String literal
+					if(currentChar == '"')
 					{
-						util::logger->trace("Current character is a control operator");
-						currentToken.setType(TOKEN_CONTROL_OPERATOR);
+						util::logger->trace("Current character is a string literal");
+						currentToken.setCategory(TOKEN_CAT_LITERAL);
+						currentToken.setType(TOKEN_LITERAL_STRING);
 						buffer.push_back(currentChar);
-						currentToken.setValue(buffer);
-						tokens.push_back(currentToken);
-						util::logger->trace("Pushed token into the token list");
-
-						currentToken.reset();
-						buffer.clear();
-						util::logger->trace("Cleared buffer");
 						continue;
 					}
-					// Argument operator
-					if(isArgOperator(currentChar))
+					// Character literal
+					if(currentChar == '\'')
 					{
-						util::logger->trace("Current character is an argument operator");
-						currentToken.setType(TOKEN_ARG_OPERATOR);
+						util::logger->trace("Current character is a character literal");
+						currentToken.setCategory(TOKEN_CAT_LITERAL);
+						currentToken.setType(TOKEN_LITERAL_CHAR);
 						buffer.push_back(currentChar);
-						currentToken.setValue(buffer);
-						tokens.push_back(currentToken);
-						util::logger->trace("Pushed token into the token list");
-
-						currentToken.reset();
-						buffer.clear();
-						util::logger->trace("Cleared buffer");
 						continue;
 					}
+					// Operator
+					if(isBeginningOfOperator(currentChar))
+					{
+						util::logger->trace("Current character is a beginning of an operator");
+						currentToken.setCategory(TOKEN_CAT_OPERATOR);
+						currentToken.setType(TOKEN_OPERATOR);
+						buffer.push_back(currentChar);
+						util::logger->trace("Pushed the current character into the buffer. Buffer now: '{}'", buffer);
+						continue;
+					}
+					// Word
 					if(isalpha(currentChar) || currentChar == '_')
 					{
-						util::logger->trace("Current character is either a keyword or an identifier");
-						currentToken.setType(TOKEN_KEYWORD_OR_IDENTIFIER);
+						util::logger->trace("Current character is either a word");
+						currentToken.setCategory(TOKEN_CAT_WORD);
 						buffer.push_back(currentChar);
 						util::logger->trace("Pushed current character into the buffer. Buffer now: '{}'", buffer);
 						continue;
 					}
 					util::logger->trace("Current character is an unknown type");
+					currentToken.setCategory(TOKEN_CAT_UNKNOWN);
 					currentToken.setType(TOKEN_UNKNOWN);
 					buffer.push_back(currentChar);
 					util::logger->trace("Pushed token into the token list");
@@ -187,21 +233,132 @@ namespace core
 					util::logger->trace("The buffer is not empty. Buffer: '{}'", buffer);
 					// Whitespace or terminating operator
 					// Token over
-					if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
+					if(currentToken.getType() == TOKEN_LITERAL_STRING)
+					{
+						util::logger->trace("Current token is a string literal");
+
+						const bool currentCharIsUnescapedQuotes = (currentChar == '"' && *(strpointer - 1) != '\\');
+
+						if(*(strpointer - 1) == '\\')
+						{
+							if(currentChar == '"' || currentChar == '\\')
+							{
+								buffer.pop_back();
+							}
+						}
+
+						if(currentCharIsUnescapedQuotes)
+						{
+							util::logger->trace("Current character is a '\"'");
+
+							currentToken.setValue(buffer);
+							tokens.push_back(currentToken);
+							util::logger->trace("Pushed token into the token list");
+
+							currentToken.reset();
+							buffer.clear();
+							util::logger->trace("Cleared buffer");
+
+							continue;
+						}
+
+						if(buffer == "\"")
+						{
+							buffer.clear();
+						}
+
+						buffer.push_back(currentChar);
+						util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+
+						continue;
+					}
+					else if(currentToken.getType() == TOKEN_LITERAL_CHAR)
+					{
+						util::logger->trace("Current token is a character literal");
+
+						const bool currentCharIsUnescapedQuote = (currentChar == '\'' && *(strpointer - 1) != '\\');
+
+						if(*(strpointer - 1) == '\\')
+						{
+							if(currentChar == '\'' || currentChar == '\\')
+							{
+								buffer.pop_back();
+							}
+						}
+
+						if(currentCharIsUnescapedQuote)
+						{
+							util::logger->trace("Current character is \"'\"");
+
+							currentToken.setValue(buffer);
+							tokens.push_back(currentToken);
+							util::logger->trace("Pushed token into the token list");
+
+							currentToken.reset();
+							buffer.clear();
+							util::logger->trace("Cleared buffer");
+
+							continue;
+						}
+
+						if(buffer == "'")
+						{
+							buffer.clear();
+						}
+
+						buffer.push_back(currentChar);
+						util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+
+						continue;
+					}
+					else if(util::StringUtils::isCharWhitespace(currentChar) || isTerminatingOperator(currentChar))
 					{
 						util::logger->trace("Current character is either whitespace or a terminating operator");
-						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
+						if(currentToken.getCategory() == TOKEN_CAT_WORD)
 						{
-							if(isKeyword(buffer))
+							if(isWordOperator(buffer))
 							{
-								currentToken.setType(TOKEN_KEYWORD);
+								currentToken.setCategory(TOKEN_CAT_OPERATOR);
+								currentToken.setType(TOKEN_OPERATOR);
+								util::logger->trace("Current token is actually an operator");
+							}
+							else if(isBooleanLiteral(buffer))
+							{
+								currentToken.setCategory(TOKEN_CAT_LITERAL);
+								currentToken.setType(TOKEN_LITERAL_BOOLEAN);
+								util::logger->trace("Current token is actually a boolean literal");
+							}
+							else if(isNoneLiteral(buffer))
+							{
+								currentToken.setCategory(TOKEN_CAT_LITERAL);
+								currentToken.setType(TOKEN_LITERAL_NONE);
+								util::logger->trace("Current token is actually a none literal");
+							}
+							else if(isKeyword(buffer))
+							{
+								currentToken.setType(TOKEN_WORD_KEYWORD);
 								util::logger->trace("Current token is a keyword");
 							}
 							else
 							{
-								currentToken.setType(TOKEN_IDENTIFIER);
+								currentToken.setType(TOKEN_WORD_IDENTIFIER);
 								util::logger->trace("Current token is an identifier");
 							}
+						}
+
+						if(currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER)
+						{
+							currentToken.setType(TOKEN_LITERAL_INTEGER);
+						}
+
+						if(currentChar == '.' && (
+							currentToken.getType() == TOKEN_LITERAL_INTEGER ||
+							currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER ||
+							currentToken.getType() == TOKEN_LITERAL_FLOAT
+						))
+						{
+							buffer.push_back(currentChar);
+							continue;
 						}
 
 						currentToken.setValue(buffer);
@@ -214,24 +371,8 @@ namespace core
 
 						if(isTerminatingOperator(currentChar))
 						{
-							util::logger->trace("Current character is a terminating operator");
-							if(isControlOperator(currentChar))
-							{
-								util::logger->trace("Current character is a control operator");
-								currentToken.setType(TOKEN_CONTROL_OPERATOR);
-							}
-							else if(isArgOperator(currentChar))
-							{
-								util::logger->trace("Current character is an argument operator");
-								currentToken.setType(TOKEN_ARG_OPERATOR);
-							}
-							else
-							{
-								util::logger->error("Lexer Error: Invalid operator: '{}'. On {}:{}", currentChar, filename, currentLine);
-								error = true;
-								return tokens;
-							}
-
+							currentToken.setCategory(TOKEN_CAT_OPERATOR);
+							currentToken.setType(TOKEN_OPERATOR);
 							currentToken.setValue(util::StringUtils::charToString(currentChar));
 							tokens.push_back(currentToken);
 							util::logger->trace("Pushed token into the token list");
@@ -242,11 +383,11 @@ namespace core
 					}
 					else
 					{
-						util::logger->trace("Current character is NOT whitespace or a terminating operator");
-						if(currentToken.getType() == TOKEN_KEYWORD_OR_IDENTIFIER)
+						util::logger->trace("Current character is not whitespace or a terminating operator");
+						if(currentToken.getCategory() == TOKEN_CAT_WORD)
 						{
-							util::logger->trace("Current token is a keyword or an identifier");
-							if(isalnum(currentChar) || currentChar == '_' || currentChar == '.')
+							util::logger->trace("Current token is a word");
+							if(isalnum(currentChar) || currentChar == '_')
 							{
 								buffer.push_back(currentChar);
 								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
@@ -260,10 +401,16 @@ namespace core
 							}
 						}
 
-						if(currentToken.getType() == TOKEN_LITERAL_NUMBER)
+						if(currentToken.getType() == TOKEN_LITERAL_DEFAULT_NUMBER || currentToken.getType() == TOKEN_LITERAL_INTEGER || currentToken.getType() == TOKEN_LITERAL_INTEGER)
 						{
 							util::logger->trace("Current token is a number literal");
-							if(isdigit(currentChar))
+
+							if(currentChar == '.')
+							{
+								currentToken.setType(TOKEN_LITERAL_FLOAT);
+							}
+
+							if(isdigit(currentChar) || currentChar == '.')
 							{
 								buffer.push_back(currentChar);
 								util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
@@ -275,6 +422,33 @@ namespace core
 								error = true;
 								return tokens;
 							}
+						}
+
+						if(currentToken.getType() == TOKEN_LITERAL_STRING)
+						{
+							if(buffer == "\"")
+							{
+								buffer.clear();
+							}
+							util::logger->trace("Current token is a string literal");
+							buffer.push_back(currentChar);
+							util::logger->trace("Pushed current character into the buffer. Buffer: '{}'", buffer);
+							continue;
+						}
+
+						if(currentToken.getCategory() == TOKEN_CAT_OPERATOR)
+						{
+							util::logger->trace("Current token is an operator");
+							if(util::StringUtils::isCharWhitespace(*(strpointer + 1)))
+							{
+								buffer.push_back(currentChar);
+							}
+							currentToken.setValue(buffer);
+							tokens.push_back(currentToken);
+							currentToken.reset();
+							buffer.clear();
+							util::logger->trace("Pushed token into the token list");
+							continue;
 						}
 					}
 				}
@@ -295,7 +469,19 @@ namespace core
 				continue;
 			}
 
-			util::logger->trace("\n");
+			if(!buffer.empty())
+			{
+				util::loggerBasic->trace("");
+				util::logger->trace("Character loop finished, buffer still not empty: '{}'", buffer);
+				if(currentToken.getType() != TOKEN_DEFAULT && currentToken.getType() != TOKEN_UNKNOWN)
+				{
+					util::logger->trace("Pushing token into the token list. Category: {}, Type: {}", currentToken.categoryToString(), currentToken.typeToString());
+					currentToken.setValue(buffer);
+					tokens.push_back(currentToken);
+				}
+			}
+
+			util::logger->trace("Every character has been gone through\n");
 
 			return tokens;
 		}

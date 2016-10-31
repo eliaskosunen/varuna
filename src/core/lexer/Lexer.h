@@ -31,9 +31,12 @@ namespace core
 		class Lexer
 		{
 			bool isKeyword(const std::string &buf);
-			bool isArgOperator(const char &curr);
-			bool isControlOperator(const char &curr);
+			bool isWholeOperator(const std::string &buf);
+			bool isBeginningOfOperator(const char &curr);
 			bool isTerminatingOperator(const char &curr);
+			bool isWordOperator(const std::string &buf);
+			bool isBooleanLiteral(const std::string &buf);
+			bool isNoneLiteral(const std::string &buf);
 
 		public:
 			Lexer() {}

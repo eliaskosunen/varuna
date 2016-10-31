@@ -24,34 +24,57 @@ namespace core
 {
 	namespace lexer
 	{
+		enum TokenCategory
+		{
+			TOKEN_CAT_DEFAULT,
+			TOKEN_CAT_UNKNOWN,
+
+			TOKEN_CAT_WORD,
+			TOKEN_CAT_LITERAL,
+			TOKEN_CAT_OPERATOR
+		};
+
 		enum TokenType
 		{
 			TOKEN_DEFAULT,
+			TOKEN_UNKNOWN,
 
-			TOKEN_UNKNOWN,			/// Unknown
-			TOKEN_IDENTIFIER,		/// Variables, functions etc.
-			TOKEN_LITERAL_NUMBER,	/// Number literals
-			TOKEN_ARG_OPERATOR,		/// Operators with arguments: + - * / etc.
-			TOKEN_KEYWORD,			/// Reserved words: if while function etc.
-			TOKEN_CONTROL_OPERATOR,	/// Operators without arguments: { } [ ]
+			TOKEN_WORD_DEFAULT,
+			TOKEN_WORD_KEYWORD,
+			TOKEN_WORD_IDENTIFIER,
 
-			TOKEN_KEYWORD_OR_IDENTIFIER	/// Used by Lexer
+			TOKEN_LITERAL_DEFAULT,
+			TOKEN_LITERAL_DEFAULT_NUMBER,
+			TOKEN_LITERAL_STRING,
+			TOKEN_LITERAL_INTEGER,
+			TOKEN_LITERAL_FLOAT,
+			TOKEN_LITERAL_CHAR,
+			TOKEN_LITERAL_BOOLEAN,
+			TOKEN_LITERAL_NONE,
+
+			TOKEN_OPERATOR
 		};
 
 		class Token
 		{
 		protected:
+			TokenCategory cat;
 			TokenType type;
 
-			typedef std::map<std::string, std::string> ParamMap;
-			ParamMap params;
-
 			std::string value;
+
+			TokenType getTypeFromCategory(TokenCategory _cat) const;
+			TokenCategory getCategoryFromType(TokenType _type) const;
 
 		public:
 			const static std::string DEFAULT_PARAM;
 
-			Token(TokenType _type = TOKEN_DEFAULT);
+			Token() : Token(TOKEN_DEFAULT) {}
+			Token(TokenCategory _cat);
+			Token(TokenType _type);
+
+			void setCategory(TokenCategory _cat);
+			TokenCategory getCategory() const;
 
 			void setType(TokenType _type);
 			TokenType getType() const;
@@ -59,14 +82,7 @@ namespace core
 			void setValue(std::string val);
 			const std::string &getValue() const;
 
-			const ParamMap &getParams() const;
-			const std::string &getParam(const std::string &key) const;
-			void setParam(const std::string &key, const std::string value, bool override = true);
-			void removeParam(const std::string &key);
-			bool paramExists(const std::string &key) const;
-			bool isParamsEmpty() const;
-			void clearParams();
-
+			std::string categoryToString() const;
 			std::string typeToString() const;
 
 			void reset();
