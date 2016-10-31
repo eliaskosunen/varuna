@@ -29,8 +29,8 @@ TEST_CASE("Test Token", "[core]")
 	REQUIRE(t.getType() == TOKEN_DEFAULT);
 	REQUIRE(t.getCategory() == TOKEN_CAT_DEFAULT);
 	t.setType(TOKEN_UNKNOWN);
+	t.setCategory(TOKEN_CAT_UNKNOWN);
 	REQUIRE(t.getType() == TOKEN_UNKNOWN);
 	REQUIRE(t.typeToString() == "UNKNOWN");
-	REQUIRE(t.getCategory() == TOKEN_CAT_UNKNOWN);
 	REQUIRE(t.categoryToString() == "UNKNOWN");
 }

@@ -1,16 +1,18 @@
 # code.txt
-import IO;
+import io;
 
 function main(List of String args): Void
 {
-	IO.stdout.writeln("Hello World!");
-	String input = IO.stdin.getln("What's your name?");
+	io.stdout.writeln("Hello World!");
+	String input = io.stdin.getln("What's your name?");
 	if(input == "John Doe")
 	{
-		IO.stdout.writeln("My man!");
+		io.stdout.writeln("My man!");
 	}
 	else
 	{
-		IO.stdout.println("I don't know you, {}", input);
+		io.stdout.println("I don't know you, {}", input);
 	}
+	Bool boolean = true;
+	None n = none;
 }

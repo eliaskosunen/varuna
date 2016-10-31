@@ -60,6 +60,8 @@ namespace core
 			case TOKEN_LITERAL_INTEGER:
 			case TOKEN_LITERAL_FLOAT:
 			case TOKEN_LITERAL_CHAR:
+			case TOKEN_LITERAL_BOOLEAN:
+			case TOKEN_LITERAL_NONE:
 				return TOKEN_CAT_LITERAL;
 			case TOKEN_OPERATOR:
 				return TOKEN_CAT_OPERATOR;
@@ -81,7 +83,6 @@ namespace core
 		void Token::setCategory(TokenCategory _cat)
 		{
 			cat = _cat;
-			type = getTypeFromCategory(_cat);
 		}
 		TokenCategory Token::getCategory() const
 		{
@@ -91,7 +92,6 @@ namespace core
 		void Token::setType(TokenType _type)
 		{
 			type = _type;
-			cat = getCategoryFromType(_type);
 		}
 
 		TokenType Token::getType() const
@@ -146,6 +146,10 @@ namespace core
 				return "LITERAL_FLOAT";
 			case TOKEN_LITERAL_CHAR:
 				return "LITERAL_CHAR";
+			case TOKEN_LITERAL_BOOLEAN:
+				return "LITERAL_BOOLEAN";
+			case TOKEN_LITERAL_NONE:
+				return "LITERAL_NONE";
 
 			case TOKEN_OPERATOR:
 				return "OPERATOR";

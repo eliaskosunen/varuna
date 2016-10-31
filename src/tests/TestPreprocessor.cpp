@@ -28,17 +28,9 @@ TEST_CASE("Test Preprocessor", "[preprocessor]")
 	core::preprocessor::Preprocessor prep;
 	REQUIRE(prep.run("a") == "a");
 
-	SECTION("Test whitespace trimming")
-	{
-		REQUIRE(prep.run(" a ") == "a");
-		REQUIRE(prep.run("  a ") == "a");
-		REQUIRE(prep.run("\ta\t") == "a");
-	}
-
 	SECTION("Test comments")
 	{
 		REQUIRE(prep.run("foo#bar") == "foo");
-		REQUIRE(prep.run("foo #bar") == "foo");
-		REQUIRE(prep.run("#bar\n\tfoo") == "\nfoo");
+		REQUIRE(prep.run("#bar\n\tfoo") == "\n\tfoo");
 	}
 }

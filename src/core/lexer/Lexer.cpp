@@ -41,12 +41,11 @@ namespace core
 				buf == "if" || buf == "while" || buf == "for" || buf == "foreach" ||
 				buf == "switch" || buf == "case" || buf == "break" ||
 				buf == "return" || buf == "continue" ||
-				buf == "true" || buf == "false" || buf == "none" ||
 
 				// Datatypes
 				buf == "None" || buf == "Void" || buf == "Integer" || buf == "Float" ||
 				buf == "Double" || buf == "Decimal" || buf == "String" || buf == "Char" ||
-				buf == "UInteger" || buf == "BigInteger" ||
+				buf == "UInteger" || buf == "BigInteger" || buf == "Bool" ||
 				buf == "Int8" || buf == "Int16" || buf == "Int32" || buf == "Int64" ||
 				buf == "UInt8" || buf == "UInt16" || buf == "UInt32" || buf == "UInt64" ||
 				buf == "List" || buf == "Dict" || buf == "Array"
@@ -113,6 +112,26 @@ namespace core
 				buf == "and" || buf == "or" || buf == "not" ||
 				buf == "as" || buf == "of"
 			)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isBooleanLiteral(const std::string &buf)
+		{
+			if(
+				buf == "true" || buf == "false"
+			)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool Lexer::isNoneLiteral(const std::string &buf)
+		{
+			if(buf == "none")
 			{
 				return true;
 			}
@@ -299,9 +318,21 @@ namespace core
 						{
 							if(isWordOperator(buffer))
 							{
-								currentToken.setType(TOKEN_OPERATOR);
 								currentToken.setCategory(TOKEN_CAT_OPERATOR);
+								currentToken.setType(TOKEN_OPERATOR);
 								util::logger->trace("Current token is actually an operator");
+							}
+							else if(isBooleanLiteral(buffer))
+							{
+								currentToken.setCategory(TOKEN_CAT_LITERAL);
+								currentToken.setType(TOKEN_LITERAL_BOOLEAN);
+								util::logger->trace("Current token is actually a boolean literal");
+							}
+							else if(isNoneLiteral(buffer))
+							{
+								currentToken.setCategory(TOKEN_CAT_LITERAL);
+								currentToken.setType(TOKEN_LITERAL_NONE);
+								util::logger->trace("Current token is actually a none literal");
 							}
 							else if(isKeyword(buffer))
 							{

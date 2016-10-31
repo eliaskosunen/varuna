@@ -35,6 +35,8 @@ namespace core
 			bool isBeginningOfOperator(const char &curr);
 			bool isTerminatingOperator(const char &curr);
 			bool isWordOperator(const std::string &buf);
+			bool isBooleanLiteral(const std::string &buf);
+			bool isNoneLiteral(const std::string &buf);
 
 		public:
 			Lexer() {}
