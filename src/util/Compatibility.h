@@ -15,35 +15,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <vector>
-#include <string>
+#include <memory>
 
 namespace util
 {
-
-	/**
-	@author
-		iain: http://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
-	*/
-	class CommandLineParser
+#ifdef CPP_STD_11
+	template<typename T, typename... Args>
+	std::unique_ptr<T> make_unique(Args&&... args)
 	{
-		std::vector<std::string> tokens;
-
-	public:
-		static const std::string DEFAULT;
-
-		CommandLineParser(const int &argc, char **argv);
-		CommandLineParser(const int &argc, const char **argv);
-
-		const std::string &getOption(const std::string &option) const;
-		bool optionExists(const std::string &option) const;
-
-		int size() const;
-		bool empty() const;
-
-		bool isDefault(const std::string &str) const { return str == DEFAULT; }
-	};
-
+		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+	}
+#else
+	template<typename T, typename... Args>
+	std::unique_ptr<T> make_unique(Args&&... args)
+	{
+		return std::make_unique<T>(args...);
+	}
+#endif
 }

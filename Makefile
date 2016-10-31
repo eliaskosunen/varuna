@@ -1,8 +1,9 @@
 APPNAME = varuna
 
+STD := 11
 CC = gcc
 CXX = g++
-CXXFLAGS := -pthread -O -g -std=c++14 -Wall -pedantic -Wextra -Werror -fprofile-arcs -ftest-coverage
+CXXFLAGS := -pthread -O -g -std=c++$(STD) -Wall -pedantic -Wextra -Werror -fprofile-arcs -ftest-coverage -DCPP_STD_$(STD)
 LINKFLAGS := -O -g
 INCLUDE_DIRS := -Ithird-party/include -Isrc -isystem ext/include
 LIB_DIRS := -Lext/lib
