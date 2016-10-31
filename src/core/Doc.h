@@ -15,39 +15,37 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * \file
- * Main file of the application
- */
-
-#include <iostream>
-#include <stdexcept>
-
-#include "app/CommandLine.h"
-#include "util/Logger.h"
-
-/**
- * The entry point of the application
- * @param  argc Argument count
- * @param  argv Argument vector
- * @return      Application return value
- */
-int main(int argc, char **argv)
+namespace app
 {
-	try
+
+}
+
+/**
+ * Namespace for the language implementation
+ */
+namespace core
+{
+	/**
+	 * Lexer
+	 */
+	namespace lexer
 	{
-		util::initLogger();
-		app::CommandLine cl(argc, argv);
-		cl.run();
-		return 0;
+
 	}
-	catch(const spdlog::spdlog_ex &e)
+
+	/**
+	 * Preprocessor
+	 */
+	namespace preprocessor
 	{
-		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
+
 	}
-	catch(const std::exception &e)
-	{
-		std::cerr << "EXCEPTION: " << e.what() << "\n";
-	}
-	return 1;
+}
+
+/**
+ * Namespace for application-wide utility classes
+ */
+namespace util
+{
+
 }

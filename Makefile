@@ -84,7 +84,7 @@ dirs: | bin/ build/ html/ $(patsubst src/%,build/%,build/tests/%$(sort $(dir $(S
 # Documentation build with Doxygen
 html: Doxyfile $(FILES_CPP) $(FILES_HPP) | html/
 	@echo [DOXYGEN]
-	@doxygen > html/doxygen.log
+	@doxygen 1> html/doxygen.log 2> html/doxygen-error.log
 
 # Build rules for binaries.
 $(BIN): $(patsubst src/%,build/%.o,$(SRC))
