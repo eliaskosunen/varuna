@@ -25,6 +25,10 @@ namespace core
 	{
 		class Visitor
 		{
+		public:
+			Visitor() {}
+			virtual ~Visitor() {}
+
 			virtual void visit(TreeNode*) {}
 		};
 	}

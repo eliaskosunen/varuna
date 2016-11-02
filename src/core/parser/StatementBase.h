@@ -30,12 +30,20 @@ namespace core
 		class Statement: public TreeNode
 		{
 		public:
+			Statement();
+			virtual ~Statement() {}
+
 			void accept(Visitor &v) override;
 		};
 
 		class StatementBlock: public Statement
 		{
 			std::vector<std::shared_ptr<Statement>> statementList;
+		public:
+			StatementBlock();
+			virtual ~StatementBlock() {}
+
+			void accept(Visitor &v) override;
 		};
 	}
 }

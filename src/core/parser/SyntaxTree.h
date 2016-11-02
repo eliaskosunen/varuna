@@ -29,6 +29,8 @@ namespace core
 		class SyntaxTree
 		{
 			std::unique_ptr<StatementBlock> tree;
+		public:
+			SyntaxTree();
 		};
 	}
 }

@@ -43,32 +43,50 @@ namespace core
 
 		class StatementFor: public StatementBlock
 		{
-
+			std::shared_ptr<Expression> init;
+			std::shared_ptr<Expression> check;
+			std::shared_ptr<Expression> increment;
+			// statementList is inherited
 		};
 
 		class StatementWhile: public StatementBlock
 		{
-
+			std::shared_ptr<Expression> condition;
+			// statementList is inherited
 		};
 
 		class StatementVariableDeclaration: public Statement
 		{
-
+			// std::shared_ptr<DataType> type
+			std::shared_ptr<ExpressionIdentifier> name;
+			std::shared_ptr<Expression> value;
+			// bool isConst;
+			// bool isExtern;
+			// bool isExport;
 		};
 
 		class StatementFunctionDeclaration: public Statement
 		{
-
+			// std::shared_ptr<DataType> returnType;
+			std::shared_ptr<ExpressionIdentifier> name;
+			// std::vector<std::shared_ptr<StatementFunctionParameter>> paramList;
+			// bool isExtern;
+			// bool isExport;
 		};
 
 		class StatementFunctionDefinition: public StatementBlock
 		{
-
+			// std::shared_ptr<DataType> returnType;
+			std::shared_ptr<ExpressionIdentifier> name;
+			// std::vector<std::shared_ptr<StatementFunctionParameter>> paramList;
+			// bool isExport;
+			// statementList is inherited
 		};
 
 		class StatementFunctionCallVoid: public Statement
 		{
-
+			std::shared_ptr<ExpressionIdentifier> name;
+			// std::vector<std::shared_ptr<StatementFunctionParameter>> paramList;
 		};
 	}
 }

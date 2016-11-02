@@ -15,30 +15,38 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include "core/parser/FwdDecl.h"
-#include "core/parser/SyntaxTree.h"
-#include "core/parser/TreeNode.h"
-#include "core/parser/ExpressionBase.h"
-#include "core/parser/Expressions.h"
 #include "core/parser/StatementBase.h"
-#include "core/parser/Statements.h"
-#include "core/parser/Visitor.h"
 
-#include "core/lexer/Lexer.h"
-#include "core/lexer/Token.h"
+#include <vector>
+#include <memory>
+
+#include "core/parser/TreeNode.h"
+#include "core/parser/Visitor.h"
 
 namespace core
 {
 	namespace parser
 	{
-		class Parser
+		Statement::Statement()
+			: TreeNode()
 		{
-		public:
-			Parser() {}
 
-			SyntaxTree run(const core::lexer::TokenVector &tokens);
-		};
+		}
+
+		void Statement::accept(core::parser::Visitor &v)
+		{
+			v.visit(this);
+		}
+
+		StatementBlock::StatementBlock()
+			: Statement()
+		{
+
+		}
+
+		void StatementBlock::accept(core::parser::Visitor &v)
+		{
+			v.visit(this);
+		}
 	}
 }

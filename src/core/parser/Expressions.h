@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "core/parser/ExpressionBase.h"
 #include "core/parser/Operator.h"
@@ -34,11 +35,13 @@ namespace core
 		};
 		class ExpressionUnaryOperation: public Expression
 		{
-
+			std::shared_ptr<UnaryOperator> oper;
+			std::shared_ptr<Expression> right;
 		};
 		class ExpressionFunctionCall: public Expression
 		{
-
+			std::shared_ptr<ExpressionIdentifier> name;
+			// std::vector<std::shared_ptr<StatementFunctionParameter>> paramList;
 		};
 
 		class ExpressionLiteral: public Expression
@@ -47,28 +50,28 @@ namespace core
 		};
 		class ExpressionIdentifier: public Expression
 		{
-
+			std::string name;
 		};
 
 		class ExpressionLiteralInteger: public ExpressionLiteral
 		{
-
+			//long long value;
 		};
 		class ExpressionLiteralFloat: public ExpressionLiteral
 		{
-
+			//long double value;
 		};
 		class ExpressionLiteralString: public ExpressionLiteral
 		{
-
+			std::string value;
 		};
 		class ExpressionLiteralBoolean: public ExpressionLiteral
 		{
-
+			//bool value;
 		};
 		class ExpressionLiteralNone: public ExpressionLiteral
 		{
-
+			
 		};
 	}
 }
