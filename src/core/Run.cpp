@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/lexer/Token.h"
 #include "core/lexer/Lexer.h"
 
+#include "core/parser/Parser.h"
+
 namespace core
 {
 	int run(const std::string &filename)

@@ -6,3 +6,4 @@ latex/
 Doxyfile.bak
 *.anjuta*
 .anjuta/
+.clang_complete
