@@ -144,7 +144,7 @@ namespace core
 
 			void setLine(unsigned int val);
 
-			const unsigned int getLine();
+			unsigned int getLine();
 
 			/**
 			 * Get the category of the token as string

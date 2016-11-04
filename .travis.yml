@@ -1,31 +1,48 @@
-language: generic
-os:
-    - linux
+sudo: required
+dist: precise
+language: cpp
 
-git:
-    depth: 5
-
-env:
-    matrix:
-        - CXX="g++-5" CC="gcc-5" COV=1 GCOV="gcov-5" COVPARAM="-cov"
-        - CXX="g++-4.9" CC="gcc-4.9" COV=0 COVPARAM=""
-        - CXX="clang++-3.8" CC="clang-3.8" COV=0 COVPARAM=""
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+      env: COMPILER=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8
+      env: COMPILER=clang++-3.8
 
 before_install:
-    - export COMPILERS="CC=$CC CXX=$CXX"
-    - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-    - sudo apt-key update
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
-    - sudo apt-get update -qq
-    #- sudo pip install cpp-coveralls
-
-install:
-    - sudo apt-get --allow-unauthenticated -qq --assume-yes install $CXX lldb-3.8
-    #- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
-
+  - sudo apt-get update -qq
 script:
-    #- ./build.sh ${COMPILERS} -nohtml -notests ${COVPARAM}
-    - ./build.sh ${COMPILERS} -nohtml -notests
-after_success:
-    #- if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER .. && make
+  - ../bin/tests

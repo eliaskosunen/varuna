@@ -56,16 +56,16 @@ CMAKE_BINARY_DIR = /home/elias/code/projects/varuna
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
-	/usr/bin/ctest --force-new-ctest-process $(ARGS)
-.PHONY : test
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
 
-# Special rule for the target test
-test/fast: test
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
 
-.PHONY : test/fast
+.PHONY : rebuild_cache/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,17 +77,6 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -122,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named src
+# Target rules for targets named html
 
 # Build rule for target.
-src: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 src
-.PHONY : src
+html: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 html
+.PHONY : html
 
 # fast build rule for target.
-src/fast:
-	$(MAKE) -f src/CMakeFiles/src.dir/build.make src/CMakeFiles/src.dir/build
-.PHONY : src/fast
+html/fast:
+	$(MAKE) -f CMakeFiles/html.dir/build.make CMakeFiles/html.dir/build
+.PHONY : html/fast
 
 #=============================================================================
 # Target rules for targets named varuna
@@ -146,6 +135,19 @@ varuna: cmake_check_build_system
 varuna/fast:
 	$(MAKE) -f src/CMakeFiles/varuna.dir/build.make src/CMakeFiles/varuna.dir/build
 .PHONY : varuna/fast
+
+#=============================================================================
+# Target rules for targets named varunasrc
+
+# Build rule for target.
+varunasrc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 varunasrc
+.PHONY : varunasrc
+
+# fast build rule for target.
+varunasrc/fast:
+	$(MAKE) -f src/CMakeFiles/varunasrc.dir/build.make src/CMakeFiles/varunasrc.dir/build
+.PHONY : varunasrc/fast
 
 #=============================================================================
 # Target rules for targets named tests
@@ -166,11 +168,11 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... test"
-	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... src"
+	@echo "... edit_cache"
+	@echo "... html"
 	@echo "... varuna"
+	@echo "... varunasrc"
 	@echo "... tests"
 .PHONY : help
 

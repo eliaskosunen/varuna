@@ -37,8 +37,9 @@ namespace core
 				return TOKEN_LITERAL_DEFAULT;
 			case TOKEN_CAT_OPERATOR:
 				return TOKEN_OPERATOR;
+			default:
+				return TOKEN_UNKNOWN;
 			}
-			return TOKEN_UNKNOWN;
 		}
 
 		TokenCategory Token::getCategoryFromType(TokenType _type) const
@@ -63,8 +64,9 @@ namespace core
 				return TOKEN_CAT_LITERAL;
 			case TOKEN_OPERATOR:
 				return TOKEN_CAT_OPERATOR;
+			default:
+				return TOKEN_CAT_UNKNOWN;
 			}
-			return TOKEN_CAT_UNKNOWN;
 		}
 
 		Token::Token(TokenCategory _cat) : value("")
@@ -112,8 +114,9 @@ namespace core
 				return "LITERAL";
 			case TOKEN_CAT_OPERATOR:
 				return "OPERATOR";
+			default:
+				return "DEFAULT";
 			}
-			return "DEFAULT";
 		}
 
 		std::string Token::typeToString() const
@@ -151,8 +154,10 @@ namespace core
 
 			case TOKEN_OPERATOR:
 				return "OPERATOR";
+
+			default:
+				return "DEFAULT";
 			}
-			return "DEFAULT";
 		}
 
 		void Token::setValue(std::string val)
@@ -180,7 +185,7 @@ namespace core
 			line = val;
 		}
 
-		const unsigned int Token::getLine()
+		unsigned int Token::getLine()
 		{
 			return line;
 		}
