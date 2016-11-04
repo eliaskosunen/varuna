@@ -1,6 +1,11 @@
 sudo: required
 dist: precise
 language: cpp
+os:
+    - linux
+
+git:
+    depth: 5
 
 matrix:
   include:
@@ -41,6 +46,7 @@ matrix:
 
 before_install:
   - sudo apt-get update -qq
+
 script:
   - mkdir build
   - cd build
