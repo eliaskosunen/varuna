@@ -12,11 +12,12 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(WARNINGS "/W4 /WX /EHsc")
 endif()
 
-set(DEBUG_FLAGS "-g -O1")
-set(RELEASE_FLAGS "-O3")
+set(CXX_STANDARD 	"11")
+set(DEBUG_FLAGS		"-g -O1")
+set(RELEASE_FLAGS	"-O3")
 
-set(CMAKE_CXX_FLAGS			"${CMAKE_CXX_FLAGS} ${RELEASE_FLAGS} ${WARNINGS} --std=c++11 -pthread")
-set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS} ${WARNINGS} --std=c++11 -pthread")
+set(CMAKE_CXX_FLAGS			"${CMAKE_CXX_FLAGS} ${RELEASE_FLAGS} ${WARNINGS} --std=c++${CXX_STANDARD} -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS} ${WARNINGS} --std=c++${CXX_STANDARD} -pthread")
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -26,17 +27,3 @@ include_directories(SYSTEM third-party/include)
 add_subdirectory(src)
 
 add_subdirectory(tests)
-
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-	file(MAKE_DIRECTORY html)
-	add_custom_target(
-		html
-		${DOXYGEN_EXECUTABLE} 1> html/doxygen.log 2> html/doxygen-error.log
-	)
-else()
-	add_custom_target(
-		html
-		echo -E "Can't create documentation, Doxygen not found"
-	)
-endif(DOXYGEN_FOUND)

@@ -10,7 +10,5 @@ cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=g++-5 ..
 make
 
 cd ..
-
 ./bin/tests
-
-make html
+./build-docs.sh
