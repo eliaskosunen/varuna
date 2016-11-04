@@ -20,18 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/parser/SyntaxTree.h"
 #include "core/lexer/Lexer.h"
 #include "core/lexer/Token.h"
+#include "util/Compatibility.h"
 
 namespace core
 {
 	namespace parser
 	{
-		SyntaxTree Parser::run(const core::lexer::TokenVector &tokens)
+		SyntaxTree Parser::run(core::lexer::TokenVector &tokens)
 		{
 			SyntaxTree tree;
-			for(const auto &token: tokens)
+			core::lexer::TokenVector buffer;
+			buffer.reserve(8);
+			core::lexer::TokenVector::iterator tokenptr = tokens.begin();
+			const core::lexer::TokenVector::const_iterator tokenendptr = tokens.end();
+
+			for(; tokenptr != tokenendptr; ++tokenptr)
 			{
-				token.typeToString();
+				const core::lexer::Token &currentToken = *tokenptr;
 			}
+
 			return tree;
 		}
 	}

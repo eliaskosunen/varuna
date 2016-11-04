@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "core/parser/ExpressionBase.h"
 #include "core/parser/Operator.h"
@@ -29,49 +30,91 @@ namespace core
 	{
 		class ExpressionBinaryOperation: public Expression
 		{
-			std::shared_ptr<BinaryOperator> oper;
-			std::shared_ptr<Expression> left;
-			std::shared_ptr<Expression> right;
+			std::unique_ptr<BinaryOperator> oper;
+			std::unique_ptr<Expression> left;
+			std::unique_ptr<Expression> right;
+		public:
+			ExpressionBinaryOperation() : Expression() {}
+
+			BinaryOperator *getOperator() { return oper.get(); }
+			Expression *getLeft() { return left.get(); }
+			Expression *getRight() { return right.get(); }
 		};
 		class ExpressionUnaryOperation: public Expression
 		{
-			std::shared_ptr<UnaryOperator> oper;
-			std::shared_ptr<Expression> right;
+			std::unique_ptr<UnaryOperator> oper;
+			std::unique_ptr<Expression> right;
+		public:
+			ExpressionUnaryOperation() : Expression() {}
+
+			UnaryOperator *getOperator() { return oper.get(); }
+			Expression *getRight() { return right.get(); }
 		};
 		class ExpressionFunctionCall: public Expression
 		{
-			std::shared_ptr<ExpressionIdentifier> name;
-			// std::vector<std::shared_ptr<StatementFunctionParameter>> paramList;
+			std::unique_ptr<ExpressionIdentifier> name;
+			//std::vector<std::unique_ptr<StatementFunctionParameter>> paramList;
+		public:
+			ExpressionFunctionCall() : Expression() {}
+
+			ExpressionIdentifier *getName() { return name.get(); }
 		};
 
 		class ExpressionLiteral: public Expression
 		{
-
+		public:
+			ExpressionLiteral() : Expression() {}
 		};
 		class ExpressionIdentifier: public Expression
 		{
 			std::string name;
+		public:
+			ExpressionIdentifier(std::string _name) : Expression(), name(_name) {}
+
+			const std::string &getName() const { return name; }
+			void setName(const std::string &name_) { name = name_; }
 		};
 
 		class ExpressionLiteralInteger: public ExpressionLiteral
 		{
-			//long long value;
+			long long value;
+		public:
+			ExpressionLiteralInteger(long long val) : ExpressionLiteral(), value(val) {}
+
+			long long getValue() const { return value; }
+			void setValue(long long val) { value = val; }
 		};
 		class ExpressionLiteralFloat: public ExpressionLiteral
 		{
-			//long double value;
+			long double value;
+		public:
+			ExpressionLiteralFloat(long double val) : ExpressionLiteral(), value(val) {}
+
+			long double getValue() const { return value; }
+			void setValue(long double val) { value = val; }
 		};
 		class ExpressionLiteralString: public ExpressionLiteral
 		{
 			std::string value;
+		public:
+			ExpressionLiteralString(const std::string &val) : ExpressionLiteral(), value(val) {}
+
+			const std::string &getValue() const { return value; }
+			void setValue(const std::string &val) { value = val; }
 		};
 		class ExpressionLiteralBoolean: public ExpressionLiteral
 		{
-			//bool value;
+			bool value;
+		public:
+			ExpressionLiteralBoolean(bool val) : ExpressionLiteral(), value(val) {}
+
+			bool getValue() const { return value; }
+			void setValue(bool val) { value = val; }
 		};
 		class ExpressionLiteralNone: public ExpressionLiteral
 		{
-			
+		public:
+			ExpressionLiteralNone() : ExpressionLiteral() {}
 		};
 	}
 }

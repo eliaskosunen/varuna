@@ -38,7 +38,7 @@ namespace core
 		public:
 			Parser() {}
 
-			SyntaxTree run(const core::lexer::TokenVector &tokens);
+			SyntaxTree run(core::lexer::TokenVector &tokens);
 		};
 	}
 }

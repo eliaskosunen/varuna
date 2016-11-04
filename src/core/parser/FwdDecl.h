@@ -40,6 +40,7 @@ namespace core
 		class StatementFunctionDeclaration;
 		class StatementFunctionDefinition;
 		class StatementFunctionCallVoid;
+		class StatementImport;
 
 		class Expression;
 

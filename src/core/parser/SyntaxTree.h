@@ -31,6 +31,8 @@ namespace core
 			std::unique_ptr<StatementBlock> tree;
 		public:
 			SyntaxTree();
+
+			StatementBlock *getTree() { return tree.get(); }
 		};
 	}
 }

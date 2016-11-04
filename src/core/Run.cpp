@@ -64,6 +64,7 @@ namespace core
 		util::logger->debug("Starting parser");
 		core::parser::Parser parser;
 		core::parser::SyntaxTree ast = parser.run(tokens);
+
 		return 0;
 	}
 }

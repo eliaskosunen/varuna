@@ -19,16 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tests
 {
-    inline unsigned int factorial(unsigned int number) {
-        return number > 1 ? factorial(number-1) * number : 1;
-    }
+	inline unsigned int factorial(unsigned int number) {
+		return number > 1 ? factorial(number-1) * number : 1;
+	}
 }
 
 TEST_CASE("General test", "[factorial]")
 {
-    REQUIRE(tests::factorial(0) == 1);
-    REQUIRE(tests::factorial(1) == 1);
-    REQUIRE(tests::factorial(2) == 2);
-    REQUIRE(tests::factorial(3) == 6);
-    REQUIRE(tests::factorial(10) == 3628800);
+	REQUIRE(tests::factorial(0) == 1);
+	REQUIRE(tests::factorial(1) == 1);
+	REQUIRE(tests::factorial(2) == 2);
+	REQUIRE(tests::factorial(3) == 6);
+	REQUIRE(tests::factorial(10) == 3628800);
 }

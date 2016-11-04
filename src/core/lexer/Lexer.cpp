@@ -149,6 +149,8 @@ namespace core
 			unsigned int currentLine = 1;
 			error = false;
 
+			currentToken.setFile(filename);
+
 			for(; strpointer != strendpointer; ++strpointer)
 			{
 				const char currentChar = *strpointer;
@@ -252,6 +254,7 @@ namespace core
 							util::logger->trace("Current character is a '\"'");
 
 							currentToken.setValue(buffer);
+							currentToken.setLine(currentLine);
 							tokens.push_back(currentToken);
 							util::logger->trace("Pushed token into the token list");
 
@@ -291,6 +294,7 @@ namespace core
 							util::logger->trace("Current character is \"'\"");
 
 							currentToken.setValue(buffer);
+							currentToken.setLine(currentLine);
 							tokens.push_back(currentToken);
 							util::logger->trace("Pushed token into the token list");
 
@@ -362,6 +366,7 @@ namespace core
 						}
 
 						currentToken.setValue(buffer);
+						currentToken.setLine(currentLine);
 						tokens.push_back(currentToken);
 						util::logger->trace("Pushed token into the token list");
 
@@ -374,6 +379,7 @@ namespace core
 							currentToken.setCategory(TOKEN_CAT_OPERATOR);
 							currentToken.setType(TOKEN_OPERATOR);
 							currentToken.setValue(util::StringUtils::charToString(currentChar));
+							currentToken.setLine(currentLine);
 							tokens.push_back(currentToken);
 							util::logger->trace("Pushed token into the token list");
 
@@ -444,6 +450,7 @@ namespace core
 								buffer.push_back(currentChar);
 							}
 							currentToken.setValue(buffer);
+							currentToken.setLine(currentLine);
 							tokens.push_back(currentToken);
 							currentToken.reset();
 							buffer.clear();
@@ -462,6 +469,7 @@ namespace core
 				{
 					currentToken.setValue(buffer);
 				}
+				currentToken.setLine(currentLine);
 				tokens.push_back(currentToken);
 
 				currentToken.reset();
@@ -477,6 +485,7 @@ namespace core
 				{
 					util::logger->trace("Pushing token into the token list. Category: {}, Type: {}", currentToken.categoryToString(), currentToken.typeToString());
 					currentToken.setValue(buffer);
+					currentToken.setLine(currentLine);
 					tokens.push_back(currentToken);
 				}
 			}

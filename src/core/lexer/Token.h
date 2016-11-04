@@ -78,6 +78,10 @@ namespace core
 			 */
 			std::string value;
 
+			std::string file;
+
+			unsigned int line;
+
 			/**
 			 * Get the default type of category
 			 * @param  _cat Category
@@ -133,6 +137,14 @@ namespace core
 			 * @return Value
 			 */
 			const std::string &getValue() const;
+
+			void setFile(std::string val);
+
+			const std::string &getFile() const;
+
+			void setLine(unsigned int val);
+
+			const unsigned int getLine();
 
 			/**
 			 * Get the category of the token as string

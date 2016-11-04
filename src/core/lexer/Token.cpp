@@ -165,6 +165,26 @@ namespace core
 			return value;
 		}
 
+		void Token::setFile(std::string val)
+		{
+			file = val;
+		}
+
+		const std::string &Token::getFile() const
+		{
+			return file;
+		}
+
+		void Token::setLine(unsigned int val)
+		{
+			line = val;
+		}
+
+		const unsigned int Token::getLine()
+		{
+			return line;
+		}
+
 		void Token::reset()
 		{
 			setType(TOKEN_DEFAULT);

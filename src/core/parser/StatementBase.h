@@ -36,14 +36,30 @@ namespace core
 			void accept(Visitor &v) override;
 		};
 
+		typedef std::vector<std::unique_ptr<Statement>> StatementPtrVector;
+
 		class StatementBlock: public Statement
 		{
-			std::vector<std::shared_ptr<Statement>> statementList;
+		protected:
+			StatementPtrVector statementList;
 		public:
 			StatementBlock();
 			virtual ~StatementBlock() {}
 
 			void accept(Visitor &v) override;
+
+			const StatementPtrVector &getStatementList() const { return statementList; }
+
+			void pushStatement(std::unique_ptr<Statement> s)
+			{
+				statementList.push_back(std::move(s));
+			}
+		};
+
+		class StatementEmpty: public Statement
+		{
+		public:
+			StatementEmpty() : Statement() {}
 		};
 	}
 }

@@ -29,6 +29,8 @@ namespace core
 			virtual void accept(Visitor &v) = 0;
 
 			virtual ~TreeNode() {}
+
+			int _dummy;
 		};
 	}
 }
