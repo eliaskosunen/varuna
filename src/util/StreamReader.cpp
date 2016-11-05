@@ -82,10 +82,9 @@ namespace util
 
 			std::string errmsg;
 		#ifdef _MSC_VER
-			size_t errmsglen = strerrorlen_s(errno) + 1;
-			char errmsg_c[errmsglen];
-			strerror_s(errmsg_c, errmsglen, errno);
-			errmsg = util::StringUtils::cstrToStringLen(errmsg_c errmsglen);
+			char buf[80];
+			_strerror_s<80>(buf);
+			errmsg = util::StringUtils::cstrToString(buf);
 		#else
 			errmsg = strerror(errno);
 		#endif // defined _MSC_VER
