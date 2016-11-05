@@ -15,25 +15,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <string>
-#include <vector>
-
-#include "core/lexer/Token.h"
+#include "core/grammar/Grammar.h"
+#include "core/grammar/Token.h"
+#include "core/grammar/Word.h"
 
 namespace core
 {
-	namespace lexer
+	namespace grammar
 	{
-		typedef std::vector<core::lexer::Token> TokenVector;
-
-		class Lexer
-		{
-		public:
-			Lexer() {}
-
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
-		};
+		WordKeyword wordKeyword;
+		WordIdentifier wordIdentifier;
 	}
 }

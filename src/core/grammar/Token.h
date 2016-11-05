@@ -18,22 +18,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
-#include <vector>
-
-#include "core/lexer/Token.h"
+#include <locale>
 
 namespace core
 {
-	namespace lexer
+	namespace grammar
 	{
-		typedef std::vector<core::lexer::Token> TokenVector;
-
-		class Lexer
+		class TokenRule
 		{
 		public:
-			Lexer() {}
+			TokenRule() {}
+			virtual ~TokenRule() {}
 
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
+			virtual int validate(const std::string &buffer) = 0;
+			virtual int identify(const std::string &buffer) = 0;
+
+			virtual bool allowWhitespaceBefore()
+			{
+				return true;
+			}
+			virtual bool allowWhitespacesAfter()
+			{
+				return true;
+			}
+			virtual bool terminate(const char &curr, const char &prev = 0)
+			{
+				if(
+					curr == '{' || curr == '}' || curr == '(' || curr == ')' ||
+					curr == '[' || curr == ']' || curr == '"' ||
+					curr == ':' || curr == ';' || curr == '.' || curr == ',' ||
+
+					std::isspace(curr)
+				)
+				{
+					return true;
+				}
+				return false;
+			}
 		};
 	}
 }

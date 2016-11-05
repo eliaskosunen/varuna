@@ -17,23 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "core/lexer/Token.h"
-
 namespace core
 {
-	namespace lexer
+	namespace grammar
 	{
-		typedef std::vector<core::lexer::Token> TokenVector;
-
-		class Lexer
-		{
-		public:
-			Lexer() {}
-
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
-		};
+		
 	}
 }
