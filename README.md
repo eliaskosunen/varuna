@@ -12,10 +12,54 @@ WORK IN PROGRESS.
 
 ## Building
 
-The easiest way to build the application is to use GNU Make.
-To build, run `$ make build`, which will provide you the executable.
-To also build the unit tests and documentation, it's recommended to use `build.sh`.
-Binaries can be found in the directory `bin/`.
+### Requirements
+
+The project is developed on Ubuntu 16.04 and tested on Ubuntu 14.04.
+Other Linux distributions should work, as long as they'll have the right compiler versions available.
+Windows is supported, and macOS support is coming at some point.
+
+A C++11 compliant compiler is required for building.
+The project is confirmed to build on
+Linux with g++ (versions 4.9.3 and 5.4.0) and Clang (versions 3.6 and 3.8) and
+on Windows with Visual Studio 14 (2015). Further support is not planned.
+
+### Instructions
+
+The application can be build using CMake.
+The easiest way to do this is to run `build.sh`,
+which will build the application, tests and documentation.
+`build.sh` will only work on Linux.
+
+If you'd like to build on other platforms than Linux,
+or not to build documentation, here are the instructions
+
+### Linux
+```sh
+# On the repository root folder
+$ mkdir build
+$ cd build
+$ cmake -G "Unix Makefiles" ..
+$ make
+
+# Run tests:
+$ cd ..
+$ ./bin/tests
+
+# Build documentation
+$ ./build-docs.sh
+```
+
+### Windows
+
+You can either use the CMake GUI or the Command Prompt:
+```sh
+# On the repository root folder
+> md build
+> cd build
+> cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release ..
+```
+
+After that the Visual Studio project files can be found in the folder `build`.
 
 ### Requirements
 
@@ -41,3 +85,5 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Varuna also uses various third-party software, see LICENSE.thirdparty.txt for details.
