@@ -26,6 +26,9 @@ namespace core
 {
 	namespace lexer
 	{
+		/**
+		 * Vector of tokens
+		 */
 		typedef std::vector<Token> TokenVector;
 
 		/**

@@ -29,9 +29,18 @@ namespace app
 	 */
 	class CommandLine
 	{
-		const int &argc;
+		/**
+		 * Count of command line arguments, from main
+		 */
+		const int argc;
+		/**
+		 * Command line argument vector, from main
+		 */
 		char **argv;
 
+		/**
+		 * Command line parser
+		 */
 		TCLAP::CmdLine cmd;
 
 		/**
@@ -45,7 +54,7 @@ namespace app
 		 * @param argc Command line argument count
 		 * @param argv Command line argument vector
 		 */
-		CommandLine(const int &argc, char **argv);
+		CommandLine(int argc, char **argv);
 
 		/**
 		 * Run application.

@@ -16,3 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "catch.hpp"
+
+TEST_CASE("Test lexer", "[lexer]")
+{
+	
+}

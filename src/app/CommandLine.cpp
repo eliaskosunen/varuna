@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-	CommandLine::CommandLine(const int &_argc, char **_argv)
+	CommandLine::CommandLine(int _argc, char **_argv)
 		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "0.1")
 	{
 

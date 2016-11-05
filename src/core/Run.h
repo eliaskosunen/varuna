@@ -21,5 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
+	/**
+	 * Run the application.
+	 * Run prerocessor, lexer and parser
+	 * @param  filename File to process
+	 * @return          0 on success, other on failure
+	 */
 	int run(const std::string &filename);
 }
