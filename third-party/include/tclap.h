@@ -15,27 +15,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "util/Logger.h"
+#pragma once
 
-#include <string>
-#include <iostream>
+#ifdef _MSC_VER
 
-#include "spdlog.h"
+#pragma warning(push, 3)
+#pragma warning(disable: 4514 4711)
 
-namespace util
-{
-	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_st("console_color");
-	std::shared_ptr<spdlog::logger> loggerBasic = spdlog::stdout_logger_st("console_nocolor");
+#endif
 
-	void initLogger()
-	{
-		static bool set = false;
-		if(set)
-		{
-			return;
-		}
-		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] [%n] %v");
-		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
-		loggerBasic->set_pattern("%v");
-	}
-}
+#include "tclap/CmdLine.h"
+
+#ifdef _MSC_VER
+
+#pragma warning(pop)
+
+#endif

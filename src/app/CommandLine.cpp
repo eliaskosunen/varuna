@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <vector>
 
-#include "tclap/CmdLine.h"
+#include "tclap.h"
 
 #include "util/Logger.h"
 #include "core/Run.h"
