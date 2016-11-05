@@ -37,6 +37,9 @@ namespace core
 			TOKEN_CAT_OPERATOR	///< Operator
 		};
 
+		/**
+		 * Token type
+		 */
 		enum TokenType
 		{
 			TOKEN_DEFAULT,					///< Default type
@@ -78,8 +81,14 @@ namespace core
 			 */
 			std::string value;
 
+			/**
+			 * File of appearance of the token
+			 */
 			std::string file;
 
+			/**
+			 * Line of appearance of the token
+			 */
 			unsigned int line;
 
 			/**
@@ -100,7 +109,13 @@ namespace core
 			 * Default constructor
 			 */
 			Token() : Token(TOKEN_DEFAULT) {}
+			/**
+			 * Constructor with category
+			 */
 			Token(TokenCategory _cat);
+			/**
+			 * Constructor with type
+			 */
 			Token(TokenType _type);
 
 			/**

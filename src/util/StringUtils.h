@@ -158,7 +158,7 @@ namespace util
 		}
 
 		/**
-		 * Convert a C string (const char*) to C++ string (std::string)
+		 * Convert a C string (const char*) to a C++ string (std::string)
 		 * @param  cstr C string to convert
 		 * @return      Equivalent C++ string
 		 */
@@ -169,6 +169,12 @@ namespace util
 			return ss.str();
 		}
 
+		/**
+		 * Convert a C string (const char*) to a C++ string (std::string) with length information
+		 * @param  cstr C string to convert
+		 * @param  len  Length of the C string
+		 * @return      Equivalent C++ string
+		 */
 		static std::string cstrToStringLen(const char *cstr, size_t len)
 		{
 			return std::string(cstr, len);

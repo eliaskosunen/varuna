@@ -1,8 +1,14 @@
 # Varuna
 
-Master branch: [![Build Status](https://travis-ci.org/eliaskosunen/varuna.svg?branch=master)](https://travis-ci.org/eliaskosunen/varuna) [![Build status](https://ci.appveyor.com/api/projects/status/3rjuwbp2ehnuj4lh/branch/master?svg=true)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/master)
+[![License](https://img.shields.io/github/license/eliaskosunen/varuna.svg)](LICENSE)
 
-Develop branch: [![Build Status](https://travis-ci.org/eliaskosunen/varuna.svg?branch=develop)](https://travis-ci.org/eliaskosunen/varuna) [![Build status](https://ci.appveyor.com/api/projects/status/3rjuwbp2ehnuj4lh/branch/develop?svg=true)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/develop)
+Master branch:
+[![Travis Build Status](https://img.shields.io/travis/eliaskosunen/varuna/master.svg)](https://travis-ci.org/eliaskosunen/varuna)
+[![Appveyor Build status](https://img.shields.io/appveyor/ci/eliaskosunen/varuna/master.svg)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/master)
+
+Develop branch:
+[![Travis Build Status](https://img.shields.io/travis/eliaskosunen/varuna/develop.svg)](https://travis-ci.org/eliaskosunen/varuna)
+[![Appveyor Build status](https://img.shields.io/appveyor/ci/eliaskosunen/varuna/develop.svg)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/develop)
 
 ## About
 
