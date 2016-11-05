@@ -7,6 +7,14 @@ os:
 git:
     depth: 5
 
+addons:
+    apt:
+        sources:
+            - george-edison55-precise-backports
+        packages:
+            - cmake
+            - cmake-data
+
 matrix:
   include:
     - compiler: gcc
