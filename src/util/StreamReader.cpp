@@ -83,7 +83,7 @@ namespace util
 			std::string errmsg;
 		#ifdef _MSC_VER
 			char buf[80];
-			_strerror_s<80>(buf);
+			strerror_s<80>(buf, errno);
 			errmsg = util::StringUtils::cstrToString(buf);
 		#else
 			errmsg = strerror(errno);
