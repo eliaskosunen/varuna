@@ -7,7 +7,10 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused -Wuseless-cast")
+	set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused")
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(WARNINGS "${WARNINGS} -Wlogical-op -Wnoexcept -Wstrict-null-sentinel -Wuseless-cast")
+	endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(WARNINGS "/W4 /WX /EHsc")
 endif()
