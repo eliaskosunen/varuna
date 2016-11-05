@@ -15,20 +15,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch/catch.hpp"
+#pragma once
 
-namespace tests
-{
-    inline unsigned int factorial(unsigned int number) {
-        return number > 1 ? factorial(number-1) * number : 1;
-    }
-}
+#include "core/parser/FwdDecl.h"
+#include "core/parser/SyntaxTree.h"
+#include "core/parser/TreeNode.h"
+#include "core/parser/ExpressionBase.h"
+#include "core/parser/Expressions.h"
+#include "core/parser/StatementBase.h"
+#include "core/parser/Statements.h"
+#include "core/parser/Visitor.h"
 
-TEST_CASE("General test", "[factorial]")
+#include "core/lexer/Lexer.h"
+#include "core/lexer/Token.h"
+
+namespace core
 {
-    REQUIRE(tests::factorial(0) == 1);
-    REQUIRE(tests::factorial(1) == 1);
-    REQUIRE(tests::factorial(2) == 2);
-    REQUIRE(tests::factorial(3) == 6);
-    REQUIRE(tests::factorial(10) == 3628800);
+	namespace parser
+	{
+		class Parser
+		{
+		public:
+			Parser() {}
+
+			SyntaxTree run(core::lexer::TokenVector &tokens);
+		};
+	}
 }

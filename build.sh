@@ -1,32 +1,14 @@
 #!/bin/bash
 
-make build_all CC=${1:-gcc} CXX=${2:-g++}
-
-if [[ $@ != *-notests* ]]
+if [ ! -d "build" ]
 then
-	./bin/test
+	mkdir build
 fi
+cd build
 
-if [[ $@ != *-nohtml* ]]
-then
-	make html
-fi
+cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=g++-5 ..
+make
 
-if [[ $@ == *-cov* ]]
-then
-	GCOV_EXE=gcov-5 # gcov and g++ versions must match
-	OBJ_FILES_PATH=build/
-
-	echo [GCOV]
-
-	if [ ! -d "$OBJ_FILES_PATH" ]
-	then
-		echo "Object file path not found at "$OBJ_FILES_PATH
-		exit 1
-	fi
-
-	for filename in `find src/ | egrep '\.cpp'`;
-	do
-		$GCOV_EXE -n -o $OBJ_FILES_PATH $filename > /dev/null;
-	done
-fi
+cd ..
+./bin/tests
+./build-docs.sh

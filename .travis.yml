@@ -1,31 +1,38 @@
-language: generic
+sudo: required
+dist: precise
+language: cpp
 os:
     - linux
 
 git:
     depth: 5
 
+addons:
+    apt:
+        sources:
+        - george-edison55-precise-backports
+        packages:
+        - cmake
+        - cmake-data
+
 env:
     matrix:
-        - CXX="g++-5" CC="gcc-5" COV=1 GCOV="gcov-5" COVPARAM="-cov"
-        - CXX="g++-4.9" CC="gcc-4.9" COV=0 COVPARAM=""
-        - CXX="clang++-3.8" CC="clang-3.8" COV=0 COVPARAM=""
+        - COMPILER=g++-4.9 PACKAGE=g++-4.9 LLVM_VERSION=0
+        - COMPILER=g++-5 PACKAGE=g++-5 LLVM_VERSION=0
+        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 LLVM_VERSION=3.6
+        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 LLVM_VERSION=3.8
 
 before_install:
-    - export COMPILERS="CC=$CC CXX=$CXX"
-    - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-    - sudo apt-key update
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
-    - sudo apt-get update -qq
-    #- sudo pip install cpp-coveralls
+    - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
 
 install:
-    - sudo apt-get --allow-unauthenticated -qq --assume-yes install $CXX lldb-3.8
-    #- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+    - sudo apt-get update -qq
+    - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ${PACKAGE}
 
 script:
-    #- ./build.sh ${COMPILERS} -nohtml -notests ${COVPARAM}
-    - ./build.sh ${COMPILERS} -nohtml -notests
-after_success:
-    #- if [ ${COV} = 1 ]; then bash <(curl -s https://codecov.io/bash) -x $GCOV -a "-s `pwd`" || echo "Codecov failed" ; fi
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_CXX_COMPILER=$COMPILER .. && make
+    - cd ..
+    - ./bin/tests

@@ -6,3 +6,15 @@ latex/
 Doxyfile.bak
 *.anjuta*
 .anjuta/
+.clang_complete
+CMakeFiles/
+*.cmake
+src/CMakeFiles/
+src/*.cmake
+tests/CMakeFiles/
+tests/*.cmake
+CMakeCache.txt
+src/Makefile
+tests/Makefile
+Makefile*
+cmake/
