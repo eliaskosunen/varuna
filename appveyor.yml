@@ -13,13 +13,8 @@ configuration:
 init:
     - cmd: cmake --version
     - cmd: msbuild /version
-    #- git config --global core.autocrlf input
 
 clone_folder: C:\projects\varuna
-
-#install:
-#    - ps: cd C:\projects\varuna\ci
-#    - ps: .\appveyor_install.ps1
 
 before_build:
     - cmd: cd C:\projects\varuna
