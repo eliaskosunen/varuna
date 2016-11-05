@@ -169,6 +169,11 @@ namespace util
 			return ss.str();
 		}
 
+		static std::string cstrToStringLen(const char *cstr, size_t len)
+		{
+			return std::string(cstr, len);
+		}
+
 		/**
 		 * Convert a char to C++ string
 		 * @param  c Char to convert
@@ -188,7 +193,7 @@ namespace util
 		 */
 		static bool isCharWhitespace(const char &c)
 		{
-			return std::isspace(static_cast<unsigned char>(c));
+			return std::isspace(static_cast<unsigned char>(c)) != 0;
 		}
 
 		/**

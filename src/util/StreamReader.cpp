@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "util/StreamReader.h"
 #include "util/Logger.h"
+#include "util/StringUtils.h"
 
 #if defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION >= 1000)
 #define HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR 1
@@ -64,7 +65,7 @@ namespace util
 		catch(const std::ios_base::failure &e)
 		{
 
-		#if (HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR)
+		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 			//
 			// e.code() is only available if the lib actually follows iso §27.5.3.1.1
 			// and derives ios_base::failure from system_error
@@ -78,8 +79,19 @@ namespace util
 			//
 			util::logger->error("Error reading file: libc++ error #{}: {}", e.code().value(), e.code().message());
 		#else
-			util::logger->error("Error reading file: libc error #{}: {}", errno, strerror(errno));
-		#endif
+
+			std::string errmsg;
+		#ifdef _MSC_VER
+			size_t errmsglen = strerrorlen_s(errno) + 1;
+			char errmsg_c[errmsglen];
+			strerror_s(errmsg_c, errmsglen, errno);
+			errmsg = util::StringUtils::cstrToStringLen(errmsg_cm errmsglen);
+		#else
+			errmsg = strerror(errno);
+		#endif // defined _MSC_VER
+
+			util::logger->error("Error reading file: libc error #{}: {}", errno, errmsg);
+		#endif // HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 
 		}
 		return "ERROR";

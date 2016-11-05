@@ -87,7 +87,6 @@ namespace app
 			util::logger->error("Command line error: {}: {}", e.error(), e.argId());
 			return 1;
 		}
-		return -1;
 	}
 
 	void CommandLine::copyright() const
