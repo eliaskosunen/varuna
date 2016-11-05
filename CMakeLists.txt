@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(varuna)
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
@@ -23,6 +23,8 @@ set(CMAKE_CONFIGURATION_TYPES Debug Release)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(SYSTEM third-party/include)
+
+add_subdirectory(third-party)
 
 add_subdirectory(src)
 
