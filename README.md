@@ -85,3 +85,5 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Varuna also uses various third-party software, see LICENSE.thirdparty.txt for details.
