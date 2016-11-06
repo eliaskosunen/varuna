@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <map>
 
+#include "util/SafeEnum.h"
+
 namespace core
 {
 	namespace lexer
@@ -78,16 +80,8 @@ namespace core
 
 			TOKEN_IDENTIFIER,
 
-			TOKEN_LITERAL_INTEGER,	// No suffix, Integer/Int32
-			TOKEN_LITERAL_UNSIGNED,	// u, Uint32
-			TOKEN_LITERAL_LONG,		// l, Int64
-			TOKEN_LITERAL_SHORT,	// s, Int16
-			TOKEN_LITERAL_DOUBLE,	// No suffix, Double
-			TOKEN_LITERAL_FLOAT,	// f, Float
-			TOKEN_LITERAL_DECIMAL,	// d, Decimal
-			TOKEN_LITERAL_INT_BIN,	// b, Integer/Int32 binary
-			TOKEN_LITERAL_INT_OCT,	// o, Integer/Int32 octal
-			TOKEN_LITERAL_INT_HEX,	// h, Integer/Int32 hex
+			TOKEN_LITERAL_INTEGER,
+			TOKEN_LITERAL_FLOAT,
 			TOKEN_LITERAL_STRING,
 			TOKEN_LITERAL_CHAR,
 			TOKEN_LITERAL_TRUE,
@@ -160,6 +154,31 @@ namespace core
 			TOKEN_EOF = 32767
 		};
 
+		enum TokenIntegerLiteralModifier_t : unsigned char
+		{
+			INTEGER_INTEGER	= 1 << 0,	// No suffix
+			INTEGER_UNSIGNED= 1 << 1,	// u
+			INTEGER_LONG	= 1 << 2,	// l
+			INTEGER_SHORT	= 1 << 3,	// s
+			INTEGER_BINARY	= 1 << 4,	// b
+			INTEGER_OCTAL	= 1 << 5,	// o
+			INTEGER_HEX		= 1 << 6,	// x
+
+			INTEGER_NONE	= INTEGER_INTEGER
+		};
+
+		enum TokenFloatLiteralModifier_t : unsigned char
+		{
+			FLOAT_DOUBLE	= 1 << 0,	// No suffix
+			FLOAT_FLOAT		= 1 << 1,	// f
+			FLOAT_DECIMAL	= 1 << 2,	// d
+
+			FLOAT_NONE		= FLOAT_DOUBLE
+		};
+
+		typedef util::SafeEnum<TokenIntegerLiteralModifier_t, unsigned char> TokenIntegerLiteralModifier;
+		typedef util::SafeEnum<TokenFloatLiteralModifier_t, unsigned char> TokenFloatLiteralModifier;
+
 		class Token
 		{
 		public:
@@ -169,7 +188,10 @@ namespace core
 			TokenType type;
 			std::string value;
 
-			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : file("(undefined)"), line(0), type(t), value(val) {}
+			TokenIntegerLiteralModifier modifierInt;
+			TokenFloatLiteralModifier modifierFloat;
+
+			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : file("(undefined)"), line(0), type(t), value(val), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
 
 			std::string typeToString() const;
 

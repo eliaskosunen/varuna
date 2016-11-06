@@ -56,6 +56,12 @@ namespace core
 
 				util::logger->trace("Skipping whitespace");
 				currentChar = *(++it);
+
+				if(it == end)
+				{
+					util::logger->trace("Current character is EOF");
+					return createToken(TOKEN_EOF, "EOF");
+				}
 			}
 
 			// Word: a keyword or an identifier
@@ -86,6 +92,13 @@ namespace core
 				std::string buf;
 				buf.reserve(8);
 				bool isFloatingPoint = (currentChar == '.');
+				bool isHex = false;
+				if(currentChar == '0' && *(it + 1) == 'x')
+				{
+					currentChar = *(it += 2);
+					isHex = true;
+				}
+				bool cont = true;
 				do
 				{
 					buf.push_back(currentChar);
@@ -94,60 +107,66 @@ namespace core
 					{
 						isFloatingPoint = true;
 					}
-				} while(std::isdigit(currentChar) || currentChar == '.');
+					cont = (isHex ? std::isxdigit(currentChar) : std::isdigit(currentChar));
+				} while(cont || currentChar == '.');
 				util::logger->trace("Number literal: '{}'", buf);
 
-				if(isFloatingPoint)
+				if(!isFloatingPoint)
 				{
-					TokenType type;
-					switch (currentChar)
+					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
+					while(std::isalpha(currentChar))
 					{
-					case 'd':
-						type = TOKEN_LITERAL_DECIMAL;
-						break;
-					case 'f':
-						type = TOKEN_LITERAL_FLOAT;
-						break;
-					default:
-						type = TOKEN_LITERAL_DOUBLE;
+						switch(currentChar)
+						{
+						case 'u':
+							t.modifierInt |= INTEGER_UNSIGNED;
+							break;
+						case 'l':
+							t.modifierInt |= INTEGER_LONG;
+							break;
+						case 's':
+							t.modifierInt |= INTEGER_SHORT;
+							break;
+						case 'b':
+							t.modifierInt |= INTEGER_BINARY;
+							break;
+						case 'o':
+							t.modifierInt |= INTEGER_OCTAL;
+							break;
+						default:
+							lexerError("Invalid integer literal suffix: '{}'", currentChar);
+						}
+						currentChar = *(++it);
 					}
-					if(type != TOKEN_LITERAL_DOUBLE)
+					if(isHex)
 					{
-						++it;
+						t.modifierInt |= INTEGER_HEX;
 					}
-					return createToken(type, buf);
+					return t;
 				}
 				else
 				{
-					TokenType type;
-					switch(currentChar)
+					Token t = createToken(TOKEN_LITERAL_FLOAT, buf);
+					while(std::isalpha(currentChar))
 					{
-					case 'u':
-						type = TOKEN_LITERAL_UNSIGNED;
-						break;
-					case 'l':
-						type = TOKEN_LITERAL_LONG;
-						break;
-					case 's':
-						type = TOKEN_LITERAL_SHORT;
-						break;
-					case 'b':
-						type = TOKEN_LITERAL_INT_BIN;
-						break;
-					case 'o':
-						type = TOKEN_LITERAL_INT_OCT;
-						break;
-					case 'h':
-						type = TOKEN_LITERAL_INT_HEX;
-						break;
-					default:
-						type = TOKEN_LITERAL_INTEGER;
+						switch(currentChar)
+						{
+						case 'f':
+							t.modifierFloat |= FLOAT_FLOAT;
+							break;
+						case 'd':
+							t.modifierFloat |= FLOAT_DECIMAL;
+							break;
+						default:
+							lexerError("Invalid float literal suffix: '{}'", currentChar);
+						}
+						currentChar = *(++it);
 					}
-					if(type != TOKEN_LITERAL_INTEGER)
+					if(isHex)
 					{
-						++it;
+						lexerError("Floating-point number cannot be in hexadecimal");
 					}
-					return createToken(type, buf);
+					return t;
 				}
 			}
 
@@ -178,6 +197,7 @@ namespace core
 				}
 			}
 
+			// Operator or punctuator
 			if(std::ispunct(currentChar))
 			{
 				std::string buf;
@@ -186,7 +206,7 @@ namespace core
 					if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
 					{
 						std::string tmp(buf);
-						tmp.push_back(*(it + 1));
+						tmp.push_back(*it);
 						if(getTokenTypeFromOperator(tmp) == TOKEN_UNDEFINED)
 						{
 							break;
@@ -231,6 +251,14 @@ namespace core
 				}
 			}
 
+			if(tokens.size() == 0)
+			{
+				lexerError("Empty token list");
+			}
+			if(tokens.size() == 1 && tokens[0].type == core::lexer::TOKEN_EOF)
+			{
+				lexerWarning("Empty translation unit");
+			}
 			return tokens;
 		}
 

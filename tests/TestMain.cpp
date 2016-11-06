@@ -15,5 +15,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+
+#include "util/Logger.h"
+
+int main(int argc, char **argv)
+{
+	util::initLogger();
+	//spdlog::set_level(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::debug);
+
+	int result = Catch::Session().run( argc, argv);
+	return result;
+}

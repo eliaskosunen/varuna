@@ -1,0 +1,89 @@
+/*
+Copyright (C) 2016 Elias Kosunen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#pragma once
+
+#include <type_traits>
+
+namespace util
+{
+	template <class Enum_t, class Underlying_t = typename std::underlying_type<Enum_t>::type>
+	class SafeEnum
+	{
+	protected:
+		Underlying_t flags;
+	public:
+		SafeEnum() : flags(static_cast<Enum_t>(0)) {}
+		SafeEnum(Enum_t flag) : flags(flag) {}
+		SafeEnum(const SafeEnum &orig) : flags(orig.flags) {}
+
+		Underlying_t &get()
+		{
+			return flags;
+		}
+
+		SafeEnum &operator |=(Enum_t add)
+		{
+			flags |= add;
+			return *this;
+		}
+		SafeEnum operator |(Enum_t add)
+		{
+			SafeEnum result(*this);
+			result |= add;
+			return result;
+		}
+		SafeEnum &operator &=(Enum_t mask)
+		{
+			flags &= mask;
+			return *this;
+		}
+		SafeEnum operator &(Enum_t mask)
+		{
+			SafeEnum result(*this);
+			result &= mask;
+			return result;
+		}
+		SafeEnum operator ~()
+		{
+			SafeEnum result(*this);
+			result.flags = ~result.flags;
+			return result;
+		}
+		explicit operator bool() const
+		{
+			return flags != 0;
+		}
+
+		bool isSet(Enum_t flag) const
+		{
+			return flags & flag;
+		}
+		bool isNotSet(Enum_t flag) const
+		{
+			return (flags & flag) == static_cast<Enum_t>(0);
+		}
+		void set(Enum_t flag)
+		{
+			flags |= flag;
+		}
+		void reset()
+		{
+			flags = static_cast<Enum_t>(0);
+		}
+	};
+}

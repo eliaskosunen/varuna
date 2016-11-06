@@ -34,8 +34,6 @@ namespace core
 
 			case TOKEN_LITERAL_INTEGER:
 				return "LITERAL_INTEGER";
-			case TOKEN_LITERAL_DOUBLE:
-				return "LITERAL_DOUBLE";
 			case TOKEN_LITERAL_FLOAT:
 				return "LITERAL_FLOAT";
 			case TOKEN_LITERAL_STRING:

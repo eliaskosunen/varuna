@@ -72,7 +72,7 @@ namespace core
 		public:
 			bool warningsAsErrors;
 
-			Lexer(const std::string &cont, const std::string &file) : content(cont), filename(file), currentLine(1), error(ERROR_NONE), warningsAsErrors(false) {}
+			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), filename(file), currentLine(1), error(ERROR_NONE), warningsAsErrors(false) {}
 
 			TokenVector run();
 
