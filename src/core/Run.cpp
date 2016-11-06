@@ -49,9 +49,9 @@ namespace core
 		util::logger->trace("Preprocessed file:\n{}\n", code);
 
 		util::logger->debug("Starting lexer");
-		core::lexer::Lexer lexer;
+		core::lexer::Lexer lexer(code, filename);
 		bool lexerError = false;
-		core::lexer::TokenVector tokens = lexer.run(code, lexerError, filename);
+		core::lexer::TokenVector tokens = lexer.run(lexerError);
 		if(lexerError)
 		{
 			return 1;
@@ -59,7 +59,7 @@ namespace core
 		util::logger->debug("Lexing finished");
 		for(const auto &t : tokens)
 		{
-			util::logger->trace("Token: ({}: {}): {}", t.categoryToString(), t.typeToString(), t.getValue());
+			util::logger->trace("Token: ({}): {}", t.typeToString(), t.value);
 		}
 		util::logger->debug("Starting parser");
 		core::parser::Parser parser;

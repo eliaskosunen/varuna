@@ -26,11 +26,8 @@ TEST_CASE("Test Token", "[core]")
 	using namespace core::lexer;
 
 	Token t;
-	REQUIRE(t.getType() == TOKEN_DEFAULT);
-	REQUIRE(t.getCategory() == TOKEN_CAT_DEFAULT);
-	t.setType(TOKEN_UNKNOWN);
-	t.setCategory(TOKEN_CAT_UNKNOWN);
-	REQUIRE(t.getType() == TOKEN_UNKNOWN);
-	REQUIRE(t.typeToString() == "UNKNOWN");
-	REQUIRE(t.categoryToString() == "UNKNOWN");
+	REQUIRE(t.type == TOKEN_DEFAULT);
+	t.type = TOKEN_KEYWORD_IMPORT;
+	REQUIRE(t.type == TOKEN_KEYWORD_IMPORT);
+	REQUIRE(t.typeToString() == "KEYWORD_IMPORT");
 }

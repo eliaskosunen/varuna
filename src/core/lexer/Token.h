@@ -24,158 +24,88 @@ namespace core
 {
 	namespace lexer
 	{
-		/**
-		 * Token category
-		 */
-		enum TokenCategory
+		enum TokenType : unsigned char
 		{
-			TOKEN_CAT_DEFAULT,	///< Default category
-			TOKEN_CAT_UNKNOWN,	///< Unknown token
+			TOKEN_DEFAULT = 0,
 
-			TOKEN_CAT_WORD,		///< Word: keyword or identifier
-			TOKEN_CAT_LITERAL,	///< Literal: numbers, strings...
-			TOKEN_CAT_OPERATOR	///< Operator
+			TOKEN_KEYWORD_IMPORT,
+			TOKEN_KEYWORD_FUNCTION,
+			TOKEN_KEYWORD_DECLARE,
+			TOKEN_KEYWORD_CLASS,
+			TOKEN_KEYWORD_OVERRIDE,
+			TOKEN_KEYWORD_FINAL,
+			TOKEN_KEYWORD_EXTEND,
+			TOKEN_KEYWORD_ABSTRACT,
+			TOKEN_KEYWORD_PUBLIC,
+			TOKEN_KEYWORD_PROTECTED,
+			TOKEN_KEYWORD_PRIVATE,
+			TOKEN_KEYWORD_IF,
+			TOKEN_KEYWORD_WHILE,
+			TOKEN_KEYWORD_FOR,
+			TOKEN_KEYWORD_FOREACH,
+			TOKEN_KEYWORD_SWITCH,
+			TOKEN_KEYWORD_CASE,
+			TOKEN_KEYWORD_BREAK,
+			TOKEN_KEYWORD_RETURN,
+			TOKEN_KEYWORD_CONTINUE,
+
+			TOKEN_DATATYPE_NONE,
+			TOKEN_DATATYPE_VOID,
+			TOKEN_DATATYPE_INTEGER,
+			TOKEN_DATATYPE_FLOAT,
+			TOKEN_DATATYPE_DOUBLE,
+			TOKEN_DATATYPE_DECIMAL,
+			TOKEN_DATATYPE_STRING,
+			TOKEN_DATATYPE_CHAR,
+			TOKEN_DATATYPE_UINTEGER,
+			TOKEN_DATATYPE_BIGINTEGER,
+			TOKEN_DATATYPE_BOOL,
+			TOKEN_DATATYPE_INT8,
+			TOKEN_DATATYPE_INT16,
+			TOKEN_DATATYPE_INT32,
+			TOKEN_DATATYPE_INT64,
+			TOKEN_DATATYPE_UINT8,
+			TOKEN_DATATYPE_UINT16,
+			TOKEN_DATATYPE_UINT32,
+			TOKEN_DATATYPE_UINT64,
+			TOKEN_DATATYPE_LIST,
+			TOKEN_DATATYPE_DICT,
+			TOKEN_DATATYPE_ARRAY,
+
+			TOKEN_IDENTIFIER,
+
+			TOKEN_LITERAL_NUMBER,
+			TOKEN_LITERAL_STRING,
+			TOKEN_LITERAL_CHAR,
+
+			TOKEN_OPERATOR_ASSIGNMENT,
+			TOKEN_OPERATOR_BINARY,
+			TOKEN_OPERATOR_UNARY,
+			TOKEN_OPERATOR_CONTROL,
+
+			TOKEN_EOF = 255
 		};
 
-		/**
-		 * Token type
-		 */
-		enum TokenType
-		{
-			TOKEN_DEFAULT,					///< Default type
-			TOKEN_UNKNOWN,					///< Unknown type
-
-			TOKEN_WORD_DEFAULT,				///< Default (not yet defined/finished) word
-			TOKEN_WORD_KEYWORD,				///< Keyword
-			TOKEN_WORD_IDENTIFIER,			///< Identifier
-
-			TOKEN_LITERAL_DEFAULT,			///< Default literal
-			TOKEN_LITERAL_DEFAULT_NUMBER,	///< Default (not yet finished) number literal
-			TOKEN_LITERAL_STRING,			///< String literal
-			TOKEN_LITERAL_INTEGER,			///< Integer literal
-			TOKEN_LITERAL_FLOAT,			///< Float literal
-			TOKEN_LITERAL_CHAR,				///< Character literal
-			TOKEN_LITERAL_BOOLEAN,			///< Boolean literal
-			TOKEN_LITERAL_NONE,				///< None literal
-
-			TOKEN_OPERATOR					///< Operator
-		};
-
-		/**
-		 * Token class
-		 */
 		class Token
 		{
-		private:
-			/**
-			 * Category
-			 */
-			TokenCategory cat;
-			/**
-			 * Type
-			 */
-			TokenType type;
+		public:
+			std::string file;
+			unsigned long line;
 
-			/**
-			 * Textual value
-			 */
+			TokenType type;
 			std::string value;
 
-			/**
-			 * File of appearance of the token
-			 */
-			std::string file;
+			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : file("(undefined)"), line(0), type(t), value(val) {}
 
-			/**
-			 * Line of appearance of the token
-			 */
-			unsigned int line;
-
-			/**
-			 * Get the default type of category
-			 * @param  _cat Category
-			 * @return      Type
-			 */
-			TokenType getTypeFromCategory(TokenCategory _cat) const;
-			/**
-			 * Get the category of type
-			 * @param  _type Type
-			 * @return       Category
-			 */
-			TokenCategory getCategoryFromType(TokenType _type) const;
-
-		public:
-			/**
-			 * Default constructor
-			 */
-			Token() : Token(TOKEN_DEFAULT) {}
-			/**
-			 * Constructor with category
-			 */
-			Token(TokenCategory _cat);
-			/**
-			 * Constructor with type
-			 */
-			Token(TokenType _type);
-
-			/**
-			 * Set the category of the token.
-			 * Does not set the type
-			 * @param _cat Category
-			 */
-			void setCategory(TokenCategory _cat);
-			/**
-			 * Get the category of the token
-			 * @return Category
-			 */
-			TokenCategory getCategory() const;
-
-			/**
-			 * Set the type of the token.
-			 * Does not set the category
-			 * @param _type Type
-			 */
-			void setType(TokenType _type);
-			/**
-			 * Get the type of the token
-			 * @return Type
-			 */
-			TokenType getType() const;
-
-			/**
-			 * Set the textual value of the token
-			 * @param val Value
-			 */
-			void setValue(std::string val);
-			/**
-			 * Get the textual value of the token
-			 * @return Value
-			 */
-			const std::string &getValue() const;
-
-			void setFile(std::string val);
-
-			const std::string &getFile() const;
-
-			void setLine(unsigned int val);
-
-			unsigned int getLine();
-
-			/**
-			 * Get the category of the token as string
-			 * @return Category as string
-			 */
-			std::string categoryToString() const;
-			/**
-			 * Get the type of the token as string
-			 * @return Type as string
-			 */
 			std::string typeToString() const;
 
-			/**
-			 * Reset token to default values
-			 */
-			void reset();
+			static Token create(TokenType t, const std::string &val, unsigned int l = 0, const std::string &f = "(undefined)")
+			{
+				Token tok(t, val);
+				tok.file = f;
+				tok.line = l;
+				return tok;
+			}
 		};
 	}
 }

@@ -22,54 +22,108 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/grammar/Grammar.h"
 #include "util/Logger.h"
+#include "util/StringUtils.h"
 
 namespace core
 {
 	namespace lexer
 	{
-		TokenVector Lexer::run(const std::string &str, bool &error, const std::string &filename)
+		Token Lexer::getNextToken(std::string::const_iterator &it)
 		{
-			// Initialize variables
-			TokenVector vec;
-			std::string buffer;
-			buffer.reserve(16); // Reserve some space to speed up
-			Token currentToken;
-			unsigned long currentLine = 1;
-			error = false;
+			const std::string::const_iterator end = content.end();
+			char currentChar = *it;
 
-			std::string::const_iterator strpointer = str.begin();
-			const std::string::const_iterator strend = str.end();
+			util::loggerBasic->trace("");
+			util::logger->trace("Getting next token. Current character: '{}', on line {}", currentChar, currentLine);
 
-			currentToken.setFile(filename);
-
-			for(; strpointer != strend; ++strpointer)
+			if(it == end)
 			{
-				const char currentChar = *strpointer;
+				return createToken(TOKEN_EOF, "EOF");
+			}
 
-				util::loggerBasic->trace("");
-				util::logger->trace("Current character: '{}', on line: {}", currentChar, currentLine);
+			// Skip any whitespace
+			while(std::isspace(currentChar))
+			{
+				currentChar = *(++it);
 
 				// Increase currentLine if current character is a newline character
 				if(currentChar == '\n')
 				{
 					++currentLine;
 				}
+			}
 
-				// If whitespace, continue to next non-whitespace character
-				if(std::isspace(currentChar))
+			// Word: a keyword or an identifier
+			// [a-zA-Z_][a-zA-Z_0-9]*
+			if(std::isalpha(currentChar) || currentChar == '_')
+			{
+				std::string buf;
+				buf.reserve(8);
+				buf.push_back(currentChar);
+				while(std::isalnum(*(++it)) || *it == '_')
 				{
-					char curr = currentChar;
-					while(std::isspace(curr))
-					{
-						++strpointer;
-						curr = *strpointer;
-					}
-					--strpointer;
-					continue;
+					buf.push_back(*it);
+				}
+
+				// Identify the meaning of the word
+				return getTokenFromWord(buf);
+			}
+
+			// Number literal
+			if(std::isdigit(currentChar))
+			{
+				std::string buf;
+				buf.reserve(8);
+				do
+				{
+					buf.push_back(currentChar);
+					currentChar = *(++it);
+				} while(std::isdigit(currentChar) || currentChar == '.');
+
+				return createToken(TOKEN_LITERAL_NUMBER, buf);
+			}
+
+			++it;
+			return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
+		}
+
+		TokenVector Lexer::run(bool &error)
+		{
+			// Initialize variables
+			TokenVector tokens;
+			error = false;
+
+			std::string::const_iterator strpointer = content.begin();
+
+			while(true)
+			{
+				Token t = getNextToken(strpointer);
+				tokens.push_back(t);
+				util::logger->trace("Pushed new token: ({}): '{}'", t.typeToString(), t.value);
+				if(t.type == TOKEN_EOF)
+				{
+					util::logger->trace("Token is EOF, stop");
+					break;
 				}
 			}
 
-			return vec;
+			return tokens;
+		}
+
+		Token Lexer::createToken(TokenType type, const std::string &val) const
+		{
+			return Token::create(type, val, currentLine, filename);
+		}
+
+		TokenType Lexer::getTokenTypeFromWord(const std::string &buf) const
+		{
+			if(buf == "import") return TOKEN_KEYWORD_IMPORT;
+			return TOKEN_IDENTIFIER;
+		}
+
+		Token Lexer::getTokenFromWord(const std::string &buf) const
+		{
+			return createToken(getTokenTypeFromWord(buf), buf);
 		}
 	}
 }

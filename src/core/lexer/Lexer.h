@@ -30,10 +30,20 @@ namespace core
 
 		class Lexer
 		{
-		public:
-			Lexer() {}
+			const std::string &content;
+			const std::string &filename;
 
-			TokenVector run(const std::string &str, bool &error, const std::string &filename = "undefined");
+			unsigned int currentLine;
+
+			TokenType getTokenTypeFromWord(const std::string &buf) const;
+			Token getTokenFromWord(const std::string &buf) const;
+			Token createToken(TokenType type, const std::string &val) const;
+
+			Token getNextToken(std::string::const_iterator &it);
+		public:
+			Lexer(const std::string &cont, const std::string &file) : content(cont), filename(file), currentLine(1) {}
+
+			TokenVector run(bool &error);
 		};
 	}
 }
