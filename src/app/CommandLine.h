@@ -46,7 +46,7 @@ namespace app
 		/**
 		 * Show copyright and license information
 		 */
-		void copyright() const;
+		void license() const;
 
 	public:
 		/**

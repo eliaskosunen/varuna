@@ -1,1 +1,1 @@
-valgrind --leak-check=full bin/varuna -l trace code.va
+valgrind --leak-check=full bin/varuna --logging trace code.va

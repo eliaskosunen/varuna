@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "core/grammar/Grammar.h"
 #include "util/Logger.h"
@@ -74,8 +75,12 @@ namespace core
 			}
 
 			// Number literal
-			// [0-9][0-9\.]*
-			if(std::isdigit(currentChar))
+			// (-)[0-9][0-9\.]*
+			if(
+				std::isdigit(currentChar) ||
+				(currentChar == '-' && std::isdigit(*(it + 1))) ||
+				(currentChar == '.' && std::isdigit(*(it + 1)))
+			)
 			{
 				std::string buf;
 				buf.reserve(8);
@@ -111,10 +116,14 @@ namespace core
 						lexerError("Invalid string: Closing quote not found");
 						break;
 					}
+					if(prev == '\\')
+					{
+
+					}
 					// Current char is a quotation mark
 					if(currentChar == '"')
 					{
-						if(prev == '\\')
+						if(prev == '\\' && *(it - 2) != '\\')
 						{
 							// Remove the backslash
 							buf.pop_back();
@@ -126,6 +135,7 @@ namespace core
 							break;
 						}
 					}
+					#if 0
 					// Current char is an escaping backslash
 					if(currentChar == '\\' && prev != '\\' && next != '"')
 					{
@@ -155,10 +165,27 @@ namespace core
 							++it;
 						}
 					}
+					#endif
 
 					buf.push_back(currentChar);
 					util::logger->trace("Pushed buffer: '{}'", buf);
 				}
+
+				std::map<std::string, std::string> patterns =
+				{
+					{ "\\\\", "\\" },
+					{ "\\n", "\n" },
+					{ "\\r", "\r" },
+					{ "\\t", "\t" },
+					{ "\\f", "\f" },
+					{ "\\v", "\v" },
+					{ "\\\"", "\"" },
+				};
+				for(const auto &p: patterns)
+				{
+					util::StringUtils::replaceAll(buf, p.first, p.second);
+				}
+
 				util::logger->trace("String literal: '{}'", buf);
 
 				++it;

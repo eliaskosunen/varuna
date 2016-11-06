@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace app
 {
 	CommandLine::CommandLine(int _argc, char **_argv)
-		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "0.1")
+		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "Early Build")
 	{
 
 	}
@@ -38,10 +38,10 @@ namespace app
 	{
 		try
 		{
-			TCLAP::ValueArg<std::string> loggingArg("l", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
+			TCLAP::ValueArg<std::string> loggingArg("", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
 			cmd.add(loggingArg);
 
-			TCLAP::SwitchArg licenseArg("c", "copyright", "Print the license and copyright information", false);
+			TCLAP::SwitchArg licenseArg("", "license", "Print the license and copyright information", false);
 			cmd.add(licenseArg);
 
 			TCLAP::UnlabeledMultiArg<std::string> fileArg("file", "Files to process", false, "List of files to process");
@@ -49,10 +49,10 @@ namespace app
 
 			cmd.parse(argc, argv);
 
-			bool license = licenseArg.getValue();
-			if(license)
+			bool lic = licenseArg.getValue();
+			if(lic)
 			{
-				copyright();
+				license();
 				return 0;
 			}
 
@@ -89,7 +89,7 @@ namespace app
 		}
 	}
 
-	void CommandLine::copyright() const
+	void CommandLine::license() const
 	{
 		util::loggerBasic->info("Varuna is published under the GNU General Public License version 3 (GNU GPL 3, the License)");
 		util::loggerBasic->info("Varuna - Copyright (C) 2016 Elias Kosunen");
