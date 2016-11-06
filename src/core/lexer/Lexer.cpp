@@ -178,6 +178,32 @@ namespace core
 				}
 			}
 
+			if(std::ispunct(currentChar))
+			{
+				std::string buf;
+				while(std::ispunct(currentChar))
+				{
+					if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
+					{
+						std::string tmp(buf);
+						tmp.push_back(*(it + 1));
+						if(getTokenTypeFromOperator(tmp) == TOKEN_UNDEFINED)
+						{
+							break;
+						}
+					}
+					buf.push_back(currentChar);
+					currentChar = *(++it);
+				}
+				Token t = getTokenFromOperator(buf);
+				if(t.type == TOKEN_UNDEFINED)
+				{
+					lexerError("Invalid operator or punctuator: '{}'", buf);
+				}
+				util::logger->trace("Operator/punctuator: '{}'", buf);
+				return t;
+			}
+
 			++it;
 			return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 		}
@@ -427,6 +453,9 @@ namespace core
 			if(buf == "not")		return TOKEN_OPERATORU_NOT;
 			if(buf == "of")			return TOKEN_OPERATORB_OF;
 			if(buf == "as")			return TOKEN_OPERATORB_AS;
+			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
+			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
+			if(buf == "new")		return TOKEN_OPERATORU_NEW;
 
 			return TOKEN_IDENTIFIER;
 		}
@@ -434,6 +463,69 @@ namespace core
 		Token Lexer::getTokenFromWord(const std::string &buf) const
 		{
 			return createToken(getTokenTypeFromWord(buf), buf);
+		}
+
+		TokenType Lexer::getTokenTypeFromOperator(const std::string &buf) const
+		{
+			if(buf == "=")			return TOKEN_OPERATORA_SIMPLE;
+			if(buf == "+=")			return TOKEN_OPERATORA_ADD;
+			if(buf == "-=")			return TOKEN_OPERATORA_SUB;
+			if(buf == "*=")			return TOKEN_OPERATORA_MUL;
+			if(buf == "/=")			return TOKEN_OPERATORA_DIV;
+			if(buf == "%=")			return TOKEN_OPERATORA_MOD;
+
+			if(buf == "&=")			return TOKEN_OPERATORA_BITAND;
+			if(buf == "|=")			return TOKEN_OPERATORA_BITOR;
+			if(buf == "^=")			return TOKEN_OPERATORA_BITXOR;
+			if(buf == "<<=")		return TOKEN_OPERATORA_SHIFTL;
+			if(buf == ">>=")		return TOKEN_OPERATORA_SHIFTR;
+
+			if(buf == "+")			return TOKEN_OPERATORB_ADD;
+			if(buf == "-")			return TOKEN_OPERATORB_SUB;
+			if(buf == "*")			return TOKEN_OPERATORB_MUL;
+			if(buf == "/")			return TOKEN_OPERATORB_DIV;
+			if(buf == "%")			return TOKEN_OPERATORB_MOD;
+
+			if(buf == "&")			return TOKEN_OPERATORB_BITAND;
+			if(buf == "|")			return TOKEN_OPERATORB_BITOR;
+			if(buf == "^")			return TOKEN_OPERATORB_BITXOR;
+			if(buf == "<<")			return TOKEN_OPERATORB_SHIFTL;
+			if(buf == ">>")			return TOKEN_OPERATORB_SHIFTR;
+
+			if(buf == "&&")			return TOKEN_OPERATORB_AND;
+			if(buf == "||")			return TOKEN_OPERATORB_OR;
+
+			if(buf == "==")			return TOKEN_OPERATORB_EQ;
+			if(buf == "!=")			return TOKEN_OPERATORB_NOTEQ;
+			if(buf == "<")			return TOKEN_OPERATORB_LESS;
+			if(buf == ">")			return TOKEN_OPERATORB_GREATER;
+			if(buf == "<=")			return TOKEN_OPERATORB_LESSEQ;
+			if(buf == ">=")			return TOKEN_OPERATORB_GREATEQ;
+
+			if(buf == ".")			return TOKEN_OPERATORB_MEMBER;
+
+			if(buf == "++")			return TOKEN_OPERATORU_INC;
+			if(buf == "--")			return TOKEN_OPERATORU_DEC;
+
+			if(buf == "~")			return TOKEN_OPERATORU_BITNOT;
+			if(buf == "!")			return TOKEN_OPERATORU_NOT;
+
+			if(buf == "(")			return TOKEN_PUNCT_PAREN_OPEN;
+			if(buf == ")")			return TOKEN_PUNCT_PAREN_CLOSE;
+			if(buf == "{")			return TOKEN_PUNCT_BRACE_OPEN;
+			if(buf == "}")			return TOKEN_PUNCT_BRACE_CLOSE;
+			if(buf == "[")			return TOKEN_PUNCT_SQR_OPEN;
+			if(buf == "]")			return TOKEN_PUNCT_SQR_CLOSE;
+			if(buf == ":")			return TOKEN_PUNCT_COLON;
+			if(buf == ";")			return TOKEN_PUNCT_SEMICOLON;
+			if(buf == ",")			return TOKEN_PUNCT_COMMA;
+
+			return TOKEN_UNDEFINED;
+		}
+
+		Token Lexer::getTokenFromOperator(const std::string &buf) const
+		{
+			return createToken(getTokenTypeFromOperator(buf), buf);
 		}
 	}
 }

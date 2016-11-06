@@ -26,6 +26,7 @@ namespace core
 	{
 		enum TokenType : short
 		{
+			TOKEN_UNDEFINED = -1,
 			TOKEN_DEFAULT = 0,
 
 			TOKEN_KEYWORD_IMPORT,
@@ -129,32 +130,32 @@ namespace core
 			TOKEN_OPERATORB_GREATEQ,// a >= b
 
 			TOKEN_OPERATORB_MEMBER,	// a.b
-			TOKEN_OPERATORB_ACCESS,	// a[b]
+			//TOKEN_OPERATORB_ACCESS,	// a[b]
 
 			TOKEN_OPERATORB_OF,		// List of String
 			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
 
-			TOKEN_OPERATORU_INCPRE,	// ++a
-			TOKEN_OPERATORU_DECPRE,	// --a
-			TOKEN_OPERATORU_INCPOST,// a++
-			TOKEN_OPERATORU_DECPOST,// a--
+			TOKEN_OPERATORU_INC,	// a++
+			TOKEN_OPERATORU_DEC,	// a--
 
 			TOKEN_OPERATORU_PLUS,	// +a
 			TOKEN_OPERATORU_MINUS,	// -a
 			TOKEN_OPERATORU_BITNOT,	// ~a
 			TOKEN_OPERATORU_NOT,	// !a, not a
 
-			TOKEN_OPERATORU_CAST,	// (Integer)a
-			TOKEN_OPERATORU_SIZEOF,	// sizeof(a)
-			TOKEN_OPERATORU_TYPEOF,	// typeof(a)
+			TOKEN_OPERATORU_SIZEOF,	// sizeof a
+			TOKEN_OPERATORU_TYPEOF,	// typeof a
 			TOKEN_OPERATORU_NEW,	// new A
 
 			TOKEN_PUNCT_PAREN_OPEN,	// (
 			TOKEN_PUNCT_PAREN_CLOSE,// )
 			TOKEN_PUNCT_BRACE_OPEN,	// {
 			TOKEN_PUNCT_BRACE_CLOSE,// }
+			TOKEN_PUNCT_SQR_OPEN,	// [
+			TOKEN_PUNCT_SQR_CLOSE,	// ]
 			TOKEN_PUNCT_COLON,		// :
 			TOKEN_PUNCT_SEMICOLON,	// ;
+			TOKEN_PUNCT_COMMA,		// ,
 
 			TOKEN_EOF = 32767
 		};
