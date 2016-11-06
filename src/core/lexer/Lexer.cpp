@@ -84,14 +84,70 @@ namespace core
 			{
 				std::string buf;
 				buf.reserve(8);
+				bool isFloatingPoint = (currentChar == '.');
 				do
 				{
 					buf.push_back(currentChar);
 					currentChar = *(++it);
+					if(currentChar == '.')
+					{
+						isFloatingPoint = true;
+					}
 				} while(std::isdigit(currentChar) || currentChar == '.');
 				util::logger->trace("Number literal: '{}'", buf);
 
-				return createToken(TOKEN_LITERAL_NUMBER, buf);
+				if(isFloatingPoint)
+				{
+					TokenType type;
+					switch (currentChar)
+					{
+					case 'd':
+						type = TOKEN_LITERAL_DECIMAL;
+						break;
+					case 'f':
+						type = TOKEN_LITERAL_FLOAT;
+						break;
+					default:
+						type = TOKEN_LITERAL_DOUBLE;
+					}
+					if(type != TOKEN_LITERAL_DOUBLE)
+					{
+						++it;
+					}
+					return createToken(type, buf);
+				}
+				else
+				{
+					TokenType type;
+					switch(currentChar)
+					{
+					case 'u':
+						type = TOKEN_LITERAL_UNSIGNED;
+						break;
+					case 'l':
+						type = TOKEN_LITERAL_LONG;
+						break;
+					case 's':
+						type = TOKEN_LITERAL_SHORT;
+						break;
+					case 'b':
+						type = TOKEN_LITERAL_INT_BIN;
+						break;
+					case 'o':
+						type = TOKEN_LITERAL_INT_OCT;
+						break;
+					case 'h':
+						type = TOKEN_LITERAL_INT_HEX;
+						break;
+					default:
+						type = TOKEN_LITERAL_INTEGER;
+					}
+					if(type != TOKEN_LITERAL_INTEGER)
+					{
+						++it;
+					}
+					return createToken(type, buf);
+				}
 			}
 
 			// String literal
@@ -135,37 +191,6 @@ namespace core
 							break;
 						}
 					}
-					#if 0
-					// Current char is an escaping backslash
-					if(currentChar == '\\' && prev != '\\' && next != '"')
-					{
-						bool skipNext = true;
-						switch (next) {
-						case 'f':
-							currentChar = '\f';
-							break;
-						case 'n':
-							currentChar = '\n';
-							break;
-						case 'r':
-							currentChar = '\r';
-							break;
-						case 't':
-							currentChar = '\t';
-							break;
-						case 'v':
-							currentChar = '\v';
-							break;
-						default:
-							skipNext = false;
-						}
-
-						if(skipNext)
-						{
-							++it;
-						}
-					}
-					#endif
 
 					buf.push_back(currentChar);
 					util::logger->trace("Pushed buffer: '{}'", buf);
