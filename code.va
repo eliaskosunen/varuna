@@ -13,7 +13,8 @@ function main(List of String args): Void
 	{
 		io.stdout.println("I don't know you, {}", input);
 	}
-	Integer int = 42;
-	Double pi = 3.14159265353;
-	Float neg = -5.2f;
+	Bool yes = true;
+	None n = none;
+	String s = "\s";
+	Char c = '\n';
 }

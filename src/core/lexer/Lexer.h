@@ -51,6 +51,8 @@ namespace core
 
 			Token getNextToken(std::string::const_iterator &it);
 
+			std::string lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar = false);
+
 			template <typename... Args>
 			void lexerError(const std::string &format, const Args& ... args)
 			{

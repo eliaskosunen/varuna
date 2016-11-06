@@ -40,6 +40,12 @@ namespace core
 				return "LITERAL_FLOAT";
 			case TOKEN_LITERAL_STRING:
 				return "LITERAL_STRING";
+			case TOKEN_LITERAL_TRUE:
+				return "LITERAL_TRUE";
+			case TOKEN_LITERAL_FALSE:
+				return "LITERAL_FALSE";
+			case TOKEN_LITERAL_NONE:
+				return "LITERAL_NONE";
 
 			case TOKEN_EOF:
 				return "EOF";

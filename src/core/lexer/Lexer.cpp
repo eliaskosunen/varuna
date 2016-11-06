@@ -75,7 +75,7 @@ namespace core
 			}
 
 			// Number literal
-			// (-)[0-9][0-9\.]*
+			// -[0-9]([0-9\.]*)[dfulsboh]
 			if(
 				std::isdigit(currentChar) ||
 				(currentChar == '-' && std::isdigit(*(it + 1))) ||
@@ -151,70 +151,30 @@ namespace core
 			}
 
 			// String literal
-			// "."
+			// ".+"
 			if(currentChar == '"')
 			{
-				std::string buf;
-				buf.reserve(8);
-				// Skip the opening quotation mark
-				util::logger->trace("String literal");
-				while((++it) != end)
+				std::string buf = lexStringLiteral(it, end);
+				if(!getError())
 				{
-					currentChar = *it;
-					char prev = *(it - 1);
-					char next = *(it + 1);
-					util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
+					util::logger->trace("String literal: '{}'", buf);
 
-					// Current char is a newline
-					// String doesn't end, terminate
-					if(currentChar == '\n')
-					{
-						lexerError("Invalid string: Closing quote not found");
-						break;
-					}
-					if(prev == '\\')
-					{
-
-					}
-					// Current char is a quotation mark
-					if(currentChar == '"')
-					{
-						if(prev == '\\' && *(it - 2) != '\\')
-						{
-							// Remove the backslash
-							buf.pop_back();
-						}
-						// Not escaped, end string
-						else
-						{
-							util::logger->trace("Current character is an unescaped quotation mark, end");
-							break;
-						}
-					}
-
-					buf.push_back(currentChar);
-					util::logger->trace("Pushed buffer: '{}'", buf);
+					return createToken(TOKEN_LITERAL_STRING, buf);
 				}
 
-				std::map<std::string, std::string> patterns =
+			}
+
+			// Character literal
+			// '.'
+			if(currentChar == '\'')
+			{
+				std::string buf = lexStringLiteral(it, end, true);
+				if(!getError())
 				{
-					{ "\\\\", "\\" },
-					{ "\\n", "\n" },
-					{ "\\r", "\r" },
-					{ "\\t", "\t" },
-					{ "\\f", "\f" },
-					{ "\\v", "\v" },
-					{ "\\\"", "\"" },
-				};
-				for(const auto &p: patterns)
-				{
-					util::StringUtils::replaceAll(buf, p.first, p.second);
+					util::logger->trace("Character literal: '{}'", buf);
+
+					return createToken(TOKEN_LITERAL_CHAR, buf);
 				}
-
-				util::logger->trace("String literal: '{}'", buf);
-
-				++it;
-				return createToken(TOKEN_LITERAL_STRING, buf);
 			}
 
 			++it;
@@ -247,6 +207,101 @@ namespace core
 			return tokens;
 		}
 
+		std::string Lexer::lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar)
+		{
+			std::string buf;
+			buf.reserve(isChar ? 2 : 8);
+			const char quote = (isChar ? '\'' : '"');
+			while((++it) != end)
+			{
+				char currentChar = *it;
+				char prev = *(it - 1);
+				char next = *(it + 1);
+				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
+
+				// Current char is a newline
+				// String doesn't end, terminate
+				if(currentChar == '\n')
+				{
+					lexerError("Invalid {} literal: Closing quote not found", (isChar ? "character" : "string"));
+					break;
+				}
+				// Current char is a quotation mark
+				if(currentChar == quote)
+				{
+					if(prev == '\\' && *(it - 2) != '\\')
+					{
+						// Remove the backslash
+						buf.pop_back();
+					}
+					// Not escaped, end string
+					else
+					{
+						util::logger->trace("Current character is an unescaped quotation mark, end");
+						break;
+					}
+				}
+
+				buf.push_back(currentChar);
+				util::logger->trace("Pushed buffer: '{}'", buf);
+			}
+
+			util::logger->trace("Buffer before escaping: '{}'", buf);
+			std::string escaped;
+			std::string::const_iterator rit = buf.begin();
+			while(rit != buf.end())
+			{
+				char c = *rit++;
+				if(c == '\\' && rit != buf.end())
+				{
+					switch(*rit++)
+					{
+					case '\\':
+						c = '\\';
+						break;
+					case 'n':
+						c = '\n';
+						break;
+					case 't':
+						c = '\t';
+						break;
+					case 'r':
+						c = '\r';
+						break;
+					case 'f':
+						c = '\f';
+						break;
+					case 'v':
+						c = '\v';
+						break;
+					case '"':
+						if(!isChar)
+						{
+							c = '"';
+						}
+						break;
+					case '\'':
+						if(isChar)
+						{
+							c = '\'';
+						}
+						break;
+					default:
+						lexerWarning("Invalid escape sequence");
+						continue;
+					}
+				}
+				escaped.push_back(c);
+			}
+
+			if(isChar && escaped.length() > 1)
+			{
+				lexerError("Invalid character literal: Length more than 1: '{}'", escaped);
+			}
+			++it;
+			return escaped;
+		}
+
 		Token Lexer::createToken(TokenType type, const std::string &val) const
 		{
 			return Token::create(type, val, currentLine, filename);
@@ -254,7 +309,66 @@ namespace core
 
 		TokenType Lexer::getTokenTypeFromWord(const std::string &buf) const
 		{
-			if(buf == "import") return TOKEN_KEYWORD_IMPORT;
+			// Keywords
+			if(buf == "import")		return TOKEN_KEYWORD_IMPORT;
+			if(buf == "function")	return TOKEN_KEYWORD_FUNCTION;
+			if(buf == "declare")	return TOKEN_KEYWORD_DECLARE;
+			if(buf == "class")		return TOKEN_KEYWORD_CLASS;
+			if(buf == "override")	return TOKEN_KEYWORD_OVERRIDE;
+			if(buf == "final")		return TOKEN_KEYWORD_FINAL;
+			if(buf == "extend")		return TOKEN_KEYWORD_EXTEND;
+			if(buf == "abstract")	return TOKEN_KEYWORD_ABSTRACT;
+			if(buf == "implement")	return TOKEN_KEYWORD_IMPLEMENT;
+			if(buf == "interface")	return TOKEN_KEYWORD_INTERFACE;
+			if(buf == "public")		return TOKEN_KEYWORD_PUBLIC;
+			if(buf == "protected")	return TOKEN_KEYWORD_PROTECTED;
+			if(buf == "private")	return TOKEN_KEYWORD_PRIVATE;
+			if(buf == "if")			return TOKEN_KEYWORD_IF;
+			if(buf == "while")		return TOKEN_KEYWORD_WHILE;
+			if(buf == "for")		return TOKEN_KEYWORD_FOR;
+			if(buf == "foreach")	return TOKEN_KEYWORD_FOREACH;
+			if(buf == "switch")		return TOKEN_KEYWORD_SWITCH;
+			if(buf == "case")		return TOKEN_KEYWORD_CASE;
+			if(buf == "break")		return TOKEN_KEYWORD_BREAK;
+			if(buf == "return")		return TOKEN_KEYWORD_RETURN;
+			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
+
+			// Datatypes
+			if(buf == "None")		return TOKEN_DATATYPE_NONE;
+			if(buf == "Void")		return TOKEN_DATATYPE_VOID;
+			if(buf == "Integer")	return TOKEN_DATATYPE_INTEGER;
+			if(buf == "Float")		return TOKEN_DATATYPE_FLOAT;
+			if(buf == "Double")		return TOKEN_DATATYPE_DOUBLE;
+			if(buf == "Decimal")	return TOKEN_DATATYPE_DECIMAL;
+			if(buf == "String")		return TOKEN_DATATYPE_STRING;
+			if(buf == "Char")		return TOKEN_DATATYPE_CHAR;
+			if(buf == "UInteger")	return TOKEN_DATATYPE_UINTEGER;
+			if(buf == "BigInteger")	return TOKEN_DATATYPE_BIGINTEGER;
+			if(buf == "Bool")		return TOKEN_DATATYPE_BOOL;
+			if(buf == "Int8")		return TOKEN_DATATYPE_INT8;
+			if(buf == "Int16")		return TOKEN_DATATYPE_INT16;
+			if(buf == "Int32")		return TOKEN_DATATYPE_INT32;
+			if(buf == "Int64")		return TOKEN_DATATYPE_INT64;
+			if(buf == "UInt8")		return TOKEN_DATATYPE_UINT8;
+			if(buf == "UInt16")		return TOKEN_DATATYPE_UINT16;
+			if(buf == "UInt32")		return TOKEN_DATATYPE_UINT32;
+			if(buf == "UInt64")		return TOKEN_DATATYPE_UINT64;
+			if(buf == "List")		return TOKEN_DATATYPE_LIST;
+			if(buf == "Dict")		return TOKEN_DATATYPE_DICT;
+			if(buf == "Array")		return TOKEN_DATATYPE_ARRAY;
+
+			// Literals
+			if(buf == "true")		return TOKEN_LITERAL_TRUE;
+			if(buf == "false")		return TOKEN_LITERAL_FALSE;
+			if(buf == "none")		return TOKEN_LITERAL_NONE;
+
+			// Textual operators
+			if(buf == "and")		return TOKEN_OPERATORB_AND;
+			if(buf == "or")			return TOKEN_OPERATORB_OR;
+			if(buf == "not")		return TOKEN_OPERATORU_NOT;
+			if(buf == "of")			return TOKEN_OPERATORB_OF;
+			if(buf == "as")			return TOKEN_OPERATORB_AS;
+
 			return TOKEN_IDENTIFIER;
 		}
 
