@@ -76,7 +76,7 @@ namespace core
 			}
 
 			// Number literal
-			// -[0-9]([0-9\.]*)[dfulsboh]
+			// -?[0-9]([0-9\.]*)[dfulsboh]
 			if(
 				std::isdigit(currentChar) ||
 				(currentChar == '-' && std::isdigit(*(it + 1))) ||
@@ -382,6 +382,7 @@ namespace core
 			if(buf == "protected")	return TOKEN_KEYWORD_PROTECTED;
 			if(buf == "private")	return TOKEN_KEYWORD_PRIVATE;
 			if(buf == "if")			return TOKEN_KEYWORD_IF;
+			if(buf == "else")		return TOKEN_KEYWORD_ELSE;
 			if(buf == "while")		return TOKEN_KEYWORD_WHILE;
 			if(buf == "for")		return TOKEN_KEYWORD_FOR;
 			if(buf == "foreach")	return TOKEN_KEYWORD_FOREACH;
