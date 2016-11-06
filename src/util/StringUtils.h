@@ -208,7 +208,8 @@ namespace util
 		 * @param elems Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		inline void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+		inline void split(const std::string &s, char delim, std::vector<std::string> &elems)
+		{
 			std::stringstream ss;
 			ss.str(s);
 			std::string item;
@@ -224,10 +225,16 @@ namespace util
 		 * @return       Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		inline std::vector<std::string> split(const std::string &s, char delim) {
+		inline std::vector<std::string> split(const std::string &s, char delim)
+		{
 			std::vector<std::string> elems;
 			split(s, delim, elems);
 			return elems;
+		}
+
+		inline bool isodigit(char c)
+		{
+			return (c >= '0' && c <= '7');
 		}
 	}
 }

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include <map>
+#include <sstream>
 
 #include "core/grammar/Grammar.h"
 #include "util/Logger.h"
@@ -274,6 +275,63 @@ namespace core
 					case 'v':
 						c = '\v';
 						break;
+					case 'b':
+						c = '\b';
+						break;
+					case 'a':
+						c = '\a';
+						break;
+					case 'x':
+					{
+						std::string hex;
+						if(!std::isxdigit(*rit))
+						{
+							lexerWarning("Invalid hexadecimal escape sequence: The first character after an \\x should be a number in hexadecimal, got '{}' instead", *rit);
+							continue;
+						}
+						hex.push_back(*rit);
+						if(std::isxdigit(*(rit + 1)))
+						{
+							++rit;
+							hex.push_back(*rit);
+						}
+						++rit;
+						std::istringstream hexcharss(hex);
+						unsigned int ch;
+						hexcharss >> std::hex >> ch;
+						c = ch;
+						break;
+					}
+					case 'o':
+					{
+						std::string oct;
+						if(!util::StringUtils::isodigit(*rit))
+						{
+							lexerWarning("Invalid octal escape sequence: The first character after an \\o should be a number in octal, got '{}' instead", *rit);
+							continue;
+						}
+						oct.push_back(*rit);
+						if(util::StringUtils::isodigit(*(rit + 1)))
+						{
+							++rit;
+							oct.push_back(*rit);
+							if(util::StringUtils::isodigit(*(rit + 1)))
+							{
+								++rit;
+								oct.push_back(*rit);
+							}
+							++rit;
+						}
+						else
+						{
+							++rit;
+						}
+						std::istringstream octcharss(oct);
+						unsigned int ch;
+						octcharss >> std::oct >> ch;
+						c = ch;
+						break;
+					}
 					case '"':
 						if(!isChar)
 						{

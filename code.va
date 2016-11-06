@@ -15,6 +15,6 @@ function main(List of String args): Void
 	}
 	Bool yes = true;
 	None n = none;
-	String s = "\s";
+	String s = "\o0"; # \o0, \o60, \o141
 	Char c = '\n';
 }
