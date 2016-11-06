@@ -31,6 +31,10 @@ namespace core
 				return "KEYWORD_IMPORT";
 			case TOKEN_IDENTIFIER:
 				return "IDENTIFIER";
+			case TOKEN_LITERAL_NUMBER:
+				return "LITERAL_NUMBER";
+			case TOKEN_LITERAL_STRING:
+				return "LITERAL_STRING";
 			case TOKEN_EOF:
 				return "EOF";
 			case TOKEN_DEFAULT:

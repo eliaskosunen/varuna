@@ -11,8 +11,9 @@ function main(List of String args): Void
 	}
 	else
 	{
-		io.stdout.println("I don't know you, {}", input);
+		io.stdout.println("I don't know you, {} \t\n\""", input);
 	}
 	Bool boolean = true;
 	None n = none;
+	Integer num = 3.1415926535;
 }

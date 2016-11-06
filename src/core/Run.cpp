@@ -50,9 +50,8 @@ namespace core
 
 		util::logger->debug("Starting lexer");
 		core::lexer::Lexer lexer(code, filename);
-		bool lexerError = false;
-		core::lexer::TokenVector tokens = lexer.run(lexerError);
-		if(lexerError)
+		core::lexer::TokenVector tokens = lexer.run();
+		if(lexer.getError())
 		{
 			return 1;
 		}
