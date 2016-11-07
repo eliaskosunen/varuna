@@ -85,6 +85,47 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[8].modifierInt.isSet(INTEGER_UNSIGNED));
 		REQUIRE(v[8].modifierInt.isSet(INTEGER_LONG));
 	}
+	SECTION("Float literals")
+	{
+		code = "3.1415926535 12.34f 39.99d";
+		Lexer l(code);
+		v = l.run();
+		CHECK(v.size() == 4);
+		REQUIRE(!l.getError());
+
+		for(unsigned int i = 0; i <= 2; ++i)
+		{
+			REQUIRE(v[i].type == TOKEN_LITERAL_FLOAT);
+		}
+
+		REQUIRE(v[0].value == "3.1415926535");
+		REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_FLOAT));
+		REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
+		REQUIRE(v[0].modifierFloat.isSet(FLOAT_DOUBLE));
+
+		REQUIRE(v[1].value == "12.34");
+		REQUIRE(v[1].modifierFloat.isSet(FLOAT_FLOAT));
+
+		REQUIRE(v[2].value == "39.99");
+		REQUIRE(v[2].modifierFloat.isSet(FLOAT_DECIMAL));
+	}
+	SECTION("String literals")
+	{
+		code = "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
+		Lexer l(code);
+		v = l.run();
+		CHECK(v.size() == 4);
+		REQUIRE(!l.getError());
+
+		for(unsigned int i = 0; i <= 2; ++i)
+		{
+			REQUIRE(v[i].type == TOKEN_LITERAL_STRING);
+		}
+
+		REQUIRE(v[0].value == "String");
+		REQUIRE(v[1].value == "Special\nstring\t");
+		REQUIRE(v[2].value == "Hex 0 Oct 0");
+	}
 
 	SECTION("Import")
 	{
