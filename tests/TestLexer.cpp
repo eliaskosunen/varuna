@@ -127,6 +127,31 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[2].value == "Hex 0 Oct 0");
 	}
 
+	SECTION("Identifiers")
+	{
+		code = "io.stdout.writeln(\"Hello World\")";
+		Lexer l(code);
+		v = l.run();
+		CHECK(v.size() == 9);
+		REQUIRE(!l.getError());
+
+		REQUIRE(v[0].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[0].value == "io");
+		REQUIRE(v[1].type == TOKEN_OPERATORB_MEMBER);
+
+		REQUIRE(v[2].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[2].value == "stdout");
+		REQUIRE(v[3].type == TOKEN_OPERATORB_MEMBER);
+
+		REQUIRE(v[4].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[4].value == "writeln");
+
+		REQUIRE(v[5].type == TOKEN_PUNCT_PAREN_OPEN);
+		REQUIRE(v[6].type == TOKEN_LITERAL_STRING);
+		REQUIRE(v[6].value == "Hello World");
+		REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
+	}
+
 	SECTION("Import")
 	{
 		code = "import io;";

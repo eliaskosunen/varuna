@@ -69,6 +69,8 @@ namespace core
 				if(error != ERROR_ERROR) error = ERROR_WARNING;
 				util::logger->warn("Lexer warning: On file {}, line {}: {}", filename, currentLine, fmt::format(format, args...));
 			}
+
+			void syntaxCheck(const TokenVector &tokens);
 		public:
 			bool warningsAsErrors;
 

@@ -63,6 +63,17 @@ namespace core
 				}
 			}
 
+			if(std::iscntrl(currentChar) && !std::isspace(currentChar))
+			{
+				fmt::MemoryWriter out;
+				out << "'" << currentChar
+					<< "', dec: " << util::StringUtils::charToString(currentChar)
+					<< " hex: " << fmt::hex(currentChar);
+				lexerWarning("Unrecognized character: {}", out.str());
+				++it;
+				return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
+			}
+
 			// Word: a keyword or an identifier
 			// [a-zA-Z_][a-zA-Z_0-9]*
 			if(std::isalpha(currentChar) || currentChar == '_')
@@ -223,6 +234,11 @@ namespace core
 				return t;
 			}
 
+			fmt::MemoryWriter out;
+			out << "'" << currentChar
+				<< "', dec: " << util::StringUtils::charToString(currentChar)
+				<< " hex: " << fmt::hex(currentChar);
+			lexerWarning("Unrecognized token: {}", out.str());
 			++it;
 			return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 		}
@@ -258,7 +274,34 @@ namespace core
 			{
 				lexerWarning("Empty translation unit");
 			}
+			syntaxCheck(tokens);
 			return tokens;
+		}
+
+		void Lexer::syntaxCheck(const TokenVector &tokens)
+		{
+			unsigned int parenL = 0, parenR = 0, bracketL = 0, bracketR = 0, braceL = 0, braceR = 0;
+			for(const auto &t : tokens)
+			{
+				if(t.type == TOKEN_PUNCT_PAREN_OPEN) ++parenL;
+				if(t.type == TOKEN_PUNCT_PAREN_CLOSE) ++parenR;
+				if(t.type == TOKEN_PUNCT_SQR_OPEN) ++bracketL;
+				if(t.type == TOKEN_PUNCT_SQR_CLOSE) ++bracketR;
+				if(t.type == TOKEN_PUNCT_BRACE_OPEN) ++braceL;
+				if(t.type == TOKEN_PUNCT_BRACE_CLOSE) ++braceR;
+			}
+			if(parenL != parenR)
+			{
+				lexerError("Syntax Error: Parenthesis mismatch");
+			}
+			if(bracketL != bracketR)
+			{
+				lexerError("Syntax Error: Bracket mismatch");
+			}
+			if(braceL != braceR)
+			{
+				lexerError("Syntax Error: Brace mismatch");
+			}
 		}
 
 		std::string Lexer::lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar)
