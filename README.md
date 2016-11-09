@@ -12,7 +12,7 @@ Develop branch:
 
 ## About
 
-Varuna is general-purpose interpreter programming language.
+Varuna is a general-purpose interpreted programming language.
 The implementation of the language can be found in this repository.
 WORK IN PROGRESS.
 
