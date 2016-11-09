@@ -15,20 +15,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "doctest.h"
+#pragma once
 
-namespace tests
-{
-	inline unsigned int factorial(unsigned int number) {
-		return number > 1 ? factorial(number-1) * number : 1;
-	}
-}
+#ifdef _MSC_VER
 
-TEST_CASE("General test")
-{
-	REQUIRE(tests::factorial(0) == 1);
-	REQUIRE(tests::factorial(1) == 1);
-	REQUIRE(tests::factorial(2) == 2);
-	REQUIRE(tests::factorial(3) == 6);
-	REQUIRE(tests::factorial(10) == 3628800);
-}
+#pragma warning(push, 3)
+#pragma warning(disable: 4514 4711)
+
+#endif
+
+#include "doctest/doctest.h"
+
+#ifdef _MSC_VER
+
+#pragma warning(pop)
+
+#endif

@@ -97,7 +97,7 @@ namespace app
 		util::loggerBasic->info("This is free software, and you are welcome to redistribute it under certain conditions; see the License for details.");
 		util::loggerBasic->info("\nVaruna uses the following third-party software. To see the full license details, see the file LICENSE.thirdparty.txt");
 		util::loggerBasic->info("Spdlog - Copyright (c) 2016 Gabi Melman. Licensed under the MIT License");
-		util::loggerBasic->info("Catch - Licensed under the Boost Software License");
+		util::loggerBasic->info("Doctest - Copyright (c) 2016 Viktor Kirilov. Licensed under the MIT License");
 		util::loggerBasic->info("TCLAP - Copyright (c) 2003 Michael E. Smoot. Licensed under the MIT License");
 	}
 

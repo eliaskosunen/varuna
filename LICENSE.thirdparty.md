@@ -6,11 +6,11 @@ The MIT License (MIT). Copyright (c) 2016 Gabi Melman
 
 View the full license at third-party/info/spdlog/LICENSE
 
-# Catch
+# Doctest
 
-Boost Software License
+The MIT License (MIT). Copyright (c) 2016 Viktor Kirilov
 
-View the full license at third-party/info/catch/LICENSE_1_0.txt
+View the full license at third-party/info/doctest/LICENSE.txt
 
 # TCLAP
 

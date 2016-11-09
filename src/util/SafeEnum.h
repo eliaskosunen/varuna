@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <type_traits>
+#include <ostream>
 
 namespace util
 {
@@ -31,7 +32,11 @@ namespace util
 		SafeEnum(Enum_t flag) : flags(flag) {}
 		SafeEnum(const SafeEnum &orig) : flags(orig.flags) {}
 
-		Underlying_t &get()
+		Underlying_t get() const
+		{
+			return flags;
+		}
+		Underlying_t &getRef()
 		{
 			return flags;
 		}
@@ -64,9 +69,51 @@ namespace util
 			result.flags = ~result.flags;
 			return result;
 		}
+		SafeEnum &operator ^=(Enum_t mask)
+		{
+			flags ^= mask;
+			return *this;
+		}
+		SafeEnum operator ^(Enum_t mask)
+		{
+			SafeEnum result(*this);
+			result ^= mask;
+			return result;
+		}
+
 		explicit operator bool() const
 		{
 			return flags != 0;
+		}
+
+		bool operator ==(const Enum_t &b) const
+		{
+			return flags == b;
+		}
+		bool operator !=(const Enum_t &b) const
+		{
+			return !(*this == b);
+		}
+
+		bool operator ==(const SafeEnum<Enum_t, Underlying_t> &b) const
+		{
+			return flags == b.flags;
+		}
+		bool operator !=(const SafeEnum<Enum_t, Underlying_t> &b) const
+		{
+			return !(*this == b);
+		}
+
+		friend std::ostream &operator <<(std::ostream &o, const Enum_t &t)
+		{
+			o << static_cast<int>(t);
+			return o;
+		}
+
+		friend std::ostream &operator <<(std::ostream &o, const util::SafeEnum<Enum_t, Underlying_t> &t)
+		{
+			o << t.get();
+			return o;
 		}
 
 		bool isSet(Enum_t flag) const

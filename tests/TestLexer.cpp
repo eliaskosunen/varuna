@@ -15,18 +15,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch.hpp"
+#include "doctest.h"
 
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
 
-TEST_CASE("Test lexer", "[lexer]")
+TEST_CASE("Test lexer")
 {
 	using namespace core::lexer;
 
 	TokenVector v;
 	std::string code;
-	SECTION("Whitespace skipping")
+	SUBCASE("Whitespace skipping")
 	{
 		code = " \n\t\v";
 		Lexer l(code);
@@ -38,7 +38,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[0].type == TOKEN_EOF);
 	}
 
-	SECTION("Integer literals")
+	SUBCASE("Integer literals")
 	{
 		code = "123 9999999ul 8s 5u 10l 1001b 60o 0xff 0xdeadul";
 		Lexer l(code);
@@ -85,7 +85,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[8].modifierInt.isSet(INTEGER_UNSIGNED));
 		REQUIRE(v[8].modifierInt.isSet(INTEGER_LONG));
 	}
-	SECTION("Float literals")
+	SUBCASE("Float literals")
 	{
 		code = "3.1415926535 12.34f 39.99d";
 		Lexer l(code);
@@ -109,7 +109,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[2].value == "39.99");
 		REQUIRE(v[2].modifierFloat.isSet(FLOAT_DECIMAL));
 	}
-	SECTION("String literals")
+	SUBCASE("String literals")
 	{
 		code = "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
 		Lexer l(code);
@@ -127,7 +127,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[2].value == "Hex 0 Oct 0");
 	}
 
-	SECTION("Identifiers")
+	SUBCASE("Identifiers")
 	{
 		code = "io.stdout.writeln(\"Hello World\")";
 		Lexer l(code);
@@ -152,7 +152,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
 	}
 
-	SECTION("Import")
+	SUBCASE("Import")
 	{
 		code = "import io;";
 		Lexer l(code);
@@ -167,7 +167,7 @@ TEST_CASE("Test lexer", "[lexer]")
 
 		REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
 	}
-	SECTION("Main function definition")
+	SUBCASE("Main function definition")
 	{
 		code = "function main(List of String): Void {}";
 		Lexer l(code);
@@ -192,7 +192,7 @@ TEST_CASE("Test lexer", "[lexer]")
 		REQUIRE(v[9].type == TOKEN_PUNCT_BRACE_OPEN);
 		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_CLOSE);
 	}
-	SECTION("If-else")
+	SUBCASE("If-else")
 	{
 		code = "if(foo == 123) bar = true; else bar = false;";
 		Lexer l(code);

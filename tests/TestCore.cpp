@@ -15,19 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch.hpp"
+#include "doctest.h"
 
 #include <string>
 
 #include "core/lexer/Token.h"
-
-TEST_CASE("Test Token", "[core]")
-{
-	using namespace core::lexer;
-
-	Token t;
-	REQUIRE(t.type == TOKEN_DEFAULT);
-	t.type = TOKEN_KEYWORD_IMPORT;
-	REQUIRE(t.type == TOKEN_KEYWORD_IMPORT);
-	REQUIRE(t.typeToString() == "KEYWORD_IMPORT");
-}

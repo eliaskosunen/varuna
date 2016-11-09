@@ -26,7 +26,7 @@ namespace core
 {
 	namespace lexer
 	{
-		enum TokenType : short
+		enum TokenType_t
 		{
 			TOKEN_UNDEFINED = -1,
 			TOKEN_DEFAULT = 0,
@@ -154,30 +154,44 @@ namespace core
 			TOKEN_EOF = 32767
 		};
 
-		enum TokenIntegerLiteralModifier_t : unsigned char
+		enum TokenIntegerLiteralModifier_t
 		{
-			INTEGER_INTEGER	= 1 << 0,	// No suffix
-			INTEGER_UNSIGNED= 1 << 1,	// u
-			INTEGER_LONG	= 1 << 2,	// l
-			INTEGER_SHORT	= 1 << 3,	// s
-			INTEGER_BINARY	= 1 << 4,	// b
-			INTEGER_OCTAL	= 1 << 5,	// o
-			INTEGER_HEX		= 1 << 6,	// x
+			INTEGER_INTEGER	= 1,	// No suffix
+			INTEGER_UNSIGNED= 2,	// u
+			INTEGER_LONG	= 4,	// l
+			INTEGER_SHORT	= 8,	// s
+			INTEGER_BINARY	= 16,	// b
+			INTEGER_OCTAL	= 32,	// o
+			INTEGER_HEX		= 64,	// x
 
 			INTEGER_NONE	= INTEGER_INTEGER
 		};
 
-		enum TokenFloatLiteralModifier_t : unsigned char
+		enum TokenFloatLiteralModifier_t
 		{
-			FLOAT_DOUBLE	= 1 << 0,	// No suffix
-			FLOAT_FLOAT		= 1 << 1,	// f
-			FLOAT_DECIMAL	= 1 << 2,	// d
+			FLOAT_DOUBLE	= 1,	// No suffix
+			FLOAT_FLOAT		= 2,	// f
+			FLOAT_DECIMAL	= 4,	// d
 
 			FLOAT_NONE		= FLOAT_DOUBLE
 		};
 
-		typedef util::SafeEnum<TokenIntegerLiteralModifier_t, unsigned char> TokenIntegerLiteralModifier;
-		typedef util::SafeEnum<TokenFloatLiteralModifier_t, unsigned char> TokenFloatLiteralModifier;
+#if 1
+		typedef util::SafeEnum<TokenType_t> TokenType;
+		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
+		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
+
+		//std::ostream &operator <<(std::ostream &o, const TokenType &t);
+		//std::ostream &operator <<(std::ostream &o, const TokenIntegerLiteralModifier &t);
+		//std::ostream &operator <<(std::ostream &o, const TokenFloatLiteralModifier &t);
+
+#else
+
+		typedef TokenType_t TokenType;
+		typedef TokenIntegerLiteralModifier_t TokenIntegerLiteralModifier;
+		typedef TokenFloatLiteralModifier_t TokenFloatLiteralModifier;
+
+#endif
 
 		class Token
 		{

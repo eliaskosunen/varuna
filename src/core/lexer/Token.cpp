@@ -25,7 +25,7 @@ namespace core
 	{
 		std::string Token::typeToString() const
 		{
-			switch(type)
+			switch(type.get())
 			{
 			case TOKEN_KEYWORD_IMPORT:
 				return "KEYWORD_IMPORT";

@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_RUNNER
-#include "catch.hpp"
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "doctest.h"
 
 #include "util/Logger.h"
 
@@ -26,6 +26,9 @@ int main(int argc, char **argv)
 	//spdlog::set_level(spdlog::level::trace);
 	spdlog::set_level(spdlog::level::debug);
 
-	int result = Catch::Session().run( argc, argv);
-	return result;
+	doctest::Context context;
+	context.applyCommandLine(argc, argv);
+
+	int res = context.run();
+	return res;
 }
