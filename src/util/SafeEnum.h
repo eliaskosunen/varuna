@@ -43,24 +43,24 @@ namespace util
 
 		SafeEnum &operator |=(Enum_t add)
 		{
-			flags |= add;
+			flags |= static_cast<Underlying_t>(add);
 			return *this;
 		}
 		SafeEnum operator |(Enum_t add)
 		{
 			SafeEnum result(*this);
-			result |= add;
+			result |= static_cast<Underlying_t>(add);
 			return result;
 		}
 		SafeEnum &operator &=(Enum_t mask)
 		{
-			flags &= mask;
+			flags &= static_cast<Underlying_t>(mask);
 			return *this;
 		}
 		SafeEnum operator &(Enum_t mask)
 		{
 			SafeEnum result(*this);
-			result &= mask;
+			result &= static_cast<Underlying_t>(mask);
 			return result;
 		}
 		SafeEnum operator ~()
@@ -71,13 +71,13 @@ namespace util
 		}
 		SafeEnum &operator ^=(Enum_t mask)
 		{
-			flags ^= mask;
+			flags ^= static_cast<Underlying_t>(mask);
 			return *this;
 		}
 		SafeEnum operator ^(Enum_t mask)
 		{
 			SafeEnum result(*this);
-			result ^= mask;
+			result ^= static_cast<Underlying_t>(mask);
 			return result;
 		}
 
@@ -118,11 +118,11 @@ namespace util
 
 		bool isSet(Enum_t flag) const
 		{
-			return flags & flag;
+			return (static_cast<Underlying_t>(flags) & static_cast<Underlying_t>(flag));
 		}
 		bool isNotSet(Enum_t flag) const
 		{
-			return (flags & flag) == static_cast<Enum_t>(0);
+			return (static_cast<Underlying_t>(flags) & static_cast<Underlying_t>(flag)) == static_cast<Underlying_t>(0);
 		}
 		void set(Enum_t flag)
 		{
