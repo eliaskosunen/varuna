@@ -15,22 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch.hpp"
+#include "doctest.h"
 
 #include <string>
 
 #include "core/lexer/Token.h"
-
-TEST_CASE("Test Token", "[core]")
-{
-	using namespace core::lexer;
-
-	Token t;
-	REQUIRE(t.getType() == TOKEN_DEFAULT);
-	REQUIRE(t.getCategory() == TOKEN_CAT_DEFAULT);
-	t.setType(TOKEN_UNKNOWN);
-	t.setCategory(TOKEN_CAT_UNKNOWN);
-	REQUIRE(t.getType() == TOKEN_UNKNOWN);
-	REQUIRE(t.typeToString() == "UNKNOWN");
-	REQUIRE(t.categoryToString() == "UNKNOWN");
-}

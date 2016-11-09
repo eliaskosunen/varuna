@@ -13,6 +13,8 @@ function main(List of String args): Void
 	{
 		io.stdout.println("I don't know you, {}", input);
 	}
-	Bool boolean = true;
+	Bool yes = true;
 	None n = none;
+	String s = "\o0"; # \o0, \o60, \o141
+	Char c = '\n';
 }

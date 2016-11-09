@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "catch.hpp"
+#include "doctest.h"
 
 namespace tests
 {
@@ -24,7 +24,7 @@ namespace tests
 	}
 }
 
-TEST_CASE("General test", "[factorial]")
+TEST_CASE("General test")
 {
 	REQUIRE(tests::factorial(0) == 1);
 	REQUIRE(tests::factorial(1) == 1);

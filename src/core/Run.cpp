@@ -49,17 +49,16 @@ namespace core
 		util::logger->trace("Preprocessed file:\n{}\n", code);
 
 		util::logger->debug("Starting lexer");
-		core::lexer::Lexer lexer;
-		bool lexerError = false;
-		core::lexer::TokenVector tokens = lexer.run(code, lexerError, filename);
-		if(lexerError)
+		core::lexer::Lexer lexer(code, filename);
+		core::lexer::TokenVector tokens = lexer.run();
+		if(lexer.getError())
 		{
 			return 1;
 		}
 		util::logger->debug("Lexing finished");
 		for(const auto &t : tokens)
 		{
-			util::logger->trace("Token: ({}: {}): {}", t.categoryToString(), t.typeToString(), t.getValue());
+			util::logger->trace("Token: ({}): {}", t.typeToString(), t.value);
 		}
 		util::logger->debug("Starting parser");
 		core::parser::Parser parser;

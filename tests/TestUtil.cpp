@@ -18,16 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <iostream>
 
-#include "catch.hpp"
+#include "doctest.h"
 
 #include "util/StreamReader.h"
 #include "util/StringUtils.h"
 
-TEST_CASE("StreamReader tests", "[util]")
+TEST_CASE("StreamReader tests")
 {
 	util::StreamReader sr;
 
-	SECTION("Reading file")
+	SUBCASE("Reading file")
 	{
 		std::string str = sr.readFile("./test.txt");
 
@@ -35,7 +35,7 @@ TEST_CASE("StreamReader tests", "[util]")
 	}
 }
 
-TEST_CASE("StringUtils tests", "[util]")
+TEST_CASE("StringUtils tests")
 {
 	using namespace util;
 

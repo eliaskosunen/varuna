@@ -20,162 +20,202 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <map>
 
+#include "util/SafeEnum.h"
+
 namespace core
 {
 	namespace lexer
 	{
-		/**
-		 * Token category
-		 */
-		enum TokenCategory
+		enum TokenType_t
 		{
-			TOKEN_CAT_DEFAULT,	///< Default category
-			TOKEN_CAT_UNKNOWN,	///< Unknown token
+			TOKEN_UNDEFINED = -1,
+			TOKEN_DEFAULT = 0,
 
-			TOKEN_CAT_WORD,		///< Word: keyword or identifier
-			TOKEN_CAT_LITERAL,	///< Literal: numbers, strings...
-			TOKEN_CAT_OPERATOR	///< Operator
+			TOKEN_KEYWORD_IMPORT,
+			TOKEN_KEYWORD_FUNCTION,
+			TOKEN_KEYWORD_DECLARE,
+			TOKEN_KEYWORD_CLASS,
+			TOKEN_KEYWORD_OVERRIDE,
+			TOKEN_KEYWORD_FINAL,
+			TOKEN_KEYWORD_EXTEND,
+			TOKEN_KEYWORD_ABSTRACT,
+			TOKEN_KEYWORD_IMPLEMENT,
+			TOKEN_KEYWORD_INTERFACE,
+			TOKEN_KEYWORD_PUBLIC,
+			TOKEN_KEYWORD_PROTECTED,
+			TOKEN_KEYWORD_PRIVATE,
+			TOKEN_KEYWORD_IF,
+			TOKEN_KEYWORD_ELSE,
+			TOKEN_KEYWORD_WHILE,
+			TOKEN_KEYWORD_FOR,
+			TOKEN_KEYWORD_FOREACH,
+			TOKEN_KEYWORD_SWITCH,
+			TOKEN_KEYWORD_CASE,
+			TOKEN_KEYWORD_BREAK,
+			TOKEN_KEYWORD_RETURN,
+			TOKEN_KEYWORD_CONTINUE,
+
+			TOKEN_DATATYPE_NONE,
+			TOKEN_DATATYPE_VOID,
+			TOKEN_DATATYPE_INTEGER,
+			TOKEN_DATATYPE_FLOAT,
+			TOKEN_DATATYPE_DOUBLE,
+			TOKEN_DATATYPE_DECIMAL,
+			TOKEN_DATATYPE_STRING,
+			TOKEN_DATATYPE_CHAR,
+			TOKEN_DATATYPE_UINTEGER,
+			TOKEN_DATATYPE_BIGINTEGER,
+			TOKEN_DATATYPE_BOOL,
+			TOKEN_DATATYPE_INT8,
+			TOKEN_DATATYPE_INT16,
+			TOKEN_DATATYPE_INT32,
+			TOKEN_DATATYPE_INT64,
+			TOKEN_DATATYPE_UINT8,
+			TOKEN_DATATYPE_UINT16,
+			TOKEN_DATATYPE_UINT32,
+			TOKEN_DATATYPE_UINT64,
+			TOKEN_DATATYPE_LIST,
+			TOKEN_DATATYPE_DICT,
+			TOKEN_DATATYPE_ARRAY,
+
+			TOKEN_IDENTIFIER,
+
+			TOKEN_LITERAL_INTEGER,
+			TOKEN_LITERAL_FLOAT,
+			TOKEN_LITERAL_STRING,
+			TOKEN_LITERAL_CHAR,
+			TOKEN_LITERAL_TRUE,
+			TOKEN_LITERAL_FALSE,
+			TOKEN_LITERAL_NONE,
+
+			TOKEN_OPERATORA_SIMPLE,	// =
+			TOKEN_OPERATORA_ADD,	// +=
+			TOKEN_OPERATORA_SUB,	// -=
+			TOKEN_OPERATORA_MUL,	// *=
+			TOKEN_OPERATORA_DIV,	// /=
+			TOKEN_OPERATORA_MOD,	// %=
+
+			TOKEN_OPERATORA_BITAND,	// &=
+			TOKEN_OPERATORA_BITOR,	// |=
+			TOKEN_OPERATORA_BITXOR,	// ^=
+			TOKEN_OPERATORA_SHIFTL,	// <<=
+			TOKEN_OPERATORA_SHIFTR,	// >>=
+
+			TOKEN_OPERATORB_ADD,	// a + b
+			TOKEN_OPERATORB_SUB,	// a - b
+			TOKEN_OPERATORB_MUL,	// a * b
+			TOKEN_OPERATORB_DIV,	// a / b
+			TOKEN_OPERATORB_MOD,	// a % b
+
+			TOKEN_OPERATORB_BITAND,	// a & b
+			TOKEN_OPERATORB_BITOR,	// a | b
+			TOKEN_OPERATORB_BITXOR,	// a ^ b
+			TOKEN_OPERATORB_SHIFTL,	// a << b
+			TOKEN_OPERATORB_SHIFTR,	// a >> b
+
+			TOKEN_OPERATORB_AND,	// a && b, a and b
+			TOKEN_OPERATORB_OR,		// a || b, a or b
+
+			TOKEN_OPERATORB_EQ,		// a == b
+			TOKEN_OPERATORB_NOTEQ,	// a != b
+			TOKEN_OPERATORB_LESS,	// a < b
+			TOKEN_OPERATORB_GREATER,// a > b
+			TOKEN_OPERATORB_LESSEQ,	// a <= b
+			TOKEN_OPERATORB_GREATEQ,// a >= b
+
+			TOKEN_OPERATORB_MEMBER,	// a.b
+			//TOKEN_OPERATORB_ACCESS,	// a[b]
+
+			TOKEN_OPERATORB_OF,		// List of String
+			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
+
+			TOKEN_OPERATORU_INC,	// a++
+			TOKEN_OPERATORU_DEC,	// a--
+
+			TOKEN_OPERATORU_PLUS,	// +a
+			TOKEN_OPERATORU_MINUS,	// -a
+			TOKEN_OPERATORU_BITNOT,	// ~a
+			TOKEN_OPERATORU_NOT,	// !a, not a
+
+			TOKEN_OPERATORU_SIZEOF,	// sizeof a
+			TOKEN_OPERATORU_TYPEOF,	// typeof a
+			TOKEN_OPERATORU_NEW,	// new A
+
+			TOKEN_PUNCT_PAREN_OPEN,	// (
+			TOKEN_PUNCT_PAREN_CLOSE,// )
+			TOKEN_PUNCT_BRACE_OPEN,	// {
+			TOKEN_PUNCT_BRACE_CLOSE,// }
+			TOKEN_PUNCT_SQR_OPEN,	// [
+			TOKEN_PUNCT_SQR_CLOSE,	// ]
+			TOKEN_PUNCT_COLON,		// :
+			TOKEN_PUNCT_SEMICOLON,	// ;
+			TOKEN_PUNCT_COMMA,		// ,
+
+			TOKEN_EOF = 32767
 		};
 
-		/**
-		 * Token type
-		 */
-		enum TokenType
+		enum TokenIntegerLiteralModifier_t
 		{
-			TOKEN_DEFAULT,					///< Default type
-			TOKEN_UNKNOWN,					///< Unknown type
+			INTEGER_INTEGER	= 1,	// No suffix
+			INTEGER_UNSIGNED= 2,	// u
+			INTEGER_LONG	= 4,	// l
+			INTEGER_SHORT	= 8,	// s
+			INTEGER_BINARY	= 16,	// b
+			INTEGER_OCTAL	= 32,	// o
+			INTEGER_HEX		= 64,	// x
 
-			TOKEN_WORD_DEFAULT,				///< Default (not yet defined/finished) word
-			TOKEN_WORD_KEYWORD,				///< Keyword
-			TOKEN_WORD_IDENTIFIER,			///< Identifier
-
-			TOKEN_LITERAL_DEFAULT,			///< Default literal
-			TOKEN_LITERAL_DEFAULT_NUMBER,	///< Default (not yet finished) number literal
-			TOKEN_LITERAL_STRING,			///< String literal
-			TOKEN_LITERAL_INTEGER,			///< Integer literal
-			TOKEN_LITERAL_FLOAT,			///< Float literal
-			TOKEN_LITERAL_CHAR,				///< Character literal
-			TOKEN_LITERAL_BOOLEAN,			///< Boolean literal
-			TOKEN_LITERAL_NONE,				///< None literal
-
-			TOKEN_OPERATOR					///< Operator
+			INTEGER_NONE	= INTEGER_INTEGER
 		};
 
-		/**
-		 * Token class
-		 */
+		enum TokenFloatLiteralModifier_t
+		{
+			FLOAT_DOUBLE	= 1,	// No suffix
+			FLOAT_FLOAT		= 2,	// f
+			FLOAT_DECIMAL	= 4,	// d
+
+			FLOAT_NONE		= FLOAT_DOUBLE
+		};
+
+#if 1
+		typedef util::SafeEnum<TokenType_t> TokenType;
+		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
+		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
+
+		//std::ostream &operator <<(std::ostream &o, const TokenType &t);
+		//std::ostream &operator <<(std::ostream &o, const TokenIntegerLiteralModifier &t);
+		//std::ostream &operator <<(std::ostream &o, const TokenFloatLiteralModifier &t);
+
+#else
+
+		typedef TokenType_t TokenType;
+		typedef TokenIntegerLiteralModifier_t TokenIntegerLiteralModifier;
+		typedef TokenFloatLiteralModifier_t TokenFloatLiteralModifier;
+
+#endif
+
 		class Token
 		{
-		private:
-			/**
-			 * Category
-			 */
-			TokenCategory cat;
-			/**
-			 * Type
-			 */
-			TokenType type;
+		public:
+			std::string file;
+			unsigned long line;
 
-			/**
-			 * Textual value
-			 */
+			TokenType type;
 			std::string value;
 
-			/**
-			 * File of appearance of the token
-			 */
-			std::string file;
+			TokenIntegerLiteralModifier modifierInt;
+			TokenFloatLiteralModifier modifierFloat;
 
-			/**
-			 * Line of appearance of the token
-			 */
-			unsigned int line;
+			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : file("(undefined)"), line(0), type(t), value(val), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
 
-			/**
-			 * Get the default type of category
-			 * @param  _cat Category
-			 * @return      Type
-			 */
-			TokenType getTypeFromCategory(TokenCategory _cat) const;
-			/**
-			 * Get the category of type
-			 * @param  _type Type
-			 * @return       Category
-			 */
-			TokenCategory getCategoryFromType(TokenType _type) const;
-
-		public:
-			/**
-			 * Default constructor
-			 */
-			Token() : Token(TOKEN_DEFAULT) {}
-			/**
-			 * Constructor with category
-			 */
-			Token(TokenCategory _cat);
-			/**
-			 * Constructor with type
-			 */
-			Token(TokenType _type);
-
-			/**
-			 * Set the category of the token.
-			 * Does not set the type
-			 * @param _cat Category
-			 */
-			void setCategory(TokenCategory _cat);
-			/**
-			 * Get the category of the token
-			 * @return Category
-			 */
-			TokenCategory getCategory() const;
-
-			/**
-			 * Set the type of the token.
-			 * Does not set the category
-			 * @param _type Type
-			 */
-			void setType(TokenType _type);
-			/**
-			 * Get the type of the token
-			 * @return Type
-			 */
-			TokenType getType() const;
-
-			/**
-			 * Set the textual value of the token
-			 * @param val Value
-			 */
-			void setValue(std::string val);
-			/**
-			 * Get the textual value of the token
-			 * @return Value
-			 */
-			const std::string &getValue() const;
-
-			void setFile(std::string val);
-
-			const std::string &getFile() const;
-
-			void setLine(unsigned int val);
-
-			unsigned int getLine();
-
-			/**
-			 * Get the category of the token as string
-			 * @return Category as string
-			 */
-			std::string categoryToString() const;
-			/**
-			 * Get the type of the token as string
-			 * @return Type as string
-			 */
 			std::string typeToString() const;
 
-			/**
-			 * Reset token to default values
-			 */
-			void reset();
+			static Token create(TokenType t, const std::string &val, unsigned int l = 0, const std::string &f = "(undefined)")
+			{
+				Token tok(t, val);
+				tok.file = f;
+				tok.line = l;
+				return tok;
+			}
 		};
 	}
 }

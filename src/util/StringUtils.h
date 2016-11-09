@@ -28,18 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace util
 {
 	/**
-	 * Static string utility functions
+	 * String utility functions
 	 */
-	class StringUtils
+	namespace StringUtils
 	{
-	public:
 		/**
 		 * Replace all occurences of needle with replacement in haystack
 		 * @param haystack    String to search in
 		 * @param needle      String to replace
 		 * @param replacement Replacement string
 		 */
-		static void replaceAll(std::string &haystack, const std::string &needle, const std::string &replacement)
+		inline void replaceAll(std::string &haystack, const std::string &needle, const std::string &replacement)
 		{
 			size_t start_pos = 0;
 			while((start_pos = haystack.find(needle, start_pos)) != std::string::npos) {
@@ -55,7 +54,7 @@ namespace util
 		 * @param  replacement Replacement string
 		 * @return             Copy of the final string
 		 */
-		static std::string replaceAllCopy(std::string haystack, const std::string &needle, const std::string &replacement)
+		inline std::string replaceAllCopy(std::string haystack, const std::string &needle, const std::string &replacement)
 		{
 			replaceAll(haystack, needle, replacement);
 			return haystack;
@@ -65,7 +64,7 @@ namespace util
 		 * Trim off whitespace from the beginning of the string
 		 * @param str String to trim
 		 */
-		static void ltrim(std::string &str)
+		inline void ltrim(std::string &str)
 		{
 			str.erase(str.begin(),
 				std::find_if(
@@ -81,7 +80,7 @@ namespace util
 		 * Trim off whitespace from the end of the string
 		 * @param str String to trim
 		 */
-		static void rtrim(std::string &str)
+		inline void rtrim(std::string &str)
 		{
 			str.erase(
 				std::find_if(
@@ -97,7 +96,7 @@ namespace util
 		 * Trim off whitespace from both sides of the string
 		 * @param str String to trim
 		 */
-		static void trim(std::string &str)
+		inline void trim(std::string &str)
 		{
 			ltrim(str);
 			rtrim(str);
@@ -108,7 +107,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		static std::string ltrimCopy(std::string str)
+		inline std::string ltrimCopy(std::string str)
 		{
 			ltrim(str);
 			return str;
@@ -119,7 +118,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		static std::string rtrimCopy(std::string str)
+		inline std::string rtrimCopy(std::string str)
 		{
 			rtrim(str);
 			return str;
@@ -130,7 +129,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		static std::string trimCopy(std::string str)
+		inline std::string trimCopy(std::string str)
 		{
 			trim(str);
 			return str;
@@ -140,7 +139,7 @@ namespace util
 		 * Trim off all consecutive spaces from a string
 		 * @param str String to trim
 		 */
-		static void trimConsecutiveSpaces(std::string &str)
+		inline void trimConsecutiveSpaces(std::string &str)
 		{
 			std::string::iterator newEnd = std::unique(str.begin(), str.end(), [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); });
 			str.erase(newEnd, str.end());
@@ -151,7 +150,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		static std::string trimConsecutiveSpacesCopy(std::string str)
+		inline std::string trimConsecutiveSpacesCopy(std::string str)
 		{
 			trimConsecutiveSpaces(str);
 			return str;
@@ -162,7 +161,7 @@ namespace util
 		 * @param  cstr C string to convert
 		 * @return      Equivalent C++ string
 		 */
-		static std::string cstrToString(const char *cstr)
+		inline std::string cstrToString(const char *cstr)
 		{
 			std::stringstream ss;
 			ss << cstr;
@@ -175,7 +174,7 @@ namespace util
 		 * @param  len  Length of the C string
 		 * @return      Equivalent C++ string
 		 */
-		static std::string cstrToStringLen(const char *cstr, size_t len)
+		inline std::string cstrToStringLen(const char *cstr, size_t len)
 		{
 			return std::string(cstr, len);
 		}
@@ -185,21 +184,11 @@ namespace util
 		 * @param  c Char to convert
 		 * @return   Equivalent C++ string
 		 */
-		static std::string charToString(const char &c)
+		inline std::string charToString(const char &c)
 		{
 			std::stringstream ss;
 			ss << c;
 			return ss.str();
-		}
-
-		/**
-		 * Is char whitespace
-		 * @param  c Char to check
-		 * @return   true = whitespace
-		 */
-		static bool isCharWhitespace(const char &c)
-		{
-			return std::isspace(static_cast<unsigned char>(c)) != 0;
 		}
 
 		/**
@@ -209,7 +198,8 @@ namespace util
 		 * @param elems Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		static void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+		inline void split(const std::string &s, char delim, std::vector<std::string> &elems)
+		{
 			std::stringstream ss;
 			ss.str(s);
 			std::string item;
@@ -225,10 +215,56 @@ namespace util
 		 * @return       Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		static std::vector<std::string> split(const std::string &s, char delim) {
+		inline std::vector<std::string> split(const std::string &s, char delim)
+		{
 			std::vector<std::string> elems;
 			split(s, delim, elems);
 			return elems;
 		}
-	};
+
+		inline bool isCharAlpha(int c)
+		{
+			return std::isalpha(c) != 0;
+		}
+
+		inline bool isCharAlnum(int c)
+		{
+			return std::isalnum(c) != 0;
+		}
+
+		inline bool isCharDigit(int c)
+		{
+			return std::isdigit(c) != 0;
+		}
+
+		inline bool isCharHexDigit(int c)
+		{
+			return std::isxdigit(c) != 0;
+		}
+
+		inline bool isCharOctDigit(int c)
+		{
+			return (c >= '0' && c <= '7');
+		}
+
+		inline bool isCharPunctuation(int c)
+		{
+			return std::ispunct(c) != 0;
+		}
+
+		/**
+		 * Is char whitespace
+		 * @param  c Char to check
+		 * @return   true = whitespace
+		 */
+		inline bool isCharWhitespace(int c)
+		{
+			return std::isspace(c) != 0;
+		}
+
+		inline bool isCharControlCharacter(int c)
+		{
+			return std::iscntrl(c) != 0;
+		}
+	}
 }

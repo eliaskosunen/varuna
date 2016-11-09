@@ -67,11 +67,6 @@ You can either use the CMake GUI or the Command Prompt:
 
 After that the Visual Studio project files can be found in the folder `build`.
 
-### Requirements
-
-A C++14 compliant compiler is recommended, though a C++11 compiler will work as well.
-The application is confirmed to build on Ubuntu 16.04 LTS using g++ 5.4.0, g++ 4.9.3 and clang 3.8.
-
 ## License
 
 Varuna is published under the GNU GPL.

@@ -23,178 +23,35 @@ namespace core
 {
 	namespace lexer
 	{
-		TokenType Token::getTypeFromCategory(TokenCategory _cat) const
-		{
-			switch(_cat)
-			{
-			case TOKEN_CAT_DEFAULT:
-				return TOKEN_DEFAULT;
-			case TOKEN_CAT_UNKNOWN:
-				return TOKEN_UNKNOWN;
-			case TOKEN_CAT_WORD:
-				return TOKEN_WORD_DEFAULT;
-			case TOKEN_CAT_LITERAL:
-				return TOKEN_LITERAL_DEFAULT;
-			case TOKEN_CAT_OPERATOR:
-				return TOKEN_OPERATOR;
-			default:
-				return TOKEN_UNKNOWN;
-			}
-		}
-
-		TokenCategory Token::getCategoryFromType(TokenType _type) const
-		{
-			switch (_type) {
-			case TOKEN_DEFAULT:
-				return TOKEN_CAT_DEFAULT;
-			case TOKEN_UNKNOWN:
-				return TOKEN_CAT_UNKNOWN;
-			case TOKEN_WORD_DEFAULT:
-			case TOKEN_WORD_KEYWORD:
-			case TOKEN_WORD_IDENTIFIER:
-				return TOKEN_CAT_WORD;
-			case TOKEN_LITERAL_DEFAULT:
-			case TOKEN_LITERAL_DEFAULT_NUMBER:
-			case TOKEN_LITERAL_STRING:
-			case TOKEN_LITERAL_INTEGER:
-			case TOKEN_LITERAL_FLOAT:
-			case TOKEN_LITERAL_CHAR:
-			case TOKEN_LITERAL_BOOLEAN:
-			case TOKEN_LITERAL_NONE:
-				return TOKEN_CAT_LITERAL;
-			case TOKEN_OPERATOR:
-				return TOKEN_CAT_OPERATOR;
-			default:
-				return TOKEN_CAT_UNKNOWN;
-			}
-		}
-
-		Token::Token(TokenCategory _cat) : value("")
-		{
-			cat = _cat;
-			type = getTypeFromCategory(_cat);
-		}
-		Token::Token(TokenType _type) : value("")
-		{
-			type = _type;
-			cat = getCategoryFromType(_type);
-		}
-
-		void Token::setCategory(TokenCategory _cat)
-		{
-			cat = _cat;
-		}
-		TokenCategory Token::getCategory() const
-		{
-			return cat;
-		}
-
-		void Token::setType(TokenType _type)
-		{
-			type = _type;
-		}
-
-		TokenType Token::getType() const
-		{
-			return type;
-		}
-
-		std::string Token::categoryToString() const
-		{
-			switch(cat)
-			{
-			case TOKEN_CAT_DEFAULT:
-				return "DEFAULT";
-			case TOKEN_CAT_UNKNOWN:
-				return "UNKNOWN";
-
-			case TOKEN_CAT_WORD:
-				return "WORD";
-			case TOKEN_CAT_LITERAL:
-				return "LITERAL";
-			case TOKEN_CAT_OPERATOR:
-				return "OPERATOR";
-			default:
-				return "DEFAULT";
-			}
-		}
-
 		std::string Token::typeToString() const
 		{
-			switch(type)
+			switch(type.get())
 			{
-			case TOKEN_DEFAULT:
-				return "DEFAULT";
-			case TOKEN_UNKNOWN:
-				return "UNKNOWN";
+			case TOKEN_KEYWORD_IMPORT:
+				return "KEYWORD_IMPORT";
+			case TOKEN_IDENTIFIER:
+				return "IDENTIFIER";
 
-			case TOKEN_WORD_DEFAULT:
-				return "WORD_DEFAULT";
-			case TOKEN_WORD_KEYWORD:
-				return "WORD_KEYWORD";
-			case TOKEN_WORD_IDENTIFIER:
-				return "WORD_IDENTIFIER";
-
-			case TOKEN_LITERAL_DEFAULT:
-				return "LITERAL_DEFAULT";
-			case TOKEN_LITERAL_DEFAULT_NUMBER:
-				return "LITERAL_DEFAULT_NUMBER";
-			case TOKEN_LITERAL_STRING:
-				return "LITERAL_STRING";
 			case TOKEN_LITERAL_INTEGER:
 				return "LITERAL_INTEGER";
 			case TOKEN_LITERAL_FLOAT:
 				return "LITERAL_FLOAT";
-			case TOKEN_LITERAL_CHAR:
-				return "LITERAL_CHAR";
-			case TOKEN_LITERAL_BOOLEAN:
-				return "LITERAL_BOOLEAN";
+			case TOKEN_LITERAL_STRING:
+				return "LITERAL_STRING";
+			case TOKEN_LITERAL_TRUE:
+				return "LITERAL_TRUE";
+			case TOKEN_LITERAL_FALSE:
+				return "LITERAL_FALSE";
 			case TOKEN_LITERAL_NONE:
 				return "LITERAL_NONE";
 
-			case TOKEN_OPERATOR:
-				return "OPERATOR";
-
-			default:
+			case TOKEN_EOF:
+				return "EOF";
+			case TOKEN_DEFAULT:
 				return "DEFAULT";
+			default:
+				return "[unknown]";
 			}
-		}
-
-		void Token::setValue(std::string val)
-		{
-			value = val;
-		}
-
-		const std::string &Token::getValue() const
-		{
-			return value;
-		}
-
-		void Token::setFile(std::string val)
-		{
-			file = val;
-		}
-
-		const std::string &Token::getFile() const
-		{
-			return file;
-		}
-
-		void Token::setLine(unsigned int val)
-		{
-			line = val;
-		}
-
-		unsigned int Token::getLine()
-		{
-			return line;
-		}
-
-		void Token::reset()
-		{
-			setType(TOKEN_DEFAULT);
-			setCategory(TOKEN_CAT_DEFAULT);
-			setValue("");
 		}
 	}
 }

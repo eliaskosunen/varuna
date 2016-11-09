@@ -22,10 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP_STD_11		201103L
 #define CPP_STD_14		201402L
 
+#define VALUE_TO_STRING(x) #x
+#define VALUE(x) VALUE_TO_STRING(x)
+
 namespace util
 {
-
-#if CPP_STD_VERSION <= CPP_STD_11
+#if CPP_STD_VERSION < CPP_STD_14 // Not C++14
 	/**
 	 * std::make_unique was added to the standard in C++14.
 	 * Implement our own version of it if standard is C++11 or lower
@@ -35,7 +37,7 @@ namespace util
 	{
 		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 	}
-#elif CPP_STD_VERSION >= CPP_STD_14
+#else // C++14 or higher
 	template<typename T, typename... Args>
 	std::unique_ptr<T> make_unique(Args&&... args)
 	{

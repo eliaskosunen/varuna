@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace app
 {
 	CommandLine::CommandLine(int _argc, char **_argv)
-		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "0.1")
+		: argc(_argc), argv(_argv), cmd("Varuna", ' ', "Early Build")
 	{
 
 	}
@@ -38,10 +38,10 @@ namespace app
 	{
 		try
 		{
-			TCLAP::ValueArg<std::string> loggingArg("l", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
+			TCLAP::ValueArg<std::string> loggingArg("", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
 			cmd.add(loggingArg);
 
-			TCLAP::SwitchArg licenseArg("c", "copyright", "Print the license and copyright information", false);
+			TCLAP::SwitchArg licenseArg("", "license", "Print the license and copyright information", false);
 			cmd.add(licenseArg);
 
 			TCLAP::UnlabeledMultiArg<std::string> fileArg("file", "Files to process", false, "List of files to process");
@@ -49,10 +49,10 @@ namespace app
 
 			cmd.parse(argc, argv);
 
-			bool license = licenseArg.getValue();
-			if(license)
+			bool lic = licenseArg.getValue();
+			if(lic)
 			{
-				copyright();
+				license();
 				return 0;
 			}
 
@@ -89,7 +89,7 @@ namespace app
 		}
 	}
 
-	void CommandLine::copyright() const
+	void CommandLine::license() const
 	{
 		util::loggerBasic->info("Varuna is published under the GNU General Public License version 3 (GNU GPL 3, the License)");
 		util::loggerBasic->info("Varuna - Copyright (C) 2016 Elias Kosunen");
@@ -97,7 +97,7 @@ namespace app
 		util::loggerBasic->info("This is free software, and you are welcome to redistribute it under certain conditions; see the License for details.");
 		util::loggerBasic->info("\nVaruna uses the following third-party software. To see the full license details, see the file LICENSE.thirdparty.txt");
 		util::loggerBasic->info("Spdlog - Copyright (c) 2016 Gabi Melman. Licensed under the MIT License");
-		util::loggerBasic->info("Catch - Licensed under the Boost Software License");
+		util::loggerBasic->info("Doctest - Copyright (c) 2016 Viktor Kirilov. Licensed under the MIT License");
 		util::loggerBasic->info("TCLAP - Copyright (c) 2003 Michael E. Smoot. Licensed under the MIT License");
 	}
 
