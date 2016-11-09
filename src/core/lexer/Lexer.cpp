@@ -45,7 +45,7 @@ namespace core
 			util::logger->trace("Getting next token. Current character: '{}', on line {}", currentChar, currentLine);
 
 			// Skip any whitespace
-			while(std::isspace(currentChar))
+			while(util::StringUtils::isCharWhitespace(currentChar))
 			{
 				// Increase currentLine if current character is a newline character
 				if(currentChar == '\n')
@@ -63,7 +63,7 @@ namespace core
 				}
 			}
 
-			if(std::iscntrl(currentChar) && !std::isspace(currentChar))
+			if(util::StringUtils::isCharControlCharacter(currentChar) && !util::StringUtils::isCharWhitespace(currentChar))
 			{
 				fmt::MemoryWriter out;
 				out << "'" << currentChar
@@ -76,12 +76,12 @@ namespace core
 
 			// Word: a keyword or an identifier
 			// [a-zA-Z_][a-zA-Z_0-9]*
-			if(std::isalpha(currentChar) || currentChar == '_')
+			if(util::StringUtils::isCharAlpha(currentChar) || currentChar == '_')
 			{
 				std::string buf;
 				buf.reserve(8);
 				buf.push_back(currentChar);
-				while(std::isalnum(*(++it)) || *it == '_')
+				while(util::StringUtils::isCharAlnum(*(++it)) || *it == '_')
 				{
 					buf.push_back(*it);
 				}
@@ -94,9 +94,9 @@ namespace core
 			// Number literal
 			// -?[0-9]([0-9\.]*)[dfulsboh]
 			if(
-				std::isdigit(currentChar) ||
-				(currentChar == '-' && std::isdigit(*(it + 1))) ||
-				(currentChar == '.' && std::isdigit(*(it + 1)))
+				util::StringUtils::isCharDigit(currentChar) ||
+				(currentChar == '-' && util::StringUtils::isCharDigit(*(it + 1))) ||
+				(currentChar == '.' && util::StringUtils::isCharDigit(*(it + 1)))
 			)
 			{
 				std::string buf;
@@ -117,14 +117,14 @@ namespace core
 					{
 						isFloatingPoint = true;
 					}
-					cont = (isHex ? std::isxdigit(currentChar) : std::isdigit(currentChar));
+					cont = (isHex ? util::StringUtils::isCharHexDigit(currentChar) : util::StringUtils::isCharDigit(currentChar));
 				} while(cont || currentChar == '.');
 				util::logger->trace("Number literal: '{}'", buf);
 
 				if(!isFloatingPoint)
 				{
 					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-					while(std::isalpha(currentChar))
+					while(util::StringUtils::isCharAlpha(currentChar))
 					{
 						switch(currentChar)
 						{
@@ -157,7 +157,7 @@ namespace core
 				else
 				{
 					Token t = createToken(TOKEN_LITERAL_FLOAT, buf);
-					while(std::isalpha(currentChar))
+					while(util::StringUtils::isCharAlpha(currentChar))
 					{
 						switch(currentChar)
 						{
@@ -208,10 +208,10 @@ namespace core
 			}
 
 			// Operator or punctuator
-			if(std::ispunct(currentChar))
+			if(util::StringUtils::isCharPunctuation(currentChar))
 			{
 				std::string buf;
-				while(std::ispunct(currentChar))
+				while(util::StringUtils::isCharPunctuation(currentChar))
 				{
 					if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
 					{
@@ -380,13 +380,13 @@ namespace core
 					case 'x':
 					{
 						std::string hex;
-						if(!std::isxdigit(*rit))
+						if(!util::StringUtils::isCharHexDigit(*rit))
 						{
 							lexerWarning("Invalid hexadecimal escape sequence: The first character after an \\x should be a number in hexadecimal, got '{}' instead", *rit);
 							continue;
 						}
 						hex.push_back(*rit);
-						if(std::isxdigit(*(rit + 1)))
+						if(util::StringUtils::isCharHexDigit(*(rit + 1)))
 						{
 							++rit;
 							hex.push_back(*rit);
@@ -401,17 +401,17 @@ namespace core
 					case 'o':
 					{
 						std::string oct;
-						if(!util::StringUtils::isodigit(*rit))
+						if(!util::StringUtils::isCharOctDigit(*rit))
 						{
 							lexerWarning("Invalid octal escape sequence: The first character after an \\o should be a number in octal, got '{}' instead", *rit);
 							continue;
 						}
 						oct.push_back(*rit);
-						if(util::StringUtils::isodigit(*(rit + 1)))
+						if(util::StringUtils::isCharOctDigit(*(rit + 1)))
 						{
 							++rit;
 							oct.push_back(*rit);
-							if(util::StringUtils::isodigit(*(rit + 1)))
+							if(util::StringUtils::isCharOctDigit(*(rit + 1)))
 							{
 								++rit;
 								oct.push_back(*rit);

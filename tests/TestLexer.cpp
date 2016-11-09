@@ -26,105 +26,112 @@ TEST_CASE("Test lexer")
 
 	TokenVector v;
 	std::string code;
-	SUBCASE("Whitespace skipping")
+	SUBCASE("General")
 	{
-		code = " \n\t\v";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 1);
-		REQUIRE(!l.getError());
-		REQUIRE(l.getErrorLevel() == ERROR_WARNING);
+		SUBCASE("Whitespace skipping")
+		{
+			code = " \n\t\v";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 1);
+			REQUIRE(!l.getError());
+			REQUIRE(l.getErrorLevel() == ERROR_WARNING);
 
-		REQUIRE(v[0].type == TOKEN_EOF);
+			REQUIRE(v[0].type == TOKEN_EOF);
+		}
 	}
 
-	SUBCASE("Integer literals")
+	SUBCASE("Literals")
 	{
-		code = "123 9999999ul 8s 5u 10l 1001b 60o 0xff 0xdeadul";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 10);
-		REQUIRE(!l.getError());
 
-		for(unsigned int i = 0; i <= 8; ++i)
+		SUBCASE("Integer literals")
 		{
-			REQUIRE(v[i].type == TOKEN_LITERAL_INTEGER);
+			code = "123 9999999ul 8s 5u 10l 1001b 60o 0xff 0xdeadul";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 10);
+			REQUIRE(!l.getError());
+
+			for(unsigned int i = 0; i <= 8; ++i)
+			{
+				REQUIRE(v[i].type == TOKEN_LITERAL_INTEGER);
+			}
+
+			REQUIRE(v[0].value == "123");
+			REQUIRE(v[0].modifierInt.get() == INTEGER_NONE);
+
+			REQUIRE(v[1].value == "9999999");
+			REQUIRE(v[1].modifierInt.isSet(INTEGER_UNSIGNED));
+			REQUIRE(v[1].modifierInt.isSet(INTEGER_LONG));
+			REQUIRE(v[1].modifierInt.isNotSet(INTEGER_HEX));
+
+			REQUIRE(v[2].value == "8");
+			REQUIRE(v[2].modifierInt.isSet(INTEGER_SHORT));
+
+			REQUIRE(v[3].value == "5");
+			REQUIRE(v[3].modifierInt.isSet(INTEGER_UNSIGNED));
+			REQUIRE(v[3].modifierInt.isNotSet(INTEGER_LONG));
+
+			REQUIRE(v[4].value == "10");
+			REQUIRE(v[4].modifierInt.isSet(INTEGER_LONG));
+
+			REQUIRE(v[5].value == "1001");
+			REQUIRE(v[5].modifierInt.isSet(INTEGER_BINARY));
+
+			REQUIRE(v[6].value == "60");
+			REQUIRE(v[6].modifierInt.isSet(INTEGER_OCTAL));
+
+			REQUIRE(v[7].value == "ff");
+			REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
+			REQUIRE(v[7].modifierInt.isNotSet(INTEGER_UNSIGNED));
+			REQUIRE(v[7].modifierInt.isNotSet(INTEGER_LONG));
+
+			REQUIRE(v[8].value == "dead");
+			REQUIRE(v[8].modifierInt.isSet(INTEGER_HEX));
+			REQUIRE(v[8].modifierInt.isSet(INTEGER_UNSIGNED));
+			REQUIRE(v[8].modifierInt.isSet(INTEGER_LONG));
 		}
-
-		REQUIRE(v[0].value == "123");
-		REQUIRE(v[0].modifierInt.get() == INTEGER_NONE);
-
-		REQUIRE(v[1].value == "9999999");
-		REQUIRE(v[1].modifierInt.isSet(INTEGER_UNSIGNED));
-		REQUIRE(v[1].modifierInt.isSet(INTEGER_LONG));
-		REQUIRE(v[1].modifierInt.isNotSet(INTEGER_HEX));
-
-		REQUIRE(v[2].value == "8");
-		REQUIRE(v[2].modifierInt.isSet(INTEGER_SHORT));
-
-		REQUIRE(v[3].value == "5");
-		REQUIRE(v[3].modifierInt.isSet(INTEGER_UNSIGNED));
-		REQUIRE(v[3].modifierInt.isNotSet(INTEGER_LONG));
-
-		REQUIRE(v[4].value == "10");
-		REQUIRE(v[4].modifierInt.isSet(INTEGER_LONG));
-
-		REQUIRE(v[5].value == "1001");
-		REQUIRE(v[5].modifierInt.isSet(INTEGER_BINARY));
-
-		REQUIRE(v[6].value == "60");
-		REQUIRE(v[6].modifierInt.isSet(INTEGER_OCTAL));
-
-		REQUIRE(v[7].value == "ff");
-		REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
-		REQUIRE(v[7].modifierInt.isNotSet(INTEGER_UNSIGNED));
-		REQUIRE(v[7].modifierInt.isNotSet(INTEGER_LONG));
-
-		REQUIRE(v[8].value == "dead");
-		REQUIRE(v[8].modifierInt.isSet(INTEGER_HEX));
-		REQUIRE(v[8].modifierInt.isSet(INTEGER_UNSIGNED));
-		REQUIRE(v[8].modifierInt.isSet(INTEGER_LONG));
-	}
-	SUBCASE("Float literals")
-	{
-		code = "3.1415926535 12.34f 39.99d";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 4);
-		REQUIRE(!l.getError());
-
-		for(unsigned int i = 0; i <= 2; ++i)
+		SUBCASE("Float literals")
 		{
-			REQUIRE(v[i].type == TOKEN_LITERAL_FLOAT);
+			code = "3.1415926535 12.34f 39.99d";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 4);
+			REQUIRE(!l.getError());
+
+			for(unsigned int i = 0; i <= 2; ++i)
+			{
+				REQUIRE(v[i].type == TOKEN_LITERAL_FLOAT);
+			}
+
+			REQUIRE(v[0].value == "3.1415926535");
+			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_FLOAT));
+			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
+			REQUIRE(v[0].modifierFloat.isSet(FLOAT_DOUBLE));
+
+			REQUIRE(v[1].value == "12.34");
+			REQUIRE(v[1].modifierFloat.isSet(FLOAT_FLOAT));
+
+			REQUIRE(v[2].value == "39.99");
+			REQUIRE(v[2].modifierFloat.isSet(FLOAT_DECIMAL));
 		}
-
-		REQUIRE(v[0].value == "3.1415926535");
-		REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_FLOAT));
-		REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
-		REQUIRE(v[0].modifierFloat.isSet(FLOAT_DOUBLE));
-
-		REQUIRE(v[1].value == "12.34");
-		REQUIRE(v[1].modifierFloat.isSet(FLOAT_FLOAT));
-
-		REQUIRE(v[2].value == "39.99");
-		REQUIRE(v[2].modifierFloat.isSet(FLOAT_DECIMAL));
-	}
-	SUBCASE("String literals")
-	{
-		code = "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 4);
-		REQUIRE(!l.getError());
-
-		for(unsigned int i = 0; i <= 2; ++i)
+		SUBCASE("String literals")
 		{
-			REQUIRE(v[i].type == TOKEN_LITERAL_STRING);
-		}
+			code = "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 4);
+			REQUIRE(!l.getError());
 
-		REQUIRE(v[0].value == "String");
-		REQUIRE(v[1].value == "Special\nstring\t");
-		REQUIRE(v[2].value == "Hex 0 Oct 0");
+			for(unsigned int i = 0; i <= 2; ++i)
+			{
+				REQUIRE(v[i].type == TOKEN_LITERAL_STRING);
+			}
+
+			REQUIRE(v[0].value == "String");
+			REQUIRE(v[1].value == "Special\nstring\t");
+			REQUIRE(v[2].value == "Hex 0 Oct 0");
+		}
 	}
 
 	SUBCASE("Identifiers")

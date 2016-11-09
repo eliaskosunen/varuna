@@ -118,11 +118,11 @@ namespace util
 
 		bool isSet(Enum_t flag) const
 		{
-			return (static_cast<Underlying_t>(flags) & static_cast<Underlying_t>(flag));
+			return (static_cast<Underlying_t>(flags) & static_cast<Underlying_t>(flag)) != static_cast<Underlying_t>(0);
 		}
 		bool isNotSet(Enum_t flag) const
 		{
-			return (static_cast<Underlying_t>(flags) & static_cast<Underlying_t>(flag)) == static_cast<Underlying_t>(0);
+			return !isSet(flag);
 		}
 		void set(Enum_t flag)
 		{

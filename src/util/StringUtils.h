@@ -192,16 +192,6 @@ namespace util
 		}
 
 		/**
-		 * Is char whitespace
-		 * @param  c Char to check
-		 * @return   true = whitespace
-		 */
-		inline bool isCharWhitespace(const char &c)
-		{
-			return std::isspace(static_cast<unsigned char>(c)) != 0;
-		}
-
-		/**
 		 * Split a string to a vector
 		 * @param s     String to split
 		 * @param delim Delimeter
@@ -232,9 +222,49 @@ namespace util
 			return elems;
 		}
 
-		inline bool isodigit(char c)
+		inline bool isCharAlpha(int c)
+		{
+			return std::isalpha(c) != 0;
+		}
+
+		inline bool isCharAlnum(int c)
+		{
+			return std::isalnum(c) != 0;
+		}
+
+		inline bool isCharDigit(int c)
+		{
+			return std::isdigit(c) != 0;
+		}
+
+		inline bool isCharHexDigit(int c)
+		{
+			return std::isxdigit(c) != 0;
+		}
+
+		inline bool isCharOctDigit(int c)
 		{
 			return (c >= '0' && c <= '7');
+		}
+
+		inline bool isCharPunctuation(int c)
+		{
+			return std::ispunct(c) != 0;
+		}
+
+		/**
+		 * Is char whitespace
+		 * @param  c Char to check
+		 * @return   true = whitespace
+		 */
+		inline bool isCharWhitespace(int c)
+		{
+			return std::isspace(c) != 0;
+		}
+
+		inline bool isCharControlCharacter(int c)
+		{
+			return std::iscntrl(c) != 0;
 		}
 	}
 }
