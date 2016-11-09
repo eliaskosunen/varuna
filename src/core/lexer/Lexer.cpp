@@ -32,7 +32,7 @@ namespace core
 		Token Lexer::getNextToken(std::string::const_iterator &it)
 		{
 			const std::string::const_iterator end = content.end();
-			char currentChar = *it;
+			char_t currentChar = *it;
 
 			util::loggerBasic->trace("");
 
@@ -308,12 +308,12 @@ namespace core
 		{
 			std::string buf;
 			buf.reserve(isChar ? 2 : 8);
-			const char quote = (isChar ? '\'' : '"');
+			const char_t quote = (isChar ? '\'' : '"');
 			while((++it) != end)
 			{
-				char currentChar = *it;
-				char prev = *(it - 1);
-				char next = *(it + 1);
+				char_t currentChar = *it;
+				char_t prev = *(it - 1);
+				char_t next = *(it + 1);
 				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
 
 				// Current char is a newline
