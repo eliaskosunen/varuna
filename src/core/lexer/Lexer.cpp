@@ -393,7 +393,7 @@ namespace core
 						}
 						++rit;
 						std::istringstream hexcharss(hex);
-						int ch;
+						unsigned int ch;
 						hexcharss >> std::hex >> ch;
 						c = ch;
 						break;
@@ -423,7 +423,7 @@ namespace core
 							++rit;
 						}
 						std::istringstream octcharss(oct);
-						int ch;
+						unsigned int ch;
 						octcharss >> std::oct >> ch;
 						c = ch;
 						break;
