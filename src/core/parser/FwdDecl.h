@@ -24,6 +24,7 @@ namespace core
 		class ASTNode;
 
 		class ASTExpression;
+		class ASTLiteralExpression;
 
 		class Visitor;
 

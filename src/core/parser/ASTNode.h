@@ -26,8 +26,7 @@ namespace core
 		class ASTNode
 		{
 		public:
-			ASTNode(const ASTNode&) = delete;
-			ASTNode &operator =(const ASTNode&) = delete;
+			virtual void eval() = 0;
 
 			virtual void accept(Visitor &v) = 0;
 
