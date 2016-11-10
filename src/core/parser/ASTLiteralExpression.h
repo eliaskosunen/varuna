@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/parser/ASTExpression.h"
 
 #include "core/lexer/Token.h"
+#include "util/SafeEnum.h"
 
 #include <string>
 
@@ -74,6 +75,32 @@ namespace core
 				modifierFloat(core::lexer::FLOAT_FLOAT) {}
 
 			~ASTLiteralExpression() {}
+
+			template <typename T>
+			T getValue()
+			{
+				switch(literalType)
+				{
+				case INTEGER:
+				{
+					if(modifierInt.isSet(core::lexer::INTEGER_UNSIGNED))
+					{
+						return static_cast<T>(valIntU);
+					}
+					return static_cast<T>(valInt);
+				}
+				case FLOAT:
+					return static_cast<T>(valFloat);
+				case STRING:
+					return static_cast<T>(valStr);
+				case CHAR:
+					return static_cast<T>(valChar);
+				case BOOL:
+					return static_cast<T>(valBool != 0);
+				case NONE:
+					return static_cast<T>(valNone);
+				}
+			}
 		};
 	}
 }
