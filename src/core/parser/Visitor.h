@@ -23,15 +23,10 @@ namespace core
 {
 	namespace parser
 	{
-		class ASTNode
+		class Visitor
 		{
 		public:
-			ASTNode(const ASTNode&) = delete;
-			ASTNode &operator =(const ASTNode&) = delete;
-
-			virtual void accept(Visitor &v) = 0;
-
-			virtual ~ASTNode() {}
+			//virtual void visit();
 		};
 	}
 }

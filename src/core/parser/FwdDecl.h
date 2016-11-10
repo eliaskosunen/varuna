@@ -17,21 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-
 namespace core
 {
 	namespace parser
 	{
-		class ASTNode
-		{
-		public:
-			ASTNode(const ASTNode&) = delete;
-			ASTNode &operator =(const ASTNode&) = delete;
+		class ASTNode;
 
-			virtual void accept(Visitor &v) = 0;
+		class ASTExpression;
 
-			virtual ~ASTNode() {}
-		};
+		class Visitor;
+
+		class Parser;
 	}
 }

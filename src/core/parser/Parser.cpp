@@ -17,5 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/Parser.h"
 
+#include "core/parser/FwdDecl.h"
 #include "core/parser/ASTNode.h"
 #include "core/parser/ASTExpression.h"
