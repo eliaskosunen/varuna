@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/preprocessor/Preprocessor.h"
 #include "core/lexer/Token.h"
 #include "core/lexer/Lexer.h"
-#include "core/parser/Parser.h"
 
 namespace core
 {
@@ -61,8 +60,6 @@ namespace core
 			util::logger->trace("Token: ({}): {}", t.typeToString(), t.value);
 		}
 		util::logger->debug("Starting parser");
-		core::parser::Parser parser;
-		core::parser::SyntaxTree ast = parser.run(tokens);
 
 		return 0;
 	}
