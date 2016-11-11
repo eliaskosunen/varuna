@@ -17,27 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "util/Platform.h"
+#define CPP_STD_VERSION	__cplusplus
+#define CPP_STD_98		199711L
+#define CPP_STD_11		201103L
+#define CPP_STD_14		201402L
 
-#include <memory>
-
-namespace util
-{
-#if CPP_STD_IS11
-	/**
-	 * std::make_unique was added to the standard in C++14.
-	 * Implement our own version of it if standard is C++11 or lower
-	 */
-	template<typename T, typename... Args>
-	std::unique_ptr<T> make_unique(Args&&... args)
-	{
-		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-	}
-#elif CPP_STD_IS14
-	template<typename T, typename... Args>
-	std::unique_ptr<T> make_unique(Args&&... args)
-	{
-		return std::make_unique<T>(args...);
-	}
+#if CPP_STD_VERSION < CPP_STD_11
+	#error C++ Standard version not supported
 #endif
-}
+
+#define CPP_STD_IS11	(CPP_STD_VERSION <  CPP_STD_14)
+#define CPP_STD_IS14	(CPP_STD_VERSION >= CPP_STD_14)
+
+#if !CPP_STD_IS11 && !CPP_STD_14
+	#error Error determining C++ Standard version
+#endif
+
+#define VALUE_TO_STRING(x) #x
+#define VALUE(x) VALUE_TO_STRING(x)

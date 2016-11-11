@@ -48,7 +48,7 @@ namespace util
 	{
 		try {
 			std::ifstream s;
-			s.exceptions(std::ios::badbit | std::ios::failbit);
+			s.exceptions(std::ios::badbit);
 			s.open(filename.c_str(), std::ios::binary | std::ios::in);
 
 			if(!s.is_open() || s.fail())

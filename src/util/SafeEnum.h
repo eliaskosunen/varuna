@@ -28,6 +28,9 @@ namespace util
 	protected:
 		Underlying_t flags;
 	public:
+		typedef Enum_t			EnumType;
+		typedef Underlying_t 	UnderlyingType;
+
 		SafeEnum() : flags(static_cast<Enum_t>(0)) {}
 		SafeEnum(Enum_t flag) : flags(flag) {}
 		SafeEnum(const SafeEnum &orig) : flags(orig.flags) {}
