@@ -21,6 +21,8 @@ namespace core
 {
 	namespace parser
 	{
+		class AST;
+
 		class ASTNode;
 
 		class ASTExpression;

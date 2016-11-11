@@ -18,23 +18,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "core/parser/FwdDecl.h"
-#include "core/parser/AST.h"
-#include "core/lexer/Lexer.h"
-#include "util/Logger.h"
+#include "core/parser/ASTNode.h"
+
+#include <vector>
+#include <memory>
 
 namespace core
 {
 	namespace parser
 	{
-		class Parser
+		class ASTStatement : public ASTNode
 		{
-			std::unique_ptr<AST> ast;
 		public:
-			Parser();
+			virtual ~ASTStatement() {}
+		};
 
-			void run(const core::lexer::TokenVector &tokens);
-			AST *getAST();
-			std::unique_ptr<AST> retrieveAST();
+		class ASTBlockStatement : public ASTStatement
+		{
+			std::vector<std::unique_ptr<ASTStatement>> nodes;
+		public:
+			explicit ASTBlockStatement(std::unique_ptr<ASTStatement> first)
+			{
+				nodes.push_back(std::move(first));
+			}
+			explicit ASTBlockStatement(std::vector<std::unique_ptr<ASTStatement>> &vec)
+			{
+				for(auto &s : vec)
+				{
+					nodes.push_back(std::move(s));
+				}
+			}
 		};
 	}
 }

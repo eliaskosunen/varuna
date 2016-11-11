@@ -27,6 +27,7 @@ namespace core
 		{
 		public:
 			friend class Parser;
+			friend class AST;
 
 			virtual void eval() = 0;
 
