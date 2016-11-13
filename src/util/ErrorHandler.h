@@ -20,12 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/SafeEnum.h"
 #include "util/Logger.h"
 
+#include <string>
+
 namespace util
 {
 	enum Error_t
 	{
 		ERROR_DEFAULT = 0,
 		WARNING_DEFAULT,
+		INFO_DEFAULT,
 
 		ERROR_CLI_TCLAP_EXCEPTION = 100,
 		ERROR_INPUT_FILE_READ_FAILED,
@@ -62,7 +65,9 @@ namespace util
 		// Translation error = 900
 		// Translation warning = 950
 
-		ERROR_MAX = 1000
+		ERROR_MAX = 1000,
+
+		// Infos = x > 1000
 	};
 
 	typedef SafeEnum<Error_t> Error;
@@ -70,25 +75,34 @@ namespace util
 	namespace ErrorHandler
 	{
 		std::string codeToString(Error code);
+
 		bool isCodeError(Error code);
+		bool isCodeWarn(Error code);
+		bool isCodeInfo(Error code);
 
 		template <typename... Args>
-		inline void warn(Error code, const std::string &message, const Args& ... args)
+		inline void info(Error code, const Args& ... args)
 		{
-
+			util::logger->info(codeToString(code), args...);
 		}
 
 		template <typename... Args>
-		inline void error(Error code, const std::string &message, const Args& ... args)
+		inline void warn(Error code, const Args& ... args)
 		{
-
+			util::logger->warn(codeToString(code), args...);
 		}
 
 		template <typename... Args>
-		inline void generic(Error code, const std::string &message, const Args& ... args)
+		inline void error(Error code, const Args& ... args)
 		{
-			if(isCodeError(code))	error(code, message, args...);
-			else					warn(code, message, args...);
+			util::logger->error(codeToString(code), args...);
 		}
-	};
+
+		template <typename... Args>
+		inline void generic(Error code, const Args& ... args)
+		{
+			if(isCodeError(code))	error(code, args...);
+			else					warn(code, args...);
+		}
+	}
 }
