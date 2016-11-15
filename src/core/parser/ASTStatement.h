@@ -42,12 +42,7 @@ namespace core
 				nodes.push_back(std::move(first));
 			}
 			explicit ASTBlockStatement(std::vector<std::unique_ptr<ASTStatement>> &vec)
-			{
-				for(auto &s : vec)
-				{
-					nodes.push_back(std::move(s));
-				}
-			}
+				: nodes(std::move(vec)) {}
 		};
 	}
 }

@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/SafeEnum.h"
 
 #include <string>
+#include <boost/variant.hpp>
 
 namespace core
 {
@@ -31,76 +32,61 @@ namespace core
 	{
 		class ASTLiteralExpression : public ASTExpression
 		{
-			enum LiteralType
-			{
-				INTEGER,
-				FLOAT,
-				STRING,
-				CHAR,
-				BOOL,
-				NONE
-			} literalType;
-			union
-			{
-				long long valInt;
-				unsigned long long valIntU;
-				long double valFloat;
-				std::string valStr;
-				unsigned char valChar;
-				bool valBool;
-				int valNone;
-			};
-
-			core::lexer::TokenIntegerLiteralModifier modifierInt;
-			core::lexer::TokenFloatLiteralModifier modifierFloat;
 		public:
-			ASTLiteralExpression()
-				: literalType(NONE), valNone(0), modifierInt(core::lexer::INTEGER_INTEGER), modifierFloat(core::lexer::FLOAT_FLOAT) {}
-			ASTLiteralExpression(long long val, const core::lexer::TokenIntegerLiteralModifier &mod = core::lexer::INTEGER_INTEGER)
-				: literalType(INTEGER), valInt(val), modifierInt(mod), modifierFloat(core::lexer::FLOAT_FLOAT) {}
-			ASTLiteralExpression(unsigned long long val, const core::lexer::TokenIntegerLiteralModifier &mod = core::lexer::INTEGER_INTEGER)
-				: literalType(INTEGER), valIntU(val), modifierInt(mod), modifierFloat(core::lexer::FLOAT_FLOAT)
-			{
-				modifierInt |= core::lexer::INTEGER_UNSIGNED;
-			}
-			ASTLiteralExpression(long double val, const core::lexer::TokenFloatLiteralModifier &mod = core::lexer::FLOAT_FLOAT)
-				: literalType(FLOAT), valFloat(val), modifierInt(core::lexer::INTEGER_INTEGER), modifierFloat(mod) {}
-			explicit ASTLiteralExpression(const std::string &val)
-				: literalType(STRING), valStr(val), modifierInt(core::lexer::INTEGER_INTEGER),
-				modifierFloat(core::lexer::FLOAT_FLOAT) {}
-			explicit ASTLiteralExpression(unsigned char val)
-				: literalType(CHAR), valChar(val), modifierInt(core::lexer::INTEGER_INTEGER), modifierFloat(core::lexer::FLOAT_FLOAT) {}
-			explicit ASTLiteralExpression(bool val)
-				: literalType(BOOL), valBool(val), modifierInt(core::lexer::INTEGER_INTEGER),
-				modifierFloat(core::lexer::FLOAT_FLOAT) {}
+			virtual ~ASTLiteralExpression() {}
+		};
 
-			~ASTLiteralExpression() {}
+		class ASTIntegerLiteralExpression : public ASTLiteralExpression
+		{
+			boost::variant<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> value;
 
-			template <typename T>
-			T getValue()
-			{
-				switch(literalType)
-				{
-				case INTEGER:
-				{
-					if(modifierInt.isSet(core::lexer::INTEGER_UNSIGNED))
-					{
-						return static_cast<T>(valIntU);
-					}
-					return static_cast<T>(valInt);
-				}
-				case FLOAT:
-					return static_cast<T>(valFloat);
-				case STRING:
-					return static_cast<T>(valStr);
-				case CHAR:
-					return static_cast<T>(valChar);
-				case BOOL:
-					return static_cast<T>(valBool != 0);
-				case NONE:
-					return static_cast<T>(valNone);
-				}
-			}
+			core::lexer::TokenIntegerLiteralModifier mod;
+		public:
+			ASTIntegerLiteralExpression(int8_t val) : value(val) {}
+			ASTIntegerLiteralExpression(int16_t val) : value(val) {}
+			ASTIntegerLiteralExpression(int32_t val) : value(val) {}
+			ASTIntegerLiteralExpression(int64_t val) : value(val) {}
+			ASTIntegerLiteralExpression(uint8_t val) : value(val) {}
+			ASTIntegerLiteralExpression(uint16_t val) : value(val) {}
+			ASTIntegerLiteralExpression(uint32_t val) : value(val) {}
+			ASTIntegerLiteralExpression(uint64_t val) : value(val) {}
+		};
+
+		class ASTFloatLiteralExpression : public ASTLiteralExpression
+		{
+			boost::variant<float, double> value;
+
+			core::lexer::TokenFloatLiteralModifier mod;
+		public:
+			ASTFloatLiteralExpression(float val) : value(val) {}
+			ASTFloatLiteralExpression(double val) : value(val) {}
+		};
+
+		class ASTStringLiteralExpression : public ASTLiteralExpression
+		{
+			const std::string &value;
+		public:
+			ASTStringLiteralExpression(const std::string &val) : value(val) {}
+		};
+
+		class ASTCharLiteralExpression : public ASTLiteralExpression
+		{
+			char32_t value;
+		public:
+			ASTCharLiteralExpression(char32_t val) : value(val) {}
+		};
+
+		class ASTBoolLiteralExpression : public ASTLiteralExpression
+		{
+			bool value;
+		public:
+			ASTBoolLiteralExpression(bool val) : value(val) {}
+		};
+
+		class ASTNoneLiteralExpression : public ASTLiteralExpression
+		{
+		public:
+			ASTNoneLiteralExpression() {}
 		};
 	}
 }

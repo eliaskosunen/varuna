@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/parser/FwdDecl.h"
 #include "core/parser/ASTNode.h"
 
+#include <memory>
+#include <vector>
+
 namespace core
 {
 	namespace parser
@@ -28,6 +31,23 @@ namespace core
 		{
 		public:
 			virtual ~ASTExpression() {}
+		};
+
+		class ASTCallExpression : public ASTExpression
+		{
+			std::unique_ptr<ASTExpression> callee;
+			std::vector<std::unique_ptr<ASTExpression>> params;
+		public:
+			explicit ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
+				: callee(std::move(_callee)), params(std::move(_params)) {}
+		};
+
+		class ASTCastExpression : public ASTExpression
+		{
+			std::unique_ptr<Identifier> type, castee;
+		public:
+			ASTCastExpression(std::unique_ptr<Identifier> _castee, std::unique_ptr<Identifier> _type)
+				: type(std::move(_type)), castee(std::move(_castee)) {}
 		};
 	}
 }

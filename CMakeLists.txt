@@ -33,6 +33,12 @@ endif()
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
+set(Boost_USE_STATIC_LIBS		ON)
+set(Boost_USE_MULTITHREADED		OFF)
+set(Boost_USE_STATIC_RUNTIME	OFF)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS)
+
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(third-party/include)

@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <string>
+
 namespace core
 {
 	namespace parser
@@ -26,10 +28,33 @@ namespace core
 		class ASTNode;
 
 		class ASTExpression;
+		class ASTCallExpression;
+
 		class ASTLiteralExpression;
+		class ASTIntegerLiteralExpression;
+		class ASTFloatLiteralExpression;
+		class ASTStringLiteralExpression;
+		class ASTCharLiteralExpression;
+		class ASTBoolLiteralExpression;
+		class ASTNoneLiteralExpression;
+
+		class ASTBinaryOperationExpression;
+		class ASTUnaryOperationExpression;
+		class ASTAssignmentOperationExpression;
+
+		class ASTStatement;
+		class ASTBlockStatement;
+
+		class ASTIfStatement;
+		class ASTForStatement;
+		class ASTForeachStatement;
+		class ASTWhileStatement;
+		class ASTReturnStatement;
 
 		class Visitor;
 
 		class Parser;
+
+		using Identifier = std::string;
 	}
 }
