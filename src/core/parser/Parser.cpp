@@ -17,3 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/Parser.h"
 #include "core/parser/FwdDecl.h"
+#include "core/lexer/Token.h"
+
+namespace core
+{
+	namespace parser
+	{
+		void Parser::run(const core::lexer::TokenVector &tokens)
+		{
+			for(const auto &token : tokens)
+			{
+				
+			}
+		}
+	}
+}

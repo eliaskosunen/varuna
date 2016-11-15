@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/parser/AST.h"
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
+#include "util/Compatibility.h"
 
 namespace core
 {
@@ -30,11 +31,11 @@ namespace core
 		{
 			std::unique_ptr<AST> ast;
 		public:
-			Parser();
+			Parser() : ast(util::make_unique<AST>()) {}
 
 			void run(const core::lexer::TokenVector &tokens);
-			AST *getAST();
-			std::unique_ptr<AST> retrieveAST();
+			AST *getAST() { return ast.get(); }
+			std::unique_ptr<AST> retrieveAST() { return std::move(ast); }
 		};
 	}
 }
