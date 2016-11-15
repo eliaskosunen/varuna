@@ -176,13 +176,13 @@ TEST_CASE("Test lexer")
 	}
 	SUBCASE("Main function definition")
 	{
-		code = "function main(List of String): Void {}";
+		code = "def main(List of String): Void {}";
 		Lexer l(code);
 		v = l.run();
 		CHECK(v.size() == 12);
 		REQUIRE(!l.getError());
 
-		REQUIRE(v[0].type == TOKEN_KEYWORD_FUNCTION);
+		REQUIRE(v[0].type == TOKEN_KEYWORD_DEFINE);
 
 		REQUIRE(v[1].type == TOKEN_IDENTIFIER);
 		REQUIRE(v[1].value == "main");

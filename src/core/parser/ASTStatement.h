@@ -37,12 +37,21 @@ namespace core
 		{
 			std::vector<std::unique_ptr<ASTStatement>> nodes;
 		public:
+			ASTBlockStatement() {}
 			explicit ASTBlockStatement(std::unique_ptr<ASTStatement> first)
 			{
 				nodes.push_back(std::move(first));
 			}
 			explicit ASTBlockStatement(std::vector<std::unique_ptr<ASTStatement>> &vec)
 				: nodes(std::move(vec)) {}
+		};
+
+		class ASTVariableDefinitionStatement : public ASTStatement
+		{
+			std::unique_ptr<Identifier> type, name;
+		public:
+			ASTVariableDefinitionStatement(std::unique_ptr<Identifier> _type, std::unique_ptr<Identifier> _name)
+				: type(std::move(_type)), name(std::move(_name)) {}
 		};
 	}
 }

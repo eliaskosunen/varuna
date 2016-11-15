@@ -465,8 +465,8 @@ namespace core
 		{
 			// Keywords
 			if(buf == "import")		return TOKEN_KEYWORD_IMPORT;
-			if(buf == "function")	return TOKEN_KEYWORD_FUNCTION;
-			if(buf == "declare")	return TOKEN_KEYWORD_DECLARE;
+			if(buf == "def")		return TOKEN_KEYWORD_DEFINE;
+			if(buf == "decl")		return TOKEN_KEYWORD_DECLARE;
 			if(buf == "class")		return TOKEN_KEYWORD_CLASS;
 			if(buf == "override")	return TOKEN_KEYWORD_OVERRIDE;
 			if(buf == "final")		return TOKEN_KEYWORD_FINAL;

@@ -60,24 +60,17 @@ namespace core
 				: condition(std::move(cond)), block(std::move(_block)) {}
 		};
 
-		class ASTReturnStatement : public ASTStatement
-		{
-			std::unique_ptr<ASTExpression> returnValue;
-		public:
-			explicit ASTReturnStatement(std::unique_ptr<ASTExpression> retval = nullptr)
-				: returnValue(std::move(retval)) {}
-		};
-
 		class ASTImportStatement : public ASTStatement
 		{
 			std::unique_ptr<Identifier> importee;
+		public:
 			enum ImportType
 			{
 				UNSPECIFIED = 0,
 				MODULE,
 				PACKAGE
 			} importType;
-		public:
+
 			ASTImportStatement(ImportType type, std::unique_ptr<Identifier> toImport)
 				: importee(std::move(toImport)), importType(type) {}
 		};

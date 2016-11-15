@@ -31,8 +31,8 @@ namespace core
 			TOKEN_UNDEFINED = -1,
 			TOKEN_DEFAULT = 0,
 
-			TOKEN_KEYWORD_IMPORT,
-			TOKEN_KEYWORD_FUNCTION,
+			TOKEN_KEYWORD_IMPORT = 1,
+			TOKEN_KEYWORD_DEFINE,
 			TOKEN_KEYWORD_DECLARE,
 			TOKEN_KEYWORD_CLASS,
 			TOKEN_KEYWORD_OVERRIDE,
@@ -54,8 +54,10 @@ namespace core
 			TOKEN_KEYWORD_BREAK,
 			TOKEN_KEYWORD_RETURN,
 			TOKEN_KEYWORD_CONTINUE,
+			TOKEN_KEYWORD_MODULE,
+			TOKEN_KEYWORD_PACKAGE,
 
-			TOKEN_DATATYPE_NONE,
+			TOKEN_DATATYPE_NONE = 100,
 			TOKEN_DATATYPE_VOID,
 			TOKEN_DATATYPE_INTEGER,
 			TOKEN_DATATYPE_FLOAT,
@@ -78,9 +80,9 @@ namespace core
 			TOKEN_DATATYPE_DICT,
 			TOKEN_DATATYPE_ARRAY,
 
-			TOKEN_IDENTIFIER,
+			TOKEN_IDENTIFIER = 200,
 
-			TOKEN_LITERAL_INTEGER,
+			TOKEN_LITERAL_INTEGER = 300,
 			TOKEN_LITERAL_FLOAT,
 			TOKEN_LITERAL_STRING,
 			TOKEN_LITERAL_CHAR,
@@ -88,7 +90,7 @@ namespace core
 			TOKEN_LITERAL_FALSE,
 			TOKEN_LITERAL_NONE,
 
-			TOKEN_OPERATORA_SIMPLE,	// =
+			TOKEN_OPERATORA_SIMPLE = 400,// =
 			TOKEN_OPERATORA_ADD,	// +=
 			TOKEN_OPERATORA_SUB,	// -=
 			TOKEN_OPERATORA_MUL,	// *=
@@ -101,7 +103,7 @@ namespace core
 			TOKEN_OPERATORA_SHIFTL,	// <<=
 			TOKEN_OPERATORA_SHIFTR,	// >>=
 
-			TOKEN_OPERATORB_ADD,	// a + b
+			TOKEN_OPERATORB_ADD = 500,// a + b
 			TOKEN_OPERATORB_SUB,	// a - b
 			TOKEN_OPERATORB_MUL,	// a * b
 			TOKEN_OPERATORB_DIV,	// a / b
@@ -129,7 +131,7 @@ namespace core
 			TOKEN_OPERATORB_OF,		// List of String
 			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
 
-			TOKEN_OPERATORU_INC,	// a++
+			TOKEN_OPERATORU_INC = 600,// a++
 			TOKEN_OPERATORU_DEC,	// a--
 
 			TOKEN_OPERATORU_PLUS,	// +a
@@ -141,7 +143,7 @@ namespace core
 			TOKEN_OPERATORU_TYPEOF,	// typeof a
 			TOKEN_OPERATORU_NEW,	// new A
 
-			TOKEN_PUNCT_PAREN_OPEN,	// (
+			TOKEN_PUNCT_PAREN_OPEN = 700,// (
 			TOKEN_PUNCT_PAREN_CLOSE,// )
 			TOKEN_PUNCT_BRACE_OPEN,	// {
 			TOKEN_PUNCT_BRACE_CLOSE,// }
@@ -176,22 +178,9 @@ namespace core
 			FLOAT_NONE		= FLOAT_DOUBLE
 		};
 
-#if 1
 		typedef util::SafeEnum<TokenType_t> TokenType;
 		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
 		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
-
-		//std::ostream &operator <<(std::ostream &o, const TokenType &t);
-		//std::ostream &operator <<(std::ostream &o, const TokenIntegerLiteralModifier &t);
-		//std::ostream &operator <<(std::ostream &o, const TokenFloatLiteralModifier &t);
-
-#else
-
-		typedef TokenType_t TokenType;
-		typedef TokenIntegerLiteralModifier_t TokenIntegerLiteralModifier;
-		typedef TokenFloatLiteralModifier_t TokenFloatLiteralModifier;
-
-#endif
 
 		class Token
 		{

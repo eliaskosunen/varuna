@@ -19,8 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/ASTStatement.h"
-
-#include <memory>
+#include "util/Compatibility.h"
 
 namespace core
 {
@@ -30,7 +29,9 @@ namespace core
 		{
 			std::unique_ptr<ASTBlockStatement> globalNode;
 		public:
-			AST() {}
+			friend class Parser;
+
+			AST() : globalNode(util::make_unique<ASTBlockStatement>()) {}
 		};
 	}
 }

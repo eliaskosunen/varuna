@@ -44,11 +44,16 @@ namespace core
 
 		class ASTStatement;
 		class ASTBlockStatement;
+		class ASTVariableDefinitionStatement;
 
 		class ASTIfStatement;
 		class ASTForStatement;
 		class ASTForeachStatement;
 		class ASTWhileStatement;
+		class ASTImportStatement;
+
+		class ASTFunctionDeclarationStatement;
+		class ASTFunctionDefinitionStatement;
 		class ASTReturnStatement;
 
 		class Visitor;

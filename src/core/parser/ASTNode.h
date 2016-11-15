@@ -29,7 +29,7 @@ namespace core
 			friend class Parser;
 			friend class AST;
 
-			virtual void accept(Visitor &v) = 0;
+			virtual void accept(Visitor &v) {}
 
 			virtual ~ASTNode() {}
 		};
