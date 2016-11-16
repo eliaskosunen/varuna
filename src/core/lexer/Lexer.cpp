@@ -493,6 +493,8 @@ namespace core
 			if(buf == "break")		return TOKEN_KEYWORD_BREAK;
 			if(buf == "return")		return TOKEN_KEYWORD_RETURN;
 			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
+			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
+			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
 
 			// Datatypes
 			if(buf == "None")		return TOKEN_DATATYPE_NONE;

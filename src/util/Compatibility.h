@@ -18,26 +18,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "util/Platform.h"
-
-#include <memory>
-
-namespace util
-{
-#if CPP_STD_IS11
-	/**
-	 * std::make_unique was added to the standard in C++14.
-	 * Implement our own version of it if standard is C++11 or lower
-	 */
-	template<typename T, typename... Args>
-	std::unique_ptr<T> make_unique(Args&&... args)
-	{
-		return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-	}
-#elif CPP_STD_IS14
-	template<typename T, typename... Args>
-	std::unique_ptr<T> make_unique(Args&&... args)
-	{
-		return std::make_unique<T>(args...);
-	}
-#endif
-}

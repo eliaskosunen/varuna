@@ -30,7 +30,7 @@ namespace core
 		public:
 			std::unique_ptr<ASTBlockStatement> globalNode;
 
-			AST() : globalNode(util::make_unique<ASTBlockStatement>()) {}
+			AST() : globalNode(std::make_unique<ASTBlockStatement>()) {}
 		};
 	}
 }

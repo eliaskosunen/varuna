@@ -41,7 +41,7 @@ namespace core
 
 			std::unique_ptr<ASTImportStatement> parseImportStatement();
 		public:
-			Parser(const core::lexer::TokenVector &tok) : ast(util::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
+			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 
 			void run();
 

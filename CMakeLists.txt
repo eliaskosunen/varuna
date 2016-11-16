@@ -7,7 +7,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set(CXX_STANDARD	"--std=c++14")	# --std=c++11 or --std=c++14
+	set(CXX_STANDARD	"--std=c++14")
 
 	set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused")
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -20,7 +20,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	set(CMAKE_CXX_FLAGS			"${CMAKE_CXX_FLAGS} ${RELEASE_FLAGS} ${WARNINGS} ${CXX_STANDARD} -pthread")
 	set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS} ${DEBUG_FLAGS} ${WARNINGS} ${CXX_STANDARD} -pthread")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(CXX_STANDARD 	"/std:c++14")	# Empty or /std:c++14
+	set(CXX_STANDARD 	"/std:c++14")
 
 	set(WARNINGS "/W4 /EHsc")
 

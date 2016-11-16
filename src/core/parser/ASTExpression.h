@@ -38,7 +38,6 @@ namespace core
 		public:
 			std::string value;
 
-			explicit ASTIdentifierExpression(std::string val) : value(val) {}
 			explicit ASTIdentifierExpression(const std::string &val) : value(val) {}
 		};
 

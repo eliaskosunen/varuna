@@ -86,10 +86,21 @@ namespace core
 			else
 			{
 				// TODO: Handle error
+				util::logger->error("Invalid importee: '{}'", it->value);
 				return nullptr;
 			}
-			util::logger->trace("Import statement: {}, {}, {}", importType, toImport, isPath);
-			auto stmt = util::make_unique<ASTImportStatement>(importType, util::make_unique<ASTIdentifierExpression>(toImport), isPath);
+
+			if(std::next(it)->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected semicolon after import statement");
+				return nullptr;
+			}
+			++it; // Skip semicolon
+
+			util::logger->trace("Parsed import statement: {}, {}, {}", importType, toImport, isPath);
+			auto toImportObj = std::make_unique<ASTIdentifierExpression>(toImport);
+			auto stmt = std::make_unique<ASTImportStatement>(importType, std::move(toImportObj), isPath);
 			++it;
 			return stmt;
 		}
