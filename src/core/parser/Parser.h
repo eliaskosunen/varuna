@@ -33,6 +33,13 @@ namespace core
 			const core::lexer::TokenVector &tokens;
 			core::lexer::TokenVector::const_iterator it;
 			const core::lexer::TokenVector::const_iterator endTokens;
+
+			std::vector<std::unique_ptr<ASTStatement>> &getGlobalNodeList()
+			{
+				return ast->globalNode->nodes;
+			}
+
+			std::unique_ptr<ASTImportStatement> parseImportStatement();
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(util::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 

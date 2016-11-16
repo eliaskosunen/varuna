@@ -35,17 +35,19 @@ namespace core
 
 		class ASTCallExpression : public ASTExpression
 		{
+		public:
 			std::unique_ptr<ASTExpression> callee;
 			std::vector<std::unique_ptr<ASTExpression>> params;
-		public:
+
 			explicit ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
 				: callee(std::move(_callee)), params(std::move(_params)) {}
 		};
 
 		class ASTCastExpression : public ASTExpression
 		{
-			std::unique_ptr<Identifier> type, castee;
 		public:
+			std::unique_ptr<Identifier> type, castee;
+		
 			ASTCastExpression(std::unique_ptr<Identifier> _castee, std::unique_ptr<Identifier> _type)
 				: type(std::move(_type)), castee(std::move(_castee)) {}
 		};

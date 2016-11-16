@@ -26,27 +26,30 @@ namespace core
 	{
 		class ASTIfStatement : public ASTStatement
 		{
+		public:
 			std::unique_ptr<ASTExpression> condition;
 			std::unique_ptr<ASTBlockStatement> ifBlock, elseBlock;
-		public:
+
 			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> ifb, std::unique_ptr<ASTBlockStatement> elseb = nullptr)
 				: condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 		};
 
 		class ASTForStatement : public ASTStatement
 		{
+		public:
 			std::unique_ptr<ASTExpression> init, rangeDecl, rangeInit;
 			std::unique_ptr<ASTBlockStatement> block;
-		public:
+
 			explicit ASTForStatement(std::unique_ptr<ASTBlockStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
 				: init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 		};
 
 		class ASTForeachStatement : public ASTStatement
 		{
+		public:
 			std::unique_ptr<ASTExpression> iteratee, iterator;
 			std::unique_ptr<ASTBlockStatement> block;
-		public:
+
 			ASTForeachStatement(std::unique_ptr<ASTExpression> _iteratee, std::unique_ptr<ASTExpression> _iterator, std::unique_ptr<ASTBlockStatement> _block)
 				: iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
 		};

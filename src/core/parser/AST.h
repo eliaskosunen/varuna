@@ -27,9 +27,8 @@ namespace core
 	{
 		class AST
 		{
-			std::unique_ptr<ASTBlockStatement> globalNode;
 		public:
-			friend class Parser;
+			std::unique_ptr<ASTBlockStatement> globalNode;
 
 			AST() : globalNode(util::make_unique<ASTBlockStatement>()) {}
 		};

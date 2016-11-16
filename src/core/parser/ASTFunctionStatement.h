@@ -27,25 +27,28 @@ namespace core
 	{
 		class ASTFunctionDeclarationStatement : public ASTStatement
 		{
+		public:
 			std::unique_ptr<Identifier> returnType, name;
 			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
-		public:
+
 			ASTFunctionDeclarationStatement(std::unique_ptr<Identifier> retType, std::unique_ptr<Identifier> n, std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
 				: returnType(std::move(retType)), name(std::move(n)), params(std::move(p)) {}
 		};
 
 		class ASTFunctionDefinitionStatement : public ASTFunctionDeclarationStatement
 		{
-			std::unique_ptr<ASTBlockStatement> block;
 		public:
+			std::unique_ptr<ASTBlockStatement> block;
+
 			ASTFunctionDefinitionStatement(std::unique_ptr<Identifier> retType, std::unique_ptr<Identifier> n, std::unique_ptr<ASTBlockStatement> b,  std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
 				: ASTFunctionDeclarationStatement(std::move(retType), std::move(n), std::move(p)), block(std::move(b)) {}
 		};
 
 		class ASTReturnStatement : public ASTStatement
 		{
-			std::unique_ptr<ASTExpression> returnValue;
 		public:
+			std::unique_ptr<ASTExpression> returnValue;
+
 			explicit ASTReturnStatement(std::unique_ptr<ASTExpression> retval = nullptr)
 				: returnValue(std::move(retval)) {}
 		};

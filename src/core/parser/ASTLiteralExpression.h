@@ -38,10 +38,11 @@ namespace core
 
 		class ASTIntegerLiteralExpression : public ASTLiteralExpression
 		{
+		public:
 			boost::variant<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> value;
 
 			core::lexer::TokenIntegerLiteralModifier mod;
-		public:
+
 			ASTIntegerLiteralExpression(int8_t val) : value(val) {}
 			ASTIntegerLiteralExpression(int16_t val) : value(val) {}
 			ASTIntegerLiteralExpression(int32_t val) : value(val) {}
@@ -54,32 +55,36 @@ namespace core
 
 		class ASTFloatLiteralExpression : public ASTLiteralExpression
 		{
+		public:
 			boost::variant<float, double> value;
 
 			core::lexer::TokenFloatLiteralModifier mod;
-		public:
+
 			ASTFloatLiteralExpression(float val) : value(val) {}
 			ASTFloatLiteralExpression(double val) : value(val) {}
 		};
 
 		class ASTStringLiteralExpression : public ASTLiteralExpression
 		{
-			const std::string &value;
 		public:
+			const std::string &value;
+
 			ASTStringLiteralExpression(const std::string &val) : value(val) {}
 		};
 
 		class ASTCharLiteralExpression : public ASTLiteralExpression
 		{
-			char32_t value;
 		public:
+			char32_t value;
+
 			ASTCharLiteralExpression(char32_t val) : value(val) {}
 		};
 
 		class ASTBoolLiteralExpression : public ASTLiteralExpression
 		{
-			bool value;
 		public:
+			bool value;
+
 			ASTBoolLiteralExpression(bool val) : value(val) {}
 		};
 

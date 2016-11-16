@@ -44,11 +44,22 @@ namespace core
 				case TOKEN_EOF:
 					running = false;
 					continue;
+
+				case TOKEN_KEYWORD_IMPORT:
+					getGlobalNodeList().push_back(parseImportStatement());
+					break;
+
 				default:
 					++it;
 					break;
 				}
 			}
+		}
+
+		std::unique_ptr<ASTImportStatement> Parser::parseImportStatement()
+		{
+			++it;
+			return nullptr;
 		}
 	}
 }

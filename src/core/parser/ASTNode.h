@@ -26,9 +26,6 @@ namespace core
 		class ASTNode
 		{
 		public:
-			friend class Parser;
-			friend class AST;
-
 			virtual void accept(Visitor &v) {}
 
 			virtual ~ASTNode() {}
