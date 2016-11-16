@@ -30,10 +30,14 @@ namespace core
 		class Parser
 		{
 			std::unique_ptr<AST> ast;
+			const core::lexer::TokenVector &tokens;
+			core::lexer::TokenVector::const_iterator it;
+			const core::lexer::TokenVector::const_iterator endTokens;
 		public:
-			Parser() : ast(util::make_unique<AST>()) {}
+			Parser(const core::lexer::TokenVector &tok) : ast(util::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 
-			void run(const core::lexer::TokenVector &tokens);
+			void run();
+
 			AST *getAST() { return ast.get(); }
 			std::unique_ptr<AST> retrieveAST() { return std::move(ast); }
 		};

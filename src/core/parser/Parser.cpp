@@ -28,9 +28,27 @@ namespace core
 {
 	namespace parser
 	{
-		void Parser::run(const core::lexer::TokenVector &tokens)
+		using namespace core::lexer;
+
+		void Parser::run()
 		{
-			
+			bool running = true;
+			while(running)
+			{
+				if(it == endTokens)
+				{
+					return;
+				}
+				switch(it->type.get())
+				{
+				case TOKEN_EOF:
+					running = false;
+					continue;
+				default:
+					++it;
+					break;
+				}
+			}
 		}
 	}
 }

@@ -62,8 +62,8 @@ namespace core
 		}
 
 		util::logger->debug("Starting parser");
-		core::parser::Parser parser;
-		parser.run(tokens);
+		core::parser::Parser parser(tokens);
+		parser.run();
 		util::logger->debug("Finished parsing");
 
 		return 0;

@@ -270,11 +270,17 @@ namespace core
 			{
 				lexerError("Empty token list");
 			}
-			if(tokens.size() == 1 && tokens[0].type == core::lexer::TOKEN_EOF)
+			if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
 			{
 				lexerWarning("Empty translation unit");
 			}
+			if(tokens.back().type != TOKEN_EOF)
+			{
+				lexerError("No EOF token found");
+			}
+			#if 0
 			syntaxCheck(tokens);
+			#endif
 			return tokens;
 		}
 
