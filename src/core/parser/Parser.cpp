@@ -58,8 +58,40 @@ namespace core
 
 		std::unique_ptr<ASTImportStatement> Parser::parseImportStatement()
 		{
+			++it; // Skip "import"
+
+			ASTImportStatement::ImportType importType = ASTImportStatement::UNSPECIFIED;
+			if(it->type == TOKEN_KEYWORD_MODULE)
+			{
+				importType = ASTImportStatement::MODULE;
+				++it;
+			}
+			else if(it->type == TOKEN_KEYWORD_PACKAGE)
+			{
+				importType = ASTImportStatement::PACKAGE;
+				++it;
+			}
+
+			std::string toImport;
+			bool isPath = false;
+			if(it->type == TOKEN_IDENTIFIER)
+			{
+				toImport = it->value;
+			}
+			else if(it->type == TOKEN_LITERAL_STRING)
+			{
+				isPath = true;
+				toImport = it->value;
+			}
+			else
+			{
+				// TODO: Handle error
+				return nullptr;
+			}
+			util::logger->trace("Import statement: {}, {}, {}", importType, toImport, isPath);
+			auto stmt = util::make_unique<ASTImportStatement>(importType, util::make_unique<ASTIdentifierExpression>(toImport), isPath);
 			++it;
-			return nullptr;
+			return stmt;
 		}
 	}
 }

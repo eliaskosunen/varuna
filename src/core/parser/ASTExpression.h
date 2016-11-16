@@ -33,6 +33,15 @@ namespace core
 			virtual ~ASTExpression() {}
 		};
 
+		class ASTIdentifierExpression : public ASTExpression
+		{
+		public:
+			std::string value;
+
+			explicit ASTIdentifierExpression(std::string val) : value(val) {}
+			explicit ASTIdentifierExpression(const std::string &val) : value(val) {}
+		};
+
 		class ASTCallExpression : public ASTExpression
 		{
 		public:
@@ -46,9 +55,9 @@ namespace core
 		class ASTCastExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<Identifier> type, castee;
-		
-			ASTCastExpression(std::unique_ptr<Identifier> _castee, std::unique_ptr<Identifier> _type)
+			std::unique_ptr<ASTIdentifierExpression> type, castee;
+
+			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
 				: type(std::move(_type)), castee(std::move(_castee)) {}
 		};
 	}

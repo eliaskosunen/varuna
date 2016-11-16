@@ -28,10 +28,10 @@ namespace core
 		class ASTFunctionDeclarationStatement : public ASTStatement
 		{
 		public:
-			std::unique_ptr<Identifier> returnType, name;
+			std::unique_ptr<ASTIdentifierExpression> returnType, name;
 			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
 
-			ASTFunctionDeclarationStatement(std::unique_ptr<Identifier> retType, std::unique_ptr<Identifier> n, std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
+			ASTFunctionDeclarationStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
 				: returnType(std::move(retType)), name(std::move(n)), params(std::move(p)) {}
 		};
 
@@ -40,7 +40,7 @@ namespace core
 		public:
 			std::unique_ptr<ASTBlockStatement> block;
 
-			ASTFunctionDefinitionStatement(std::unique_ptr<Identifier> retType, std::unique_ptr<Identifier> n, std::unique_ptr<ASTBlockStatement> b,  std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
+			ASTFunctionDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::unique_ptr<ASTBlockStatement> b,  std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
 				: ASTFunctionDeclarationStatement(std::move(retType), std::move(n), std::move(p)), block(std::move(b)) {}
 		};
 

@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/ASTStatement.h"
+#include "core/parser/ASTExpression.h"
 
 namespace core
 {
@@ -56,17 +57,20 @@ namespace core
 
 		class ASTWhileStatement : public ASTStatement
 		{
+		public:
 			std::unique_ptr<ASTExpression> condition;
 			std::unique_ptr<ASTBlockStatement> block;
-		public:
+
 			explicit ASTWhileStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> _block = nullptr)
 				: condition(std::move(cond)), block(std::move(_block)) {}
 		};
 
 		class ASTImportStatement : public ASTStatement
 		{
-			std::unique_ptr<Identifier> importee;
 		public:
+			std::unique_ptr<ASTIdentifierExpression> importee;
+			bool isPath;
+
 			enum ImportType
 			{
 				UNSPECIFIED = 0,
@@ -74,8 +78,8 @@ namespace core
 				PACKAGE
 			} importType;
 
-			ASTImportStatement(ImportType type, std::unique_ptr<Identifier> toImport)
-				: importee(std::move(toImport)), importType(type) {}
+			ASTImportStatement(ImportType type, std::unique_ptr<ASTIdentifierExpression> toImport, bool _isPath = false)
+				: importee(std::move(toImport)), isPath(_isPath), importType(type) {}
 		};
 	}
 }

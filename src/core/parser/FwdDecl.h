@@ -29,6 +29,8 @@ namespace core
 
 		class ASTExpression;
 		class ASTCallExpression;
+		class ASTCastExpression;
+		class ASTIdentifierExpression;
 
 		class ASTLiteralExpression;
 		class ASTIntegerLiteralExpression;
@@ -59,7 +61,5 @@ namespace core
 		class Visitor;
 
 		class Parser;
-
-		using Identifier = std::string;
 	}
 }

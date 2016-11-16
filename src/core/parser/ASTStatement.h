@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/ASTNode.h"
+#include "core/parser/ASTExpression.h"
 
 #include <vector>
 #include <memory>
@@ -50,9 +51,9 @@ namespace core
 		class ASTVariableDefinitionStatement : public ASTStatement
 		{
 		public:
-			std::unique_ptr<Identifier> type, name;
+			std::unique_ptr<ASTIdentifierExpression> type, name;
 
-			ASTVariableDefinitionStatement(std::unique_ptr<Identifier> _type, std::unique_ptr<Identifier> _name)
+			ASTVariableDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name)
 				: type(std::move(_type)), name(std::move(_name)) {}
 		};
 	}
