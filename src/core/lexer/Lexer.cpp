@@ -495,30 +495,8 @@ namespace core
 			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
 			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
 			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
-
-			// Datatypes
-			if(buf == "None")		return TOKEN_DATATYPE_NONE;
-			if(buf == "Void")		return TOKEN_DATATYPE_VOID;
-			if(buf == "Integer")	return TOKEN_DATATYPE_INTEGER;
-			if(buf == "Float")		return TOKEN_DATATYPE_FLOAT;
-			if(buf == "Double")		return TOKEN_DATATYPE_DOUBLE;
-			if(buf == "Decimal")	return TOKEN_DATATYPE_DECIMAL;
-			if(buf == "String")		return TOKEN_DATATYPE_STRING;
-			if(buf == "Char")		return TOKEN_DATATYPE_CHAR;
-			if(buf == "UInteger")	return TOKEN_DATATYPE_UINTEGER;
-			if(buf == "BigInteger")	return TOKEN_DATATYPE_BIGINTEGER;
-			if(buf == "Bool")		return TOKEN_DATATYPE_BOOL;
-			if(buf == "Int8")		return TOKEN_DATATYPE_INT8;
-			if(buf == "Int16")		return TOKEN_DATATYPE_INT16;
-			if(buf == "Int32")		return TOKEN_DATATYPE_INT32;
-			if(buf == "Int64")		return TOKEN_DATATYPE_INT64;
-			if(buf == "UInt8")		return TOKEN_DATATYPE_UINT8;
-			if(buf == "UInt16")		return TOKEN_DATATYPE_UINT16;
-			if(buf == "UInt32")		return TOKEN_DATATYPE_UINT32;
-			if(buf == "UInt64")		return TOKEN_DATATYPE_UINT64;
-			if(buf == "List")		return TOKEN_DATATYPE_LIST;
-			if(buf == "Dict")		return TOKEN_DATATYPE_DICT;
-			if(buf == "Array")		return TOKEN_DATATYPE_ARRAY;
+			if(buf == "Void")		return TOKEN_KEYWORD_VOID;
+			if(buf == "extern")		return TOKEN_KEYWORD_EXTERN;
 
 			// Literals
 			if(buf == "true")		return TOKEN_LITERAL_TRUE;

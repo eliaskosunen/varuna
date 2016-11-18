@@ -1,7 +1,7 @@
 # code.va
 import io;
 
-function main(List of String args): Void
+def main(List<String> args): Void
 {
 	io.stdout.writeln("Hello World!");
 	String input = io.stdin.getln("What's your name?");

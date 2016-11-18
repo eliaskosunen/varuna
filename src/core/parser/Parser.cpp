@@ -32,7 +32,7 @@ namespace core
 
 		void Parser::run()
 		{
-			bool running = true;
+			bool running = true, isExtern = false;
 			while(running)
 			{
 				if(it == endTokens)
@@ -44,9 +44,21 @@ namespace core
 				case TOKEN_EOF:
 					running = false;
 					continue;
+				case TOKEN_PUNCT_SEMICOLON:
+					util::logger->warn("Empty statement");
+					++it;
+					break;
 
 				case TOKEN_KEYWORD_IMPORT:
 					getGlobalNodeList().push_back(parseImportStatement());
+					break;
+				case TOKEN_KEYWORD_EXTERN:
+					isExtern = true;
+					++it;
+					break;
+				case TOKEN_KEYWORD_DEFINE:
+					getGlobalNodeList().push_back(parseFunctionDefinitionStatement(isExtern));
+					isExtern = false;
 					break;
 
 				default:
@@ -103,6 +115,34 @@ namespace core
 			auto stmt = std::make_unique<ASTImportStatement>(importType, std::move(toImportObj), isPath);
 			++it;
 			return stmt;
+		}
+
+		std::unique_ptr<ASTFunctionDefinitionStatement> Parser::parseFunctionDefinitionStatement(bool isExtern)
+		{
+			++it; // Skip "def"
+
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function name: '{}'", it->value);
+				return nullptr;
+			}
+			auto functionName = std::make_unique<ASTIdentifierExpression>(it->value);
+			++it;
+
+			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected opening parenthesis on function definition, got '{}' instead", it->value);
+				return nullptr;
+			}
+			++it;
+			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
+			while(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				++it;
+			}
+			return nullptr;
 		}
 	}
 }

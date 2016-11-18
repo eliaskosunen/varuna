@@ -176,10 +176,10 @@ TEST_CASE("Test lexer")
 	}
 	SUBCASE("Main function definition")
 	{
-		code = "def main(List of String): Void {}";
+		code = "def main(List<String>): Void {}";
 		Lexer l(code);
 		v = l.run();
-		CHECK(v.size() == 12);
+		CHECK(v.size() == 13);
 		REQUIRE(!l.getError());
 
 		REQUIRE(v[0].type == TOKEN_KEYWORD_DEFINE);
@@ -188,16 +188,19 @@ TEST_CASE("Test lexer")
 		REQUIRE(v[1].value == "main");
 
 		REQUIRE(v[2].type == TOKEN_PUNCT_PAREN_OPEN);
-		REQUIRE(v[3].type == TOKEN_DATATYPE_LIST);
-		REQUIRE(v[4].type == TOKEN_OPERATORB_OF);
-		REQUIRE(v[5].type == TOKEN_DATATYPE_STRING);
-		REQUIRE(v[6].type == TOKEN_PUNCT_PAREN_CLOSE);
+		REQUIRE(v[3].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[3].value == "List");
+		REQUIRE(v[4].type == TOKEN_OPERATORB_LESS);
+		REQUIRE(v[5].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[5].value == "String");
+		REQUIRE(v[6].type == TOKEN_OPERATORB_GREATER);
+		REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
 
-		REQUIRE(v[7].type == TOKEN_PUNCT_COLON);
-		REQUIRE(v[8].type == TOKEN_DATATYPE_VOID);
+		REQUIRE(v[8].type == TOKEN_PUNCT_COLON);
+		REQUIRE(v[9].type == TOKEN_KEYWORD_VOID);
 
-		REQUIRE(v[9].type == TOKEN_PUNCT_BRACE_OPEN);
-		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_CLOSE);
+		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_OPEN);
+		REQUIRE(v[11].type == TOKEN_PUNCT_BRACE_CLOSE);
 	}
 	SUBCASE("If-else")
 	{
