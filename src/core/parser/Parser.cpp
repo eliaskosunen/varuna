@@ -88,7 +88,23 @@ namespace core
 			bool isPath = false;
 			if(it->type == TOKEN_IDENTIFIER)
 			{
-				toImport = it->value;
+				while(true)
+				{
+					toImport += it->value;
+					if(std::next(it)->type == TOKEN_EOF ||
+						std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
+					{
+						break;
+					}
+					if(std::next(it)->type == TOKEN_OPERATORB_MEMBER ||
+						std::next(it)->type == TOKEN_IDENTIFIER)
+					{
+						++it;
+						continue;
+					}
+					util::logger->error("Invalid importee: '{}{}'", toImport, it->value);
+					return nullptr;
+				}
 			}
 			else if(it->type == TOKEN_LITERAL_STRING)
 			{

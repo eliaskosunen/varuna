@@ -161,18 +161,75 @@ TEST_CASE("Test lexer")
 
 	SUBCASE("Import")
 	{
-		code = "import io;";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 4);
-		REQUIRE(!l.getError());
+		SUBCASE("Default import")
+		{
+			code = "import io;";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 4);
+			REQUIRE(!l.getError());
 
-		REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
 
-		REQUIRE(v[1].type == TOKEN_IDENTIFIER);
-		REQUIRE(v[1].value == "io");
+			REQUIRE(v[1].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[1].value == "io");
 
-		REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
+			REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Module import")
+		{
+			code = "import module mymodule;";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 5);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+
+			REQUIRE(v[2].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[2].value == "mymodule");
+
+			REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Package import")
+		{
+			code = "import package cstd.io;";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 7);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_PACKAGE);
+
+			REQUIRE(v[2].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[2].value == "cstd");
+			REQUIRE(v[3].type == TOKEN_OPERATORB_MEMBER);
+			REQUIRE(v[4].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[4].value == "io");
+
+			REQUIRE(v[5].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Path import")
+		{
+			code = "import module \"path/to/module\";";
+			Lexer l(code);
+			v = l.run();
+			CHECK(v.size() == 5);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+
+			REQUIRE(v[2].type == TOKEN_LITERAL_STRING);
+			REQUIRE(v[2].value == "path/to/module");
+
+			REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+		}
 	}
 	SUBCASE("Main function definition")
 	{
