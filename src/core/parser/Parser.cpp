@@ -140,9 +140,40 @@ namespace core
 			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
 			while(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 			{
+				// handleVariableDefinitionStatement()
 				++it;
 			}
-			return nullptr;
+			++it;
+
+			if(it->type != TOKEN_PUNCT_COLON)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected colon on function definition, got '{}' instead", it->value);
+				return nullptr;
+			}
+			++it;
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected identifier on function definition, got '{}' instead", it->value);
+				return nullptr;
+			}
+			auto returnType = std::make_unique<ASTIdentifierExpression>(it->value);
+			++it;
+
+			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected opening brace on function definition, got '{}' instead", it->value);
+				return nullptr;
+			}
+			while(it->type != TOKEN_PUNCT_BRACE_CLOSE)
+			{
+				++it;
+			}
+
+			auto function = std::make_unique<ASTFunctionDefinitionStatement>(std::move(returnType), std::move(functionName), nullptr, std::move(params));
+			return function;
 		}
 	}
 }

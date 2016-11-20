@@ -197,7 +197,8 @@ TEST_CASE("Test lexer")
 		REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
 
 		REQUIRE(v[8].type == TOKEN_PUNCT_COLON);
-		REQUIRE(v[9].type == TOKEN_KEYWORD_VOID);
+		REQUIRE(v[9].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[9].value == "Void");
 
 		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_OPEN);
 		REQUIRE(v[11].type == TOKEN_PUNCT_BRACE_CLOSE);

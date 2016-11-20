@@ -495,7 +495,6 @@ namespace core
 			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
 			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
 			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
-			if(buf == "Void")		return TOKEN_KEYWORD_VOID;
 			if(buf == "extern")		return TOKEN_KEYWORD_EXTERN;
 
 			// Literals
