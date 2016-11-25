@@ -496,6 +496,9 @@ namespace core
 			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
 			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
 			if(buf == "extern")		return TOKEN_KEYWORD_EXTERN;
+			if(buf == "readonly")	return TOKEN_KEYWORD_READONLY;
+			if(buf == "view")		return TOKEN_KEYWORD_VIEW;
+			if(buf == "ref")		return TOKEN_KEYWORD_REF;
 
 			// Literals
 			if(buf == "true")		return TOKEN_LITERAL_TRUE;

@@ -25,13 +25,30 @@ namespace core
 {
 	namespace parser
 	{
+		class ASTFunctionParameter : public ASTStatement
+		{
+		public:
+			std::unique_ptr<ASTVariableDefinitionStatement> var;
+			std::unique_ptr<ASTExpression> defaultValue;
+			enum PassType
+			{
+				COPY = 0,
+				REF = 1,
+				VIEW = 2
+			} passType;
+
+			explicit ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionStatement> _var, PassType _passType = COPY, std::unique_ptr<ASTExpression> defVal = nullptr)
+				: var(std::move(_var)), passType(_passType), defaultValue(std::move(defVal)) {}
+		};
+
 		class ASTFunctionDeclarationStatement : public ASTStatement
 		{
 		public:
 			std::unique_ptr<ASTIdentifierExpression> returnType, name;
-			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
+			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+			bool isExtern = false;
 
-			ASTFunctionDeclarationStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> &&p)
+			ASTFunctionDeclarationStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::vector<std::unique_ptr<ASTFunctionParameter>> p)
 				: returnType(std::move(retType)), name(std::move(n)), params(std::move(p)) {}
 		};
 
@@ -40,7 +57,7 @@ namespace core
 		public:
 			std::unique_ptr<ASTBlockStatement> block;
 
-			ASTFunctionDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::unique_ptr<ASTBlockStatement> b,  std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> p)
+			ASTFunctionDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::unique_ptr<ASTBlockStatement> b, std::vector<std::unique_ptr<ASTFunctionParameter>> p)
 				: ASTFunctionDeclarationStatement(std::move(retType), std::move(n), std::move(p)), block(std::move(b)) {}
 		};
 

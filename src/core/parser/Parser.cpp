@@ -32,7 +32,7 @@ namespace core
 
 		void Parser::run()
 		{
-			bool running = true, isExtern = false;
+			bool running = true;
 			while(running)
 			{
 				if(it == endTokens)
@@ -53,12 +53,16 @@ namespace core
 					getGlobalNodeList().push_back(parseImportStatement());
 					break;
 				case TOKEN_KEYWORD_EXTERN:
-					isExtern = true;
 					++it;
+					switch(it->type.get())
+					{
+					case TOKEN_KEYWORD_DEFINE:
+						getGlobalNodeList().push_back(parseFunctionDefinitionStatement(true));
+						break;
+					}
 					break;
 				case TOKEN_KEYWORD_DEFINE:
-					getGlobalNodeList().push_back(parseFunctionDefinitionStatement(isExtern));
-					isExtern = false;
+					getGlobalNodeList().push_back(parseFunctionDefinitionStatement(false));
 					break;
 
 				default:
@@ -140,56 +144,113 @@ namespace core
 			if(it->type != TOKEN_IDENTIFIER)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid function name: '{}'", it->value);
+				util::logger->error("Invalid function definition: Expected function name, got '{}' instead", it->value);
 				return nullptr;
 			}
-			auto functionName = std::make_unique<ASTIdentifierExpression>(it->value);
+			auto funcName = std::make_unique<ASTIdentifierExpression>(it->value);
 			++it;
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
 				// TODO: Handle error
-				util::logger->error("Expected opening parenthesis on function definition, got '{}' instead", it->value);
+				util::logger->error("Invalid function definition: Expected opening parenthesis '(', got '{}' instead", it->value);
 				return nullptr;
 			}
 			++it;
-			std::vector<std::unique_ptr<ASTVariableDefinitionStatement>> params;
-			while(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+
+			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+			for(; it->type != TOKEN_EOF; ++it)
 			{
-				// handleVariableDefinitionStatement()
+				std::unique_ptr<ASTFunctionParameter> currParam;
+				ASTFunctionParameter::PassType pass = ASTFunctionParameter::COPY;
+
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					break;
+				}
+
+				if(it->type == TOKEN_KEYWORD_REF)
+				{
+					pass = ASTFunctionParameter::REF;
+					++it;
+				}
+				else if(it->type == TOKEN_KEYWORD_VIEW)
+				{
+					pass = ASTFunctionParameter::VIEW;
+					++it;
+				}
+
+				if(it->type != TOKEN_IDENTIFIER)
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid function definition: Expected type name in parameter list, got '{}' instead", it->value);
+					return nullptr;
+				}
+				auto type = std::make_unique<ASTIdentifierExpression>(it->value);
 				++it;
+
+				if(it->type != TOKEN_IDENTIFIER)
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid function definition: Expected parameter name in parameter list, got '{}' instead", it->value);
+					return nullptr;
+				}
+				auto name = std::make_unique<ASTIdentifierExpression>(it->value);
+				++it;
+
+				TokenVector::const_iterator defaultValue = endTokens;
+				if(it->type == TOKEN_OPERATORA_SIMPLE)
+				{
+					++it;
+					defaultValue = it;
+					++it;
+				}
+
+				auto var = std::make_unique<ASTVariableDefinitionStatement>(std::move(type), std::move(name));
+				auto def = parseExpressionIt(defaultValue);
+				auto param = std::make_unique<ASTFunctionParameter>(std::move(var), pass, std::move(def));
+				params.push_back(std::move(param));
+
+				if(it->type == TOKEN_PUNCT_COMMA || it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					continue;
+				}
+				else
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid function definition: Unexpected token in parameter list: '{}'", it->value);
+					return nullptr;
+				}
 			}
-			++it;
 
 			if(it->type != TOKEN_PUNCT_COLON)
 			{
 				// TODO: Handle error
-				util::logger->error("Expected colon on function definition, got '{}' instead", it->value);
+				util::logger->error("Invalid function definition: Expected ':', got '{}' instead", it->value);
 				return nullptr;
 			}
 			++it;
+
 			if(it->type != TOKEN_IDENTIFIER)
 			{
 				// TODO: Handle error
-				util::logger->error("Expected identifier on function definition, got '{}' instead", it->value);
+				util::logger->error("Invalid function definition: Expected return type, got '{}' instead", it->value);
 				return nullptr;
 			}
-			auto returnType = std::make_unique<ASTIdentifierExpression>(it->value);
+			auto ret = std::make_unique<ASTIdentifierExpression>(it->value);
 			++it;
 
 			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
 			{
 				// TODO: Handle error
-				util::logger->error("Expected opening brace on function definition, got '{}' instead", it->value);
+				util::logger->error("Invalid function definition: Expected opening brace, got '{}' instead", it->value);
 				return nullptr;
 			}
-			while(it->type != TOKEN_PUNCT_BRACE_CLOSE)
-			{
-				++it;
-			}
+			auto block = parseBlockStatement();
 
-			auto function = std::make_unique<ASTFunctionDefinitionStatement>(std::move(returnType), std::move(functionName), nullptr, std::move(params));
-			return function;
+			auto func = std::make_unique<ASTFunctionDefinitionStatement>(std::move(ret), std::move(funcName), std::move(block), std::move(params));
+			func->isExtern = isExtern;
+			return func;
 		}
 	}
 }

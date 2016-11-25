@@ -40,7 +40,11 @@ namespace core
 			}
 
 			std::unique_ptr<ASTImportStatement> parseImportStatement();
+
 			std::unique_ptr<ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement(bool isExtern = false);
+
+			std::unique_ptr<ASTExpression> parseExpressionIt(core::lexer::TokenVector::const_iterator i) { return nullptr; }
+			std::unique_ptr<ASTBlockStatement> parseBlockStatement() { it += 2; return nullptr; }
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 

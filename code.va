@@ -3,7 +3,7 @@ import io;
 
 module main;
 
-def main(List<String> args): Void
+def main(): Void
 {
 	io.stdout.writeln("Hello World!");
 	String input = io.stdin.getln("What's your name?");
