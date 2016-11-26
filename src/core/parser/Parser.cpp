@@ -54,6 +54,9 @@ namespace core
 				case TOKEN_KEYWORD_IMPORT:
 					handleImport();
 					break;
+				case TOKEN_KEYWORD_MODULE:
+					handleModule();
+					break;
 
 				default:
 					util::logger->error("'{}' is not allowed as a top-level token", it->value);
@@ -384,6 +387,60 @@ namespace core
 			}
 
 			return std::make_unique<ASTForStatement>(std::move(block), std::move(start), std::move(end), std::move(step));
+		}
+
+		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
+		{
+			++it; // Skip 'module'
+
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
+				return nullptr;
+			}
+
+			std::string name;
+			while(true)
+			{
+				if(it->type == TOKEN_IDENTIFIER)
+				{
+					name += it->value;
+				}
+				else
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid module statement: expected identifier, got '{}' instead", it->value);
+					return nullptr;
+				}
+				++it;
+
+				if(it->type == TOKEN_OPERATORB_MEMBER)
+				{
+					name += it->value;
+					if(std::next(it)->type == TOKEN_EOF || std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
+					{
+						// TODO: Handle error
+						util::logger->error("Invalid module statement: expected identifier after '.', got '{}' instead", it->value);
+						return nullptr;
+					}
+				}
+				else if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					++it; // Skip ';'
+					break;
+				}
+				else
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid module statement: expected '.' or ';', got '{}' instead", it->value);
+					return nullptr;
+				}
+				++it; // Skip '.'
+			}
+
+			auto moduleName = std::make_unique<ASTIdentifierExpression>(name);
+			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
 		}
 
 		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()

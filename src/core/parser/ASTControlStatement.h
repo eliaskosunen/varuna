@@ -81,5 +81,14 @@ namespace core
 			ASTImportStatement(ImportType type, std::unique_ptr<ASTIdentifierExpression> toImport, bool _isPath = false)
 				: importee(std::move(toImport)), isPath(_isPath), importType(type) {}
 		};
+
+		class ASTModuleStatement : public ASTStatement
+		{
+		public:
+			std::unique_ptr<ASTIdentifierExpression> moduleName;
+
+			explicit ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
+				: moduleName(std::move(name)) {}
+		};
 	}
 }

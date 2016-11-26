@@ -116,6 +116,8 @@ namespace core
 			std::unique_ptr<ASTIfStatement> parseIfStatement();
 			std::unique_ptr<ASTForStatement> parseForStatement();
 			std::unique_ptr<ASTVariableDefinitionExpression> parseVariableDefinition();
+			std::unique_ptr<ASTModuleStatement> parseModuleStatement();
+
 			std::unique_ptr<ASTExpression> parseUnary();
 
 			std::unique_ptr<ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
@@ -137,6 +139,18 @@ namespace core
 				if(auto import = parseImportStatement())
 				{
 					ast->pushStatement(std::move(import));
+				}
+				else
+				{
+					++it;
+				}
+			}
+
+			void handleModule()
+			{
+				if(auto module = parseModuleStatement())
+				{
+					ast->pushStatement(std::move(module));
 				}
 				else
 				{
