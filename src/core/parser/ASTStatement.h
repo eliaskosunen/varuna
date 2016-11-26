@@ -37,24 +37,25 @@ namespace core
 		class ASTBlockStatement : public ASTStatement
 		{
 		public:
-			std::vector<std::unique_ptr<ASTStatement>> nodes;
+			typedef std::unique_ptr<ASTStatement> Statement;
+			typedef std::vector<Statement> StatementVector;
+			StatementVector nodes;
 
 			ASTBlockStatement() {}
-			explicit ASTBlockStatement(std::unique_ptr<ASTStatement> first)
+			explicit ASTBlockStatement(Statement first)
 			{
 				nodes.push_back(std::move(first));
 			}
-			explicit ASTBlockStatement(std::vector<std::unique_ptr<ASTStatement>> vec)
+			explicit ASTBlockStatement(StatementVector vec)
 				: nodes(std::move(vec)) {}
 		};
 
-		class ASTVariableDefinitionStatement : public ASTStatement
+		class ASTWrappedExpressionStatement : public ASTStatement
 		{
 		public:
-			std::unique_ptr<ASTIdentifierExpression> type, name;
+			std::unique_ptr<ASTExpression> expr;
 
-			ASTVariableDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name)
-				: type(std::move(_type)), name(std::move(_name)) {}
+			explicit ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
 		};
 	}
 }

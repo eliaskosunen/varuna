@@ -46,7 +46,7 @@ namespace core
 
 		class ASTStatement;
 		class ASTBlockStatement;
-		class ASTVariableDefinitionStatement;
+		class ASTVariableDefinitionExpression;
 
 		class ASTIfStatement;
 		class ASTForStatement;

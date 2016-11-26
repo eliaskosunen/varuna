@@ -48,11 +48,11 @@ namespace core
 		class ASTAssignmentOperationExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<Identifier> lval;
+			std::unique_ptr<ASTIdentifierExpression> lval;
 			std::unique_ptr<ASTExpression> rval;
 			core::lexer::TokenType oper;
 
-			ASTAssignmentOperationExpression(std::unique_ptr<Identifier> l, std::unique_ptr<ASTExpression> r, core::lexer::TokenType o)
+			ASTAssignmentOperationExpression(std::unique_ptr<ASTIdentifierExpression> l, std::unique_ptr<ASTExpression> r, core::lexer::TokenType o)
 				: lval(std::move(l)), rval(std::move(r)), oper(o) {}
 		};
 	}

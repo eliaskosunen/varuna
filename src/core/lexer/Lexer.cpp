@@ -499,6 +499,8 @@ namespace core
 			if(buf == "readonly")	return TOKEN_KEYWORD_READONLY;
 			if(buf == "view")		return TOKEN_KEYWORD_VIEW;
 			if(buf == "ref")		return TOKEN_KEYWORD_REF;
+			if(buf == "var")		return TOKEN_KEYWORD_VAR;
+			if(buf == "let")		return TOKEN_KEYWORD_LET;
 
 			// Literals
 			if(buf == "true")		return TOKEN_LITERAL_TRUE;
@@ -513,7 +515,8 @@ namespace core
 			if(buf == "as")			return TOKEN_OPERATORB_AS;
 			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
 			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
-			if(buf == "new")		return TOKEN_OPERATORU_NEW;
+			if(buf == "instanceof")	return TOKEN_OPERATORU_INSTOF;
+			if(buf == "addressof")	return TOKEN_OPERATORU_ADDROF;
 
 			return TOKEN_IDENTIFIER;
 		}

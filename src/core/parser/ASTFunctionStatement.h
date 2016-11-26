@@ -28,7 +28,7 @@ namespace core
 		class ASTFunctionParameter : public ASTStatement
 		{
 		public:
-			std::unique_ptr<ASTVariableDefinitionStatement> var;
+			std::unique_ptr<ASTVariableDefinitionExpression> var;
 			std::unique_ptr<ASTExpression> defaultValue;
 			enum PassType
 			{
@@ -37,7 +37,7 @@ namespace core
 				VIEW = 2
 			} passType;
 
-			explicit ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionStatement> _var, PassType _passType = COPY, std::unique_ptr<ASTExpression> defVal = nullptr)
+			explicit ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionExpression> _var, PassType _passType = COPY, std::unique_ptr<ASTExpression> defVal = nullptr)
 				: var(std::move(_var)), passType(_passType), defaultValue(std::move(defVal)) {}
 		};
 

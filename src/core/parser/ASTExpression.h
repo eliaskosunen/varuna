@@ -41,6 +41,12 @@ namespace core
 			explicit ASTIdentifierExpression(std::string val) : value(std::move(val)) {}
 		};
 
+		class ASTVariableRefExpression : public ASTIdentifierExpression
+		{
+		public:
+			explicit ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(std::move(val)) {}
+		};
+
 		class ASTCallExpression : public ASTExpression
 		{
 		public:
@@ -58,6 +64,30 @@ namespace core
 
 			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
 				: type(std::move(_type)), castee(std::move(_castee)) {}
+		};
+
+		class ASTVariableDefinitionExpression : public ASTExpression
+		{
+		public:
+			std::unique_ptr<ASTIdentifierExpression> typen, name;
+			enum Type
+			{
+				INTEGER,
+				INT8, INT16, INT32, INT64,
+				UINT8, UINT16, UINT32, UINT64,
+
+				FLOAT,
+				F32, F64,
+
+				STRING, CHAR,
+				BOOL, NONE,
+
+				UDEF
+			} type;
+			std::unique_ptr<ASTExpression> init;
+
+			ASTVariableDefinitionExpression(Type t, std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr)
+				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)) {}
 		};
 	}
 }

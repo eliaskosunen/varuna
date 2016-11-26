@@ -31,6 +31,17 @@ namespace core
 			std::unique_ptr<ASTBlockStatement> globalNode;
 
 			AST() : globalNode(std::make_unique<ASTBlockStatement>()) {}
+
+			void pushStatement(std::unique_ptr<ASTStatement> stmt)
+			{
+				globalNode->nodes.push_back(std::move(stmt));
+			}
+
+			void pushExpression(std::unique_ptr<ASTExpression> expr)
+			{
+				auto stmt = std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
+				pushStatement(std::move(stmt));
+			}
 		};
 	}
 }
