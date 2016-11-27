@@ -53,7 +53,10 @@ namespace core
 		class ASTForeachStatement;
 		class ASTWhileStatement;
 		class ASTImportStatement;
+		class ASTModuleStatement;
 
+		class ASTFunctionParameter;
+		class ASTFunctionPrototypeStatement;
 		class ASTFunctionDeclarationStatement;
 		class ASTFunctionDefinitionStatement;
 		class ASTReturnStatement;

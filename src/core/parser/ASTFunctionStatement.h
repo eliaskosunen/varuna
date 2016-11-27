@@ -35,30 +35,36 @@ namespace core
 				REF = 1,
 				VIEW = 2
 			} passType;
-			std::unique_ptr<ASTExpression> defaultValue;
 
-			explicit ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionExpression> _var, PassType _passType = COPY, std::unique_ptr<ASTExpression> defVal = nullptr)
-				: var(std::move(_var)), passType(_passType), defaultValue(std::move(defVal)) {}
+			explicit ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionExpression> _var, PassType _passType = COPY)
+				: var(std::move(_var)), passType(_passType) {}
+		};
+
+		class ASTFunctionPrototypeStatement : public ASTStatement
+		{
+		public:
+			std::unique_ptr<ASTIdentifierExpression> name, returnType;
+			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+
+			ASTFunctionPrototypeStatement(std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTIdentifierExpression> retType, std::vector<std::unique_ptr<ASTFunctionParameter>> _params) : name(std::move(_name)), returnType(std::move(retType)), params(std::move(_params)) {}
+		};
+
+		class ASTFunctionDefinitionStatement : public ASTStatement
+		{
+		public:
+			std::unique_ptr<ASTFunctionPrototypeStatement> proto;
+			std::unique_ptr<ASTBlockStatement> body;
+
+			ASTFunctionDefinitionStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, std::unique_ptr<ASTBlockStatement> _body) : proto(std::move(_proto)), body(std::move(_body)) {}
 		};
 
 		class ASTFunctionDeclarationStatement : public ASTStatement
 		{
 		public:
-			std::unique_ptr<ASTIdentifierExpression> returnType, name;
-			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
-			bool isExtern = false;
+			std::unique_ptr<ASTFunctionPrototypeStatement> proto;
+			bool isExtern;
 
-			ASTFunctionDeclarationStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::vector<std::unique_ptr<ASTFunctionParameter>> p)
-				: returnType(std::move(retType)), name(std::move(n)), params(std::move(p)) {}
-		};
-
-		class ASTFunctionDefinitionStatement : public ASTFunctionDeclarationStatement
-		{
-		public:
-			std::unique_ptr<ASTBlockStatement> block;
-
-			ASTFunctionDefinitionStatement(std::unique_ptr<ASTIdentifierExpression> retType, std::unique_ptr<ASTIdentifierExpression> n, std::unique_ptr<ASTBlockStatement> b, std::vector<std::unique_ptr<ASTFunctionParameter>> p)
-				: ASTFunctionDeclarationStatement(std::move(retType), std::move(n), std::move(p)), block(std::move(b)) {}
+			ASTFunctionDeclarationStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, bool _isExtern = false) : proto(std::move(_proto)), isExtern(_isExtern) {}
 		};
 
 		class ASTReturnStatement : public ASTStatement

@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/AST.h"
-#include "core/parser/ASTControlStatement.h"
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
 #include "util/Compatibility.h"
@@ -139,13 +138,32 @@ namespace core
 
 			std::unique_ptr<ASTStatement> parseStatement();
 			std::unique_ptr<ASTBlockStatement> parseBlockStatement();
+			std::unique_ptr<ASTFunctionPrototypeStatement> parseFuncPrototype();
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 
 			void run();
 
-			AST *getAST() { return ast.get(); }
-			std::unique_ptr<AST> retrieveAST() { return std::move(ast); }
+			AST *getAST()
+			{
+				assert(ast && "Trying to access nullptr AST");
+				return ast.get();
+			}
+			AST &getASTRef()
+			{
+				assert(ast && "Trying to access nullptr AST");
+				return *(ast.get());
+			}
+			const AST &getASTConstRef() const
+			{
+				assert(ast && "Trying to access nullptr AST");
+				return *(ast.get());
+			}
+			std::unique_ptr<AST> retrieveAST()
+			{
+				assert(ast && "Trying to access nullptr AST");
+				return std::move(ast);
+			}
 		};
 	}
 }

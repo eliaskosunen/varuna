@@ -123,7 +123,6 @@ namespace core
 			}
 			++it; // Skip semicolon
 
-			util::logger->trace("Parsed import statement: {}, {}, {}", importType, toImport, isPath);
 			auto toImportObj = std::make_unique<ASTIdentifierExpression>(toImport);
 			auto stmt = std::make_unique<ASTImportStatement>(importType, std::move(toImportObj), isPath);
 			++it;
@@ -774,7 +773,9 @@ namespace core
 		{
 			if(auto import = parseImportStatement())
 			{
-				ast->pushStatement(std::move(import));
+				util::logger->trace("Parsed import statement: importee: '{}', isPath: '{}', type: '{}'",
+					import->importee->value, import->isPath, static_cast<int>(import->importType));
+				getAST()->pushStatement(std::move(import));
 			}
 			else
 			{
@@ -786,7 +787,9 @@ namespace core
 		{
 			if(auto module = parseModuleStatement())
 			{
-				ast->pushStatement(std::move(module));
+				util::logger->trace("Parsed module statement: moduleName: '{}'",
+					module->moduleName->value);
+				getAST()->pushStatement(std::move(module));
 			}
 			else
 			{
@@ -799,10 +802,103 @@ namespace core
 			++it;
 			return nullptr;
 		}
+
 		std::unique_ptr<ASTBlockStatement> Parser::parseBlockStatement()
 		{
 			auto block = std::make_unique<ASTBlockStatement>(parseStatement());
 			return block;
+		}
+
+		std::unique_ptr<ASTFunctionPrototypeStatement> Parser::parseFuncPrototype()
+		{
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function prototype: expected identifier, got '{}' instead", it->value);
+				return nullptr;
+			}
+			auto funcName = std::make_unique<ASTIdentifierExpression>(it->value);
+			++it; // Skip identifier
+
+			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function prototype: expected '(', got '{}' instead", it->value);
+				return nullptr;
+			}
+			++it; // Skip '('
+
+			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+			while(true)
+			{
+				auto type = [this]()
+				{
+					if(it->type == TOKEN_KEYWORD_REF)
+					{
+						++it;
+						return ASTFunctionParameter::REF;
+					}
+					if(it->type == TOKEN_KEYWORD_VIEW)
+					{
+						++it;
+						return ASTFunctionParameter::VIEW;
+					}
+					return ASTFunctionParameter::COPY;
+				}();
+
+				auto var = parseVariableDefinition();
+				if(!var)
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid variable definition in function prototype");
+					return nullptr;
+				}
+
+				auto param = std::make_unique<ASTFunctionParameter>(std::move(var), type);
+				params.push_back(std::move(param));
+
+				if(it->type == TOKEN_EOF)
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid function prototype: expected ')' or ',' in parameter list, got '{}' instead", it->value);
+					return nullptr;
+				}
+				else if(it->type == TOKEN_PUNCT_COMMA)
+				{
+					++it; // Skip ','
+					continue;
+				}
+				else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					++it; // Skip ')'
+					break;
+				}
+				else
+				{
+					// TODO: Handle error
+					util::logger->error("Invalid function prototype: expected ')' or ',' in parameter, got '{}' instead", it->value);
+					return nullptr;
+				}
+			}
+
+			if(it->type != TOKEN_PUNCT_COLON)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function prototype: expected ':' before return type, got '{}' instead", it->value);
+				return nullptr;
+			}
+			++it; // Skip ':'
+
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function prototype: expected identifier in return type, got '{}' instead", it->value);
+				return nullptr;
+			}
+			auto returnType = std::make_unique<ASTIdentifierExpression>(it->value);
+			++it; // Skip identifier
+
+			return std::make_unique<ASTFunctionPrototypeStatement>(std::move(funcName), std::move(returnType), std::move(params));
 		}
 	}
 }
