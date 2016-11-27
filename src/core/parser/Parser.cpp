@@ -57,6 +57,9 @@ namespace core
 				case TOKEN_KEYWORD_MODULE:
 					handleModule();
 					break;
+				case TOKEN_KEYWORD_DEFINE:
+					handleDef();
+					break;
 
 				default:
 					util::logger->error("'{}' is not allowed as a top-level token", it->value);
@@ -464,11 +467,7 @@ namespace core
 			++it; // Skip variable name
 
 			std::unique_ptr<ASTExpression> init = nullptr;
-			if(it->type == TOKEN_PUNCT_SEMICOLON)
-			{
-				++it; // Skip ';'
-			}
-			else if(it->type == TOKEN_OPERATORA_SIMPLE)
+			if(it->type == TOKEN_OPERATORA_SIMPLE)
 			{
 				++it; // Skip '='
 				init = parseExpression();
@@ -478,12 +477,6 @@ namespace core
 					util::logger->error("Invalid variable init expression");
 					return nullptr;
 				}
-			}
-			else
-			{
-				// TODO: Handle error
-				util::logger->error("Invalid variable definition: expected ';' or assignment operator, got '{}' instead", it->value);
-				return nullptr;
 			}
 
 			ASTVariableDefinitionExpression::Type type;
@@ -565,10 +558,11 @@ namespace core
 				return parseForStatement();*/
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
+			default:
+				// TODO: Handle error
+				util::logger->error("Unknown token: '{}'", it->value);
+				return nullptr;
 			}
-			// TODO: Handle error
-			util::logger->error("Unknown token: '{}'", it->value);
-			return nullptr;
 		}
 
 		std::unique_ptr<ASTExpression> Parser::parseUnary()
@@ -696,13 +690,13 @@ namespace core
 			{
 				if(it->modifierFloat.isSet(FLOAT_FLOAT))
 				{
-					auto val = std::stof(it->value);
-					return std::make_unique<ASTFloatLiteralExpression>(static_cast<float>(val), it->modifierFloat);
+					float val = std::stof(it->value);
+					return std::make_unique<ASTFloatLiteralExpression>(val, it->modifierFloat);
 				}
 				else
 				{
-					auto val = std::stod(it->value);
-					return std::make_unique<ASTFloatLiteralExpression>(static_cast<double>(val), it->modifierFloat);
+					double val = std::stod(it->value);
+					return std::make_unique<ASTFloatLiteralExpression>(val, it->modifierFloat);
 				}
 			}
 			catch(std::invalid_argument &e)
@@ -797,6 +791,19 @@ namespace core
 			}
 		}
 
+		void Parser::handleDef()
+		{
+			if(auto def = parseFunctionDefinitionStatement())
+			{
+				util::logger->trace("Parsed function definition: name: '{}', return: '{}', params.size: '{}'", def->proto->name->value, def->proto->returnType->value, def->proto->params.size());
+				getAST()->pushStatement(std::move(def));
+			}
+			else
+			{
+				++it;
+			}
+		}
+
 		std::unique_ptr<ASTStatement> Parser::parseStatement()
 		{
 			++it;
@@ -809,7 +816,7 @@ namespace core
 			return block;
 		}
 
-		std::unique_ptr<ASTFunctionPrototypeStatement> Parser::parseFuncPrototype()
+		std::unique_ptr<ASTFunctionPrototypeStatement> Parser::parseFunctionPrototype()
 		{
 			if(it->type != TOKEN_IDENTIFIER)
 			{
@@ -831,6 +838,12 @@ namespace core
 			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
 			while(true)
 			{
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					++it; // Skip ')'
+					break;
+				}
+
 				auto type = [this]()
 				{
 					if(it->type == TOKEN_KEYWORD_REF)
@@ -899,6 +912,20 @@ namespace core
 			++it; // Skip identifier
 
 			return std::make_unique<ASTFunctionPrototypeStatement>(std::move(funcName), std::move(returnType), std::move(params));
+		}
+
+		std::unique_ptr<ASTFunctionDefinitionStatement> Parser::parseFunctionDefinitionStatement()
+		{
+			++it; // Skip 'def'
+			auto proto = parseFunctionPrototype();
+			if(!proto)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function definition");
+				return nullptr;
+			}
+
+			return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), nullptr);
 		}
 	}
 }

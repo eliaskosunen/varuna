@@ -135,10 +135,12 @@ namespace core
 
 			void handleImport();
 			void handleModule();
+			void handleDef();
 
 			std::unique_ptr<ASTStatement> parseStatement();
 			std::unique_ptr<ASTBlockStatement> parseBlockStatement();
-			std::unique_ptr<ASTFunctionPrototypeStatement> parseFuncPrototype();
+			std::unique_ptr<ASTFunctionPrototypeStatement> parseFunctionPrototype();
+			std::unique_ptr<ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement();
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 
