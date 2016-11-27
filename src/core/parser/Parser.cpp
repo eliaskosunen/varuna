@@ -769,5 +769,40 @@ namespace core
 			}
 			return parseBinaryOperatorRHS(0, std::move(lhs));
 		}
+
+		void Parser::handleImport()
+		{
+			if(auto import = parseImportStatement())
+			{
+				ast->pushStatement(std::move(import));
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		void Parser::handleModule()
+		{
+			if(auto module = parseModuleStatement())
+			{
+				ast->pushStatement(std::move(module));
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		std::unique_ptr<ASTStatement> Parser::parseStatement()
+		{
+			++it;
+			return nullptr;
+		}
+		std::unique_ptr<ASTBlockStatement> Parser::parseBlockStatement()
+		{
+			auto block = std::make_unique<ASTBlockStatement>(parseStatement());
+			return block;
+		}
 	}
 }

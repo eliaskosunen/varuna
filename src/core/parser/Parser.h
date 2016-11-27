@@ -134,40 +134,11 @@ namespace core
 			std::unique_ptr<ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ASTExpression> lhs);
 			std::unique_ptr<ASTExpression> parseExpression();
 
-			void handleImport()
-			{
-				if(auto import = parseImportStatement())
-				{
-					ast->pushStatement(std::move(import));
-				}
-				else
-				{
-					++it;
-				}
-			}
+			void handleImport();
+			void handleModule();
 
-			void handleModule()
-			{
-				if(auto module = parseModuleStatement())
-				{
-					ast->pushStatement(std::move(module));
-				}
-				else
-				{
-					++it;
-				}
-			}
-
-			std::unique_ptr<ASTStatement> parseStatement()
-			{
-				++it;
-				return nullptr;
-			}
-			std::unique_ptr<ASTBlockStatement> parseBlockStatement()
-			{
-				auto block = std::make_unique<ASTBlockStatement>(parseStatement());
-				return block;
-			}
+			std::unique_ptr<ASTStatement> parseStatement();
+			std::unique_ptr<ASTBlockStatement> parseBlockStatement();
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 
