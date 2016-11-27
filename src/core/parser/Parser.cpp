@@ -159,6 +159,33 @@ namespace core
 				--it;
 				return parseVariableDefinition();
 			}
+
+			if(it->type == TOKEN_OPERATORB_MEMBER)
+			{
+				while(true)
+				{
+					if(it->type == TOKEN_EOF)
+					{
+						// TODO: Handle error
+						util::logger->error("Invalid member access operand: '{}'", it->value);
+						return nullptr;
+					}
+					if(it->type != TOKEN_OPERATORB_MEMBER)
+					{
+						break;
+					}
+					idName += it->value;
+					++it; // Skip '.'
+					if(it->type != TOKEN_IDENTIFIER)
+					{
+						// TODO: Handle error
+						util::logger->error("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
+						return nullptr;
+					}
+					idName += it->value;
+					++it; // Skip identifier
+				}
+			}
 			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 			{
 				// Function call
@@ -176,6 +203,7 @@ namespace core
 						{
 							return nullptr;
 						}
+						++it;
 
 						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 						{
@@ -806,13 +834,67 @@ namespace core
 
 		std::unique_ptr<ASTStatement> Parser::parseStatement()
 		{
-			++it;
-			return nullptr;
+			switch(it->type.get())
+			{
+			case TOKEN_KEYWORD_IF:
+				return parseIfStatement();
+			case TOKEN_KEYWORD_FOR:
+				return parseForStatement();
+			case TOKEN_IDENTIFIER:
+			{
+				auto expr = parseIdentifierExpression();
+				if(!expr)
+				{
+					return nullptr;
+				}
+				if(it->type != TOKEN_PUNCT_SEMICOLON)
+				{
+					// TODO: Handle error
+					util::logger->error("Expected semicolon after expression statement, got '{}' instead", it->value);
+					return nullptr;
+				}
+				auto stmt = wrapExpression(std::move(expr));
+				return std::move(stmt);
+			}
+			case TOKEN_PUNCT_BRACE_OPEN:
+				return parseBlockStatement();
+			case TOKEN_PUNCT_SEMICOLON:
+				// TODO: Handle warning
+				util::logger->warn("Empty statement");
+				++it;
+				return emptyStatement();
+			default:
+				// TODO: Handle error
+				util::logger->error("Unknown statement: '{}'", it->value);
+				return nullptr;
+			}
 		}
 
 		std::unique_ptr<ASTBlockStatement> Parser::parseBlockStatement()
 		{
-			auto block = std::make_unique<ASTBlockStatement>(parseStatement());
+			++it; // Skip '{'
+			auto block = std::make_unique<ASTBlockStatement>();
+			while(true)
+			{
+				if(it->type == TOKEN_EOF)
+				{
+					// TODO: Handle error
+					util::logger->error("Unexpected token: '{}'", it->value);
+					return nullptr;
+				}
+				if(it->type == TOKEN_PUNCT_BRACE_CLOSE)
+				{
+					++it; // Skip '}'
+					break;
+				}
+
+				auto stmt = parseStatement();
+				if(!stmt)
+				{
+					return nullptr;
+				}
+				block->nodes.push_back(std::move(stmt));
+			}
 			return block;
 		}
 
@@ -925,7 +1007,19 @@ namespace core
 				return nullptr;
 			}
 
-			return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), nullptr);
+			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
+			{
+				// TODO: Handle error
+				util::logger->error("Invalid function definition: expected '{' to start function body, got '{}' instead", it->value);
+				return nullptr;
+			}
+			if(auto body = parseBlockStatement())
+			{
+				return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), std::move(body));
+			}
+			// TODO: Handle error
+			util::logger->error("Invalid function definition body");
+			return nullptr;
 		}
 	}
 }

@@ -34,6 +34,11 @@ namespace core
 			virtual ~ASTStatement() {}
 		};
 
+		class ASTEmptyStatement : public ASTStatement
+		{
+
+		};
+
 		class ASTBlockStatement : public ASTStatement
 		{
 		public:

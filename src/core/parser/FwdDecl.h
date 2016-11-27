@@ -45,6 +45,7 @@ namespace core
 		class ASTAssignmentOperationExpression;
 
 		class ASTStatement;
+		class ASTEmptyStatement;
 		class ASTBlockStatement;
 		class ASTVariableDefinitionExpression;
 
