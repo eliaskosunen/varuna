@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/AST.h"
+#include "core/parser/DumpASTVisitor.h"
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
 #include "util/Compatibility.h"
@@ -27,12 +28,36 @@ namespace core
 {
 	namespace parser
 	{
+		enum ErrorLevel
+		{
+			ERROR_NONE = 0,
+			ERROR_WARNING,
+			ERROR_ERROR
+		};
+
 		class Parser
 		{
 			std::unique_ptr<AST> ast;
 			const core::lexer::TokenVector &tokens;
 			core::lexer::TokenVector::const_iterator it;
 			const core::lexer::TokenVector::const_iterator endTokens;
+
+			ErrorLevel error;
+
+			template <typename... Args>
+			std::nullptr_t parserError(const std::string &format, const Args& ... args)
+			{
+				error = ERROR_ERROR;
+				util::logger->error("Parser error: {}", fmt::format(format, args...));
+				return nullptr;
+			}
+
+			template <typename... Args>
+			void parserWarning(const std::string &format, const Args& ... args)
+			{
+				if(error != ERROR_ERROR) error = ERROR_WARNING;
+				util::logger->warn("Parser warning: {}", fmt::format(format, args...));
+			}
 
 			std::vector<std::unique_ptr<ASTStatement>> &getGlobalNodeList()
 			{
@@ -136,6 +161,7 @@ namespace core
 			void handleImport();
 			void handleModule();
 			void handleDef();
+			void handleEmptyStatement();
 
 			std::unique_ptr<ASTStatement> parseStatement();
 			std::unique_ptr<ASTBlockStatement> parseBlockStatement();
@@ -151,9 +177,24 @@ namespace core
 
 			void _runParser();
 		public:
-			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
+			bool warningsAsErrors;
+
+			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()), error(ERROR_NONE), warningsAsErrors(false) {}
 
 			void run();
+
+			bool getError() const
+			{
+				if(error == ERROR_NONE) return false;
+				if(warningsAsErrors) return true;
+				if(error == ERROR_ERROR) return true;
+				return false;
+			}
+
+			ErrorLevel getErrorLevel() const
+			{
+				return error;
+			}
 
 			AST *getAST()
 			{

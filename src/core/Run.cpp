@@ -53,6 +53,7 @@ namespace core
 		core::lexer::TokenVector tokens = lexer.run();
 		if(lexer.getError())
 		{
+			util::logger->info("Lexing failed");
 			return 1;
 		}
 		util::logger->debug("Lexing finished");
@@ -64,7 +65,16 @@ namespace core
 		util::logger->debug("Starting parser");
 		core::parser::Parser parser(tokens);
 		parser.run();
+		if(parser.getError())
+		{
+			util::logger->info("Parsing failed");
+			return 1;
+		}
 		util::logger->debug("Finished parsing");
+
+		auto dumpAST = std::make_unique<core::parser::DumpASTVisitor>();
+		dumpAST->start<core::parser::ASTBlockStatement>(parser.getAST()->globalNode.get());
+		dumpAST->finish();
 
 		return 0;
 	}

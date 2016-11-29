@@ -39,7 +39,6 @@ namespace core
 
 			~DumpASTVisitor()
 			{
-				finish();
 				spdlog::drop("DumpAST");
 			}
 

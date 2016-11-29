@@ -32,9 +32,9 @@ namespace core
 
 		enum ErrorLevel
 		{
-			ERROR_NONE = 1,
-			ERROR_WARNING = 2,
-			ERROR_ERROR = 3
+			ERROR_NONE = 0,
+			ERROR_WARNING,
+			ERROR_ERROR
 		};
 
 		class Lexer

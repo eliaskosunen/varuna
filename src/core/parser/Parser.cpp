@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iterator> // For std::next
 #include <limits>
 
+// TODO: Needs cleanups and refactoring
+
 namespace core
 {
 	namespace parser
@@ -38,9 +40,6 @@ namespace core
 		void Parser::run()
 		{
 			_runParser();
-
-			auto dumpAST = std::make_unique<DumpASTVisitor>();
-			dumpAST->start<ASTBlockStatement>(getAST()->globalNode.get());
 		}
 
 		void Parser::_runParser()
@@ -56,8 +55,8 @@ namespace core
 				case TOKEN_EOF:
 					return;
 				case TOKEN_PUNCT_SEMICOLON:
-					util::logger->warn("Empty statement");
-					++it;
+					parserWarning("Empty statement");
+					handleEmptyStatement();
 					break;
 
 				case TOKEN_KEYWORD_IMPORT:
@@ -122,16 +121,12 @@ namespace core
 			}
 			else
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid importee: '{}'", it->value);
-				return nullptr;
+				return parserError("Invalid importee: '{}'", it->value);
 			}
 
 			if(std::next(it)->type != TOKEN_PUNCT_SEMICOLON)
 			{
-				// TODO: Handle error
-				util::logger->error("Expected semicolon after import statement");
-				return nullptr;
+				return parserError("Expected semicolon after import statement");
 			}
 			++it; // Skip semicolon
 
@@ -150,9 +145,7 @@ namespace core
 
 			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 			{
-				// TODO: Handle error
-				util::logger->error("Expected closing parenthesis, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Expected closing parenthesis, got '{}' instead", it->value);
 			}
 			++it; // Skip ')'
 			return v;
@@ -175,9 +168,7 @@ namespace core
 				{
 					if(it->type == TOKEN_EOF)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid member access operand: '{}'", it->value);
-						return nullptr;
+						return parserError("Invalid member access operand: '{}'", it->value);
 					}
 					if(it->type != TOKEN_OPERATORB_MEMBER)
 					{
@@ -187,9 +178,7 @@ namespace core
 					++it; // Skip '.'
 					if(it->type != TOKEN_IDENTIFIER)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
-						return nullptr;
+						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
 					}
 					idName += it->value;
 					++it; // Skip identifier
@@ -220,9 +209,7 @@ namespace core
 
 						if(it->type != TOKEN_PUNCT_COMMA)
 						{
-							// TODO: Handle error
-							util::logger->error("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
-							return nullptr;
+							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
 						}
 						++it;
 					}
@@ -243,9 +230,7 @@ namespace core
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid if statement: Expected '(', got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid if statement: Expected '(', got '{}' instead", it->value);
 			}
 			auto cond = parseParenExpression();
 			if(!cond)
@@ -259,9 +244,7 @@ namespace core
 				auto tmp = parseStatement();
 				if(!tmp)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid if statement then statement");
-					return nullptr;
+					return parserError("Invalid if statement then statement");
 				}
 				then->nodes.push_back(std::move(tmp));
 			}
@@ -270,9 +253,7 @@ namespace core
 				then = parseBlockStatement();
 				if(!then)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid if statement then statement block");
-					return nullptr;
+					return parserError("Invalid if statement then statement block");
 				}
 			}
 
@@ -285,9 +266,7 @@ namespace core
 					auto tmp = parseStatement();
 					if(!tmp)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid if statement else block");
-						return nullptr;
+						return parserError("Invalid if statement else block");
 					}
 					elseBlock->nodes.push_back(std::move(tmp));
 				}
@@ -296,9 +275,7 @@ namespace core
 					elseBlock = parseBlockStatement();
 					if(!elseBlock)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid if statement else block");
-						return nullptr;
+						return parserError("Invalid if statement else block");
 					}
 				}
 			}
@@ -312,9 +289,7 @@ namespace core
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid for statement: expected '(' after 'for', got '{}'", it->value);
-				return nullptr;
+				return parserError("Invalid for statement: expected '(' after 'for', got '{}'", it->value);
 			}
 			++it; // Skip '('
 
@@ -334,24 +309,18 @@ namespace core
 					start = parseVariableDefinition();
 					if(!start)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid start expression in 'for'");
-						return nullptr;
+						return parserError("Invalid start expression in 'for'");
 					}
 
 					if(it->type != TOKEN_PUNCT_SEMICOLON)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid for statement: expected ';' after 'for start', got '{}'", it->value);
-						return nullptr;
+						return parserError("Invalid for statement: expected ';' after 'for start', got '{}'", it->value);
 					}
 					++it; // Skip ';'
 				}
 				else
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid for statement: expected ';' or an identifier in 'for start', got '{}' instead", it->value);
-					return nullptr;
+					return parserError("Invalid for statement: expected ';' or an identifier in 'for start', got '{}' instead", it->value);
 				}
 
 				if(it->type == TOKEN_PUNCT_SEMICOLON)
@@ -363,16 +332,12 @@ namespace core
 					end = parseExpression();
 					if(!end)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid 'for end' expression");
-						return nullptr;
+						return parserError("Invalid 'for end' expression");
 					}
 
 					if(it->type != TOKEN_PUNCT_SEMICOLON)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid for statement: expected ',' after 'for end', got '{}'", it->value);
-						return nullptr;
+						return parserError("Invalid for statement: expected ',' after 'for end', got '{}'", it->value);
 					}
 					++it; // Skip ';'
 				}
@@ -382,16 +347,12 @@ namespace core
 					step = parseExpression();
 					if(!step)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid 'for step' expression");
-						return nullptr;
+						return parserError("Invalid 'for step' expression");
 					}
 
 					if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid for statement: expected ')' after 'for step', got '{}'", it->value);
-						return nullptr;
+						return parserError("Invalid for statement: expected ')' after 'for step', got '{}'", it->value);
 					}
 					++it; // Skip ')'
 				}
@@ -407,9 +368,7 @@ namespace core
 				block = parseBlockStatement();
 				if(!block)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid for statement block");
-					return nullptr;
+					return parserError("Invalid for statement block");
 				}
 			}
 			else
@@ -417,9 +376,7 @@ namespace core
 				auto tmp = parseStatement();
 				if(!tmp)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid for statement");
-					return nullptr;
+					return parserError("Invalid for statement");
 				}
 				block->nodes.push_back(std::move(tmp));
 			}
@@ -433,9 +390,7 @@ namespace core
 
 			if(it->type != TOKEN_IDENTIFIER)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
 			}
 
 			std::string name;
@@ -447,9 +402,7 @@ namespace core
 				}
 				else
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid module statement: expected identifier, got '{}' instead", it->value);
-					return nullptr;
+					return parserError("Invalid module statement: expected identifier, got '{}' instead", it->value);
 				}
 				++it;
 
@@ -458,9 +411,7 @@ namespace core
 					name += it->value;
 					if(std::next(it)->type == TOKEN_EOF || std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
 					{
-						// TODO: Handle error
-						util::logger->error("Invalid module statement: expected identifier after '.', got '{}' instead", it->value);
-						return nullptr;
+						return parserError("Invalid module statement: expected identifier after '.', got '{}' instead", it->value);
 					}
 				}
 				else if(it->type == TOKEN_PUNCT_SEMICOLON)
@@ -470,9 +421,7 @@ namespace core
 				}
 				else
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid module statement: expected '.' or ';', got '{}' instead", it->value);
-					return nullptr;
+					return parserError("Invalid module statement: expected '.' or ';', got '{}' instead", it->value);
 				}
 				++it; // Skip '.'
 			}
@@ -485,9 +434,7 @@ namespace core
 		{
 			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
 			}
 			std::string typen = it->value;
 			bool typeDetermined = it->type == TOKEN_IDENTIFIER;
@@ -495,9 +442,7 @@ namespace core
 
 			if(it->type != TOKEN_IDENTIFIER)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid variable definition: expected identifier, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid variable definition: expected identifier, got '{}' instead", it->value);
 			}
 			std::string name = it->value;
 			++it; // Skip variable name
@@ -509,9 +454,7 @@ namespace core
 				init = parseExpression();
 				if(!init)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid variable init expression");
-					return nullptr;
+					return parserError("Invalid variable init expression");
 				}
 			}
 
@@ -520,16 +463,12 @@ namespace core
 			{
 				if(!init)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid variable definition: init expression is required when using 'var'");
-					return nullptr;
+					return parserError("Invalid variable definition: init expression is required when using 'var'");
 				}
 				else
 				{
 					// TODO: Determine type of var
-					// TODO: Handle error
-					util::logger->error("Unimplemented");
-					return nullptr;
+					return parserError("Unimplemented");
 				}
 			}
 			else
@@ -595,9 +534,7 @@ namespace core
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
 			default:
-				// TODO: Handle error
-				util::logger->error("Unknown token: '{}'", it->value);
-				return nullptr;
+				return parserError("Unknown token: '{}'", it->value);
 			}
 		}
 
@@ -711,15 +648,11 @@ namespace core
 			}
 			catch(std::invalid_argument &e)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid integer literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
-				return nullptr;
+				return parserError("Invalid integer literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
 			}
 			catch(std::out_of_range &e)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid integer literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
-				return nullptr;
+				return parserError("Invalid integer literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
 			return nullptr;
 		}
@@ -743,15 +676,11 @@ namespace core
 			}
 			catch(std::invalid_argument &e)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid float literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
-				return nullptr;
+				return parserError("Invalid float literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
 			}
 			catch(std::out_of_range &e)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid float literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
-				return nullptr;
+				return parserError("Invalid float literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
 			return nullptr;
 		}
@@ -780,9 +709,7 @@ namespace core
 			}
 			catch(std::out_of_range &e)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid char literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
-				return nullptr;
+				return parserError("Invalid char literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
 			return nullptr;
 		}
@@ -853,6 +780,19 @@ namespace core
 			}
 		}
 
+		void Parser::handleEmptyStatement()
+		{
+			if(auto stmt = emptyStatement())
+			{
+				util::logger->trace("Parsed empty statement");
+				getAST()->pushStatement(std::move(stmt));
+			}
+			else
+			{
+				++it;
+			}
+		}
+
 		std::unique_ptr<ASTStatement> Parser::parseStatement()
 		{
 			switch(it->type.get())
@@ -879,13 +819,11 @@ namespace core
 				return parseBlockStatement();
 			case TOKEN_PUNCT_SEMICOLON:
 				// TODO: Handle warning
-				util::logger->warn("Empty statement");
+				parserWarning("Empty statement");
 				++it;
 				return emptyStatement();
 			default:
-				// TODO: Handle error
-				util::logger->error("Unknown statement: '{}'", it->value);
-				return nullptr;
+				return parserError("Unknown statement: '{}'", it->value);
 			}
 		}
 
@@ -897,9 +835,7 @@ namespace core
 			{
 				if(it->type == TOKEN_EOF)
 				{
-					// TODO: Handle error
-					util::logger->error("Unexpected token: '{}'", it->value);
-					return nullptr;
+					return parserError("Unexpected token: '{}'", it->value);
 				}
 				if(it->type == TOKEN_PUNCT_BRACE_CLOSE)
 				{
@@ -921,18 +857,14 @@ namespace core
 		{
 			if(it->type != TOKEN_IDENTIFIER)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function prototype: expected identifier, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid function prototype: expected identifier, got '{}' instead", it->value);
 			}
 			auto funcName = std::make_unique<ASTIdentifierExpression>(it->value);
 			++it; // Skip identifier
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function prototype: expected '(', got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid function prototype: expected '(', got '{}' instead", it->value);
 			}
 			++it; // Skip '('
 
@@ -963,9 +895,7 @@ namespace core
 				auto var = parseVariableDefinition();
 				if(!var)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid variable definition in function prototype");
-					return nullptr;
+					return parserError("Invalid variable definition in function prototype");
 				}
 
 				auto param = std::make_unique<ASTFunctionParameter>(std::move(var), type);
@@ -973,9 +903,7 @@ namespace core
 
 				if(it->type == TOKEN_EOF)
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid function prototype: expected ')' or ',' in parameter list, got '{}' instead", it->value);
-					return nullptr;
+					return parserError("Invalid function prototype: expected ')' or ',' in parameter list, got '{}' instead", it->value);
 				}
 				else if(it->type == TOKEN_PUNCT_COMMA)
 				{
@@ -989,25 +917,19 @@ namespace core
 				}
 				else
 				{
-					// TODO: Handle error
-					util::logger->error("Invalid function prototype: expected ')' or ',' in parameter, got '{}' instead", it->value);
-					return nullptr;
+					return parserError("Invalid function prototype: expected ')' or ',' in parameter, got '{}' instead", it->value);
 				}
 			}
 
 			if(it->type != TOKEN_PUNCT_COLON)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function prototype: expected ':' before return type, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid function prototype: expected ':' before return type, got '{}' instead", it->value);
 			}
 			++it; // Skip ':'
 
 			if(it->type != TOKEN_IDENTIFIER)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function prototype: expected identifier in return type, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid function prototype: expected identifier in return type, got '{}' instead", it->value);
 			}
 			auto returnType = std::make_unique<ASTIdentifierExpression>(it->value);
 			++it; // Skip identifier
@@ -1021,33 +943,25 @@ namespace core
 			auto proto = parseFunctionPrototype();
 			if(!proto)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function definition");
-				return nullptr;
+				return parserError("Invalid function definition");
 			}
 
 			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
 			{
-				// TODO: Handle error
-				util::logger->error("Invalid function definition: expected '{' to start function body, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Invalid function definition: expected '{' to start function body, got '{}' instead", it->value);
 			}
 			if(auto body = parseBlockStatement())
 			{
 				return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), std::move(body));
 			}
-			// TODO: Handle error
-			util::logger->error("Invalid function definition body");
-			return nullptr;
+			return parserError("Invalid function definition body");
 		}
 
 		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)
 		{
 			if(it->type != TOKEN_PUNCT_SEMICOLON)
 			{
-				// TODO: Handle error
-				util::logger->error("Expected semicolon after expression statement, got '{}' instead", it->value);
-				return nullptr;
+				return parserError("Expected semicolon after expression statement, got '{}' instead", it->value);
 			}
 			++it;
 			return std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
