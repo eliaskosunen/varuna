@@ -37,15 +37,17 @@ namespace core
 
 			core::lexer::TokenIntegerLiteralModifier mod;
 
-			explicit ASTIntegerLiteralExpression(core::lexer::TokenIntegerLiteralModifier _mod = core::lexer::INTEGER_INTEGER) : value(0), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(int8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(int16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(int32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(uint8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(uint16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(uint32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTIntegerLiteralExpression(uint64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(core::lexer::TokenIntegerLiteralModifier _mod = core::lexer::INTEGER_INTEGER) : value(0), mod(_mod) {}
+			ASTIntegerLiteralExpression(int8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(int16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(int32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(uint8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(uint16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(uint32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(uint64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
@@ -55,9 +57,11 @@ namespace core
 
 			core::lexer::TokenFloatLiteralModifier mod;
 
-			explicit ASTFloatLiteralExpression(core::lexer::TokenFloatLiteralModifier _mod = core::lexer::FLOAT_FLOAT) : value(0.0), mod(_mod) {}
-			explicit ASTFloatLiteralExpression(float val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
-			explicit ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTFloatLiteralExpression(core::lexer::TokenFloatLiteralModifier _mod = core::lexer::FLOAT_FLOAT) : value(0.0), mod(_mod) {}
+			ASTFloatLiteralExpression(float val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
@@ -65,7 +69,9 @@ namespace core
 		public:
 			const std::string &value;
 
-			explicit ASTStringLiteralExpression(const std::string &val) : value(val) {}
+			ASTStringLiteralExpression(const std::string &val) : value(val) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
@@ -73,7 +79,9 @@ namespace core
 		public:
 			char32_t value;
 
-			explicit ASTCharLiteralExpression(char32_t val) : value(val) {}
+			ASTCharLiteralExpression(char32_t val) : value(val) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
@@ -81,13 +89,17 @@ namespace core
 		public:
 			bool value;
 
-			explicit ASTBoolLiteralExpression(bool val) : value(val) {}
+			ASTBoolLiteralExpression(bool val) : value(val) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
 		{
 		public:
 			ASTNoneLiteralExpression() {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 	}
 }

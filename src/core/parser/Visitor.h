@@ -26,7 +26,7 @@ namespace core
 		class Visitor
 		{
 		public:
-			//virtual void visit();
+			virtual ~Visitor() {}
 		};
 	}
 }

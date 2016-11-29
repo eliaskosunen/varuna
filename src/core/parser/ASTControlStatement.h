@@ -33,6 +33,8 @@ namespace core
 
 			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> ifb, std::unique_ptr<ASTBlockStatement> elseb = nullptr)
 				: condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTForStatement : public ASTStatement
@@ -41,8 +43,10 @@ namespace core
 			std::unique_ptr<ASTExpression> init, rangeDecl, rangeInit;
 			std::unique_ptr<ASTBlockStatement> block;
 
-			explicit ASTForStatement(std::unique_ptr<ASTBlockStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
+			ASTForStatement(std::unique_ptr<ASTBlockStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
 				: init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTForeachStatement : public ASTStatement
@@ -53,6 +57,8 @@ namespace core
 
 			ASTForeachStatement(std::unique_ptr<ASTExpression> _iteratee, std::unique_ptr<ASTExpression> _iterator, std::unique_ptr<ASTBlockStatement> _block)
 				: iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTWhileStatement : public ASTStatement
@@ -61,8 +67,10 @@ namespace core
 			std::unique_ptr<ASTExpression> condition;
 			std::unique_ptr<ASTBlockStatement> block;
 
-			explicit ASTWhileStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> _block = nullptr)
+			ASTWhileStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> _block)
 				: condition(std::move(cond)), block(std::move(_block)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTImportStatement : public ASTStatement
@@ -80,6 +88,8 @@ namespace core
 
 			ASTImportStatement(ImportType type, std::unique_ptr<ASTIdentifierExpression> toImport, bool _isPath = false)
 				: importee(std::move(toImport)), isPath(_isPath), importType(type) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTModuleStatement : public ASTStatement
@@ -87,8 +97,10 @@ namespace core
 		public:
 			std::unique_ptr<ASTIdentifierExpression> moduleName;
 
-			explicit ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
+			ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
 				: moduleName(std::move(name)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 	}
 }

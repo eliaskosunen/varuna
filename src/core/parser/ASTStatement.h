@@ -31,12 +31,15 @@ namespace core
 		class ASTStatement : public ASTNode
 		{
 		public:
+			void accept(DumpASTVisitor *v, size_t ind = 0);
+
 			virtual ~ASTStatement() {}
 		};
 
 		class ASTEmptyStatement : public ASTStatement
 		{
-
+		public:
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -47,12 +50,14 @@ namespace core
 			StatementVector nodes;
 
 			ASTBlockStatement() {}
-			explicit ASTBlockStatement(Statement first)
+			ASTBlockStatement(Statement first)
 			{
 				nodes.push_back(std::move(first));
 			}
-			explicit ASTBlockStatement(StatementVector vec)
+			ASTBlockStatement(StatementVector vec)
 				: nodes(std::move(vec)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -60,7 +65,9 @@ namespace core
 		public:
 			std::unique_ptr<ASTExpression> expr;
 
-			explicit ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
+			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 	}
 }

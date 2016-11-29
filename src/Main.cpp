@@ -22,9 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <stdexcept>
+#include <cstdlib>
 
 #include "app/CommandLine.h"
 #include "util/Logger.h"
+
+static void cleanup()
+{
+	util::dropLogger();
+}
 
 /**
  * The entry point of the application
@@ -36,7 +42,15 @@ int main(int argc, char **argv)
 {
 	try
 	{
+		const int atexitResult = std::atexit(cleanup);
+		if(atexitResult != 0)
+		{
+			std::cerr << "Failed to register cleanup function\n";
+			return -1;
+		}
+
 		util::initLogger();
+
 		app::CommandLine cl(argc, argv);
 		return cl.run();
 	}

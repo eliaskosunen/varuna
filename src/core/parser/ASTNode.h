@@ -26,7 +26,7 @@ namespace core
 		class ASTNode
 		{
 		public:
-			virtual void accept(Visitor &v) {}
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
 			virtual ~ASTNode() {}
 		};

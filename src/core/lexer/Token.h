@@ -182,6 +182,12 @@ namespace core
 
 			std::string typeToString() const;
 
+			static std::string typeToString(TokenType t)
+			{
+				Token tok(t, "");
+				return tok.typeToString();
+			}
+
 			static Token create(TokenType t, const std::string &val, unsigned int l = 0, const std::string &f = "(undefined)")
 			{
 				Token tok(t, val);

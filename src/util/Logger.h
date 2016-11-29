@@ -36,4 +36,6 @@ namespace util
 	 * Set logger styles
 	 */
 	void initLogger();
+
+	void dropLogger();
 }

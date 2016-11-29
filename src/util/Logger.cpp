@@ -42,5 +42,13 @@ namespace util
 		spdlog::set_pattern("varuna [%n] [%l]: %v");
 		logger->set_pattern("varuna [%l]: %v");
 		loggerBasic->set_pattern("%v");
+
+		logger->flush_on(spdlog::level::err);
+		loggerBasic->flush_on(spdlog::level::err);
+	}
+
+	void dropLogger()
+	{
+		spdlog::drop_all();
 	}
 }

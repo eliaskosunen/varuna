@@ -33,6 +33,8 @@ namespace core
 
 			ASTBinaryOperationExpression(std::unique_ptr<ASTExpression> l, std::unique_ptr<ASTExpression> r, core::lexer::TokenType o)
 				: left(std::move(l)), right(std::move(r)), oper(o) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTUnaryOperationExpression : public ASTExpression
@@ -43,6 +45,8 @@ namespace core
 
 			ASTUnaryOperationExpression(std::unique_ptr<ASTExpression> _operand, core::lexer::TokenType o)
 				: operand(std::move(_operand)), oper(o) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTAssignmentOperationExpression : public ASTExpression
@@ -54,6 +58,8 @@ namespace core
 
 			ASTAssignmentOperationExpression(std::unique_ptr<ASTIdentifierExpression> l, std::unique_ptr<ASTExpression> r, core::lexer::TokenType o)
 				: lval(std::move(l)), rval(std::move(r)), oper(o) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 	}
 }

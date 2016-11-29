@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
+#include <iostream>
 
 namespace core
 {
@@ -63,7 +64,16 @@ namespace core
 		class ASTReturnStatement;
 
 		class Visitor;
+		class DumpASTVisitor;
+
+		class ASTVariableRefExpression;
+		class ASTWrappedExpressionStatement;
 
 		class Parser;
+
+		inline std::ostream &indent(std::ostream &out, size_t size)
+		{
+			return out << std::string(size, '\t');
+		}
 	}
 }

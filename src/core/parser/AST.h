@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/FwdDecl.h"
 #include "core/parser/ASTStatement.h"
+#include "core/parser/Visitor.h"
 #include "util/Compatibility.h"
 
 namespace core

@@ -30,6 +30,9 @@ namespace core
 		class ASTExpression : public ASTNode
 		{
 		public:
+			void accept(DumpASTVisitor *v, size_t ind = 0);
+
+			ASTExpression() {}
 			virtual ~ASTExpression() {}
 		};
 
@@ -38,13 +41,19 @@ namespace core
 		public:
 			std::string value;
 
-			explicit ASTIdentifierExpression(std::string val) : value(std::move(val)) {}
+			ASTIdentifierExpression(std::string val) : value(std::move(val)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
+
+			virtual ~ASTIdentifierExpression() {}
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
 		{
 		public:
-			explicit ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(std::move(val)) {}
+			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(std::move(val)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -53,8 +62,10 @@ namespace core
 			std::unique_ptr<ASTExpression> callee;
 			std::vector<std::unique_ptr<ASTExpression>> params;
 
-			explicit ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
+			ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
 				: callee(std::move(_callee)), params(std::move(_params)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTCastExpression : public ASTExpression
@@ -64,6 +75,8 @@ namespace core
 
 			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
 				: type(std::move(_type)), castee(std::move(_castee)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTVariableDefinitionExpression : public ASTExpression
@@ -88,6 +101,8 @@ namespace core
 
 			ASTVariableDefinitionExpression(Type t, std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr)
 				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 	}
 }

@@ -142,14 +142,14 @@ namespace core
 			std::unique_ptr<ASTFunctionPrototypeStatement> parseFunctionPrototype();
 			std::unique_ptr<ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement();
 
-			std::unique_ptr<ASTWrappedExpressionStatement> wrapExpression(std::unique_ptr<ASTExpression> expr)
-			{
-				return std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
-			}
+			std::unique_ptr<ASTWrappedExpressionStatement> wrapExpression(std::unique_ptr<ASTExpression> expr);
 			std::unique_ptr<ASTEmptyStatement> emptyStatement()
 			{
+				++it;
 				return std::make_unique<ASTEmptyStatement>();
 			}
+
+			void _runParser();
 		public:
 			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()) {}
 

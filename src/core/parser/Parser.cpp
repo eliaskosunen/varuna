@@ -17,11 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/parser/Parser.h"
 #include "core/parser/FwdDecl.h"
-#include "core/lexer/Token.h"
 #include "core/parser/ASTFunctionStatement.h"
 #include "core/parser/ASTControlStatement.h"
 #include "core/parser/ASTOperatorExpression.h"
 #include "core/parser/ASTLiteralExpression.h"
+#include "core/parser/DumpASTVisitor.h"
+#include "core/lexer/Token.h"
 #include "util/Compatibility.h"
 #include "util/StringUtils.h"
 
@@ -35,6 +36,14 @@ namespace core
 		using namespace core::lexer;
 
 		void Parser::run()
+		{
+			_runParser();
+
+			auto dumpAST = std::make_unique<DumpASTVisitor>();
+			dumpAST->start<ASTBlockStatement>(getAST()->globalNode.get());
+		}
+
+		void Parser::_runParser()
 		{
 			while(true)
 			{
@@ -203,7 +212,6 @@ namespace core
 						{
 							return nullptr;
 						}
-						++it;
 
 						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 						{
@@ -651,92 +659,98 @@ namespace core
 				return 10;
 			}();
 
+			const TokenVector::const_iterator lit = it;
+			++it;
+
 			try
 			{
-				if(it->modifierInt.isSet(INTEGER_UNSIGNED))
+				if(lit->modifierInt.isSet(INTEGER_UNSIGNED))
 				{
-					if(it->modifierInt.isSet(INTEGER_SHORT))
+					if(lit->modifierInt.isSet(INTEGER_SHORT))
 					{
-						auto val = std::stoul(it->value, 0, base);
+						auto val = std::stoul(lit->value, 0, base);
 						if(val > std::numeric_limits<uint16_t>::max())
 						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into UInt16", it->value));
+							throw std::out_of_range(fmt::format("'{}' cannot fit into UInt16", lit->value));
 						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint16_t>(val), it->modifierInt);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint16_t>(val), lit->modifierInt);
 					}
-					else if(it->modifierInt.isSet(INTEGER_LONG))
+					else if(lit->modifierInt.isSet(INTEGER_LONG))
 					{
-						auto val = std::stoull(it->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint64_t>(val), it->modifierInt);
+						auto val = std::stoull(lit->value, 0, base);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint64_t>(val), lit->modifierInt);
 					}
 					else
 					{
-						auto val = std::stoul(it->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint32_t>(val), it->modifierInt);
+						auto val = std::stoul(lit->value, 0, base);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint32_t>(val), lit->modifierInt);
 					}
 				}
 				else
 				{
-					if(it->modifierInt.isSet(INTEGER_SHORT))
+					if(lit->modifierInt.isSet(INTEGER_SHORT))
 					{
-						auto val = std::stol(it->value, 0, base);
+						auto val = std::stol(lit->value, 0, base);
 						if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
 						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", it->value));
+							throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
 						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int16_t>(val), it->modifierInt);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int16_t>(val), lit->modifierInt);
 					}
-					else if(it->modifierInt.isSet(INTEGER_LONG))
+					else if(lit->modifierInt.isSet(INTEGER_LONG))
 					{
-						auto val = std::stoll(it->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int64_t>(val), it->modifierInt);
+						auto val = std::stoll(lit->value, 0, base);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int64_t>(val), lit->modifierInt);
 					}
 					else
 					{
 						auto val = std::stol(it->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int32_t>(val), it->modifierInt);
+						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int32_t>(val), lit->modifierInt);
 					}
 				}
 			}
 			catch(std::invalid_argument &e)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid integer literal: literal is ill-formed: '{}'. Description: '{}'", it->value, e.what());
+				util::logger->error("Invalid integer literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
 				return nullptr;
 			}
 			catch(std::out_of_range &e)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid integer literal: value out of range: '{}'. Description: '{}'", it->value, e.what());
+				util::logger->error("Invalid integer literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 				return nullptr;
 			}
 			return nullptr;
 		}
 		std::unique_ptr<ASTFloatLiteralExpression> Parser::parseFloatLiteralExpression()
 		{
+			const TokenVector::const_iterator lit = it;
+			++it;
+
 			try
 			{
-				if(it->modifierFloat.isSet(FLOAT_FLOAT))
+				if(lit->modifierFloat.isSet(FLOAT_FLOAT))
 				{
-					float val = std::stof(it->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, it->modifierFloat);
+					float val = std::stof(lit->value);
+					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
 				}
 				else
 				{
-					double val = std::stod(it->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, it->modifierFloat);
+					double val = std::stod(lit->value);
+					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
 				}
 			}
 			catch(std::invalid_argument &e)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid float literal: literal is ill-formed: '{}'. Description: '{}'", it->value, e.what());
+				util::logger->error("Invalid float literal: literal is ill-formed: '{}'. Description: '{}'", lit->value, e.what());
 				return nullptr;
 			}
 			catch(std::out_of_range &e)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid float literal: value out of range: '{}'. Description: '{}'", it->value, e.what());
+				util::logger->error("Invalid float literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 				return nullptr;
 			}
 			return nullptr;
@@ -745,39 +759,46 @@ namespace core
 
 		std::unique_ptr<ASTStringLiteralExpression> Parser::parseStringLiteralExpression()
 		{
-			return std::make_unique<ASTStringLiteralExpression>(it->value);
+			const TokenVector::const_iterator lit = it;
+			++it;
+
+			return std::make_unique<ASTStringLiteralExpression>(lit->value);
 		}
 		std::unique_ptr<ASTCharLiteralExpression> Parser::parseCharLiteralExpression()
 		{
+			const TokenVector::const_iterator lit = it;
+			++it;
+
 			try
 			{
-				auto val = std::stol(it->value);
+				if(lit->value.length() > 1)
+				{
+					throw std::out_of_range("Char literal length more than 1");
+				}
+				auto val = lit->value.at(0);
 				return std::make_unique<ASTCharLiteralExpression>(static_cast<char32_t>(val));
-			}
-			catch(std::invalid_argument &e)
-			{
-				// TODO: Handle error
-				util::logger->error("Invalid char literal: literal is ill-formed: '{}'. Description: '{}'", it->value, e.what());
-				return nullptr;
 			}
 			catch(std::out_of_range &e)
 			{
 				// TODO: Handle error
-				util::logger->error("Invalid char literal: value out of range: '{}'. Description: '{}'", it->value, e.what());
+				util::logger->error("Invalid char literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 				return nullptr;
 			}
 			return nullptr;
 		}
 		std::unique_ptr<ASTBoolLiteralExpression> Parser::parseTrueLiteralExpression()
 		{
+			++it;
 			return std::make_unique<ASTBoolLiteralExpression>(true);
 		}
 		std::unique_ptr<ASTBoolLiteralExpression> Parser::parseFalseLiteralExpression()
 		{
+			++it;
 			return std::make_unique<ASTBoolLiteralExpression>(false);
 		}
 		std::unique_ptr<ASTNoneLiteralExpression> Parser::parseNoneLiteralExpression()
 		{
+			++it;
 			return std::make_unique<ASTNoneLiteralExpression>();
 		}
 
@@ -847,13 +868,11 @@ namespace core
 				{
 					return nullptr;
 				}
-				if(it->type != TOKEN_PUNCT_SEMICOLON)
+				auto stmt = wrapExpression(std::move(expr));
+				if(!stmt)
 				{
-					// TODO: Handle error
-					util::logger->error("Expected semicolon after expression statement, got '{}' instead", it->value);
 					return nullptr;
 				}
-				auto stmt = wrapExpression(std::move(expr));
 				return std::move(stmt);
 			}
 			case TOKEN_PUNCT_BRACE_OPEN:
@@ -1020,6 +1039,18 @@ namespace core
 			// TODO: Handle error
 			util::logger->error("Invalid function definition body");
 			return nullptr;
+		}
+
+		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)
+		{
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				// TODO: Handle error
+				util::logger->error("Expected semicolon after expression statement, got '{}' instead", it->value);
+				return nullptr;
+			}
+			++it;
+			return std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
 		}
 	}
 }
