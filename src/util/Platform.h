@@ -22,15 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP_STD_11		201103L
 #define CPP_STD_14		201402L
 
-#if CPP_STD_VERSION < CPP_STD_11
-	#error C++ Standard version not supported
-#endif
-
 #define CPP_STD_IS11	(CPP_STD_VERSION <  CPP_STD_14)
 #define CPP_STD_IS14	(CPP_STD_VERSION >= CPP_STD_14)
 
 #if !CPP_STD_IS11 && !CPP_STD_14
 	#error Error determining C++ Standard version
+#endif
+
+#if CPP_STD_IS11
+	#error C++ Standard version not supported
 #endif
 
 #define VALUE_TO_STRING(x) #x
