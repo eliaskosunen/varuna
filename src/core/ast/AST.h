@@ -15,21 +15,41 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "core/parser/SyntaxTree.h"
+#pragma once
 
-#include <memory>
-
-#include "core/parser/StatementBase.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTStatement.h"
+#include "core/ast/Visitor.h"
 #include "util/Compatibility.h"
+
+#include <algorithm>
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
-		SyntaxTree::SyntaxTree()
-			: tree(util::make_unique<StatementBlock>())
+		class AST
 		{
+		public:
+			std::unique_ptr<ASTBlockStatement> globalNode;
 
-		}
+			AST() : globalNode(std::make_unique<ASTBlockStatement>()) {}
+
+			void pushStatement(std::unique_ptr<ASTStatement> stmt)
+			{
+				globalNode->nodes.push_back(std::move(stmt));
+			}
+
+			void pushExpression(std::unique_ptr<ASTExpression> expr)
+			{
+				auto stmt = std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
+				pushStatement(std::move(stmt));
+			}
+
+			int countTopLevelNodes()
+			{
+				return globalNode->nodes.size();
+			}
+		};
 	}
 }

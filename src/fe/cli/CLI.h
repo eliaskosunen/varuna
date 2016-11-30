@@ -15,38 +15,27 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "core/parser/StatementBase.h"
+#pragma once
 
-#include <vector>
-#include <memory>
+#include "tclap.h"
 
-#include "core/parser/TreeNode.h"
-#include "core/parser/Visitor.h"
-
-namespace core
+namespace fe
 {
-	namespace parser
+	namespace cli
 	{
-		Statement::Statement()
-			: TreeNode()
+		class CLI
 		{
+			const int argc;
+			char **argv;
+			TCLAP::CmdLine cmd;
 
-		}
+			void showLicense() const;
 
-		void Statement::accept(core::parser::Visitor &v)
-		{
-			v.visit(this);
-		}
+		public:
+			CLI(int argc_, char **argv_)
+				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "Pre-Alpha") {}
 
-		StatementBlock::StatementBlock()
-			: Statement()
-		{
-
-		}
-
-		void StatementBlock::accept(core::parser::Visitor &v)
-		{
-			v.visit(this);
-		}
+			int run();
+		};
 	}
 }

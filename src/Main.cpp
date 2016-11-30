@@ -22,9 +22,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <stdexcept>
+#include <cstdlib>
 
-#include "app/CommandLine.h"
+#include "fe/cli/CLI.h"
 #include "util/Logger.h"
+
+static void cleanup()
+{
+	util::dropLogger();
+}
+
+static void logException(const std::exception *e)
+{
+	std::string what = [e]()
+	{
+		if(!e)	return "[NULL]";
+		return e->what();
+	}();
+
+	if(util::logger)
+	{
+		util::logger->critical("Main has caught an exception: {}", what);
+		return;
+	}
+	if(util::loggerBasic)
+	{
+		util::loggerBasic->critical("Main has caught an exception: {}", what);
+		return;
+	}
+	std::cerr << "Main has caught an exception: " << what << "\n";
+}
 
 /**
  * The entry point of the application
@@ -36,17 +63,29 @@ int main(int argc, char **argv)
 {
 	try
 	{
+		const int atexitResult = std::atexit(cleanup);
+		if(atexitResult != 0)
+		{
+			std::cerr << "Failed to register cleanup function\n";
+			return -1;
+		}
+
 		util::initLogger();
-		app::CommandLine cl(argc, argv);
-		return cl.run();
+
+		fe::cli::CLI commandLineInterface(argc, argv);
+		return commandLineInterface.run();
 	}
 	catch(const spdlog::spdlog_ex &e)
 	{
-		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
+		std::cerr << "Main has caught an exception: Logging failed: " << e.what() << "\n";
 	}
 	catch(const std::exception &e)
 	{
-		std::cerr << "EXCEPTION: " << e.what() << "\n";
+		logException(&e);
+	}
+	catch(...)
+	{
+		logException(nullptr);
 	}
 	return 1;
 }

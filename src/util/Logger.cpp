@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
-	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_st("console_color");
-	std::shared_ptr<spdlog::logger> loggerBasic = spdlog::stdout_logger_st("console_nocolor");
+	std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("console_color");
+	std::shared_ptr<spdlog::logger> loggerBasic = spdlog::stdout_logger_mt("console_nocolor");
 
 	void initLogger()
 	{
@@ -42,5 +42,13 @@ namespace util
 		spdlog::set_pattern("varuna [%n] [%l]: %v");
 		logger->set_pattern("varuna [%l]: %v");
 		loggerBasic->set_pattern("%v");
+
+		logger->flush_on(spdlog::level::err);
+		loggerBasic->flush_on(spdlog::level::err);
+	}
+
+	void dropLogger()
+	{
+		spdlog::drop_all();
 	}
 }

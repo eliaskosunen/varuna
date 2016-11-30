@@ -31,7 +31,7 @@ TEST_CASE("Test lexer")
 		SUBCASE("Whitespace skipping")
 		{
 			code = " \n\t\v";
-			Lexer l(code);
+			Lexer l(code, TEST_FILE);
 			v = l.run();
 			CHECK(v.size() == 1);
 			REQUIRE(!l.getError());
@@ -47,7 +47,7 @@ TEST_CASE("Test lexer")
 		SUBCASE("Integer literals")
 		{
 			code = "123 9999999ul 8s 5u 10l 1001b 60o 0xff 0xdeadul";
-			Lexer l(code);
+			Lexer l(code, TEST_FILE);
 			v = l.run();
 			CHECK(v.size() == 10);
 			REQUIRE(!l.getError());
@@ -94,7 +94,7 @@ TEST_CASE("Test lexer")
 		SUBCASE("Float literals")
 		{
 			code = "3.1415926535 12.34f 39.99d";
-			Lexer l(code);
+			Lexer l(code, TEST_FILE);
 			v = l.run();
 			CHECK(v.size() == 4);
 			REQUIRE(!l.getError());
@@ -118,7 +118,7 @@ TEST_CASE("Test lexer")
 		SUBCASE("String literals")
 		{
 			code = "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
-			Lexer l(code);
+			Lexer l(code, TEST_FILE);
 			v = l.run();
 			CHECK(v.size() == 4);
 			REQUIRE(!l.getError());
@@ -137,7 +137,7 @@ TEST_CASE("Test lexer")
 	SUBCASE("Identifiers")
 	{
 		code = "io.stdout.writeln(\"Hello World\")";
-		Lexer l(code);
+		Lexer l(code, TEST_FILE);
 		v = l.run();
 		CHECK(v.size() == 9);
 		REQUIRE(!l.getError());
@@ -161,48 +161,109 @@ TEST_CASE("Test lexer")
 
 	SUBCASE("Import")
 	{
-		code = "import io;";
-		Lexer l(code);
-		v = l.run();
-		CHECK(v.size() == 4);
-		REQUIRE(!l.getError());
+		SUBCASE("Default import")
+		{
+			code = "import io;";
+			Lexer l(code, TEST_FILE);
+			v = l.run();
+			CHECK(v.size() == 4);
+			REQUIRE(!l.getError());
 
-		REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
 
-		REQUIRE(v[1].type == TOKEN_IDENTIFIER);
-		REQUIRE(v[1].value == "io");
+			REQUIRE(v[1].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[1].value == "io");
 
-		REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
+			REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Module import")
+		{
+			code = "import module mymodule;";
+			Lexer l(code, TEST_FILE);
+			v = l.run();
+			CHECK(v.size() == 5);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+
+			REQUIRE(v[2].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[2].value == "mymodule");
+
+			REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Package import")
+		{
+			code = "import package cstd.io;";
+			Lexer l(code, TEST_FILE);
+			v = l.run();
+			CHECK(v.size() == 7);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_PACKAGE);
+
+			REQUIRE(v[2].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[2].value == "cstd");
+			REQUIRE(v[3].type == TOKEN_OPERATORB_MEMBER);
+			REQUIRE(v[4].type == TOKEN_IDENTIFIER);
+			REQUIRE(v[4].value == "io");
+
+			REQUIRE(v[5].type == TOKEN_PUNCT_SEMICOLON);
+		}
+
+		SUBCASE("Path import")
+		{
+			code = "import module \"path/to/module\";";
+			Lexer l(code, TEST_FILE);
+			v = l.run();
+			CHECK(v.size() == 5);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+			REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+
+			REQUIRE(v[2].type == TOKEN_LITERAL_STRING);
+			REQUIRE(v[2].value == "path/to/module");
+
+			REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+		}
 	}
 	SUBCASE("Main function definition")
 	{
-		code = "function main(List of String): Void {}";
-		Lexer l(code);
+		code = "def main(List<String>): Void {}";
+		Lexer l(code, TEST_FILE);
 		v = l.run();
-		CHECK(v.size() == 12);
+		CHECK(v.size() == 13);
 		REQUIRE(!l.getError());
 
-		REQUIRE(v[0].type == TOKEN_KEYWORD_FUNCTION);
+		REQUIRE(v[0].type == TOKEN_KEYWORD_DEFINE);
 
 		REQUIRE(v[1].type == TOKEN_IDENTIFIER);
 		REQUIRE(v[1].value == "main");
 
 		REQUIRE(v[2].type == TOKEN_PUNCT_PAREN_OPEN);
-		REQUIRE(v[3].type == TOKEN_DATATYPE_LIST);
-		REQUIRE(v[4].type == TOKEN_OPERATORB_OF);
-		REQUIRE(v[5].type == TOKEN_DATATYPE_STRING);
-		REQUIRE(v[6].type == TOKEN_PUNCT_PAREN_CLOSE);
+		REQUIRE(v[3].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[3].value == "List");
+		REQUIRE(v[4].type == TOKEN_OPERATORB_LESS);
+		REQUIRE(v[5].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[5].value == "String");
+		REQUIRE(v[6].type == TOKEN_OPERATORB_GREATER);
+		REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
 
-		REQUIRE(v[7].type == TOKEN_PUNCT_COLON);
-		REQUIRE(v[8].type == TOKEN_DATATYPE_VOID);
+		REQUIRE(v[8].type == TOKEN_PUNCT_COLON);
+		REQUIRE(v[9].type == TOKEN_IDENTIFIER);
+		REQUIRE(v[9].value == "Void");
 
-		REQUIRE(v[9].type == TOKEN_PUNCT_BRACE_OPEN);
-		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_CLOSE);
+		REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_OPEN);
+		REQUIRE(v[11].type == TOKEN_PUNCT_BRACE_CLOSE);
 	}
 	SUBCASE("If-else")
 	{
 		code = "if(foo == 123) bar = true; else bar = false;";
-		Lexer l(code);
+		Lexer l(code, TEST_FILE);
 		v = l.run();
 		CHECK(v.size() == 16);
 		REQUIRE(!l.getError());

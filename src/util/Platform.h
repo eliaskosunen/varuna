@@ -17,15 +17,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
+#define CPP_STD_VERSION	__cplusplus
+#define CPP_STD_98		199711L
+#define CPP_STD_11		201103L
+#define CPP_STD_14		201402L
 
-namespace core
-{
-	/**
-	 * Run the application.
-	 * Run prerocessor, lexer and parser
-	 * @param  filename File to process
-	 * @return          0 on success, other on failure
-	 */
-	int run(const std::string &filename);
-}
+#if defined(_MSC_VER)
+
+	#if _MSC_VER >= 1900
+		#define CPP_STD_IS_11 0
+		#define CPP_STD_IS_14 1
+	#else
+		#define CPP_STD_IS_11 1
+		#define CPP_STD_IS_14 0
+	#endif
+
+#else
+
+	#define CPP_STD_IS11	(CPP_STD_VERSION <  CPP_STD_14)
+	#define CPP_STD_IS14	(CPP_STD_VERSION >= CPP_STD_14)
+
+	#if !CPP_STD_IS11 && !CPP_STD_14
+		#error Error determining C++ Standard version
+	#endif
+
+#endif // defined(_MSC_VER)
+
+#if CPP_STD_IS11
+	#error C++ Standard version not supported
+#endif
+
+#define VALUE_TO_STRING(x) #x
+#define VALUE(x) VALUE_TO_STRING(x)

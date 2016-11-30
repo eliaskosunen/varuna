@@ -29,11 +29,9 @@ namespace core
 {
 	namespace lexer
 	{
-		Token Lexer::getNextToken(std::string::const_iterator &it)
+		Token Lexer::getNextToken()
 		{
-			const std::string::const_iterator end = content.end();
 			char_t currentChar = *it;
-
 			util::loggerBasic->trace("");
 
 			if(it == end)
@@ -42,19 +40,13 @@ namespace core
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
-			util::logger->trace("Getting next token. Current character: '{}', on line {}", currentChar, currentLine);
+			util::logger->trace("Getting next token. Current character: '{}', on {}", std::to_string(currentChar), currentLocation.toString());
 
 			// Skip any whitespace
 			while(util::StringUtils::isCharWhitespace(currentChar))
 			{
-				// Increase currentLine if current character is a newline character
-				if(currentChar == '\n')
-				{
-					++currentLine;
-				}
-
 				util::logger->trace("Skipping whitespace");
-				currentChar = *(++it);
+				currentChar = *advance();
 
 				if(it == end)
 				{
@@ -70,7 +62,7 @@ namespace core
 					<< "', dec: " << util::StringUtils::charToString(currentChar)
 					<< " hex: " << fmt::hex(currentChar);
 				lexerWarning("Unrecognized character: {}", out.str());
-				++it;
+				advance();
 				return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 			}
 
@@ -81,7 +73,7 @@ namespace core
 				std::string buf;
 				buf.reserve(8);
 				buf.push_back(currentChar);
-				while(util::StringUtils::isCharAlnum(*(++it)) || *it == '_')
+				while(util::StringUtils::isCharAlnum(*advance()) || *it == '_')
 				{
 					buf.push_back(*it);
 				}
@@ -112,7 +104,7 @@ namespace core
 				do
 				{
 					buf.push_back(currentChar);
-					currentChar = *(++it);
+					currentChar = *advance();
 					if(currentChar == '.')
 					{
 						isFloatingPoint = true;
@@ -146,7 +138,7 @@ namespace core
 						default:
 							lexerError("Invalid integer literal suffix: '{}'", currentChar);
 						}
-						currentChar = *(++it);
+						currentChar = *advance();
 					}
 					if(isHex)
 					{
@@ -170,7 +162,7 @@ namespace core
 						default:
 							lexerError("Invalid float literal suffix: '{}'", currentChar);
 						}
-						currentChar = *(++it);
+						currentChar = *advance();
 					}
 					if(isHex)
 					{
@@ -184,7 +176,7 @@ namespace core
 			// ".+"
 			if(currentChar == '"')
 			{
-				std::string buf = lexStringLiteral(it, end);
+				std::string buf = lexStringLiteral();
 				if(!getError())
 				{
 					util::logger->trace("String literal: '{}'", buf);
@@ -198,7 +190,7 @@ namespace core
 			// '.'
 			if(currentChar == '\'')
 			{
-				std::string buf = lexStringLiteral(it, end, true);
+				std::string buf = lexStringLiteral(true);
 				if(!getError())
 				{
 					util::logger->trace("Character literal: '{}'", buf);
@@ -223,7 +215,7 @@ namespace core
 						}
 					}
 					buf.push_back(currentChar);
-					currentChar = *(++it);
+					currentChar = *advance();
 				}
 				Token t = getTokenFromOperator(buf);
 				if(t.type == TOKEN_UNDEFINED)
@@ -239,7 +231,7 @@ namespace core
 				<< "', dec: " << util::StringUtils::charToString(currentChar)
 				<< " hex: " << fmt::hex(currentChar);
 			lexerWarning("Unrecognized token: {}", out.str());
-			++it;
+			advance();
 			return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 		}
 
@@ -248,11 +240,9 @@ namespace core
 			// Initialize variables
 			TokenVector tokens;
 
-			std::string::const_iterator strpointer = content.begin();
-
 			while(true)
 			{
-				Token t = getNextToken(strpointer);
+				Token t = getNextToken();
 				if(getError())
 				{
 					break;
@@ -270,11 +260,17 @@ namespace core
 			{
 				lexerError("Empty token list");
 			}
-			if(tokens.size() == 1 && tokens[0].type == core::lexer::TOKEN_EOF)
+			if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
 			{
 				lexerWarning("Empty translation unit");
 			}
+			if(tokens.back().type != TOKEN_EOF)
+			{
+				lexerError("No EOF token found");
+			}
+			#if 0
 			syntaxCheck(tokens);
+			#endif
 			return tokens;
 		}
 
@@ -304,17 +300,17 @@ namespace core
 			}
 		}
 
-		std::string Lexer::lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar)
+		std::string Lexer::lexStringLiteral(bool isChar)
 		{
 			std::string buf;
 			buf.reserve(isChar ? 2 : 8);
 			const char_t quote = (isChar ? '\'' : '"');
-			while((++it) != end)
+			while(advance() != end)
 			{
 				char_t currentChar = *it;
-				char_t prev = *(it - 1);
-				char_t next = *(it + 1);
-				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
+				char_t prev = *peekPrevious();
+				char_t next = *peekNext();
+				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", std::to_string(currentChar), prev, next);
 
 				// Current char is a newline
 				// String doesn't end, terminate
@@ -326,7 +322,7 @@ namespace core
 				// Current char is a quotation mark
 				if(currentChar == quote)
 				{
-					if(prev == '\\' && *(it - 2) != '\\')
+					if(prev == '\\' && *peekPassed(2) != '\\')
 					{
 						// Remove the backslash
 						buf.pop_back();
@@ -452,21 +448,21 @@ namespace core
 			{
 				lexerError("Invalid character literal: Length more than 1: '{}'", escaped);
 			}
-			++it;
+			advance();
 			return escaped;
 		}
 
 		Token Lexer::createToken(TokenType type, const std::string &val) const
 		{
-			return Token::create(type, val, currentLine, filename);
+			return Token::create(type, val, currentLocation);
 		}
 
 		TokenType Lexer::getTokenTypeFromWord(const std::string &buf) const
 		{
 			// Keywords
 			if(buf == "import")		return TOKEN_KEYWORD_IMPORT;
-			if(buf == "function")	return TOKEN_KEYWORD_FUNCTION;
-			if(buf == "declare")	return TOKEN_KEYWORD_DECLARE;
+			if(buf == "def")		return TOKEN_KEYWORD_DEFINE;
+			if(buf == "decl")		return TOKEN_KEYWORD_DECLARE;
 			if(buf == "class")		return TOKEN_KEYWORD_CLASS;
 			if(buf == "override")	return TOKEN_KEYWORD_OVERRIDE;
 			if(buf == "final")		return TOKEN_KEYWORD_FINAL;
@@ -487,30 +483,14 @@ namespace core
 			if(buf == "break")		return TOKEN_KEYWORD_BREAK;
 			if(buf == "return")		return TOKEN_KEYWORD_RETURN;
 			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
-
-			// Datatypes
-			if(buf == "None")		return TOKEN_DATATYPE_NONE;
-			if(buf == "Void")		return TOKEN_DATATYPE_VOID;
-			if(buf == "Integer")	return TOKEN_DATATYPE_INTEGER;
-			if(buf == "Float")		return TOKEN_DATATYPE_FLOAT;
-			if(buf == "Double")		return TOKEN_DATATYPE_DOUBLE;
-			if(buf == "Decimal")	return TOKEN_DATATYPE_DECIMAL;
-			if(buf == "String")		return TOKEN_DATATYPE_STRING;
-			if(buf == "Char")		return TOKEN_DATATYPE_CHAR;
-			if(buf == "UInteger")	return TOKEN_DATATYPE_UINTEGER;
-			if(buf == "BigInteger")	return TOKEN_DATATYPE_BIGINTEGER;
-			if(buf == "Bool")		return TOKEN_DATATYPE_BOOL;
-			if(buf == "Int8")		return TOKEN_DATATYPE_INT8;
-			if(buf == "Int16")		return TOKEN_DATATYPE_INT16;
-			if(buf == "Int32")		return TOKEN_DATATYPE_INT32;
-			if(buf == "Int64")		return TOKEN_DATATYPE_INT64;
-			if(buf == "UInt8")		return TOKEN_DATATYPE_UINT8;
-			if(buf == "UInt16")		return TOKEN_DATATYPE_UINT16;
-			if(buf == "UInt32")		return TOKEN_DATATYPE_UINT32;
-			if(buf == "UInt64")		return TOKEN_DATATYPE_UINT64;
-			if(buf == "List")		return TOKEN_DATATYPE_LIST;
-			if(buf == "Dict")		return TOKEN_DATATYPE_DICT;
-			if(buf == "Array")		return TOKEN_DATATYPE_ARRAY;
+			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
+			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
+			if(buf == "extern")		return TOKEN_KEYWORD_EXTERN;
+			if(buf == "readonly")	return TOKEN_KEYWORD_READONLY;
+			if(buf == "view")		return TOKEN_KEYWORD_VIEW;
+			if(buf == "ref")		return TOKEN_KEYWORD_REF;
+			if(buf == "var")		return TOKEN_KEYWORD_VAR;
+			if(buf == "let")		return TOKEN_KEYWORD_LET;
 
 			// Literals
 			if(buf == "true")		return TOKEN_LITERAL_TRUE;
@@ -525,7 +505,8 @@ namespace core
 			if(buf == "as")			return TOKEN_OPERATORB_AS;
 			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
 			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
-			if(buf == "new")		return TOKEN_OPERATORU_NEW;
+			if(buf == "instanceof")	return TOKEN_OPERATORU_INSTOF;
+			if(buf == "addressof")	return TOKEN_OPERATORU_ADDROF;
 
 			return TOKEN_IDENTIFIER;
 		}

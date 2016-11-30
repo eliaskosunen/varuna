@@ -15,19 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "fe/api/API.h"
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/TreeNode.h"
-
-namespace core
-{
-	namespace parser
-	{
-		class Expression: public TreeNode
-		{
-		public:
-			void accept(Visitor &v) override;
-		};
-	}
-}
+util::FileCache fe::api::fileCache;

@@ -28,21 +28,24 @@ namespace core
 	namespace lexer
 	{
 		typedef std::vector<core::lexer::Token> TokenVector;
-		typedef int char_t;
+		typedef char char_t;
 
 		enum ErrorLevel
 		{
-			ERROR_NONE = 1,
-			ERROR_WARNING = 2,
-			ERROR_ERROR = 3
+			ERROR_NONE = 0,
+			ERROR_WARNING,
+			ERROR_ERROR
 		};
 
 		class Lexer
 		{
 			const std::string &content;
-			const std::string &filename;
+			typedef std::string::const_iterator ContentIterator;
+			ContentIterator it;
+			const ContentIterator end;
 
-			unsigned int currentLine;
+			SourceLocation currentLocation;
+			uint64_t lastLineLen;
 
 			ErrorLevel error;
 
@@ -50,9 +53,9 @@ namespace core
 			Token getTokenFromWord(const std::string &buf) const;
 			Token createToken(TokenType type, const std::string &val) const;
 
-			Token getNextToken(std::string::const_iterator &it);
+			Token getNextToken();
 
-			std::string lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar = false);
+			std::string lexStringLiteral(bool isChar = false);
 
 			TokenType getTokenTypeFromOperator(const std::string &buf) const;
 			Token getTokenFromOperator(const std::string &buf) const;
@@ -61,21 +64,84 @@ namespace core
 			void lexerError(const std::string &format, const Args& ... args)
 			{
 				error = ERROR_ERROR;
-				util::logger->error("Lexer error: On file {}, line {}: {}", filename, currentLine, fmt::format(format, args...));
+				util::logger->error("{}: Lexer error: {}", currentLocation.toString(), fmt::format(format, args...));
 			}
 
 			template <typename... Args>
 			void lexerWarning(const std::string &format, const Args& ... args)
 			{
 				if(error != ERROR_ERROR) error = ERROR_WARNING;
-				util::logger->warn("Lexer warning: On file {}, line {}: {}", filename, currentLine, fmt::format(format, args...));
+				util::logger->warn("{}: Lexer warning: {}", currentLocation.toString(), fmt::format(format, args...));
 			}
 
 			void syntaxCheck(const TokenVector &tokens);
+
+			void newline()
+			{
+				lastLineLen = currentLocation.column;
+				currentLocation.line++;
+				currentLocation.column = 1;
+			}
+			ContentIterator peekUpcoming(std::ptrdiff_t i) const
+			{
+				return (it + i);
+			}
+			ContentIterator peekNext() const
+			{
+				return peekUpcoming(1);
+			}
+			ContentIterator &advance()
+			{
+				++it;
+
+				bool newLine = false;
+				if(it != content.end())
+				{
+					if(*it == '\r')
+					{
+						newLine = true;
+						// Skip '\r' if next is '\n'
+						if(*peekNext() != '\n')
+						{
+							++it;
+						}
+					}
+					if(*it == '\n')
+					{
+						newLine = true;
+					}
+				}
+
+				if(newLine)
+				{
+					newline();
+				}
+				else
+				{
+					currentLocation.column++;
+				}
+
+				return it;
+			}
+
+			void prevline()
+			{
+				currentLocation.line--;
+				currentLocation.column = lastLineLen;
+				lastLineLen = 0;
+			}
+			ContentIterator peekPassed(std::ptrdiff_t i) const
+			{
+				return (it - i);
+			}
+			ContentIterator peekPrevious() const
+			{
+				return peekPassed(1);
+			}
 		public:
 			bool warningsAsErrors;
 
-			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), filename(file), currentLine(1), error(ERROR_NONE), warningsAsErrors(false) {}
+			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), it(content.begin()), end(content.end()), currentLocation(file, 1, 1), lastLineLen(0), error(ERROR_NONE), warningsAsErrors(false) {}
 
 			TokenVector run();
 

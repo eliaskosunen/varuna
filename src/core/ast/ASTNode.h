@@ -17,19 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
+#include "core/ast/FwdDecl.h"
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
-		class Visitor
+		class ASTNode
 		{
 		public:
-			Visitor() {}
-			virtual ~Visitor() {}
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
-			virtual void visit(TreeNode*) {}
+			virtual ~ASTNode() {}
 		};
 	}
 }

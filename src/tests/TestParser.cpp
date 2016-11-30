@@ -15,22 +15,40 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "doctest.h"
 
-#include "core/parser/FwdDecl.h"
+#include "core/parser/Parser.h"
+#include "core/lexer/Lexer.h"
+#include "util/Logger.h"
 
-namespace core
+static core::lexer::TokenVector runLexer(const std::string &code)
 {
-	namespace parser
+	using namespace core::lexer;
+
+	Lexer l(code, TEST_FILE);
+	return l.run();
+}
+
+static core::parser::Parser parse(const std::string &code)
+{
+	using namespace core::parser;
+
+	Parser p(runLexer(code));
+	p.run();
+	return p;
+}
+
+TEST_CASE("Test parser")
+{
+	using namespace core::parser;
+
+	SUBCASE("General")
 	{
-		class TreeNode
-		{
-		public:
-			virtual void accept(Visitor &v) = 0;
+		auto p = parse("");
+		auto ast = p.retrieveAST();
+		auto root = ast->globalNode.get();
 
-			virtual ~TreeNode() {}
-
-			int _dummy;
-		};
+		CHECK(root->nodes.size() == 0);
+		REQUIRE(!p.getError());
 	}
 }
