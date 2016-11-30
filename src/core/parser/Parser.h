@@ -63,77 +63,7 @@ namespace core
 				return ast->globalNode->nodes;
 			}
 
-			int getTokenPrecedence() const
-			{
-				using namespace core::lexer;
-				return ([this]() -> int
-				{
-					switch(it->type.get())
-					{
-					case TOKEN_OPERATORA_SIMPLE:
-					case TOKEN_OPERATORA_ADD:
-					case TOKEN_OPERATORA_SUB:
-					case TOKEN_OPERATORA_MUL:
-					case TOKEN_OPERATORA_DIV:
-					case TOKEN_OPERATORA_MOD:
-					case TOKEN_OPERATORA_BITAND:
-					case TOKEN_OPERATORA_BITOR:
-					case TOKEN_OPERATORA_BITXOR:
-					case TOKEN_OPERATORA_SHIFTL:
-					case TOKEN_OPERATORA_SHIFTR:
-						return 10;
-
-					case TOKEN_OPERATORB_OR:
-						return 20;
-					case TOKEN_OPERATORB_AND:
-						return 30;
-					case TOKEN_OPERATORB_BITOR:
-						return 40;
-					case TOKEN_OPERATORB_BITXOR:
-						return 50;
-					case TOKEN_OPERATORB_BITAND:
-						return 60;
-
-					case TOKEN_OPERATORB_EQ:
-					case TOKEN_OPERATORB_NOTEQ:
-						return 70;
-					case TOKEN_OPERATORB_GREATER:
-					case TOKEN_OPERATORB_GREATEQ:
-					case TOKEN_OPERATORB_LESS:
-					case TOKEN_OPERATORB_LESSEQ:
-						return 80;
-
-					case TOKEN_OPERATORB_SHIFTL:
-					case TOKEN_OPERATORB_SHIFTR:
-						return 90;
-					case TOKEN_OPERATORB_ADD:
-					case TOKEN_OPERATORB_SUB:
-						return 100;
-					case TOKEN_OPERATORB_MUL:
-					case TOKEN_OPERATORB_DIV:
-					case TOKEN_OPERATORB_MOD:
-						return 110;
-
-					case TOKEN_OPERATORU_NOT:
-					case TOKEN_OPERATORU_BITNOT:
-					case TOKEN_OPERATORU_PLUS:
-					case TOKEN_OPERATORU_MINUS:
-					case TOKEN_OPERATORU_SIZEOF:
-					case TOKEN_OPERATORU_TYPEOF:
-					case TOKEN_OPERATORU_INSTOF:
-					case TOKEN_OPERATORU_ADDROF:
-					case TOKEN_OPERATORU_DEC:
-					case TOKEN_OPERATORU_INC:
-						return 120;
-
-					case TOKEN_OPERATORB_MEMBER:
-						return 130;
-
-					default:
-						return -1;
-					}
-				})();
-			}
+			int getTokenPrecedence() const;
 
 			std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
 			std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
@@ -197,22 +127,22 @@ namespace core
 
 			ast::AST *getAST()
 			{
-				assert(ast && "Trying to access nullptr ast::AST");
+				assert(ast && "Trying to access nullptr AST");
 				return ast.get();
 			}
 			ast::AST &getASTRef()
 			{
-				assert(ast && "Trying to access nullptr ast::AST");
+				assert(ast && "Trying to access nullptr AST");
 				return *(ast.get());
 			}
 			const ast::AST &getASTConstRef() const
 			{
-				assert(ast && "Trying to access nullptr ast::AST");
+				assert(ast && "Trying to access nullptr AST");
 				return *(ast.get());
 			}
 			std::unique_ptr<ast::AST> retrieveAST()
 			{
-				assert(ast && "Trying to access nullptr ast::AST");
+				assert(ast && "Trying to access nullptr AST");
 				return std::move(ast);
 			}
 		};
