@@ -17,63 +17,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
-#include <iostream>
+#include <cstddef>
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class AST;
 
 		class ASTNode;
 
 		class ASTExpression;
+		class ASTAssignmentOperationExpression;
+		class ASTBinaryOperationExpression;
+		class ASTBoolLiteralExpression;
 		class ASTCallExpression;
 		class ASTCastExpression;
-		class ASTIdentifierExpression;
-
-		class ASTLiteralExpression;
-		class ASTIntegerLiteralExpression;
-		class ASTFloatLiteralExpression;
-		class ASTStringLiteralExpression;
 		class ASTCharLiteralExpression;
-		class ASTBoolLiteralExpression;
+		class ASTFloatLiteralExpression;
+		class ASTIdentifierExpression;
+		class ASTVariableRefExpression;
+		class ASTIntegerLiteralExpression;
 		class ASTNoneLiteralExpression;
-
-		class ASTBinaryOperationExpression;
+		class ASTStringLiteralExpression;
 		class ASTUnaryOperationExpression;
-		class ASTAssignmentOperationExpression;
-
-		class ASTStatement;
-		class ASTEmptyStatement;
-		class ASTBlockStatement;
 		class ASTVariableDefinitionExpression;
 
-		class ASTIfStatement;
-		class ASTForStatement;
+		class ASTStatement;
+		class ASTBlockStatement;
+		class ASTEmptyStatement;
 		class ASTForeachStatement;
-		class ASTWhileStatement;
-		class ASTImportStatement;
-		class ASTModuleStatement;
-
-		class ASTFunctionParameter;
-		class ASTFunctionPrototypeStatement;
+		class ASTForStatement;
 		class ASTFunctionDeclarationStatement;
 		class ASTFunctionDefinitionStatement;
+		class ASTFunctionParameter;
+		class ASTFunctionPrototypeStatement;
+		class ASTIfStatement;
+		class ASTImportStatement;
+		class ASTModuleStatement;
 		class ASTReturnStatement;
+		class ASTWhileStatement;
+		class ASTWrappedExpressionStatement;
 
 		class Visitor;
 		class DumpASTVisitor;
-
-		class ASTVariableRefExpression;
-		class ASTWrappedExpressionStatement;
-
-		class Parser;
-
-		inline std::ostream &indent(std::ostream &out, size_t size)
-		{
-			return out << std::string(size, '\t');
-		}
 	}
 }

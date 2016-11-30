@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTExpression.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTExpression.h"
 
 #include "core/lexer/Token.h"
 #include "util/SafeEnum.h"
@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class ASTIntegerLiteralExpression : public ASTExpression
 		{

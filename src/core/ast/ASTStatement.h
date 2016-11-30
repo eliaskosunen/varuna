@@ -17,21 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTNode.h"
-#include "core/parser/ASTExpression.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/ASTExpression.h"
 
 #include <vector>
 #include <memory>
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class ASTStatement : public ASTNode
 		{
 		public:
-			void accept(DumpASTVisitor *v, size_t ind = 0);
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
 			virtual ~ASTStatement() {}
 		};

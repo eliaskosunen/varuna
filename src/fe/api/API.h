@@ -74,7 +74,7 @@ namespace fe
 			return t;
 		}
 
-		inline std::unique_ptr<core::parser::AST> parse(core::lexer::TokenVector *tokens)
+		inline std::unique_ptr<core::ast::AST> parse(core::lexer::TokenVector *tokens)
 		{
 			core::parser::Parser p(*tokens);
 			p.run();
@@ -111,8 +111,8 @@ namespace fe
 			}
 			util::logger->debug("Parsing finished\n");
 
-			auto dumpAST = std::make_unique<core::parser::DumpASTVisitor>();
-			dumpAST->start<core::parser::ASTBlockStatement>(ast->globalNode.get());
+			auto dumpAST = std::make_unique<core::ast::DumpASTVisitor>();
+			dumpAST->start<core::ast::ASTBlockStatement>(ast->globalNode.get());
 			dumpAST->finish();
 			return true;
 		}

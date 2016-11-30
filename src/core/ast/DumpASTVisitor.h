@@ -17,14 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/Visitor.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/Visitor.h"
 
 #include "util/Logger.h"
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class DumpASTVisitor : public Visitor
 		{

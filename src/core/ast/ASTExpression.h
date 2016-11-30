@@ -17,20 +17,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTNode.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTNode.h"
 
 #include <memory>
 #include <vector>
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class ASTExpression : public ASTNode
 		{
 		public:
-			void accept(DumpASTVisitor *v, size_t ind = 0);
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
 			ASTExpression() {}
 			virtual ~ASTExpression() {}
@@ -43,7 +43,7 @@ namespace core
 
 			ASTIdentifierExpression(std::string val) : value(std::move(val)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
 			virtual ~ASTIdentifierExpression() {}
 		};

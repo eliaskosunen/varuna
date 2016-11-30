@@ -15,23 +15,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTNode.h"
-#include "core/parser/Visitor.h"
-#include "core/parser/DumpASTVisitor.h"
-#include "core/parser/AST.h"
-#include "core/parser/ASTControlStatement.h"
-#include "core/parser/ASTExpression.h"
-#include "core/parser/ASTFunctionStatement.h"
-#include "core/parser/ASTLiteralExpression.h"
-#include "core/parser/ASTOperatorExpression.h"
-#include "core/parser/ASTStatement.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/Visitor.h"
+#include "core/ast/DumpASTVisitor.h"
+#include "core/ast/AST.h"
+#include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTExpression.h"
+#include "core/ast/ASTFunctionStatement.h"
+#include "core/ast/ASTLiteralExpression.h"
+#include "core/ast/ASTOperatorExpression.h"
+#include "core/ast/ASTStatement.h"
 
 #include "util/Logger.h"
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		void ASTNode::accept(DumpASTVisitor *v, size_t ind)
 		{

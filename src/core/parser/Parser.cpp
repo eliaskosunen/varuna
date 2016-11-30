@@ -16,12 +16,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/parser/Parser.h"
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTFunctionStatement.h"
-#include "core/parser/ASTControlStatement.h"
-#include "core/parser/ASTOperatorExpression.h"
-#include "core/parser/ASTLiteralExpression.h"
-#include "core/parser/DumpASTVisitor.h"
+#include "core/ast/ASTFunctionStatement.h"
+#include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTOperatorExpression.h"
+#include "core/ast/ASTLiteralExpression.h"
+#include "core/ast/DumpASTVisitor.h"
 #include "core/lexer/Token.h"
 #include "util/Compatibility.h"
 #include "util/StringUtils.h"
@@ -36,6 +35,7 @@ namespace core
 	namespace parser
 	{
 		using namespace core::lexer;
+		using namespace core::ast;
 
 		void Parser::run()
 		{

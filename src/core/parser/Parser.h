@@ -17,9 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/AST.h"
-#include "core/parser/DumpASTVisitor.h"
+#include "core/ast/AST.h"
+#include "core/ast/DumpASTVisitor.h"
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
 #include "util/Compatibility.h"
@@ -37,7 +36,7 @@ namespace core
 
 		class Parser
 		{
-			std::unique_ptr<AST> ast;
+			std::unique_ptr<ast::AST> ast;
 			const core::lexer::TokenVector &tokens;
 			core::lexer::TokenVector::const_iterator it;
 			const core::lexer::TokenVector::const_iterator endTokens;
@@ -59,7 +58,7 @@ namespace core
 				util::logger->warn("Parser warning: {}", fmt::format(format, args...));
 			}
 
-			std::vector<std::unique_ptr<ASTStatement>> &getGlobalNodeList()
+			std::vector<std::unique_ptr<ast::ASTStatement>> &getGlobalNodeList()
 			{
 				return ast->globalNode->nodes;
 			}
@@ -136,50 +135,50 @@ namespace core
 				})();
 			}
 
-			std::unique_ptr<ASTImportStatement> parseImportStatement();
-			std::unique_ptr<ASTIfStatement> parseIfStatement();
-			std::unique_ptr<ASTForStatement> parseForStatement();
-			std::unique_ptr<ASTVariableDefinitionExpression> parseVariableDefinition();
-			std::unique_ptr<ASTModuleStatement> parseModuleStatement();
+			std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
+			std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
+			std::unique_ptr<ast::ASTForStatement> parseForStatement();
+			std::unique_ptr<ast::ASTVariableDefinitionExpression> parseVariableDefinition();
+			std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
 
-			std::unique_ptr<ASTExpression> parseUnary();
+			std::unique_ptr<ast::ASTExpression> parseUnary();
 
-			std::unique_ptr<ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
-			std::unique_ptr<ASTFloatLiteralExpression> parseFloatLiteralExpression();
-			std::unique_ptr<ASTStringLiteralExpression> parseStringLiteralExpression();
-			std::unique_ptr<ASTCharLiteralExpression> parseCharLiteralExpression();
-			std::unique_ptr<ASTBoolLiteralExpression> parseTrueLiteralExpression();
-			std::unique_ptr<ASTBoolLiteralExpression> parseFalseLiteralExpression();
-			std::unique_ptr<ASTNoneLiteralExpression> parseNoneLiteralExpression();
+			std::unique_ptr<ast::ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
+			std::unique_ptr<ast::ASTFloatLiteralExpression> parseFloatLiteralExpression();
+			std::unique_ptr<ast::ASTStringLiteralExpression> parseStringLiteralExpression();
+			std::unique_ptr<ast::ASTCharLiteralExpression> parseCharLiteralExpression();
+			std::unique_ptr<ast::ASTBoolLiteralExpression> parseTrueLiteralExpression();
+			std::unique_ptr<ast::ASTBoolLiteralExpression> parseFalseLiteralExpression();
+			std::unique_ptr<ast::ASTNoneLiteralExpression> parseNoneLiteralExpression();
 
-			std::unique_ptr<ASTExpression> parseParenExpression();
-			std::unique_ptr<ASTExpression> parseIdentifierExpression();
-			std::unique_ptr<ASTExpression> parsePrimary();
-			std::unique_ptr<ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ASTExpression> lhs);
-			std::unique_ptr<ASTExpression> parseExpression();
+			std::unique_ptr<ast::ASTExpression> parseParenExpression();
+			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
+			std::unique_ptr<ast::ASTExpression> parsePrimary();
+			std::unique_ptr<ast::ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ast::ASTExpression> lhs);
+			std::unique_ptr<ast::ASTExpression> parseExpression();
 
 			void handleImport();
 			void handleModule();
 			void handleDef();
 			void handleEmptyStatement();
 
-			std::unique_ptr<ASTStatement> parseStatement();
-			std::unique_ptr<ASTBlockStatement> parseBlockStatement();
-			std::unique_ptr<ASTFunctionPrototypeStatement> parseFunctionPrototype();
-			std::unique_ptr<ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement();
+			std::unique_ptr<ast::ASTStatement> parseStatement();
+			std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();
+			std::unique_ptr<ast::ASTFunctionPrototypeStatement> parseFunctionPrototype();
+			std::unique_ptr<ast::ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement();
 
-			std::unique_ptr<ASTWrappedExpressionStatement> wrapExpression(std::unique_ptr<ASTExpression> expr);
-			std::unique_ptr<ASTEmptyStatement> emptyStatement()
+			std::unique_ptr<ast::ASTWrappedExpressionStatement> wrapExpression(std::unique_ptr<ast::ASTExpression> expr);
+			std::unique_ptr<ast::ASTEmptyStatement> emptyStatement()
 			{
 				++it;
-				return std::make_unique<ASTEmptyStatement>();
+				return std::make_unique<ast::ASTEmptyStatement>();
 			}
 
 			void _runParser();
 		public:
 			bool warningsAsErrors;
 
-			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()), error(ERROR_NONE), warningsAsErrors(false) {}
+			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<ast::AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()), error(ERROR_NONE), warningsAsErrors(false) {}
 
 			void run();
 
@@ -196,24 +195,24 @@ namespace core
 				return error;
 			}
 
-			AST *getAST()
+			ast::AST *getAST()
 			{
-				assert(ast && "Trying to access nullptr AST");
+				assert(ast && "Trying to access nullptr ast::AST");
 				return ast.get();
 			}
-			AST &getASTRef()
+			ast::AST &getASTRef()
 			{
-				assert(ast && "Trying to access nullptr AST");
+				assert(ast && "Trying to access nullptr ast::AST");
 				return *(ast.get());
 			}
-			const AST &getASTConstRef() const
+			const ast::AST &getASTConstRef() const
 			{
-				assert(ast && "Trying to access nullptr AST");
+				assert(ast && "Trying to access nullptr ast::AST");
 				return *(ast.get());
 			}
-			std::unique_ptr<AST> retrieveAST()
+			std::unique_ptr<ast::AST> retrieveAST()
 			{
-				assert(ast && "Trying to access nullptr AST");
+				assert(ast && "Trying to access nullptr ast::AST");
 				return std::move(ast);
 			}
 		};

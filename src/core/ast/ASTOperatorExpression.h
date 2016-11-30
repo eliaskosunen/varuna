@@ -17,13 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/parser/FwdDecl.h"
-#include "core/parser/ASTExpression.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTExpression.h"
 #include "core/lexer/Token.h"
 
 namespace core
 {
-	namespace parser
+	namespace ast
 	{
 		class ASTBinaryOperationExpression : public ASTExpression
 		{
