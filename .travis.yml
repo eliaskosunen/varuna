@@ -36,8 +36,8 @@ before_install:
     - if [ ! -d "$DOWNLOAD_ROOT" ]; then mkdir -p "$DOWNLOAD_ROOT"; fi
     - export BOOST_DOWNLOAD_URL="http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2/download"
     - export BOOST_ROOT="$TRAVIS_BUILD_DIR/../boost"
-    - if [ ! -f "$DOWNLOAD_ROOT/boost.tar.bz2" ]; then wget --no-verbose --output-document="$DOWNLOAD_ROOT/boost.tar.bz2" "$BOOST_DOWNLOAD_URL" --no-check-certificate; fi
-    - if [ ! -f "$BOOST_ROOT" ]; then mkdir -p "$BOOST_ROOT" && tar jxf "$DOWNLOAD_ROOT/boost.tar.bz2" --strip-components=1 -C "$BOOST_ROOT"; fi
+    - if [ ! -f "$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" ]; then wget --no-verbose --output-document="$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" "$BOOST_DOWNLOAD_URL" --no-check-certificate; fi
+    - if [ ! -f "$BOOST_ROOT" ]; then mkdir -p "$BOOST_ROOT" && tar jxf "$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" --strip-components=1 -C "$BOOST_ROOT"; fi
     # No boost libraries to build
     #- if [ ! -f "$BOOST_ROOT/b2" ]; then cd "$BOOST_ROOT"; ./bootstrap.sh --with-toolset="$BOOST_TOOLSET" --with-libraries=variant; fi
 
