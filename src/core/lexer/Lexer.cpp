@@ -29,11 +29,9 @@ namespace core
 {
 	namespace lexer
 	{
-		Token Lexer::getNextToken(std::string::const_iterator &it)
+		Token Lexer::getNextToken()
 		{
-			const std::string::const_iterator end = content.end();
 			char_t currentChar = *it;
-
 			util::loggerBasic->trace("");
 
 			if(it == end)
@@ -42,7 +40,7 @@ namespace core
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
-			util::logger->trace("Getting next token. Current character: '{}', on line {}", currentChar, currentLine);
+			util::logger->trace("Getting next token. Current character: '{}', on {}", currentChar, currentLocation.toString());
 
 			// Skip any whitespace
 			while(util::StringUtils::isCharWhitespace(currentChar))
@@ -50,11 +48,11 @@ namespace core
 				// Increase currentLine if current character is a newline character
 				if(currentChar == '\n')
 				{
-					++currentLine;
+					newline();
 				}
 
 				util::logger->trace("Skipping whitespace");
-				currentChar = *(++it);
+				currentChar = *advance();
 
 				if(it == end)
 				{
@@ -70,7 +68,7 @@ namespace core
 					<< "', dec: " << util::StringUtils::charToString(currentChar)
 					<< " hex: " << fmt::hex(currentChar);
 				lexerWarning("Unrecognized character: {}", out.str());
-				++it;
+				advance();
 				return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 			}
 
@@ -81,7 +79,7 @@ namespace core
 				std::string buf;
 				buf.reserve(8);
 				buf.push_back(currentChar);
-				while(util::StringUtils::isCharAlnum(*(++it)) || *it == '_')
+				while(util::StringUtils::isCharAlnum(*advance()) || *it == '_')
 				{
 					buf.push_back(*it);
 				}
@@ -112,7 +110,7 @@ namespace core
 				do
 				{
 					buf.push_back(currentChar);
-					currentChar = *(++it);
+					currentChar = *advance();
 					if(currentChar == '.')
 					{
 						isFloatingPoint = true;
@@ -146,7 +144,7 @@ namespace core
 						default:
 							lexerError("Invalid integer literal suffix: '{}'", currentChar);
 						}
-						currentChar = *(++it);
+						currentChar = *advance();
 					}
 					if(isHex)
 					{
@@ -170,7 +168,7 @@ namespace core
 						default:
 							lexerError("Invalid float literal suffix: '{}'", currentChar);
 						}
-						currentChar = *(++it);
+						currentChar = *advance();
 					}
 					if(isHex)
 					{
@@ -184,7 +182,7 @@ namespace core
 			// ".+"
 			if(currentChar == '"')
 			{
-				std::string buf = lexStringLiteral(it, end);
+				std::string buf = lexStringLiteral();
 				if(!getError())
 				{
 					util::logger->trace("String literal: '{}'", buf);
@@ -198,7 +196,7 @@ namespace core
 			// '.'
 			if(currentChar == '\'')
 			{
-				std::string buf = lexStringLiteral(it, end, true);
+				std::string buf = lexStringLiteral(true);
 				if(!getError())
 				{
 					util::logger->trace("Character literal: '{}'", buf);
@@ -223,7 +221,7 @@ namespace core
 						}
 					}
 					buf.push_back(currentChar);
-					currentChar = *(++it);
+					currentChar = *advance();
 				}
 				Token t = getTokenFromOperator(buf);
 				if(t.type == TOKEN_UNDEFINED)
@@ -239,7 +237,7 @@ namespace core
 				<< "', dec: " << util::StringUtils::charToString(currentChar)
 				<< " hex: " << fmt::hex(currentChar);
 			lexerWarning("Unrecognized token: {}", out.str());
-			++it;
+			advance();
 			return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 		}
 
@@ -248,11 +246,9 @@ namespace core
 			// Initialize variables
 			TokenVector tokens;
 
-			std::string::const_iterator strpointer = content.begin();
-
 			while(true)
 			{
-				Token t = getNextToken(strpointer);
+				Token t = getNextToken();
 				if(getError())
 				{
 					break;
@@ -310,16 +306,16 @@ namespace core
 			}
 		}
 
-		std::string Lexer::lexStringLiteral(std::string::const_iterator &it, const std::string::const_iterator &end, bool isChar)
+		std::string Lexer::lexStringLiteral(bool isChar)
 		{
 			std::string buf;
 			buf.reserve(isChar ? 2 : 8);
 			const char_t quote = (isChar ? '\'' : '"');
-			while((++it) != end)
+			while(advance() != end)
 			{
 				char_t currentChar = *it;
-				char_t prev = *(it - 1);
-				char_t next = *(it + 1);
+				char_t prev = *peekPrevious();
+				char_t next = *peekNext();
 				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
 
 				// Current char is a newline
@@ -332,7 +328,7 @@ namespace core
 				// Current char is a quotation mark
 				if(currentChar == quote)
 				{
-					if(prev == '\\' && *(it - 2) != '\\')
+					if(prev == '\\' && *peekPassed(2) != '\\')
 					{
 						// Remove the backslash
 						buf.pop_back();
@@ -458,13 +454,13 @@ namespace core
 			{
 				lexerError("Invalid character literal: Length more than 1: '{}'", escaped);
 			}
-			++it;
+			advance();
 			return escaped;
 		}
 
 		Token Lexer::createToken(TokenType type, const std::string &val) const
 		{
-			return Token::create(type, val, currentLine, filename);
+			return Token::create(type, val, currentLocation);
 		}
 
 		TokenType Lexer::getTokenTypeFromWord(const std::string &buf) const
