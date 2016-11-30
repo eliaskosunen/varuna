@@ -31,3 +31,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning(pop)
 
 #endif
+
+#define TEST_FILE "tests.va"

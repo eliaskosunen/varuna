@@ -80,7 +80,7 @@ namespace core
 			{
 				lastLineLen = currentLocation.column;
 				currentLocation.line++;
-				currentLocation.column = 0;
+				currentLocation.column = 1;
 			}
 			ContentIterator peekUpcoming(std::ptrdiff_t i) const
 			{

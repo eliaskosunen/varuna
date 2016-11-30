@@ -25,7 +25,7 @@ core::lexer::TokenVector runLexer(const std::string &code)
 {
 	using namespace core::lexer;
 
-	Lexer l(code);
+	Lexer l(code, TEST_FILE);
 	return l.run();
 }
 

@@ -818,9 +818,7 @@ namespace core
 			case TOKEN_PUNCT_BRACE_OPEN:
 				return parseBlockStatement();
 			case TOKEN_PUNCT_SEMICOLON:
-				// TODO: Handle warning
 				parserWarning("Empty statement");
-				++it;
 				return emptyStatement();
 			default:
 				return parserError("Unknown statement: '{}'", it->value);

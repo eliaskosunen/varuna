@@ -48,10 +48,6 @@ namespace core
 					row.erase(row.begin() + pos, row.end());
 				}
 
-				//util::StringUtils::replaceAll(row, "\t", " ");
-				//util::StringUtils::replaceAll(row, "\r", " ");
-				//util::StringUtils::trim(row);
-				//util::StringUtils::trimConsecutiveSpaces(row);
 				util::logger->trace("Finished row, contents: '{}'", row);
 				row.push_back('\n');
 

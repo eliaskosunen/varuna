@@ -45,12 +45,6 @@ namespace core
 			// Skip any whitespace
 			while(util::StringUtils::isCharWhitespace(currentChar))
 			{
-				// Increase currentLine if current character is a newline character
-				if(currentChar == '\n')
-				{
-					newline();
-				}
-
 				util::logger->trace("Skipping whitespace");
 				currentChar = *advance();
 

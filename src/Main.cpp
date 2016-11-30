@@ -32,6 +32,27 @@ static void cleanup()
 	util::dropLogger();
 }
 
+static void logException(const std::exception *e)
+{
+	std::string what = [e]()
+	{
+		if(!e)	return "[NULL]";
+		return e->what();
+	}();
+
+	if(util::logger)
+	{
+		util::logger->critical("Main has caught an exception: {}", what);
+		return;
+	}
+	if(util::loggerBasic)
+	{
+		util::loggerBasic->critical("Main has caught an exception: {}", what);
+		return;
+	}
+	std::cerr << "Main has caught an exception: " << what << "\n";
+}
+
 /**
  * The entry point of the application
  * @param  argc Argument count
@@ -56,11 +77,15 @@ int main(int argc, char **argv)
 	}
 	catch(const spdlog::spdlog_ex &e)
 	{
-		std::cerr << "EXCEPTION: Logging failed: " << e.what() << "\n";
+		std::cerr << "Main has caught an exception: Logging failed: " << e.what() << "\n";
 	}
 	catch(const std::exception &e)
 	{
-		std::cerr << "EXCEPTION: " << e.what() << "\n";
+		logException(&e);
+	}
+	catch(...)
+	{
+		logException(nullptr);
 	}
 	return 1;
 }
