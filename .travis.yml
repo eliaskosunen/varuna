@@ -11,11 +11,9 @@ addons:
     apt:
         sources:
             - george-edison55-precise-backports
-            - boost-latest
         packages:
             - cmake
             - cmake-data
-            - libboost1.58-all-dev
 
 env:
     matrix:
@@ -33,7 +31,8 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
 
-    - export DOWNLOAD_ROOT="$HOME/Downloads"; if [ ! -d "$DOWNLOAD_ROOT" ]; then mkdir -p "$DOWNLOAD_ROOT"; fi
+    - export DOWNLOAD_ROOT="$HOME/Downloads"
+    - if [ ! -d "$DOWNLOAD_ROOT" ]; then mkdir -p "$DOWNLOAD_ROOT"; fi
     - export BOOST_DOWNLOAD_URL="http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download"
     - export BOOST_ROOT="$TRAVIS_BUILD_DIR/../boost"
     - if [ ! -f "$DOWNLOAD_ROOT/boost.tar.bz2" ]; then wget --no-verbose --output-document="$DOWNLOAD_ROOT/boost.tar.bz2" "$BOOST_DOWNLOAD_URL"; fi

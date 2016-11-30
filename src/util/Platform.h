@@ -22,12 +22,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP_STD_11		201103L
 #define CPP_STD_14		201402L
 
-#define CPP_STD_IS11	(CPP_STD_VERSION <  CPP_STD_14)
-#define CPP_STD_IS14	(CPP_STD_VERSION >= CPP_STD_14)
+#if defined(_MSC_VER)
 
-#if !CPP_STD_IS11 && !CPP_STD_14
-	#error Error determining C++ Standard version
-#endif
+	#if _MSC_VER >= 1900
+		#define CPP_STD_IS_11 0
+		#define CPP_STD_IS_14 1
+	#else
+		#define CPP_STD_IS_11 1
+		#define CPP_STD_IS_14 0
+	#endif
+
+#else
+
+	#define CPP_STD_IS11	(CPP_STD_VERSION <  CPP_STD_14)
+	#define CPP_STD_IS14	(CPP_STD_VERSION >= CPP_STD_14)
+
+	#if !CPP_STD_IS11 && !CPP_STD_14
+		#error Error determining C++ Standard version
+	#endif
+
+#endif // defined(_MSC_VER)
 
 #if CPP_STD_IS11
 	#error C++ Standard version not supported
