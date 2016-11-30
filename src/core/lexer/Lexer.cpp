@@ -40,7 +40,7 @@ namespace core
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
-			util::logger->trace("Getting next token. Current character: '{}', on {}", currentChar, currentLocation.toString());
+			util::logger->trace("Getting next token. Current character: '{}', on {}", std::to_string(currentChar), currentLocation.toString());
 
 			// Skip any whitespace
 			while(util::StringUtils::isCharWhitespace(currentChar))
@@ -316,7 +316,7 @@ namespace core
 				char_t currentChar = *it;
 				char_t prev = *peekPrevious();
 				char_t next = *peekNext();
-				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", currentChar, prev, next);
+				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", std::to_string(currentChar), prev, next);
 
 				// Current char is a newline
 				// String doesn't end, terminate

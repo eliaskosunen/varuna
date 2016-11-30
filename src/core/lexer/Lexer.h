@@ -28,7 +28,7 @@ namespace core
 	namespace lexer
 	{
 		typedef std::vector<core::lexer::Token> TokenVector;
-		typedef int char_t;
+		typedef char char_t;
 
 		enum ErrorLevel
 		{

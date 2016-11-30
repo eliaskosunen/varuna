@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <type_traits>
 #include <ostream>
 
+#include "util/Logger.h"
+
 namespace util
 {
 	template <class Enum_t, class Underlying_t = typename std::underlying_type<Enum_t>::type>
