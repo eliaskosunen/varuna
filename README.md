@@ -22,12 +22,12 @@ WORK IN PROGRESS.
 
 The project is developed on Ubuntu 16.04 and tested on Ubuntu 14.04.
 Other Linux distributions should work, as long as they'll have the right compiler versions available.
-Windows is supported, and macOS support is coming at some point.
+Windows is supported, and macOS may work, but is not tested due to lack of resources.
 
-A C++11 compliant compiler is required for building.
+A C++14 compliant compiler is required for building.
 The project is confirmed to build on
-Linux with g++ (versions 4.9.3 and 5.4.0) and Clang (versions 3.6 and 3.8) and
-on Windows with Visual Studio 14 (2015). Further support is not planned.
+Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.0 and 3.8.0) and
+on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported. Further support is not planned.
 
 ### Instructions
 
