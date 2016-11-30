@@ -20,126 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <map>
 
+#include "core/lexer/TokenType.h"
 #include "util/SafeEnum.h"
 
 namespace core
 {
 	namespace lexer
 	{
-		enum TokenType_t
-		{
-			TOKEN_UNDEFINED = -1,
-			TOKEN_DEFAULT = 0,
-
-			TOKEN_KEYWORD_IMPORT = 1,
-			TOKEN_KEYWORD_DEFINE,
-			TOKEN_KEYWORD_DECLARE,
-			TOKEN_KEYWORD_CLASS,
-			TOKEN_KEYWORD_OVERRIDE,
-			TOKEN_KEYWORD_FINAL,
-			TOKEN_KEYWORD_EXTEND,
-			TOKEN_KEYWORD_ABSTRACT,
-			TOKEN_KEYWORD_IMPLEMENT,
-			TOKEN_KEYWORD_INTERFACE,
-			TOKEN_KEYWORD_PUBLIC,
-			TOKEN_KEYWORD_PROTECTED,
-			TOKEN_KEYWORD_PRIVATE,
-			TOKEN_KEYWORD_IF,
-			TOKEN_KEYWORD_ELSE,
-			TOKEN_KEYWORD_WHILE,
-			TOKEN_KEYWORD_FOR,
-			TOKEN_KEYWORD_FOREACH,
-			TOKEN_KEYWORD_SWITCH,
-			TOKEN_KEYWORD_CASE,
-			TOKEN_KEYWORD_BREAK,
-			TOKEN_KEYWORD_RETURN,
-			TOKEN_KEYWORD_CONTINUE,
-			TOKEN_KEYWORD_MODULE,
-			TOKEN_KEYWORD_PACKAGE,
-			TOKEN_KEYWORD_EXTERN,
-			TOKEN_KEYWORD_READONLY,
-			TOKEN_KEYWORD_VIEW,
-			TOKEN_KEYWORD_REF,
-			TOKEN_KEYWORD_VAR,
-			TOKEN_KEYWORD_LET,
-
-			TOKEN_IDENTIFIER = 200,
-
-			TOKEN_LITERAL_INTEGER = 300,
-			TOKEN_LITERAL_FLOAT,
-			TOKEN_LITERAL_STRING,
-			TOKEN_LITERAL_CHAR,
-			TOKEN_LITERAL_TRUE,
-			TOKEN_LITERAL_FALSE,
-			TOKEN_LITERAL_NONE,
-
-			TOKEN_OPERATORA_SIMPLE = 400,// =
-			TOKEN_OPERATORA_ADD,	// +=
-			TOKEN_OPERATORA_SUB,	// -=
-			TOKEN_OPERATORA_MUL,	// *=
-			TOKEN_OPERATORA_DIV,	// /=
-			TOKEN_OPERATORA_MOD,	// %=
-
-			TOKEN_OPERATORA_BITAND,	// &=
-			TOKEN_OPERATORA_BITOR,	// |=
-			TOKEN_OPERATORA_BITXOR,	// ^=
-			TOKEN_OPERATORA_SHIFTL,	// <<=
-			TOKEN_OPERATORA_SHIFTR,	// >>=
-
-			TOKEN_OPERATORB_ADD = 500,// a + b
-			TOKEN_OPERATORB_SUB,	// a - b
-			TOKEN_OPERATORB_MUL,	// a * b
-			TOKEN_OPERATORB_DIV,	// a / b
-			TOKEN_OPERATORB_MOD,	// a % b
-
-			TOKEN_OPERATORB_BITAND,	// a & b
-			TOKEN_OPERATORB_BITOR,	// a | b
-			TOKEN_OPERATORB_BITXOR,	// a ^ b
-			TOKEN_OPERATORB_SHIFTL,	// a << b
-			TOKEN_OPERATORB_SHIFTR,	// a >> b
-
-			TOKEN_OPERATORB_AND,	// a && b, a and b
-			TOKEN_OPERATORB_OR,		// a || b, a or b
-
-			TOKEN_OPERATORB_EQ,		// a == b
-			TOKEN_OPERATORB_NOTEQ,	// a != b
-			TOKEN_OPERATORB_LESS,	// a < b
-			TOKEN_OPERATORB_GREATER,// a > b
-			TOKEN_OPERATORB_LESSEQ,	// a <= b
-			TOKEN_OPERATORB_GREATEQ,// a >= b
-
-			TOKEN_OPERATORB_MEMBER,	// a.b
-			//TOKEN_OPERATORB_ACCESS,	// a[b]
-
-			TOKEN_OPERATORB_OF,		// List of String
-			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
-
-			TOKEN_OPERATORU_INC = 600,// a++
-			TOKEN_OPERATORU_DEC,	// a--
-
-			TOKEN_OPERATORU_PLUS,	// +a
-			TOKEN_OPERATORU_MINUS,	// -a
-			TOKEN_OPERATORU_BITNOT,	// ~a
-			TOKEN_OPERATORU_NOT,	// !a, not a
-
-			TOKEN_OPERATORU_SIZEOF,	// sizeof a
-			TOKEN_OPERATORU_TYPEOF,	// typeof a
-			TOKEN_OPERATORU_INSTOF,	// instanceof a
-			TOKEN_OPERATORU_ADDROF,	// addressof a
-
-			TOKEN_PUNCT_PAREN_OPEN = 700,// (
-			TOKEN_PUNCT_PAREN_CLOSE,// )
-			TOKEN_PUNCT_BRACE_OPEN,	// {
-			TOKEN_PUNCT_BRACE_CLOSE,// }
-			TOKEN_PUNCT_SQR_OPEN,	// [
-			TOKEN_PUNCT_SQR_CLOSE,	// ]
-			TOKEN_PUNCT_COLON,		// :
-			TOKEN_PUNCT_SEMICOLON,	// ;
-			TOKEN_PUNCT_COMMA,		// ,
-
-			TOKEN_EOF = 32767
-		};
-
 		enum TokenIntegerLiteralModifier_t
 		{
 			INTEGER_INTEGER	= 1,	// No suffix
@@ -162,7 +49,6 @@ namespace core
 			FLOAT_NONE		= FLOAT_DOUBLE
 		};
 
-		typedef util::SafeEnum<TokenType_t> TokenType;
 		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
 		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
 
