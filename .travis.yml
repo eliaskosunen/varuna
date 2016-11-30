@@ -14,7 +14,7 @@ addons:
         packages:
             - cmake
             - cmake-data
-            - libboost-all-dev
+            - libboost1.58-all-dev
 
 env:
     matrix:
