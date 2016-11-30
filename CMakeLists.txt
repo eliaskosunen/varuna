@@ -53,7 +53,7 @@ endif()
 set(Boost_USE_STATIC_LIBS		ON)
 set(Boost_USE_MULTITHREADED		OFF)
 set(Boost_USE_STATIC_RUNTIME	OFF)
-find_package(Boost 1.58.0 REQUIRED)
+find_package(Boost 1.62.0 REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})

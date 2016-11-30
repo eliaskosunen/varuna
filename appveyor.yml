@@ -8,9 +8,9 @@ platform:
 
 environment:
     MSVC_DEFAULT_OPTIONS: ON
-    BOOST_ROOT: C:\libraries\boost_1_58_0
-    BOOST_LIBRARYDIR_WIN32: C:\libraries\boost_1_58_0\lib32-msvc-14.0
-    BOOST_LIBRARYDIR_WIN64: C:\libraries\boost_1_58_0\lib64-msvc-14.0
+    BOOST_ROOT: C:\libraries\boost_1_62_0
+    BOOST_LIBRARYDIR_WIN32: C:\libraries\boost_1_62_0\lib32-msvc-14.0
+    BOOST_LIBRARYDIR_WIN64: C:\libraries\boost_1_62_0\lib64-msvc-14.0
 
 configuration:
     - Debug

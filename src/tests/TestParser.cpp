@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/lexer/Lexer.h"
 #include "util/Logger.h"
 
-core::lexer::TokenVector runLexer(const std::string &code)
+static core::lexer::TokenVector runLexer(const std::string &code)
 {
 	using namespace core::lexer;
 
@@ -29,7 +29,7 @@ core::lexer::TokenVector runLexer(const std::string &code)
 	return l.run();
 }
 
-core::parser::Parser parse(const std::string &code)
+static core::parser::Parser parse(const std::string &code)
 {
 	using namespace core::parser;
 
