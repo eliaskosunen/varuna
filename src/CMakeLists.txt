@@ -1,6 +1,9 @@
-file(GLOB_RECURSE sources	app/*.cpp core/*.cpp util/*.cpp)
-file(GLOB_RECURSE headers	app/*.h core/*.h util/*.h)
+add_subdirectory(core)
+add_subdirectory(fe)
+add_subdirectory(tests)
+add_subdirectory(util)
 
-add_library(varunasrc ${sources} ${headers})
-add_executable(varuna Main.cpp)
-target_link_libraries(varuna thirdparty varunasrc)
+file(GLOB_RECURSE sources	Main.cpp)
+
+add_executable(varuna ${sources})
+target_link_libraries(varuna core api cli util thirdparty)

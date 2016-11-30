@@ -17,15 +17,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
+#include "tclap.h"
 
-namespace core
+namespace fe
 {
-	/**
-	 * Run the application.
-	 * Run prerocessor, lexer and parser
-	 * @param  filename File to process
-	 * @return          0 on success, other on failure
-	 */
-	int run(const std::string &filename);
+	namespace cli
+	{
+		class CLI
+		{
+			const int argc;
+			char **argv;
+			TCLAP::CmdLine cmd;
+
+			void showLicense() const;
+
+		public:
+			CLI(int argc_, char **argv_)
+				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "Pre-Alpha") {}
+
+			int run();
+		};
+	}
 }

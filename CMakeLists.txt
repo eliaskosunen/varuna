@@ -62,7 +62,4 @@ include_directories(third-party/include)
 include_directories(SYSTEM third-party/include-private)
 
 add_subdirectory(third-party)
-
 add_subdirectory(src)
-
-add_subdirectory(tests)

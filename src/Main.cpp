@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 #include <cstdlib>
 
-#include "app/CommandLine.h"
+#include "fe/cli/CLI.h"
 #include "util/Logger.h"
 
 static void cleanup()
@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 
 		util::initLogger();
 
-		app::CommandLine cl(argc, argv);
-		return cl.run();
+		fe::cli::CLI commandLineInterface(argc, argv);
+		return commandLineInterface.run();
 	}
 	catch(const spdlog::spdlog_ex &e)
 	{
