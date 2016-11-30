@@ -45,7 +45,7 @@ namespace core
 			const ContentIterator end;
 
 			SourceLocation currentLocation;
-			size_t lastLineLen;
+			uint64_t lastLineLen;
 
 			ErrorLevel error;
 

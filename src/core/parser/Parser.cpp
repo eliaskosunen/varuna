@@ -654,7 +654,6 @@ namespace core
 			{
 				return parserError("Invalid integer literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
-			return nullptr;
 		}
 		std::unique_ptr<ASTFloatLiteralExpression> Parser::parseFloatLiteralExpression()
 		{
@@ -682,7 +681,6 @@ namespace core
 			{
 				return parserError("Invalid float literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
-			return nullptr;
 		}
 
 
@@ -711,7 +709,6 @@ namespace core
 			{
 				return parserError("Invalid char literal: value out of range: '{}'. Description: '{}'", lit->value, e.what());
 			}
-			return nullptr;
 		}
 		std::unique_ptr<ASTBoolLiteralExpression> Parser::parseTrueLiteralExpression()
 		{

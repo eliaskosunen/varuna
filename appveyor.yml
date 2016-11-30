@@ -34,4 +34,4 @@ before_build:
 build:
     project: C:\projects\varuna\build\varuna.sln
     parallel: true
-    verbosity: detailed
+    verbosity: normal
