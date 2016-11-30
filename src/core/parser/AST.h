@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/parser/Visitor.h"
 #include "util/Compatibility.h"
 
+#include <algorithm>
+
 namespace core
 {
 	namespace parser
@@ -42,6 +44,11 @@ namespace core
 			{
 				auto stmt = std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
 				pushStatement(std::move(stmt));
+			}
+
+			int countTopLevelNodes()
+			{
+				return globalNode->nodes.size();
 			}
 		};
 	}
