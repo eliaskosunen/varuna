@@ -31,9 +31,11 @@ namespace fe
 
 			void showLicense() const;
 
+			bool setLoggingLevel(const std::string &level);
+
 		public:
 			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "Pre-Alpha") {}
+				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "0.1-dev") {}
 
 			int run();
 		};

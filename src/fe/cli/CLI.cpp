@@ -44,20 +44,7 @@ namespace fe
 					return 0;
 				}
 
-				std::string logging = loggingArg.getValue();
-				if(logging == "trace")
-				{
-					fe::api::setLoggingLevel(fe::api::LOG_TRACE);
-				}
-				else if(logging == "debug")
-				{
-					fe::api::setLoggingLevel(fe::api::LOG_TRACE);
-				}
-				else if(logging == "info")
-				{
-					fe::api::setLoggingLevel(fe::api::LOG_INFO);
-				}
-				else
+				if(!setLoggingLevel(loggingArg.getValue()))
 				{
 					throw TCLAP::ArgException("Unsupported value for --logging, see --help", loggingArg.longID());
 				}
@@ -83,6 +70,27 @@ namespace fe
 				util::logger->error("Command line error: {}: {}", e.error(), e.argId());
 				return 1;
 			}
+		}
+
+		bool CLI::setLoggingLevel(const std::string &level)
+		{
+			if(level == "trace")
+			{
+				fe::api::setLoggingLevel(fe::api::LOG_TRACE);
+			}
+			else if(level == "debug")
+			{
+				fe::api::setLoggingLevel(fe::api::LOG_TRACE);
+			}
+			else if(level == "info")
+			{
+				fe::api::setLoggingLevel(fe::api::LOG_INFO);
+			}
+			else
+			{
+				return false;
+			}
+			return true;
 		}
 
 		void CLI::showLicense() const
