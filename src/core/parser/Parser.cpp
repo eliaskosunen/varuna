@@ -179,6 +179,7 @@ namespace core
 
 			++it; // Skip 'if'
 
+			// Parse condition
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
 				return parserError("Invalid if statement: Expected '(', got '{}' instead", it->value);
@@ -189,49 +190,20 @@ namespace core
 				return nullptr;
 			}
 
-			auto then = std::make_unique<ASTBlockStatement>();
-			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
-			{
-				auto tmp = parseStatement();
-				if(!tmp)
-				{
-					return parserError("Invalid if statement then statement");
-				}
-				then->nodes.push_back(std::move(tmp));
-			}
-			else
-			{
-				then = parseBlockStatement();
-				if(!then)
-				{
-					return parserError("Invalid if statement then statement block");
-				}
-			}
+			// Parse then statement
+			auto then = parseStatement();
 
-			auto elseBlock = std::make_unique<ASTBlockStatement>();
-			if(it->type == TOKEN_KEYWORD_ELSE)
+			// Parse else statement
+			// Optional
+			auto elsestmt = [this]() -> std::unique_ptr<ASTStatement>
 			{
+				if(it->type != TOKEN_KEYWORD_ELSE) return nullptr;
+
 				++it; // Skip else
-				if(it->type != TOKEN_PUNCT_BRACE_OPEN)
-				{
-					auto tmp = parseStatement();
-					if(!tmp)
-					{
-						return parserError("Invalid if statement else block");
-					}
-					elseBlock->nodes.push_back(std::move(tmp));
-				}
-				else
-				{
-					elseBlock = parseBlockStatement();
-					if(!elseBlock)
-					{
-						return parserError("Invalid if statement else block");
-					}
-				}
-			}
+				return parseStatement();
+			}();
 
-			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elseBlock));
+			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elsestmt));
 		}
 
 		std::unique_ptr<ASTForStatement> Parser::parseForStatement()

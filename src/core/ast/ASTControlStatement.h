@@ -29,9 +29,9 @@ namespace core
 		{
 		public:
 			std::unique_ptr<ASTExpression> condition;
-			std::unique_ptr<ASTBlockStatement> ifBlock, elseBlock;
+			std::unique_ptr<ASTStatement> ifBlock, elseBlock;
 
-			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> ifb, std::unique_ptr<ASTBlockStatement> elseb = nullptr)
+			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTStatement> ifb, std::unique_ptr<ASTStatement> elseb = nullptr)
 				: condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
