@@ -34,6 +34,7 @@ namespace core
 		class ASTCallExpression;
 		class ASTCastExpression;
 		class ASTCharLiteralExpression;
+		class ASTEmptyExpression;
 		class ASTFloatLiteralExpression;
 		class ASTIdentifierExpression;
 		class ASTVariableRefExpression;

@@ -105,6 +105,7 @@ namespace core
 			void visit(ASTImportStatement *node, size_t ind = 0);
 			void visit(ASTModuleStatement *node, size_t ind = 0);
 
+			void visit(ASTEmptyExpression *node, size_t ind = 0);
 			void visit(ASTIdentifierExpression *node, size_t ind = 0);
 			void visit(ASTVariableRefExpression *node, size_t ind = 0);
 			void visit(ASTCallExpression *node, size_t ind = 0);

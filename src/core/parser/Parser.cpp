@@ -214,22 +214,114 @@ namespace core
 
 			// Parse else statement
 			// Optional
-			bool elseSuccessful = true;
-			auto elsestmt = [this, &elseSuccessful]() -> std::unique_ptr<ASTStatement>
+			auto elsestmt = [this]() -> std::unique_ptr<ASTStatement>
 			{
-				if(it->type != TOKEN_KEYWORD_ELSE) return nullptr;
+				if(it->type != TOKEN_KEYWORD_ELSE) return std::make_unique<ASTEmptyStatement>();
 
 				++it; // Skip else
-				auto stmt = parseStatement();
-				if(!stmt) elseSuccessful = false;
-				return stmt;
+				return parseStatement();
 			}();
-			if(!elseSuccessful)
+			if(!elsestmt)
 			{
 				return nullptr;
 			}
 
 			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elsestmt));
+		}
+
+		std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
+			Parser::parseForCondition()
+		{
+			auto makeTuple = [](std::unique_ptr<ASTExpression> i, std::unique_ptr<ASTExpression> e, std::unique_ptr<ASTExpression> s)
+				-> std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
+			{
+				return std::make_tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>(std::move(i), std::move(e), std::move(s));
+			};
+			auto errorToTuple = [this, makeTuple](std::nullptr_t e)
+				-> auto
+			{
+				return makeTuple(e, e, e);
+			};
+
+			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected '(' after 'for', got '{}'", it->value));
+			}
+			++it; // Skip '('
+
+			// Empty for condition
+			if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				++it; // Skip ')'
+				// Default: ( empty ; "true" ; empty )
+				return makeTuple(std::make_unique<ASTEmptyExpression>(), std::make_unique<ASTBoolLiteralExpression>(true), std::make_unique<ASTEmptyExpression>());
+			}
+
+			// Parse init expression
+			// Must be either a variable definition or empty
+			auto init = [this]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					return std::make_unique<ASTEmptyExpression>();
+				}
+
+				return parseVariableDefinition();
+			}();
+			if(!init)
+			{
+				return errorToTuple(parserError("Invalid for init expression"));
+			}
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ';' after 'for init', got '{}'", it->value));
+			}
+			++it; // Skip ';'
+
+			// Parse end expression
+			// Must be either an expression or empty
+			auto end = [this]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					// "true" by default
+					return std::make_unique<ASTBoolLiteralExpression>(true);
+				}
+
+				return parseExpression();
+			}();
+			if(!end)
+			{
+				return errorToTuple(parserError("Invalid for end expression"));
+			}
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ';' after 'for end', got '{}'", it->value));
+			}
+			++it; // Skip ';'
+
+			// Parse step expression
+			// Must be either an expression or empty
+			auto step = [this]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					return std::make_unique<ASTEmptyExpression>();
+				}
+
+				return parseExpression();
+			}();
+			if(!step)
+			{
+				return errorToTuple(parserError("Invalid for step expression"));
+			}
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ')' after 'for step', got '{}'", it->value));
+			}
+			++it; // Skip ')'
+
+			return makeTuple(std::move(init), std::move(end), std::move(step));
 		}
 
 		std::unique_ptr<ASTForStatement> Parser::parseForStatement()
@@ -240,86 +332,11 @@ namespace core
 
 			++it; // Skip 'for'
 
-			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
-			{
-				return parserError("Invalid for statement: expected '(' after 'for', got '{}'", it->value);
-			}
-			++it; // Skip '('
-
-			std::unique_ptr<ASTExpression> start = nullptr, end = nullptr, step = nullptr;
-			if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
-			{
-				++it; // Skip ')'
-			}
-			else
-			{
-				// Start expression
-				// Must be a variable definition
-				if(it->type == TOKEN_PUNCT_SEMICOLON)
-				{
-					++it; // Skip ';'
-				}
-				else if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
-				{
-					start = parseVariableDefinition();
-					if(!start)
-					{
-						return parserError("Invalid start expression in 'for'");
-					}
-
-					if(it->type != TOKEN_PUNCT_SEMICOLON)
-					{
-						return parserError("Invalid for statement: expected ';' after 'for start', got '{}'", it->value);
-					}
-					++it; // Skip ';'
-				}
-				else
-				{
-					return parserError("Invalid for statement: expected ';' or an identifier in 'for start', got '{}' instead", it->value);
-				}
-
-				// End expression
-				if(it->type == TOKEN_PUNCT_SEMICOLON)
-				{
-					++it; // Skip ';'
-				}
-				else
-				{
-					end = parseExpression();
-					if(!end)
-					{
-						return parserError("Invalid 'for end' expression");
-					}
-
-					if(it->type != TOKEN_PUNCT_SEMICOLON)
-					{
-						return parserError("Invalid for statement: expected ',' after 'for end', got '{}'", it->value);
-					}
-					++it; // Skip ';'
-				}
-
-				// Step expression
-				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-				{
-					step = parseExpression();
-					if(!step)
-					{
-						return parserError("Invalid 'for step' expression");
-					}
-
-					if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-					{
-						return parserError("Invalid for statement: expected ')' after 'for step', got '{}'", it->value);
-					}
-					++it; // Skip ')'
-				}
-			}
-
-			// By default for loop is infinite
-			if(!end)
-			{
-				end = std::make_unique<ASTBoolLiteralExpression>(true);
-			}
+			// TODO: Optimize
+			// Not utilizing constructors
+			// Not sure if possible in C++14
+			std::unique_ptr<ASTExpression> init, end, step;
+			std::tie(init, end, step) = parseForCondition();
 
 			// Parse statement
 			std::unique_ptr<ASTStatement> block = parseStatement();
@@ -328,19 +345,25 @@ namespace core
 				return nullptr;
 			}
 
-			return std::make_unique<ASTForStatement>(std::move(block), std::move(start), std::move(end), std::move(step));
+			return std::make_unique<ASTForStatement>(std::move(block), std::move(init), std::move(end), std::move(step));
 		}
 
 		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()
 		{
+			// Variable definition syntax:
+			// var/identifier name [ = init-expression ]
+
+			// Parse typename
 			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
 			{
 				return parserError("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
 			}
 			std::string typen = it->value;
-			bool typeDetermined = it->type == TOKEN_IDENTIFIER;
-			++it; // Skip typename/̈́'var'
+			bool typeDetermined = it->type == TOKEN_IDENTIFIER; // Whether or not the type will have to
+																// be determined by the type of the init expression
+			++it; // Skip typename/'var'
 
+			// Parse variable name
 			if(it->type != TOKEN_IDENTIFIER)
 			{
 				return parserError("Invalid variable definition: expected identifier, got '{}' instead", it->value);
@@ -348,15 +371,20 @@ namespace core
 			std::string name = it->value;
 			++it; // Skip variable name
 
-			std::unique_ptr<ASTExpression> init = nullptr;
-			if(it->type == TOKEN_OPERATORA_SIMPLE)
+			// Parse possible init expression
+			auto init = [this]() -> std::unique_ptr<ASTExpression>
 			{
-				++it; // Skip '='
-				init = parseExpression();
-				if(!init)
+				if(it->type == TOKEN_OPERATORA_SIMPLE)
 				{
-					return parserError("Invalid variable init expression");
+					++it; // Skip '='
+					return parseExpression();
 				}
+
+				return std::make_unique<ASTEmptyExpression>();
+			}();
+			if(!init)
+			{
+				return parserError("Invalid variable init expression");
 			}
 
 			ASTVariableDefinitionExpression::Type type;

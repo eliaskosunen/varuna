@@ -33,7 +33,12 @@ namespace core
 		public:
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
-			virtual ~ASTStatement() {}
+			ASTStatement() = default;
+			ASTStatement(const ASTStatement&) = default;
+			ASTStatement &operator = (const ASTStatement&) = default;
+			ASTStatement(ASTStatement&&) = default;
+			ASTStatement &operator = (ASTStatement&&) = default;
+			virtual ~ASTStatement() = default;
 		};
 
 		class ASTEmptyStatement : public ASTStatement

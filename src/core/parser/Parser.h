@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/Logger.h"
 #include "util/Compatibility.h"
 
+#include <tuple>
+
 namespace core
 {
 	namespace parser
@@ -80,6 +82,11 @@ namespace core
 			}
 
 			int getTokenPrecedence() const;
+
+			std::tuple<
+				std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>
+			>
+				parseForCondition();
 
 			std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
 			std::unique_ptr<ast::ASTIfStatement> parseIfStatement();

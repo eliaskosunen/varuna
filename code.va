@@ -5,7 +5,7 @@ module main;
 
 def main(): Void
 {
-	if(3 < 5)
+	for(;;)
 	{
 		io.stdout.println("yee");
 	}

@@ -26,9 +26,14 @@ namespace core
 		class ASTNode
 		{
 		public:
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+			virtual void accept(DumpASTVisitor *v, size_t ind = 0) = 0;
 
-			virtual ~ASTNode() {}
+			ASTNode() = default;
+			ASTNode(const ASTNode&) = default;
+			ASTNode &operator = (const ASTNode&) = default;
+			ASTNode(ASTNode&&) = default;
+			ASTNode &operator = (ASTNode&&) = default;
+			virtual ~ASTNode() = default;
 		};
 	}
 }

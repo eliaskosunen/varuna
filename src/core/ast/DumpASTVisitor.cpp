@@ -33,11 +33,6 @@ namespace core
 {
 	namespace ast
 	{
-		void ASTNode::accept(DumpASTVisitor *v, size_t ind)
-		{
-			v->visit(this, ind);
-		}
-
 		void ASTStatement::accept(DumpASTVisitor *v, size_t ind)
 		{
 			v->visit(this, ind);
@@ -73,6 +68,10 @@ namespace core
 			v->visit(this, ind);
 		}
 
+		void ASTEmptyExpression::accept(DumpASTVisitor *v, size_t ind)
+		{
+			v->visit(this, ind);
+		}
 		void ASTIdentifierExpression::accept(DumpASTVisitor *v, size_t ind)
 		{
 			v->visit(this, ind);
@@ -168,11 +167,6 @@ namespace core
 
 
 
-		void DumpASTVisitor::visit(ASTNode*, size_t ind)
-		{
-			log(ind, "ASTNode");
-		}
-
 		void DumpASTVisitor::visit(ASTStatement*, size_t ind)
 		{
 			log(ind, "ASTStatement");
@@ -191,48 +185,20 @@ namespace core
 			log(ind + 1, "IfBlock:");
 			node->ifBlock->accept(this, ind + 2);
 			log(ind + 1, "ElseBlock:");
-			if(!node->elseBlock)
-			{
-				log(ind + 2, "No else block");
-			}
-			else
-			{
-				node->elseBlock->accept(this, ind + 2);
-			}
+			node->elseBlock->accept(this, ind + 2);
 		}
 		void DumpASTVisitor::visit(ASTForStatement *node, size_t ind)
 		{
 			log(ind, "ASTForStatement:");
 
 			log(ind + 1, "InitExpression:");
-			if(!node->init)
-			{
-				log(ind + 2, "No InitExpression");
-			}
-			else
-			{
-				node->init->accept(this, ind + 2);
-			}
+			node->init->accept(this, ind + 2);
 
 			log(ind + 1, "RangeDeclExpression:");
-			if(!node->rangeDecl)
-			{
-				log(ind + 2, "No RangeDeclExpression");
-			}
-			else
-			{
-				node->rangeDecl->accept(this, ind + 2);
-			}
+			node->rangeDecl->accept(this, ind + 2);
 
 			log(ind + 1, "RangeInitExpression:");
-			if(!node->rangeInit)
-			{
-				log(ind + 2, "No RangeInitExpression");
-			}
-			else
-			{
-				node->rangeInit->accept(this, ind + 2);
-			}
+			node->rangeInit->accept(this, ind + 2);
 
 			log(ind + 1, "Block:");
 			node->block->accept(this, ind + 2);
@@ -268,6 +234,10 @@ namespace core
 			node->moduleName->accept(this, ind + 1);
 		}
 
+		void DumpASTVisitor::visit(ASTEmptyExpression*, size_t ind)
+		{
+			log(ind, "ASTEmptyExpression");
+		}
 		void DumpASTVisitor::visit(ASTIdentifierExpression *node, size_t ind)
 		{
 			log(ind, "ASTIdentifierExpression: {}", node->value);
@@ -305,14 +275,7 @@ namespace core
 			node->name->accept(this, ind + 2);
 			log(ind + 1, "Type: {}", node->type);
 			log(ind + 1, "InitExpression:");
-			if(!node->init)
-			{
-				log(ind + 2, "No InitExpression");
-			}
-			else
-			{
-				node->init->accept(this, ind + 2);
-			}
+			node->init->accept(this, ind + 2);
 		}
 
 		void DumpASTVisitor::visit(ASTFunctionParameter *node, size_t ind)
