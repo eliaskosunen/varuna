@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tclap.h"
 
+#include "util/ProgramInfo.h"
+
 namespace fe
 {
 	namespace cli
@@ -35,7 +37,7 @@ namespace fe
 
 		public:
 			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "0.1-dev") {}
+				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version.toString()) {}
 
 			int run();
 		};

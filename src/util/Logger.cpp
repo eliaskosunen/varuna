@@ -16,11 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "util/Logger.h"
+#include "util/ProgramInfo.h"
 
 #include <string>
 #include <iostream>
-
-#include "spdlog.h"
 
 namespace util
 {
@@ -39,8 +38,8 @@ namespace util
 		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
 		loggerBasic->set_pattern("%v");
 		#endif
-		spdlog::set_pattern("varuna [%n] [%l]: %v");
-		logger->set_pattern("varuna [%l]: %v");
+		spdlog::set_pattern(std::string(programinfo::name) + " [%n] [%l]: %v");
+		logger->set_pattern(std::string(programinfo::name) + "varuna [%l]: %v");
 		loggerBasic->set_pattern("%v");
 
 		logger->flush_on(spdlog::level::err);
