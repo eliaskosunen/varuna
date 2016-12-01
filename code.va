@@ -5,18 +5,8 @@ module main;
 
 def main(): Void
 {
-	io.stdout.writeln("Hello World!");
-	String input = io.stdin.getln("What's your name?");
-	if(input == "John Doe")
+	if(3 < 5)
 	{
-		io.stdout.writeln("My man!");
+		io.stdout.println("yee");
 	}
-	else
-	{
-		io.stdout.println("I don't know you, {}", input);
-	}
-	Bool yes = true;
-	None n = none;
-	String s = "\o0"; # \o0, \o60, \o141
-	Char c = '\n';
 }

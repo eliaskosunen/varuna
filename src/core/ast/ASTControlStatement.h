@@ -41,9 +41,9 @@ namespace core
 		{
 		public:
 			std::unique_ptr<ASTExpression> init, rangeDecl, rangeInit;
-			std::unique_ptr<ASTBlockStatement> block;
+			std::unique_ptr<ASTStatement> block;
 
-			ASTForStatement(std::unique_ptr<ASTBlockStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
+			ASTForStatement(std::unique_ptr<ASTStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
 				: init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);

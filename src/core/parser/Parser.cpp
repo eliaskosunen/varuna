@@ -184,30 +184,60 @@ namespace core
 			{
 				return parserError("Invalid if statement: Expected '(', got '{}' instead", it->value);
 			}
-			auto cond = parseParenExpression();
+			++it; // Skip '('
+			auto cond = [this]() -> std::unique_ptr<ASTExpression>
+			{
+				// No condition set
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					// If-condition is true by default
+					return std::make_unique<ASTBoolLiteralExpression>(true);
+				}
+				return parseExpression();
+			}();
 			if(!cond)
 			{
 				return nullptr;
 			}
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				return parserError("Invalid if statement: Expected ')', got '{}' instead", it->value);
+			}
+			++it; // Skip ')'
 
 			// Parse then statement
 			auto then = parseStatement();
+			if(!then)
+			{
+				return nullptr;
+			}
 
 			// Parse else statement
 			// Optional
-			auto elsestmt = [this]() -> std::unique_ptr<ASTStatement>
+			bool elseSuccessful = true;
+			auto elsestmt = [this, &elseSuccessful]() -> std::unique_ptr<ASTStatement>
 			{
 				if(it->type != TOKEN_KEYWORD_ELSE) return nullptr;
 
 				++it; // Skip else
-				return parseStatement();
+				auto stmt = parseStatement();
+				if(!stmt) elseSuccessful = false;
+				return stmt;
 			}();
+			if(!elseSuccessful)
+			{
+				return nullptr;
+			}
 
 			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elsestmt));
 		}
 
 		std::unique_ptr<ASTForStatement> Parser::parseForStatement()
 		{
+			// For-statement syntax
+			// "for" () statement
+			// "for" ( [expression] ; [expression] ; [expression] ) statement
+
 			++it; // Skip 'for'
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
@@ -223,6 +253,8 @@ namespace core
 			}
 			else
 			{
+				// Start expression
+				// Must be a variable definition
 				if(it->type == TOKEN_PUNCT_SEMICOLON)
 				{
 					++it; // Skip ';'
@@ -246,6 +278,7 @@ namespace core
 					return parserError("Invalid for statement: expected ';' or an identifier in 'for start', got '{}' instead", it->value);
 				}
 
+				// End expression
 				if(it->type == TOKEN_PUNCT_SEMICOLON)
 				{
 					++it; // Skip ';'
@@ -265,6 +298,7 @@ namespace core
 					++it; // Skip ';'
 				}
 
+				// Step expression
 				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 				{
 					step = parseExpression();
@@ -281,27 +315,17 @@ namespace core
 				}
 			}
 
-			std::unique_ptr<ASTBlockStatement> block;
-			if(it->type == TOKEN_PUNCT_SEMICOLON)
+			// By default for loop is infinite
+			if(!end)
 			{
-				block = nullptr;
+				end = std::make_unique<ASTBoolLiteralExpression>(true);
 			}
-			else if(it->type == TOKEN_PUNCT_BRACE_OPEN)
+
+			// Parse statement
+			std::unique_ptr<ASTStatement> block = parseStatement();
+			if(!block)
 			{
-				block = parseBlockStatement();
-				if(!block)
-				{
-					return parserError("Invalid for statement block");
-				}
-			}
-			else
-			{
-				auto tmp = parseStatement();
-				if(!tmp)
-				{
-					return parserError("Invalid for statement");
-				}
-				block->nodes.push_back(std::move(tmp));
+				return nullptr;
 			}
 
 			return std::make_unique<ASTForStatement>(std::move(block), std::move(start), std::move(end), std::move(step));
@@ -634,7 +658,7 @@ namespace core
 				{
 					if(lit->modifierInt.isSet(INTEGER_SHORT))
 					{
-						auto val = std::stol(lit->value, 0, base);
+						auto val = std::stoi(lit->value, 0, base);
 						if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
 						{
 							throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
@@ -648,7 +672,7 @@ namespace core
 					}
 					else
 					{
-						auto val = std::stol(it->value, 0, base);
+						auto val = std::stoi(lit->value, 0, base);
 						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int32_t>(val), lit->modifierInt);
 					}
 				}

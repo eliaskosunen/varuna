@@ -360,13 +360,13 @@ namespace core
 		{
 			log(ind, "ASTIntegerLiteralExpression:");
 			log(ind + 1, "Value: {}", node->value);
-			log(ind + 1, "Modifiers: {}", node->mod);
+			log(ind + 1, "Modifiers: {0:b}", node->mod.get());
 		}
 		void DumpASTVisitor::visit(ASTFloatLiteralExpression *node, size_t ind)
 		{
 			log(ind, "ASTFloatLiteralExpression:");
 			log(ind + 1, "Value: {}", node->value);
-			log(ind + 1, "Modifiers: {}", node->mod);
+			log(ind + 1, "Modifiers: {0:b}", node->mod.get());
 		}
 		void DumpASTVisitor::visit(ASTStringLiteralExpression *node, size_t ind)
 		{

@@ -63,7 +63,7 @@ namespace core
 			std::nullptr_t parserError(const std::string &format, const Args& ... args)
 			{
 				error = ERROR_ERROR;
-				util::logger->error("{}: Parser error: {}", it->loc.toString(), fmt::format(format, args...));
+				util::logger->error("{}: Parser error: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
 				return nullptr;
 			}
 
@@ -71,7 +71,7 @@ namespace core
 			void parserWarning(const std::string &format, const Args& ... args)
 			{
 				if(error != ERROR_ERROR) error = ERROR_WARNING;
-				util::logger->warn("{}: Parser warning: {}", it->loc.toString(), fmt::format(format, args...));
+				util::logger->warn("{}: Parser warning: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
 			}
 
 			std::vector<std::unique_ptr<ast::ASTStatement>> &getGlobalNodeList()
