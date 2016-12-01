@@ -46,29 +46,42 @@ namespace core
 		{
 			while(true)
 			{
+				// If reached end of token list, throw
+				// This should not be possible, EOF should be reached first
 				if(it == endTokens)
 				{
-					return;
+					throw std::logic_error("EOF not in the end of the token list");
 				}
+
+				// Check current token
 				switch(it->type.get())
 				{
+				// In case of EOF, stop
 				case TOKEN_EOF:
 					return;
+
+				// A lonely semicolon top-level token
 				case TOKEN_PUNCT_SEMICOLON:
+					// This means an empty statement
+					// That's a warning
 					parserWarning("Empty statement");
-					handleEmptyStatement();
+					handleEmptyStatement(); // Skips the ';'
 					break;
 
+				// Import statement
 				case TOKEN_KEYWORD_IMPORT:
 					handleImport();
 					break;
+				// Module statement
 				case TOKEN_KEYWORD_MODULE:
 					handleModule();
 					break;
+				// Function definition
 				case TOKEN_KEYWORD_DEFINE:
 					handleDef();
 					break;
 
+				// Unsupported top-level token
 				default:
 					parserError("'{}' is not allowed as a top-level token", it->value);
 					return;
@@ -78,8 +91,16 @@ namespace core
 
 		std::unique_ptr<ASTImportStatement> Parser::parseImportStatement()
 		{
+			// Import statement syntax:
+			// "import" [package/module] identifier/literal-string
+
 			++it; // Skip "import"
 
+			// Parse import type
+			// Options:
+			// 	* module
+			// 	* package
+			// Not required
 			ASTImportStatement::ImportType importType = ASTImportStatement::UNSPECIFIED;
 			if(it->type == TOKEN_KEYWORD_MODULE)
 			{
@@ -92,18 +113,30 @@ namespace core
 				++it;
 			}
 
+			// Parse module/file to import
+			// Either an identifier or a string literal
 			std::string toImport;
 			bool isPath = false;
+
+			// Identifier:
+			// Import a module/package by module/package statement
 			if(it->type == TOKEN_IDENTIFIER)
 			{
+				// '.' is a operator, construct string of module/package to import
 				while(true)
 				{
 					toImport += it->value;
+
+					// EOF or ';'
+					// Importee done
 					if(std::next(it)->type == TOKEN_EOF ||
 						std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
 					{
 						break;
 					}
+
+					// '.' or identifier
+					// Add to toImport
 					if(std::next(it)->type == TOKEN_OPERATORB_MEMBER ||
 						std::next(it)->type == TOKEN_IDENTIFIER)
 					{
@@ -114,6 +147,8 @@ namespace core
 					return nullptr;
 				}
 			}
+			// String literal:
+			// Import a module/package by file path
 			else if(it->type == TOKEN_LITERAL_STRING)
 			{
 				isPath = true;
@@ -124,6 +159,7 @@ namespace core
 				return parserError("Invalid importee: '{}'", it->value);
 			}
 
+			// Semicolon required after import statement
 			if(std::next(it)->type != TOKEN_PUNCT_SEMICOLON)
 			{
 				return parserError("Expected semicolon after import statement");
@@ -136,96 +172,11 @@ namespace core
 			return stmt;
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parseParenExpression()
-		{
-			++it; // Skip '('
-			auto v = parseExpression();
-			if(!v)
-				return nullptr;
-
-			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-			{
-				return parserError("Expected closing parenthesis, got '{}' instead", it->value);
-			}
-			++it; // Skip ')'
-			return v;
-		}
-
-		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
-		{
-			std::string idName = it->value;
-			++it; // Skip identifier
-
-			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
-			{
-				--it;
-				return parseVariableDefinition();
-			}
-
-			if(it->type == TOKEN_OPERATORB_MEMBER)
-			{
-				while(true)
-				{
-					if(it->type == TOKEN_EOF)
-					{
-						return parserError("Invalid member access operand: '{}'", it->value);
-					}
-					if(it->type != TOKEN_OPERATORB_MEMBER)
-					{
-						break;
-					}
-					idName += it->value;
-					++it; // Skip '.'
-					if(it->type != TOKEN_IDENTIFIER)
-					{
-						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
-					}
-					idName += it->value;
-					++it; // Skip identifier
-				}
-			}
-			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
-			{
-				// Function call
-				++it; // Skip '('
-				std::vector<std::unique_ptr<ASTExpression>> args;
-				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-				{
-					while(it->type != TOKEN_EOF)
-					{
-						if(auto arg = parseExpression())
-						{
-							args.push_back(std::move(arg));
-						}
-						else
-						{
-							return nullptr;
-						}
-
-						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
-						{
-							break;
-						}
-
-						if(it->type != TOKEN_PUNCT_COMMA)
-						{
-							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
-						}
-						++it;
-					}
-				}
-
-				++it; // Skip ')'
-				auto id = std::make_unique<ASTIdentifierExpression>(idName);
-				return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
-			}
-
-			// Simple variable reference
-			return std::make_unique<ASTVariableRefExpression>(idName);
-		}
-
 		std::unique_ptr<ASTIfStatement> Parser::parseIfStatement()
 		{
+			// If statement syntax:
+			// "if" ( [expression] ) statement [ else statement ]
+
 			++it; // Skip 'if'
 
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
@@ -384,52 +335,6 @@ namespace core
 			return std::make_unique<ASTForStatement>(std::move(block), std::move(start), std::move(end), std::move(step));
 		}
 
-		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
-		{
-			++it; // Skip 'module'
-
-			if(it->type != TOKEN_IDENTIFIER)
-			{
-				return parserError("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
-			}
-
-			std::string name;
-			while(true)
-			{
-				if(it->type == TOKEN_IDENTIFIER)
-				{
-					name += it->value;
-				}
-				else
-				{
-					return parserError("Invalid module statement: expected identifier, got '{}' instead", it->value);
-				}
-				++it;
-
-				if(it->type == TOKEN_OPERATORB_MEMBER)
-				{
-					name += it->value;
-					if(std::next(it)->type == TOKEN_EOF || std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
-					{
-						return parserError("Invalid module statement: expected identifier after '.', got '{}' instead", it->value);
-					}
-				}
-				else if(it->type == TOKEN_PUNCT_SEMICOLON)
-				{
-					++it; // Skip ';'
-					break;
-				}
-				else
-				{
-					return parserError("Invalid module statement: expected '.' or ';', got '{}' instead", it->value);
-				}
-				++it; // Skip '.'
-			}
-
-			auto moduleName = std::make_unique<ASTIdentifierExpression>(name);
-			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
-		}
-
 		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()
 		{
 			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
@@ -503,6 +408,140 @@ namespace core
 			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
 			auto name_ = std::make_unique<ASTIdentifierExpression>(name);
 			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init));
+		}
+
+		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
+		{
+			++it; // Skip 'module'
+
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				return parserError("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
+			}
+
+			std::string name;
+			while(true)
+			{
+				if(it->type == TOKEN_IDENTIFIER)
+				{
+					name += it->value;
+				}
+				else
+				{
+					return parserError("Invalid module statement: expected identifier, got '{}' instead", it->value);
+				}
+				++it;
+
+				if(it->type == TOKEN_OPERATORB_MEMBER)
+				{
+					name += it->value;
+					if(std::next(it)->type == TOKEN_EOF || std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
+					{
+						return parserError("Invalid module statement: expected identifier after '.', got '{}' instead", it->value);
+					}
+				}
+				else if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					++it; // Skip ';'
+					break;
+				}
+				else
+				{
+					return parserError("Invalid module statement: expected '.' or ';', got '{}' instead", it->value);
+				}
+				++it; // Skip '.'
+			}
+
+			auto moduleName = std::make_unique<ASTIdentifierExpression>(name);
+			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
+		}
+
+		std::unique_ptr<ASTExpression> Parser::parseParenExpression()
+		{
+			++it; // Skip '('
+			auto v = parseExpression();
+			if(!v)
+				return nullptr;
+
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				return parserError("Expected closing parenthesis, got '{}' instead", it->value);
+			}
+			++it; // Skip ')'
+			return v;
+		}
+
+		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
+		{
+			std::string idName = it->value;
+			++it; // Skip identifier
+
+			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
+			{
+				--it;
+				return parseVariableDefinition();
+			}
+
+			if(it->type == TOKEN_OPERATORB_MEMBER)
+			{
+				while(true)
+				{
+					if(it->type == TOKEN_EOF)
+					{
+						return parserError("Invalid member access operand: '{}'", it->value);
+					}
+					if(it->type != TOKEN_OPERATORB_MEMBER)
+					{
+						break;
+					}
+					idName += it->value;
+					++it; // Skip '.'
+					if(it->type != TOKEN_IDENTIFIER)
+					{
+						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
+					}
+					idName += it->value;
+					++it; // Skip identifier
+				}
+			}
+			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
+			{
+				// Function call
+				++it; // Skip '('
+				std::vector<std::unique_ptr<ASTExpression>> args;
+				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					while(it->type != TOKEN_EOF)
+					{
+						if(auto arg = parseExpression())
+						{
+							args.push_back(std::move(arg));
+						}
+						else
+						{
+							return nullptr;
+						}
+
+						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+						{
+							break;
+						}
+
+						if(it->type != TOKEN_PUNCT_COMMA)
+						{
+							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
+						}
+						++it;
+					}
+				}
+
+				++it; // Skip ')'
+				auto id = std::make_unique<ASTIdentifierExpression>(idName);
+				return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
+			}
+
+			// Simple variable reference
+			return std::make_unique<ASTVariableRefExpression>(idName);
 		}
 
 		std::unique_ptr<ASTExpression> Parser::parsePrimary()
