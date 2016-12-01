@@ -70,7 +70,7 @@ namespace core
 					break;
 
 				default:
-					util::logger->error("'{}' is not allowed as a top-level token", it->value);
+					parserError("'{}' is not allowed as a top-level token", it->value);
 					return;
 				}
 			}
@@ -527,10 +527,6 @@ namespace core
 				return parseFalseLiteralExpression();
 			case TOKEN_LITERAL_TRUE:
 				return parseTrueLiteralExpression();
-			/*case TOKEN_KEYWORD_IF:
-				return parseIfStatement();
-			case TOKEN_KEYWORD_FOR:
-				return parseForStatement();*/
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
 			default:
@@ -549,7 +545,7 @@ namespace core
 			++it;
 			if(auto operand = parseUnary())
 			{
-				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), it->type);
+				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), opc->type);
 			}
 			return nullptr;
 		}
