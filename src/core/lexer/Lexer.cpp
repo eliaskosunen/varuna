@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 #include <sstream>
+#include <algorithm>
 
 #include "util/Logger.h"
 #include "util/StringUtils.h"
@@ -87,7 +88,6 @@ namespace core
 			// -?[0-9]([0-9\.]*)[dfulsboh]
 			if(
 				util::StringUtils::isCharDigit(currentChar) ||
-				(currentChar == '-' && util::StringUtils::isCharDigit(*(it + 1))) ||
 				(currentChar == '.' && util::StringUtils::isCharDigit(*(it + 1)))
 			)
 			{
@@ -116,26 +116,46 @@ namespace core
 				if(!isFloatingPoint)
 				{
 					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-					while(util::StringUtils::isCharAlpha(currentChar))
+					std::vector<std::string> allowedModifiers = {"i64", "i32", "i16", "i8", "b", "o"};
+					auto modifiers = [&]()
 					{
-						switch(currentChar)
+						std::string modbuf;
+						while((currentChar = *advance()))
 						{
-						case 'l':
-							t.modifierInt |= INTEGER_LONG;
-							break;
-						case 's':
-							t.modifierInt |= INTEGER_SHORT;
-							break;
-						case 'b':
-							t.modifierInt |= INTEGER_BINARY;
-							break;
-						case 'o':
-							t.modifierInt |= INTEGER_OCTAL;
-							break;
-						default:
-							lexerError("Invalid integer literal suffix: '{}'", currentChar);
+							if(!util::StringUtils::isCharAlpha(currentChar))
+							{
+								return false;
+							}
+							while(true)
+							{
+								auto modit = std::find(allowedModifiers.begin(), allowedModifiers.end(), modbuf);
+								if(modit != allowedModifiers.end())
+								{
+									if(*modit == "i64")			t.modifierInt |= INTEGER_LONG;
+									else if(*modit == "i32")	t.modifierInt |= INTEGER_INTEGER;
+									else if(*modit == "i16")	t.modifierInt |= INTEGER_SHORT;
+									// TODO i8
+									else if(*modit == "b")		t.modifierInt |= INTEGER_BINARY;
+									else if(*modit == "o")		t.modifierInt |= INTEGER_OCTAL;
+									else return false;
+
+									allowedModifiers.erase(std::remove(allowedModifiers.begin(), allowedModifiers.end(), *modit), allowedModifiers.end());
+									buf.clear();
+									break;
+								}
+								else
+								{
+									return false;
+								}
+								currentChar = *advance();
+								modbuf.push_back(currentChar);
+							}
 						}
-						currentChar = *advance();
+						return true;
+					};
+					if(!modifiers())
+					{
+						lexerError("Invalid integer modifier list");
 					}
 					if(isHex)
 					{
@@ -522,12 +542,14 @@ namespace core
 			if(buf == "*=")			return TOKEN_OPERATORA_MUL;
 			if(buf == "/=")			return TOKEN_OPERATORA_DIV;
 			if(buf == "%=")			return TOKEN_OPERATORA_MOD;
+			if(buf == "^=")			return TOKEN_OPERATORA_POW;
 
 			if(buf == "+")			return TOKEN_OPERATORB_ADD;
 			if(buf == "-")			return TOKEN_OPERATORB_SUB;
 			if(buf == "*")			return TOKEN_OPERATORB_MUL;
 			if(buf == "/")			return TOKEN_OPERATORB_DIV;
 			if(buf == "%")			return TOKEN_OPERATORB_MOD;
+			if(buf == "^")			return TOKEN_OPERATORB_POW;
 
 			if(buf == "&&")			return TOKEN_OPERATORB_AND;
 			if(buf == "||")			return TOKEN_OPERATORB_OR;

@@ -76,13 +76,15 @@ namespace core
 			TOKEN_OPERATORA_MUL,	// *=
 			TOKEN_OPERATORA_DIV,	// /=
 			TOKEN_OPERATORA_MOD,	// %=
+			TOKEN_OPERATORA_POW,	// ^=
 
 			TOKEN_OPERATORB_ADD = 500,// a + b
 			TOKEN_OPERATORB_SUB,	// a - b
 			TOKEN_OPERATORB_MUL,	// a * b
 			TOKEN_OPERATORB_DIV,	// a / b
-			TOKEN_OPERATORB_MOD,	// a % b
-			TOKEN_OPERATORB_REM,	// a rem b
+			TOKEN_OPERATORB_MOD,	// a % b, modulo
+			TOKEN_OPERATORB_REM,	// a rem b, remainder
+			TOKEN_OPERATORB_POW,	// a ^ b, power
 
 			TOKEN_OPERATORB_AND,	// a && b, a and b
 			TOKEN_OPERATORB_OR,		// a || b, a or b

@@ -5,5 +5,6 @@ module main;
 
 def main(): Void
 {
-	Integer[3] array;
+	Integer power = 3 ^ 5;
+	Integer remainder = 5 rem 3;
 }

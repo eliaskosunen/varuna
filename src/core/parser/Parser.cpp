@@ -1065,6 +1065,7 @@ namespace core
 			case TOKEN_OPERATORA_MUL:
 			case TOKEN_OPERATORA_DIV:
 			case TOKEN_OPERATORA_MOD:
+			case TOKEN_OPERATORA_POW:
 				return 10;
 
 			case TOKEN_OPERATORB_OR:
@@ -1089,6 +1090,8 @@ namespace core
 			case TOKEN_OPERATORB_MOD:
 			case TOKEN_OPERATORB_REM:
 				return 100;
+			case TOKEN_OPERATORB_POW:
+				return 110;
 
 			case TOKEN_OPERATORU_NOT:
 			case TOKEN_OPERATORU_PLUS:
@@ -1099,10 +1102,10 @@ namespace core
 			case TOKEN_OPERATORU_ADDROF:
 			case TOKEN_OPERATORU_DEC:
 			case TOKEN_OPERATORU_INC:
-				return 110;
+				return 120;
 
 			case TOKEN_OPERATORB_MEMBER:
-				return 120;
+				return 130;
 
 			default:
 				return -1;
