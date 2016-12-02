@@ -5,8 +5,5 @@ module main;
 
 def main(): Void
 {
-	for(;;)
-	{
-		io.stdout.println("yee");
-	}
+	Integer[3] array;
 }

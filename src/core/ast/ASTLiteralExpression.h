@@ -33,19 +33,12 @@ namespace core
 		class ASTIntegerLiteralExpression : public ASTExpression
 		{
 		public:
-			boost::variant<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t> value;
+			int64_t value;
 
 			core::lexer::TokenIntegerLiteralModifier mod;
 
 			ASTIntegerLiteralExpression(core::lexer::TokenIntegerLiteralModifier _mod = core::lexer::INTEGER_INTEGER) : value(0), mod(_mod) {}
-			ASTIntegerLiteralExpression(int8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(int16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(int32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
 			ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(uint8_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(uint16_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(uint32_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
-			ASTIntegerLiteralExpression(uint64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};

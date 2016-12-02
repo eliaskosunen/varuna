@@ -120,9 +120,6 @@ namespace core
 					{
 						switch(currentChar)
 						{
-						case 'u':
-							t.modifierInt |= INTEGER_UNSIGNED;
-							break;
 						case 'l':
 							t.modifierInt |= INTEGER_LONG;
 							break;

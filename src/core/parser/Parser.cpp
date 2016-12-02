@@ -92,7 +92,7 @@ namespace core
 		std::unique_ptr<ASTImportStatement> Parser::parseImportStatement()
 		{
 			// Import statement syntax:
-			// "import" [package/module] identifier/literal-string
+			// "import" [package/module] identifier/literal-string ;
 
 			++it; // Skip "import"
 
@@ -232,6 +232,9 @@ namespace core
 		std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
 			Parser::parseForCondition()
 		{
+			// Parse the condition of a for statement
+			// ( [init] ; [end] ; [step] )
+
 			auto makeTuple = [](std::unique_ptr<ASTExpression> i, std::unique_ptr<ASTExpression> e, std::unique_ptr<ASTExpression> s)
 				-> std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
 			{
@@ -351,7 +354,7 @@ namespace core
 		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()
 		{
 			// Variable definition syntax:
-			// var/identifier name [ = init-expression ]
+			// var/identifier name [ = init-expression ] ;
 
 			// Parse typename
 			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
@@ -362,6 +365,41 @@ namespace core
 			bool typeDetermined = it->type == TOKEN_IDENTIFIER; // Whether or not the type will have to
 																// be determined by the type of the init expression
 			++it; // Skip typename/'var'
+
+			// Check if it's an array
+			uint32_t arraySize = 0;
+			if(it->type == TOKEN_PUNCT_SQR_OPEN) // It's an array
+			{
+				++it; // Skip '['
+				// Array size is required
+				auto size = parseIntegerLiteralExpression();
+				if(!size)
+				{
+					return parserError("Invalid array size");
+				}
+
+				util::logger->trace("It's an array: {}", size->value);
+				if(size->value < 0)
+				{
+					return parserError("Invalid array size: Array size cannot be negative, got {}", size->value);
+				}
+				if(size->value == 0)
+				{
+					return parserError("Invalid array size: Array size cannot be 0");
+				}
+				if(size->value > std::numeric_limits<int32_t>::max())
+				{
+					return parserError("Invalid array size: Array size cannot exceed {}, got {}", std::numeric_limits<int32_t>::max(), size->value);
+				}
+				arraySize = static_cast<uint32_t>(size->value);
+
+				// ']' required
+				if(it->type != TOKEN_PUNCT_SQR_CLOSE)
+				{
+					return parserError("Invalid array definition: Expected ']', got '{}' instead", it->value);
+				}
+				++it; // Skip ']'
+			}
 
 			// Parse variable name
 			if(it->type != TOKEN_IDENTIFIER)
@@ -380,6 +418,7 @@ namespace core
 					return parseExpression();
 				}
 
+				// No init expression
 				return std::make_unique<ASTEmptyExpression>();
 			}();
 			if(!init)
@@ -387,6 +426,7 @@ namespace core
 				return parserError("Invalid variable init expression");
 			}
 
+			// Determine the type of the variable
 			ASTVariableDefinitionExpression::Type type;
 			if(!typeDetermined)
 			{
@@ -411,11 +451,6 @@ namespace core
 					if(typen == "Int32") return ASTVariableDefinitionExpression::INT32;
 					if(typen == "Int64") return ASTVariableDefinitionExpression::INT64;
 
-					if(typen == "UInt8") return ASTVariableDefinitionExpression::UINT8;
-					if(typen == "UInt16") return ASTVariableDefinitionExpression::UINT16;
-					if(typen == "UInt32") return ASTVariableDefinitionExpression::UINT32;
-					if(typen == "UInt64") return ASTVariableDefinitionExpression::UINT64;
-
 					if(typen == "Float") return ASTVariableDefinitionExpression::FLOAT;
 					if(typen == "F32") return ASTVariableDefinitionExpression::F32;
 					if(typen == "F64") return ASTVariableDefinitionExpression::F64;
@@ -431,11 +466,14 @@ namespace core
 
 			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
 			auto name_ = std::make_unique<ASTIdentifierExpression>(name);
-			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init));
+			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init), arraySize);
 		}
 
 		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
 		{
+			// Module statement syntax
+			// "module" identifier ;
+
 			++it; // Skip 'module'
 
 			if(it->type != TOKEN_IDENTIFIER)
@@ -443,6 +481,7 @@ namespace core
 				return parserError("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
 			}
 
+			// Construct module name
 			std::string name;
 			while(true)
 			{
@@ -482,10 +521,13 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseParenExpression()
 		{
+			// Parse an expression in parenthesis
 			++it; // Skip '('
 			auto v = parseExpression();
 			if(!v)
+			{
 				return nullptr;
+			}
 
 			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 			{
@@ -500,12 +542,15 @@ namespace core
 			std::string idName = it->value;
 			++it; // Skip identifier
 
-			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
+			// If there is an identifier or a '[' (meaning array) after the initial identifier,
+			// it's a variable definition
+			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_PUNCT_SQR_OPEN)
 			{
-				--it;
+				--it; // Roll back to the previous identifier, which is the typename
 				return parseVariableDefinition();
 			}
 
+			// Member variable/function
 			if(it->type == TOKEN_OPERATORB_MEMBER)
 			{
 				while(true)
@@ -528,13 +573,15 @@ namespace core
 					++it; // Skip identifier
 				}
 			}
+
+			// Function call
 			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 			{
-				// Function call
 				++it; // Skip '('
 				std::vector<std::unique_ptr<ASTExpression>> args;
 				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 				{
+					// Parse argument list
 					while(it->type != TOKEN_EOF)
 					{
 						if(auto arg = parseExpression())
@@ -555,7 +602,7 @@ namespace core
 						{
 							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
 						}
-						++it;
+						++it; // Skip ','
 					}
 				}
 
@@ -564,12 +611,12 @@ namespace core
 				return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
 			}
 
-			// Simple variable reference
 			return std::make_unique<ASTVariableRefExpression>(idName);
 		}
 
 		std::unique_ptr<ASTExpression> Parser::parsePrimary()
 		{
+			// Parse primary expression
 			switch(it->type.get())
 			{
 			case TOKEN_IDENTIFIER:
@@ -660,50 +707,30 @@ namespace core
 
 			try
 			{
-				if(lit->modifierInt.isSet(INTEGER_UNSIGNED))
+				auto size = [lit]() -> decltype(lit->modifierInt.get())
 				{
-					if(lit->modifierInt.isSet(INTEGER_SHORT))
+					if(lit->modifierInt.isSet(INTEGER_LONG)) return INTEGER_LONG;
+					if(lit->modifierInt.isSet(INTEGER_SHORT)) return INTEGER_SHORT;
+					return INTEGER_INTEGER;
+				}();
+
+				int64_t val = std::stoll(lit->value, 0, base);
+				if(size == INTEGER_SHORT)
+				{
+					if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
 					{
-						auto val = std::stoul(lit->value, 0, base);
-						if(val > std::numeric_limits<uint16_t>::max())
-						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into UInt16", lit->value));
-						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint16_t>(val), lit->modifierInt);
-					}
-					else if(lit->modifierInt.isSet(INTEGER_LONG))
-					{
-						auto val = std::stoull(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint64_t>(val), lit->modifierInt);
-					}
-					else
-					{
-						auto val = std::stoul(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint32_t>(val), lit->modifierInt);
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
 					}
 				}
-				else
+				else if(size == INTEGER_INTEGER)
 				{
-					if(lit->modifierInt.isSet(INTEGER_SHORT))
+					if(val > std::numeric_limits<int32_t>::max() || val < std::numeric_limits<int32_t>::min())
 					{
-						auto val = std::stoi(lit->value, 0, base);
-						if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
-						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
-						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int16_t>(val), lit->modifierInt);
-					}
-					else if(lit->modifierInt.isSet(INTEGER_LONG))
-					{
-						auto val = std::stoll(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int64_t>(val), lit->modifierInt);
-					}
-					else
-					{
-						auto val = std::stoi(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int32_t>(val), lit->modifierInt);
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int32", lit->value));
 					}
 				}
+				return std::make_unique<ASTIntegerLiteralExpression>(val, lit->modifierInt);
+
 			}
 			catch(std::invalid_argument &e)
 			{
@@ -857,6 +884,8 @@ namespace core
 				return parseIfStatement();
 			case TOKEN_KEYWORD_FOR:
 				return parseForStatement();
+
+			case TOKEN_KEYWORD_VAR:
 			case TOKEN_IDENTIFIER:
 			{
 				auto expr = parseIdentifierExpression();
@@ -1013,6 +1042,10 @@ namespace core
 
 		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)
 		{
+			if(!expr)
+			{
+				return parserError("Trying to wrap a nullptr expression");
+			}
 			if(it->type != TOKEN_PUNCT_SEMICOLON)
 			{
 				return parserError("Expected semicolon after expression statement, got '{}' instead", it->value);
@@ -1043,12 +1076,6 @@ namespace core
 				return 20;
 			case TOKEN_OPERATORB_AND:
 				return 30;
-			case TOKEN_OPERATORB_BITOR:
-				return 40;
-			case TOKEN_OPERATORB_BITXOR:
-				return 50;
-			case TOKEN_OPERATORB_BITAND:
-				return 60;
 
 			case TOKEN_OPERATORB_EQ:
 			case TOKEN_OPERATORB_NOTEQ:

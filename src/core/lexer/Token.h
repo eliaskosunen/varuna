@@ -31,12 +31,11 @@ namespace core
 		enum TokenIntegerLiteralModifier_t
 		{
 			INTEGER_INTEGER	= 1,	// No suffix
-			INTEGER_UNSIGNED= 2,	// u
-			INTEGER_LONG	= 4,	// l
-			INTEGER_SHORT	= 8,	// s
-			INTEGER_BINARY	= 16,	// b
-			INTEGER_OCTAL	= 32,	// o
-			INTEGER_HEX		= 64,	// x
+			INTEGER_LONG	= 2,	// l
+			INTEGER_SHORT	= 4,	// s
+			INTEGER_BINARY	= 8,	// b
+			INTEGER_OCTAL	= 16,	// o
+			INTEGER_HEX		= 32,	// x
 
 			INTEGER_NONE	= INTEGER_INTEGER
 		};
