@@ -1087,6 +1087,7 @@ namespace core
 			case TOKEN_OPERATORB_MUL:
 			case TOKEN_OPERATORB_DIV:
 			case TOKEN_OPERATORB_MOD:
+			case TOKEN_OPERATORB_REM:
 				return 100;
 
 			case TOKEN_OPERATORU_NOT:

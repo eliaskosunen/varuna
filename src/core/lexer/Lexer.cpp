@@ -500,6 +500,7 @@ namespace core
 			if(buf == "not")		return TOKEN_OPERATORU_NOT;
 			if(buf == "of")			return TOKEN_OPERATORB_OF;
 			if(buf == "as")			return TOKEN_OPERATORB_AS;
+			if(buf == "rem")		return TOKEN_OPERATORB_REM;
 			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
 			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
 			if(buf == "instanceof")	return TOKEN_OPERATORU_INSTOF;

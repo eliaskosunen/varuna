@@ -82,6 +82,7 @@ namespace core
 			TOKEN_OPERATORB_MUL,	// a * b
 			TOKEN_OPERATORB_DIV,	// a / b
 			TOKEN_OPERATORB_MOD,	// a % b
+			TOKEN_OPERATORB_REM,	// a rem b
 
 			TOKEN_OPERATORB_AND,	// a && b, a and b
 			TOKEN_OPERATORB_OR,		// a || b, a or b
