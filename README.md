@@ -12,7 +12,7 @@ Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/eliaskosun
 
 ## About
 
-Varuna is a general-purpose interpreted programming language.
+Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
 WORK IN PROGRESS.
 
@@ -31,7 +31,7 @@ on Windows with Visual Studio 14 (2015). Older compilers may work, but are not a
 
 ### Instructions
 
-The application can be build using CMake.
+The application can be built using CMake.
 The easiest way to do this is to run `build.sh`,
 which will build the application, tests and documentation.
 `build.sh` will only work on Linux.
