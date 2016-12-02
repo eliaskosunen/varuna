@@ -1065,11 +1065,6 @@ namespace core
 			case TOKEN_OPERATORA_MUL:
 			case TOKEN_OPERATORA_DIV:
 			case TOKEN_OPERATORA_MOD:
-			case TOKEN_OPERATORA_BITAND:
-			case TOKEN_OPERATORA_BITOR:
-			case TOKEN_OPERATORA_BITXOR:
-			case TOKEN_OPERATORA_SHIFTL:
-			case TOKEN_OPERATORA_SHIFTR:
 				return 10;
 
 			case TOKEN_OPERATORB_OR:
@@ -1086,19 +1081,15 @@ namespace core
 			case TOKEN_OPERATORB_LESSEQ:
 				return 80;
 
-			case TOKEN_OPERATORB_SHIFTL:
-			case TOKEN_OPERATORB_SHIFTR:
-				return 90;
 			case TOKEN_OPERATORB_ADD:
 			case TOKEN_OPERATORB_SUB:
-				return 100;
+				return 90;
 			case TOKEN_OPERATORB_MUL:
 			case TOKEN_OPERATORB_DIV:
 			case TOKEN_OPERATORB_MOD:
-				return 110;
+				return 100;
 
 			case TOKEN_OPERATORU_NOT:
-			case TOKEN_OPERATORU_BITNOT:
 			case TOKEN_OPERATORU_PLUS:
 			case TOKEN_OPERATORU_MINUS:
 			case TOKEN_OPERATORU_SIZEOF:
@@ -1107,10 +1098,10 @@ namespace core
 			case TOKEN_OPERATORU_ADDROF:
 			case TOKEN_OPERATORU_DEC:
 			case TOKEN_OPERATORU_INC:
-				return 120;
+				return 110;
 
 			case TOKEN_OPERATORB_MEMBER:
-				return 130;
+				return 120;
 
 			default:
 				return -1;

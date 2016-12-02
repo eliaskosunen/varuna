@@ -522,23 +522,11 @@ namespace core
 			if(buf == "/=")			return TOKEN_OPERATORA_DIV;
 			if(buf == "%=")			return TOKEN_OPERATORA_MOD;
 
-			if(buf == "&=")			return TOKEN_OPERATORA_BITAND;
-			if(buf == "|=")			return TOKEN_OPERATORA_BITOR;
-			if(buf == "^=")			return TOKEN_OPERATORA_BITXOR;
-			if(buf == "<<=")		return TOKEN_OPERATORA_SHIFTL;
-			if(buf == ">>=")		return TOKEN_OPERATORA_SHIFTR;
-
 			if(buf == "+")			return TOKEN_OPERATORB_ADD;
 			if(buf == "-")			return TOKEN_OPERATORB_SUB;
 			if(buf == "*")			return TOKEN_OPERATORB_MUL;
 			if(buf == "/")			return TOKEN_OPERATORB_DIV;
 			if(buf == "%")			return TOKEN_OPERATORB_MOD;
-
-			if(buf == "&")			return TOKEN_OPERATORB_BITAND;
-			if(buf == "|")			return TOKEN_OPERATORB_BITOR;
-			if(buf == "^")			return TOKEN_OPERATORB_BITXOR;
-			if(buf == "<<")			return TOKEN_OPERATORB_SHIFTL;
-			if(buf == ">>")			return TOKEN_OPERATORB_SHIFTR;
 
 			if(buf == "&&")			return TOKEN_OPERATORB_AND;
 			if(buf == "||")			return TOKEN_OPERATORB_OR;
@@ -555,7 +543,6 @@ namespace core
 			if(buf == "++")			return TOKEN_OPERATORU_INC;
 			if(buf == "--")			return TOKEN_OPERATORU_DEC;
 
-			if(buf == "~")			return TOKEN_OPERATORU_BITNOT;
 			if(buf == "!")			return TOKEN_OPERATORU_NOT;
 
 			if(buf == "(")			return TOKEN_PUNCT_PAREN_OPEN;

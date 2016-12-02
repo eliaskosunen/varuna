@@ -77,23 +77,11 @@ namespace core
 			TOKEN_OPERATORA_DIV,	// /=
 			TOKEN_OPERATORA_MOD,	// %=
 
-			TOKEN_OPERATORA_BITAND,	// &=
-			TOKEN_OPERATORA_BITOR,	// |=
-			TOKEN_OPERATORA_BITXOR,	// ^=
-			TOKEN_OPERATORA_SHIFTL,	// <<=
-			TOKEN_OPERATORA_SHIFTR,	// >>=
-
 			TOKEN_OPERATORB_ADD = 500,// a + b
 			TOKEN_OPERATORB_SUB,	// a - b
 			TOKEN_OPERATORB_MUL,	// a * b
 			TOKEN_OPERATORB_DIV,	// a / b
 			TOKEN_OPERATORB_MOD,	// a % b
-
-			TOKEN_OPERATORB_BITAND,	// a & b
-			TOKEN_OPERATORB_BITOR,	// a | b
-			TOKEN_OPERATORB_BITXOR,	// a ^ b
-			TOKEN_OPERATORB_SHIFTL,	// a << b
-			TOKEN_OPERATORB_SHIFTR,	// a >> b
 
 			TOKEN_OPERATORB_AND,	// a && b, a and b
 			TOKEN_OPERATORB_OR,		// a || b, a or b
@@ -116,7 +104,6 @@ namespace core
 
 			TOKEN_OPERATORU_PLUS,	// +a
 			TOKEN_OPERATORU_MINUS,	// -a
-			TOKEN_OPERATORU_BITNOT,	// ~a
 			TOKEN_OPERATORU_NOT,	// !a, not a
 
 			TOKEN_OPERATORU_SIZEOF,	// sizeof a
