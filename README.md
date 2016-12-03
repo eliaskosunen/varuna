@@ -58,7 +58,6 @@ $ ./build-docs.sh
 ```
 
 ### Windows
-
 You can either use the CMake GUI or the Command Prompt:
 ```sh
 # On the repository root folder
