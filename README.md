@@ -38,7 +38,7 @@ which will build the application, tests and documentation.
 `build.sh` will only work on Linux.
 
 If you'd like to build on other platforms than Linux,
-or not to build documentation, here are the instructions
+or not to build documentation, here are the instructions:
 
 ### Linux
 
