@@ -41,6 +41,7 @@ If you'd like to build on other platforms than Linux,
 or not to build documentation, here are the instructions
 
 ### Linux
+
 ```sh
 # On the repository root folder
 $ mkdir build
@@ -57,6 +58,7 @@ $ ./build-docs.sh
 ```
 
 ### Windows
+
 You can either use the CMake GUI or the Command Prompt:
 ```sh
 # On the repository root folder
