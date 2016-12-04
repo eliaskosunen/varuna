@@ -30,14 +30,16 @@ namespace core
 	{
 		enum TokenIntegerLiteralModifier_t
 		{
-			INTEGER_INTEGER	= 1,	// No suffix
-			INTEGER_LONG	= 2,	// l
-			INTEGER_SHORT	= 4,	// s
-			INTEGER_BINARY	= 8,	// b
-			INTEGER_OCTAL	= 16,	// o
-			INTEGER_HEX		= 32,	// x
+			INTEGER_INT8 	= 1,	// i8
+			INTEGER_INT16	= 2,	// i16
+			INTEGER_INT32	= 4,	// i32 or none
+			INTEGER_INT64	= 8,	// i64
+			INTEGER_BINARY	= 16,	// b
+			INTEGER_OCTAL	= 32,	// o
+			INTEGER_HEX		= 64,	// x
 
-			INTEGER_NONE	= INTEGER_INTEGER
+			INTEGER_INTEGER	= INTEGER_INT32,
+			INTEGER_NONE	= INTEGER_INT32
 		};
 
 		enum TokenFloatLiteralModifier_t

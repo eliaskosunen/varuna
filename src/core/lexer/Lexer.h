@@ -95,7 +95,7 @@ namespace core
 				++it;
 
 				bool newLine = false;
-				if(it != content.end())
+				if(it != end)
 				{
 					if(*it == '\r')
 					{

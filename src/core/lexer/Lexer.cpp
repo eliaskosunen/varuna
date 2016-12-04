@@ -19,9 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vector>
-#include <map>
 #include <sstream>
 #include <algorithm>
+#include <unordered_map>
 
 #include "util/Logger.h"
 #include "util/StringUtils.h"
@@ -116,46 +116,35 @@ namespace core
 				if(!isFloatingPoint)
 				{
 					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-					std::vector<std::string> allowedModifiers = {"i64", "i32", "i16", "i8", "b", "o"};
-					auto modifiers = [&]()
+					std::unordered_map<std::string, decltype(INTEGER_INTEGER)> allowedModifiers =
+					{
+						{ "i64", INTEGER_INT64 },
+						{ "i32", INTEGER_INT32 },
+						{ "i16", INTEGER_INT16 },
+						{ "i8", INTEGER_INT8 },
+						{ "b", INTEGER_BINARY },
+						{ "o", INTEGER_OCTAL }
+					};
+					auto mod = [&]()
 					{
 						std::string modbuf;
-						while((currentChar = *advance()))
+						while(util::StringUtils::isCharAlnum(currentChar))
 						{
-							if(!util::StringUtils::isCharAlpha(currentChar))
+							modbuf.push_back(currentChar);
+							auto modit = allowedModifiers.find(modbuf);
+							if(modit != allowedModifiers.end())
 							{
-								return false;
+								t.modifierInt |= modit->second;
+								allowedModifiers.erase(modit);
+								modbuf.clear();
 							}
-							while(true)
-							{
-								auto modit = std::find(allowedModifiers.begin(), allowedModifiers.end(), modbuf);
-								if(modit != allowedModifiers.end())
-								{
-									if(*modit == "i64")			t.modifierInt |= INTEGER_LONG;
-									else if(*modit == "i32")	t.modifierInt |= INTEGER_INTEGER;
-									else if(*modit == "i16")	t.modifierInt |= INTEGER_SHORT;
-									// TODO i8
-									else if(*modit == "b")		t.modifierInt |= INTEGER_BINARY;
-									else if(*modit == "o")		t.modifierInt |= INTEGER_OCTAL;
-									else return false;
-
-									allowedModifiers.erase(std::remove(allowedModifiers.begin(), allowedModifiers.end(), *modit), allowedModifiers.end());
-									buf.clear();
-									break;
-								}
-								else
-								{
-									return false;
-								}
-								currentChar = *advance();
-								modbuf.push_back(currentChar);
-							}
+							currentChar = *advance();
 						}
-						return true;
-					};
-					if(!modifiers())
+						return modbuf;
+					}();
+					if(!mod.empty())
 					{
-						lexerError("Invalid integer modifier list");
+						lexerError("Invalid integer suffix: '{}'", mod);
 					}
 					if(isHex)
 					{

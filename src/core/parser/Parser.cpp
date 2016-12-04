@@ -707,22 +707,30 @@ namespace core
 
 			try
 			{
-				auto size = [lit]() -> decltype(lit->modifierInt.get())
+				auto size = [&]()
 				{
-					if(lit->modifierInt.isSet(INTEGER_LONG)) return INTEGER_LONG;
-					if(lit->modifierInt.isSet(INTEGER_SHORT)) return INTEGER_SHORT;
-					return INTEGER_INTEGER;
+					if(lit->modifierInt.isSet(INTEGER_INT64)) return 64u;
+					if(lit->modifierInt.isSet(INTEGER_INT16)) return 32u;
+					if(lit->modifierInt.isSet(INTEGER_INT8))  return 8u;
+					return 16u;
 				}();
 
 				int64_t val = std::stoll(lit->value, 0, base);
-				if(size == INTEGER_SHORT)
+				if(size == 8)
+				{
+					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
+					{
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int8", lit->value));
+					}
+				}
+				else if(size == 16)
 				{
 					if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
 					{
 						throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
 					}
 				}
-				else if(size == INTEGER_INTEGER)
+				else if(size == 32)
 				{
 					if(val > std::numeric_limits<int32_t>::max() || val < std::numeric_limits<int32_t>::min())
 					{
@@ -748,16 +756,15 @@ namespace core
 
 			try
 			{
-				if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+				double val = [&]()
 				{
-					float val = std::stof(lit->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
-				}
-				else
-				{
-					double val = std::stod(lit->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
-				}
+					if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+					{
+						return static_cast<double>(std::stof(lit->value));
+					}
+					return std::stod(lit->value);
+				}();
+				return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
 			}
 			catch(std::invalid_argument &e)
 			{

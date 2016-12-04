@@ -50,12 +50,6 @@ else()
 	message(STATUS "Build flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
-set(Boost_USE_STATIC_LIBS		ON)
-set(Boost_USE_MULTITHREADED		OFF)
-set(Boost_USE_STATIC_RUNTIME	OFF)
-find_package(Boost 1.62.0 REQUIRED)
-
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(third-party/include)

@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/SafeEnum.h"
 
 #include <string>
-#include <boost/variant.hpp>
 
 namespace core
 {
@@ -46,12 +45,11 @@ namespace core
 		class ASTFloatLiteralExpression : public ASTExpression
 		{
 		public:
-			boost::variant<float, double> value;
+			double value;
 
 			core::lexer::TokenFloatLiteralModifier mod;
 
 			ASTFloatLiteralExpression(core::lexer::TokenFloatLiteralModifier _mod = core::lexer::FLOAT_FLOAT) : value(0.0), mod(_mod) {}
-			ASTFloatLiteralExpression(float val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
 			ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);

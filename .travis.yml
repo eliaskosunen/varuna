@@ -18,10 +18,10 @@ addons:
 
 env:
     matrix:
-        - COMPILER=g++-5 PACKAGE=g++-5 LLVM_VERSION=0 COMPILER_C=gcc-5 BOOST_TOOLSET=gcc
-        - COMPILER=g++-6 PACKAGE=g++-6 LLVM_VERSION=0 COMPILER_C=gcc-6 BOOST_TOOLSET=gcc
-        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 LLVM_VERSION=3.6 COMPILER_C=clang-3.6 BOOST_TOOLSET=clang
-        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 LLVM_VERSION=3.8 COMPILER_C=clang-3.8 BOOST_TOOLSET=clang
+        - COMPILER=g++-5 PACKAGE=g++-5 LLVM_VERSION=0 COMPILER_C=gcc-5
+        - COMPILER=g++-6 PACKAGE=g++-6 LLVM_VERSION=0 COMPILER_C=gcc-6
+        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 LLVM_VERSION=3.6 COMPILER_C=clang-3.6
+        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 LLVM_VERSION=3.8 COMPILER_C=clang-3.8
 
 cache:
     directories:
@@ -31,19 +31,9 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
 
-    - export DOWNLOAD_ROOT="$HOME/Downloads"
-    - if [ ! -d "$DOWNLOAD_ROOT" ]; then mkdir -p "$DOWNLOAD_ROOT"; fi
-    - export BOOST_DOWNLOAD_URL="http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2/download"
-    - export BOOST_ROOT="$TRAVIS_BUILD_DIR/../boost"
-    - if [ ! -f "$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" ]; then wget --no-verbose --output-document="$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" "$BOOST_DOWNLOAD_URL" --no-check-certificate; fi
-    - if [ ! -f "$BOOST_ROOT" ]; then mkdir -p "$BOOST_ROOT" && tar jxf "$DOWNLOAD_ROOT/boost_1_62_0.tar.bz2" --strip-components=1 -C "$BOOST_ROOT"; fi
-    # No boost libraries to build
-    #- if [ ! -f "$BOOST_ROOT/b2" ]; then cd "$BOOST_ROOT"; ./bootstrap.sh --with-toolset="$BOOST_TOOLSET" --with-libraries=variant; fi
-
 install:
     - sudo apt-get update -qq
     - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ${PACKAGE}
-    #- cd "$BOOST_ROOT"; ./b2 toolset="$BOOST_TOOLSET" threading=multi --prefix="$BOOST_ROOT" -d0 install
 
 script:
     - mkdir build
