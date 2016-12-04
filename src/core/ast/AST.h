@@ -46,7 +46,7 @@ namespace core
 				pushStatement(std::move(stmt));
 			}
 
-			int countTopLevelNodes()
+			size_t countTopLevelNodes()
 			{
 				return globalNode->nodes.size();
 			}

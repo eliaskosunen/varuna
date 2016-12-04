@@ -388,10 +388,7 @@ namespace core
 							hex.push_back(*rit);
 						}
 						++rit;
-						std::istringstream hexcharss(hex);
-						unsigned int ch;
-						hexcharss >> std::hex >> ch;
-						c = ch;
+						c = static_cast<char>(std::stol(hex, 0, 16));
 						break;
 					}
 					case 'o':
@@ -418,10 +415,7 @@ namespace core
 						{
 							++rit;
 						}
-						std::istringstream octcharss(oct);
-						unsigned int ch;
-						octcharss >> std::oct >> ch;
-						c = ch;
+						c = static_cast<char>(std::stol(oct, 0, 8));
 						break;
 					}
 					case '"':

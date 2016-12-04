@@ -62,9 +62,6 @@ namespace util
 			s.close();
 			return ss.str();
 		}
-		catch(const std::ios_base::failure &e)
-		{
-
 		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 			//
 			// e.code() is only available if the lib actually follows iso §27.5.3.1.1
@@ -77,9 +74,15 @@ namespace util
 			// like libstdc++
 			// https://github.com/mirrors/gcc/blob/master/libstdc%2B%2B-v3/include/bits/ios_base.h#L209
 			//
+		catch(const std::ios_base::failure &e)
+		#else
+		catch(const std::ios_base::failure&)
+		#endif
+		{
+
+		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 			util::logger->error("Error reading file: libc++ error #{}: {}", e.code().value(), e.code().message());
 		#else
-
 			std::string errmsg;
 		#ifdef _MSC_VER
 			char buf[80];
