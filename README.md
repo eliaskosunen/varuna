@@ -1,7 +1,5 @@
 # Varuna
 
-[![License](https://img.shields.io/github/license/varuna-lang/varuna.svg)](LICENSE)
-
 **Master branch:**  
 Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
 Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)
@@ -29,7 +27,8 @@ Windows is supported, and macOS may work, but is not tested due to lack of resou
 A C++14 compliant compiler is required for building.
 The project is confirmed to build on
 Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.8.0) and
-on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported. Further support is not planned.
+on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported.
+Further support is not planned.
 
 ### Instructions
 
