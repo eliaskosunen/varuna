@@ -105,9 +105,7 @@ namespace fe
 			}
 			util::logger->debug("Parsing finished\n");
 
-			auto dumpAST = std::make_unique<core::ast::DumpASTVisitor>();
-			dumpAST->start<core::ast::ASTBlockStatement>(ast->globalNode.get());
-			dumpAST->finish();
+			core::ast::DumpASTVisitor::dump<core::ast::ASTBlockStatement>(ast->globalNode.get());
 			return true;
 		}
 	}

@@ -81,7 +81,15 @@ namespace core
 				return ast->globalNode->nodes;
 			}
 
-			int getTokenPrecedence() const;
+			bool isPrefixUnaryOperator() const;
+			bool isPostfixUnaryOperator() const;
+			bool isUnaryOperator() const;
+			bool isBinaryOperator() const;
+			bool isOperator() const;
+			int getBinOpPrecedence() const;
+			int getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const;
+			bool isBinOpRightAssociative() const;
+			bool isBinOpRightAssociative(core::lexer::TokenVector::const_iterator op) const;
 
 			std::tuple<
 				std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>

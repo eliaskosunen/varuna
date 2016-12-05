@@ -105,8 +105,6 @@ namespace core
 			TOKEN_OPERATORU_INC = 600,// a++
 			TOKEN_OPERATORU_DEC,	// a--
 
-			TOKEN_OPERATORU_PLUS,	// +a
-			TOKEN_OPERATORU_MINUS,	// -a
 			TOKEN_OPERATORU_NOT,	// !a, not a
 
 			TOKEN_OPERATORU_SIZEOF,	// sizeof a

@@ -34,7 +34,7 @@ static void cleanup()
 
 static void logException(const std::exception *e)
 {
-	std::string what = [e]()
+	std::string what = [&]()
 	{
 		if(!e)	return "[NULL]";
 		return e->what();

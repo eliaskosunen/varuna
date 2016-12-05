@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iterator> // For std::next
 #include <limits>
+#include <stack>
 
 // TODO: Needs cleanups and refactoring
 
@@ -185,7 +186,7 @@ namespace core
 				return parserError("Invalid if statement: Expected '(', got '{}' instead", it->value);
 			}
 			++it; // Skip '('
-			auto cond = [this]() -> std::unique_ptr<ASTExpression>
+			auto cond = [&]() -> std::unique_ptr<ASTExpression>
 			{
 				// No condition set
 				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
@@ -214,7 +215,7 @@ namespace core
 
 			// Parse else statement
 			// Optional
-			auto elsestmt = [this]() -> std::unique_ptr<ASTStatement>
+			auto elsestmt = [&]() -> std::unique_ptr<ASTStatement>
 			{
 				if(it->type != TOKEN_KEYWORD_ELSE) return std::make_unique<ASTEmptyStatement>();
 
@@ -262,7 +263,7 @@ namespace core
 
 			// Parse init expression
 			// Must be either a variable definition or empty
-			auto init = [this]() -> std::unique_ptr<ASTExpression>
+			auto init = [&]() -> std::unique_ptr<ASTExpression>
 			{
 				if(it->type == TOKEN_PUNCT_SEMICOLON)
 				{
@@ -283,7 +284,7 @@ namespace core
 
 			// Parse end expression
 			// Must be either an expression or empty
-			auto end = [this]() -> std::unique_ptr<ASTExpression>
+			auto end = [&]() -> std::unique_ptr<ASTExpression>
 			{
 				if(it->type == TOKEN_PUNCT_SEMICOLON)
 				{
@@ -305,7 +306,7 @@ namespace core
 
 			// Parse step expression
 			// Must be either an expression or empty
-			auto step = [this]() -> std::unique_ptr<ASTExpression>
+			auto step = [&]() -> std::unique_ptr<ASTExpression>
 			{
 				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 				{
@@ -410,7 +411,7 @@ namespace core
 			++it; // Skip variable name
 
 			// Parse possible init expression
-			auto init = [this]() -> std::unique_ptr<ASTExpression>
+			auto init = [&]() -> std::unique_ptr<ASTExpression>
 			{
 				if(it->type == TOKEN_OPERATORA_SIMPLE)
 				{
@@ -646,7 +647,20 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseUnary()
 		{
-			if(getTokenPrecedence() == -1)
+			// Prefix unary operator
+			if(isPrefixUnaryOperator())
+			{
+				auto op = *it;
+				++it;
+				auto operand = parseUnary();
+				if(!operand)
+				{
+					return nullptr;
+				}
+				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), op.type);
+			}
+
+			if(getBinOpPrecedence() == -1)
 			{
 				return parsePrimary();
 			}
@@ -662,7 +676,7 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseBinaryOperatorRHS(int prec, std::unique_ptr<ASTExpression> lhs)
 		{
-			while(it->type != TOKEN_EOF)
+			/*while(it->type != TOKEN_EOF)
 			{
 				int tokenPrec = getTokenPrecedence();
 
@@ -689,13 +703,13 @@ namespace core
 				}
 
 				lhs = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), binop->type);
-			}
+			}*/
 			return nullptr;
 		}
 
 		std::unique_ptr<ASTIntegerLiteralExpression> Parser::parseIntegerLiteralExpression()
 		{
-			const int base = [this]()
+			const int base = [&]()
 			{
 				if(it->modifierInt.isSet(INTEGER_HEX)) return 16;
 				if(it->modifierInt.isSet(INTEGER_OCTAL)) return 8;
@@ -821,12 +835,126 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseExpression()
 		{
-			auto lhs = parseUnary();
+			/*auto lhs = parseUnary();
 			if(!lhs)
 			{
 				return nullptr;
 			}
-			return parseBinaryOperatorRHS(0, std::move(lhs));
+			return parseBinaryOperatorRHS(0, std::move(lhs));*/
+			std::stack<core::lexer::TokenVector::const_iterator> operators;
+			std::string result;
+			while(it != endTokens)
+			{
+				if(it->type == TOKEN_PUNCT_PAREN_OPEN)
+				{
+					operators.push(it);
+					++it; // Skip '('
+					continue;
+				}
+				else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					++it; // Skip ')'
+					while(operators.top()->type != TOKEN_PUNCT_PAREN_OPEN)
+					{
+						result.append(operators.top()->value);
+						operators.pop();
+					}
+					operators.pop(); // Pop '('
+					continue;
+				}
+				else if(isOperator())
+				{
+					if(operators.empty() || operators.top()->type == TOKEN_PUNCT_PAREN_OPEN)
+					{
+						operators.push(it);
+						++it; // Skip operator
+						continue;
+					}
+					else if(
+						getBinOpPrecedence() > getBinOpPrecedence(operators.top()) ||
+						(
+							isBinOpRightAssociative() &&
+							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+						)
+					)
+					{
+						operators.push(it);
+						++it; // Skip operator
+					}
+					else if(
+						getBinOpPrecedence() <= getBinOpPrecedence(operators.top()) ||
+						(
+							!isBinOpRightAssociative() &&
+							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+						)
+					)
+					{
+						while(
+							getBinOpPrecedence() <= getBinOpPrecedence(operators.top()) ||
+							(
+								!isBinOpRightAssociative() &&
+								getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+							)
+						)
+						{
+							result.append(operators.top()->value);
+							operators.pop();
+							if(operators.empty())
+							{
+								break;
+							}
+						}
+						operators.push(it);
+						++it;
+					}
+					else
+					{
+						return parserError("No sufficent operator rule found");
+					}
+				}
+				else if(it->type == TOKEN_IDENTIFIER)
+				{
+					auto expr = parseIdentifierExpression();
+					result.append("id");
+					DumpASTVisitor::dump(expr.get());
+					continue;
+				}
+				else if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					break;
+				}
+				else if(it->type == TOKEN_EOF)
+				{
+					return parserError("Unexpected EOF in expression");
+				}
+				else
+				{
+					auto primary = parsePrimary();
+					if(!primary)
+					{
+						util::logger->trace("Operators.empty: {}, result: '{}'", operators.empty(), result);
+						while(!operators.empty())
+						{
+							result.append(operators.top()->value);
+							operators.pop();
+						}
+						util::logger->trace("Result: '{}'", result);
+						return parserError("Invalid token in expression: {}", it->value);
+					}
+					DumpASTVisitor::dump(primary.get());
+					result.append("pr");
+					continue;
+				}
+			}
+
+			while(!operators.empty())
+			{
+				result.append(operators.top()->value);
+				operators.pop();
+			}
+
+			util::logger->trace("Parsed expression: '{}'", result);
+			return std::make_unique<ASTIdentifierExpression>(result);
 		}
 
 		void Parser::handleImport()
@@ -967,7 +1095,7 @@ namespace core
 					break;
 				}
 
-				auto type = [this]()
+				auto type = [&]()
 				{
 					if(it->type == TOKEN_KEYWORD_REF)
 					{
@@ -1061,10 +1189,51 @@ namespace core
 			return std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
 		}
 
-		int Parser::getTokenPrecedence() const
+		bool Parser::isPrefixUnaryOperator() const
+		{
+			return (
+				it->type == TOKEN_OPERATORB_ADD ||
+				it->type == TOKEN_OPERATORB_SUB ||
+				it->type == TOKEN_OPERATORU_SIZEOF ||
+				it->type == TOKEN_OPERATORU_TYPEOF ||
+				it->type == TOKEN_OPERATORU_INSTOF ||
+				it->type == TOKEN_OPERATORU_ADDROF
+			);
+		}
+
+		bool Parser::isPostfixUnaryOperator() const
+		{
+			return (
+				it->type == TOKEN_OPERATORU_INC ||
+				it->type == TOKEN_OPERATORU_DEC
+			);
+		}
+
+		bool Parser::isUnaryOperator() const
+		{
+			return isPrefixUnaryOperator() || isPostfixUnaryOperator();
+		}
+
+		bool Parser::isBinaryOperator() const
+		{
+			return getBinOpPrecedence() >= 10;
+		}
+
+		bool Parser::isOperator() const
+		{
+			return isBinaryOperator() || isUnaryOperator();
+		}
+
+		int Parser::getBinOpPrecedence() const
+		{
+			return getBinOpPrecedence(it);
+		}
+
+		int Parser::getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const
 		{
 			using namespace core::lexer;
-			switch(it->type.get())
+
+			switch(op->type.get())
 			{
 			case TOKEN_OPERATORA_SIMPLE:
 			case TOKEN_OPERATORA_ADD:
@@ -1100,22 +1269,27 @@ namespace core
 			case TOKEN_OPERATORB_POW:
 				return 110;
 
-			case TOKEN_OPERATORU_NOT:
-			case TOKEN_OPERATORU_PLUS:
-			case TOKEN_OPERATORU_MINUS:
-			case TOKEN_OPERATORU_SIZEOF:
-			case TOKEN_OPERATORU_TYPEOF:
-			case TOKEN_OPERATORU_INSTOF:
-			case TOKEN_OPERATORU_ADDROF:
-			case TOKEN_OPERATORU_DEC:
-			case TOKEN_OPERATORU_INC:
-				return 120;
-
 			case TOKEN_OPERATORB_MEMBER:
-				return 130;
+				return 120;
 
 			default:
 				return -1;
+			}
+		}
+
+		bool Parser::isBinOpRightAssociative() const
+		{
+			return isBinOpRightAssociative(it);
+		}
+
+		bool Parser::isBinOpRightAssociative(core::lexer::TokenVector::const_iterator op) const
+		{
+			switch(op->type.get())
+			{
+			case TOKEN_OPERATORB_POW:
+				return true;
+			default:
+				return false;
 			}
 		}
 	}
