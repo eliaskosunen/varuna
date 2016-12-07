@@ -557,44 +557,71 @@ namespace core
 				}
 			}
 
+			auto parseAssignment = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				++it; // Skip assignment operator
+				return parseExpression();
+			};
+
 			// Function call
 			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 			{
-				++it; // Skip '('
-				std::vector<std::unique_ptr<ASTExpression>> args;
-				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-				{
-					// Parse argument list
-					while(it->type != TOKEN_EOF)
-					{
-						if(auto arg = parseExpression())
-						{
-							args.push_back(std::move(arg));
-						}
-						else
-						{
-							return nullptr;
-						}
-
-						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
-						{
-							break;
-						}
-
-						if(it->type != TOKEN_PUNCT_COMMA)
-						{
-							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
-						}
-						++it; // Skip ','
-					}
-				}
-
-				++it; // Skip ')'
-				auto id = std::make_unique<ASTIdentifierExpression>(idName);
-				return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
+				return parseFunctionCallExpression(idName);
 			}
 
-			return std::make_unique<ASTVariableRefExpression>(idName);
+			auto varref = std::make_unique<ASTVariableRefExpression>(idName);
+			std::unique_ptr<ASTAssignmentOperationExpression> assignment = nullptr;
+			if(isAssignmentOperator())
+			{
+				auto op = it;
+				auto rhs = parseAssignment();
+				if(!rhs)
+				{
+					return nullptr;
+				}
+				assignment = std::make_unique<ASTAssignmentOperationExpression>(std::move(varref), std::move(rhs), op->type);
+			}
+			if(!assignment)
+			{
+				return std::move(varref);
+			}
+			return std::move(assignment);
+		}
+
+		std::unique_ptr<ast::ASTCallExpression> Parser::parseFunctionCallExpression(const std::string &idName)
+		{
+			++it; // Skip '('
+			std::vector<std::unique_ptr<ASTExpression>> args;
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				// Parse argument list
+				while(it->type != TOKEN_EOF)
+				{
+					if(auto arg = parseExpression())
+					{
+						args.push_back(std::move(arg));
+					}
+					else
+					{
+						return nullptr;
+					}
+
+					if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+					{
+						break;
+					}
+
+					if(it->type != TOKEN_PUNCT_COMMA)
+					{
+						return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
+					}
+					++it; // Skip ','
+				}
+			}
+
+			++it; // Skip ')'
+			auto id = std::make_unique<ASTIdentifierExpression>(idName);
+			return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
 		}
 
 		std::unique_ptr<ASTExpression> Parser::parsePrimary(bool tolerateUnrecognized)
@@ -757,16 +784,16 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseExpression()
 		{
-			std::stack<core::lexer::TokenVector::const_iterator> operators;
+			std::stack<core::lexer::TokenType> operators;
 			std::stack<std::unique_ptr<ASTExpression>> operands;
-			std::string result;
 			int parenCount = 0;
+			const auto beginExprIt = it;
 
 			while(it != endTokens)
 			{
 				if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 				{
-					operators.push(it);
+					operators.push(it->type);
 					++it; // Skip '('
 					++parenCount;
 					continue;
@@ -785,7 +812,7 @@ namespace core
 					{
 						while(!operators.empty())
 						{
-							if(operators.top()->type == TOKEN_PUNCT_PAREN_OPEN)
+							if(operators.top() == TOKEN_PUNCT_PAREN_OPEN)
 							{
 								operators.pop();
 								ok = true;
@@ -798,7 +825,7 @@ namespace core
 								auto lhs = std::move(operands.top());
 								operands.pop();
 
-								auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
+								auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
 								operands.push(std::move(expr));
 
 								operators.pop();
@@ -814,8 +841,25 @@ namespace core
 				}
 				else if(isBinaryOperator())
 				{
+					if(it == beginExprIt || getBinOpPrecedence(it - 1) >= 0)
+					{
+						if(it->type == TOKEN_OPERATORB_ADD)
+						{
+							operators.push(Token::create(TOKEN_OPERATORU_PLUS, it->value, it->loc).type);
+							++it;
+							continue;
+						}
+						else if(it->type == TOKEN_OPERATORB_SUB)
+						{
+							operators.push(Token::create(TOKEN_OPERATORU_MINUS, it->value, it->loc).type);
+							++it;
+							continue;
+						}
+					}
+
+
 					if(
-						operators.empty() || operators.top()->type == TOKEN_PUNCT_PAREN_OPEN ||
+						operators.empty() || operators.top() == TOKEN_PUNCT_PAREN_OPEN ||
 						(
 							getBinOpPrecedence() > getBinOpPrecedence(operators.top())
 						) ||
@@ -825,7 +869,7 @@ namespace core
 						)
 					)
 					{
-						operators.push(it);
+						operators.push(it->type);
 						++it; // Skip operator
 						continue;
 					}
@@ -845,14 +889,12 @@ namespace core
 							)
 						)
 						{
-							result.append(operators.top()->value);
-
 							auto rhs = std::move(operands.top());
 							operands.pop();
 							auto lhs = std::move(operands.top());
 							operands.pop();
 
-							auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
+							auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
 							operands.push(std::move(expr));
 
 							operators.pop();
@@ -861,7 +903,7 @@ namespace core
 								break;
 							}
 						}
-						operators.push(it);
+						operators.push(it->type);
 						++it;
 					}
 					else
@@ -877,7 +919,6 @@ namespace core
 						return nullptr;
 					}
 					operands.push(std::move(expr));
-					result.append("id");
 					continue;
 				}
 				else if(it->type == TOKEN_PUNCT_SEMICOLON)
@@ -900,27 +941,36 @@ namespace core
 						return parserError("Invalid token in expression: {}", it->value);
 					}
 					operands.push(std::move(primary));
-					result.append("pr");
 					continue;
 				}
 			}
 
 			while(!operators.empty())
 			{
-				result.append(operators.top()->value);
+				if(isUnaryOperator(operators.top()))
+				{
+					auto rhs = std::move(operands.top());
+					operands.pop();
 
-				auto rhs = std::move(operands.top());
-				operands.pop();
-				auto lhs = std::move(operands.top());
-				operands.pop();
+					auto expr = std::make_unique<ASTUnaryOperationExpression>(std::move(rhs), operators.top());
+					operands.push(std::move(expr));
 
-				auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
-				operands.push(std::move(expr));
+					operators.pop();
+				}
+				else
+				{
+					auto rhs = std::move(operands.top());
+					operands.pop();
+					auto lhs = std::move(operands.top());
+					operands.pop();
 
-				operators.pop();
+					auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
+					operands.push(std::move(expr));
+
+					operators.pop();
+				}
 			}
 
-			util::logger->trace("Parsed expression: '{}'", result);
 			if(operands.empty())
 			{
 				parserWarning("Expression evaluated as empty");
@@ -1164,27 +1214,42 @@ namespace core
 
 		bool Parser::isPrefixUnaryOperator() const
 		{
+			return isPrefixUnaryOperator(it->type);
+		}
+
+		bool Parser::isPrefixUnaryOperator(const core::lexer::TokenType &op) const
+		{
 			return (
-				it->type == TOKEN_OPERATORB_ADD ||
-				it->type == TOKEN_OPERATORB_SUB ||
-				it->type == TOKEN_OPERATORU_SIZEOF ||
-				it->type == TOKEN_OPERATORU_TYPEOF ||
-				it->type == TOKEN_OPERATORU_INSTOF ||
-				it->type == TOKEN_OPERATORU_ADDROF
+				op == TOKEN_OPERATORU_PLUS ||
+				op == TOKEN_OPERATORU_MINUS ||
+				op == TOKEN_OPERATORU_SIZEOF ||
+				op == TOKEN_OPERATORU_TYPEOF ||
+				op == TOKEN_OPERATORU_INSTOF ||
+				op == TOKEN_OPERATORU_ADDROF
 			);
 		}
 
 		bool Parser::isPostfixUnaryOperator() const
 		{
+			return isPostfixUnaryOperator(it->type);
+		}
+
+		bool Parser::isPostfixUnaryOperator(const core::lexer::TokenType &op) const
+		{
 			return (
-				it->type == TOKEN_OPERATORU_INC ||
-				it->type == TOKEN_OPERATORU_DEC
+				op == TOKEN_OPERATORU_INC ||
+				op == TOKEN_OPERATORU_DEC
 			);
 		}
 
 		bool Parser::isUnaryOperator() const
 		{
-			return isPrefixUnaryOperator() || isPostfixUnaryOperator();
+			return isUnaryOperator(it->type);
+		}
+
+		bool Parser::isUnaryOperator(const core::lexer::TokenType &op) const
+		{
+			return isPrefixUnaryOperator(op) || isPostfixUnaryOperator(op);
 		}
 
 		bool Parser::isBinaryOperator() const
@@ -1204,23 +1269,19 @@ namespace core
 
 		int Parser::getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const
 		{
+			return getBinOpPrecedence(op->type);
+		}
+
+		int Parser::getBinOpPrecedence(const core::lexer::TokenType &t) const
+		{
 			using namespace core::lexer;
 
-			switch(op->type.get())
+			switch(t.get())
 			{
-			case TOKEN_OPERATORA_SIMPLE:
-			case TOKEN_OPERATORA_ADD:
-			case TOKEN_OPERATORA_SUB:
-			case TOKEN_OPERATORA_MUL:
-			case TOKEN_OPERATORA_DIV:
-			case TOKEN_OPERATORA_MOD:
-			case TOKEN_OPERATORA_POW:
-				return 10;
-
 			case TOKEN_OPERATORB_OR:
-				return 20;
+				return 10;
 			case TOKEN_OPERATORB_AND:
-				return 30;
+				return 20;
 
 			case TOKEN_OPERATORB_EQ:
 			case TOKEN_OPERATORB_NOTEQ:
@@ -1247,6 +1308,30 @@ namespace core
 
 			default:
 				return -1;
+			}
+		}
+
+		bool Parser::isAssignmentOperator() const
+		{
+			return isAssignmentOperator(it);
+		}
+
+		bool Parser::isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const
+		{
+			using namespace core::lexer;
+
+			switch(op->type.get())
+			{
+			case TOKEN_OPERATORA_SIMPLE:
+			case TOKEN_OPERATORA_ADD:
+			case TOKEN_OPERATORA_SUB:
+			case TOKEN_OPERATORA_MUL:
+			case TOKEN_OPERATORA_DIV:
+			case TOKEN_OPERATORA_MOD:
+			case TOKEN_OPERATORA_POW:
+				return true;
+			default:
+				return false;
 			}
 		}
 

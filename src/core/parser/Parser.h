@@ -82,13 +82,18 @@ namespace core
 			}
 
 			bool isPrefixUnaryOperator() const;
+			bool isPrefixUnaryOperator(const core::lexer::TokenType &t) const;
 			bool isPostfixUnaryOperator() const;
+			bool isPostfixUnaryOperator(const core::lexer::TokenType &t) const;
 			bool isUnaryOperator() const;
+			bool isUnaryOperator(const core::lexer::TokenType &t) const;
 			bool isBinaryOperator() const;
 			bool isAssignmentOperator() const;
+			bool isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const;
 			bool isOperator() const;
 			int getBinOpPrecedence() const;
 			int getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const;
+			int getBinOpPrecedence(const core::lexer::TokenType &t) const;
 			bool isBinOpRightAssociative() const;
 			bool isBinOpRightAssociative(core::lexer::TokenVector::const_iterator op) const;
 
@@ -112,6 +117,7 @@ namespace core
 			std::unique_ptr<ast::ASTNoneLiteralExpression> parseNoneLiteralExpression();
 
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
+			std::unique_ptr<ast::ASTCallExpression> parseFunctionCallExpression(const std::string &idName);
 			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
 			std::unique_ptr<ast::ASTExpression> parseExpression();
 
