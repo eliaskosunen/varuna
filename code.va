@@ -5,5 +5,5 @@ module main;
 
 def main(): Void
 {
-	Integer num = 2 + -3;
+	Integer num = adressof 2;
 }

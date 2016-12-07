@@ -911,6 +911,12 @@ namespace core
 						return parserError("No sufficent operator rule found");
 					}
 				}
+				else if(isPrefixUnaryOperator())
+				{
+					operators.push(it->type);
+					++it; // Skip operator
+					continue;
+				}
 				else if(it->type == TOKEN_IDENTIFIER)
 				{
 					auto expr = parseIdentifierExpression();
@@ -1222,6 +1228,7 @@ namespace core
 			return (
 				op == TOKEN_OPERATORU_PLUS ||
 				op == TOKEN_OPERATORU_MINUS ||
+				op == TOKEN_OPERATORU_NOT ||
 				op == TOKEN_OPERATORU_SIZEOF ||
 				op == TOKEN_OPERATORU_TYPEOF ||
 				op == TOKEN_OPERATORU_INSTOF ||
