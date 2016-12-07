@@ -629,68 +629,6 @@ namespace core
 			}
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parseUnary()
-		{
-			// Prefix unary operator
-			if(isPrefixUnaryOperator())
-			{
-				auto op = *it;
-				++it;
-				auto operand = parseUnary();
-				if(!operand)
-				{
-					return nullptr;
-				}
-				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), op.type);
-			}
-
-			if(getBinOpPrecedence() == -1)
-			{
-				return parsePrimary();
-			}
-
-			TokenVector::const_iterator opc = it;
-			++it;
-			if(auto operand = parseUnary())
-			{
-				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), opc->type);
-			}
-			return nullptr;
-		}
-
-		std::unique_ptr<ASTExpression> Parser::parseBinaryOperatorRHS(int prec, std::unique_ptr<ASTExpression> lhs)
-		{
-			/*while(it->type != TOKEN_EOF)
-			{
-				int tokenPrec = getTokenPrecedence();
-
-				if(tokenPrec < prec)
-					return lhs;
-
-				TokenVector::const_iterator binop = it;
-				++it;
-
-				auto rhs = parseUnary();
-				if(!rhs)
-				{
-					return nullptr;
-				}
-
-				int nextPrec = getTokenPrecedence();
-				if(tokenPrec < nextPrec)
-				{
-					rhs = parseBinaryOperatorRHS(tokenPrec + 1, std::move(rhs));
-					if(!rhs)
-					{
-						return nullptr;
-					}
-				}
-
-				lhs = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), binop->type);
-			}*/
-			return nullptr;
-		}
-
 		std::unique_ptr<ASTIntegerLiteralExpression> Parser::parseIntegerLiteralExpression()
 		{
 			const int base = [&]()
@@ -774,7 +712,6 @@ namespace core
 			}
 		}
 
-
 		std::unique_ptr<ASTStringLiteralExpression> Parser::parseStringLiteralExpression()
 		{
 			const TokenVector::const_iterator lit = it;
@@ -782,6 +719,7 @@ namespace core
 
 			return std::make_unique<ASTStringLiteralExpression>(lit->value);
 		}
+
 		std::unique_ptr<ASTCharLiteralExpression> Parser::parseCharLiteralExpression()
 		{
 			const TokenVector::const_iterator lit = it;
@@ -819,12 +757,6 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseExpression()
 		{
-			/*auto lhs = parseUnary();
-			if(!lhs)
-			{
-				return nullptr;
-			}
-			return parseBinaryOperatorRHS(0, std::move(lhs));*/
 			std::stack<core::lexer::TokenVector::const_iterator> operators;
 			std::stack<std::unique_ptr<ASTExpression>> operands;
 			std::string result;
@@ -880,7 +812,7 @@ namespace core
 
 					return parserError("Parenthesis mismatch in expression");
 				}
-				else if(isOperator())
+				else if(isBinaryOperator())
 				{
 					if(
 						operators.empty() || operators.top()->type == TOKEN_PUNCT_PAREN_OPEN ||

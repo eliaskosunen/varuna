@@ -80,7 +80,7 @@ namespace fe
 			}
 			else if(level == "debug")
 			{
-				fe::api::setLoggingLevel(fe::api::LOG_TRACE);
+				fe::api::setLoggingLevel(fe::api::LOG_DEBUG);
 			}
 			else if(level == "info")
 			{

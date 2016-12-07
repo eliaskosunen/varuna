@@ -37,7 +37,6 @@ namespace core
 
 			if(it == end)
 			{
-				util::logger->trace("Current character is EOF");
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
@@ -51,7 +50,6 @@ namespace core
 
 				if(it == end)
 				{
-					util::logger->trace("Current character is EOF");
 					return createToken(TOKEN_EOF, "EOF");
 				}
 			}
@@ -78,7 +76,6 @@ namespace core
 				{
 					buf.push_back(*it);
 				}
-				util::logger->trace("Word: '{}'", buf);
 
 				// Identify the meaning of the word
 				return getTokenFromWord(buf);
@@ -111,7 +108,6 @@ namespace core
 					}
 					cont = (isHex ? util::StringUtils::isCharHexDigit(currentChar) : util::StringUtils::isCharDigit(currentChar));
 				} while(cont || currentChar == '.');
-				util::logger->trace("Number literal: '{}'", buf);
 
 				if(!isFloatingPoint)
 				{
@@ -185,8 +181,6 @@ namespace core
 				std::string buf = lexStringLiteral();
 				if(!getError())
 				{
-					util::logger->trace("String literal: '{}'", buf);
-
 					return createToken(TOKEN_LITERAL_STRING, buf);
 				}
 
@@ -199,8 +193,6 @@ namespace core
 				std::string buf = lexStringLiteral(true);
 				if(!getError())
 				{
-					util::logger->trace("Character literal: '{}'", buf);
-
 					return createToken(TOKEN_LITERAL_CHAR, buf);
 				}
 			}
@@ -228,7 +220,6 @@ namespace core
 				{
 					lexerError("Invalid operator or punctuator: '{}'", buf);
 				}
-				util::logger->trace("Operator/punctuator: '{}'", buf);
 				return t;
 			}
 
@@ -336,13 +327,11 @@ namespace core
 					// Not escaped, end string
 					else
 					{
-						util::logger->trace("Current character is an unescaped quotation mark, end");
 						break;
 					}
 				}
 
 				buf.push_back(currentChar);
-				util::logger->trace("Pushed buffer: '{}'", buf);
 			}
 
 			util::logger->trace("Buffer before escaping: '{}'", buf);

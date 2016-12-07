@@ -85,6 +85,7 @@ namespace core
 			bool isPostfixUnaryOperator() const;
 			bool isUnaryOperator() const;
 			bool isBinaryOperator() const;
+			bool isAssignmentOperator() const;
 			bool isOperator() const;
 			int getBinOpPrecedence() const;
 			int getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const;
@@ -102,8 +103,6 @@ namespace core
 			std::unique_ptr<ast::ASTVariableDefinitionExpression> parseVariableDefinition();
 			std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
 
-			std::unique_ptr<ast::ASTExpression> parseUnary();
-
 			std::unique_ptr<ast::ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
 			std::unique_ptr<ast::ASTFloatLiteralExpression> parseFloatLiteralExpression();
 			std::unique_ptr<ast::ASTStringLiteralExpression> parseStringLiteralExpression();
@@ -114,7 +113,6 @@ namespace core
 
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
 			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
-			std::unique_ptr<ast::ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ast::ASTExpression> lhs);
 			std::unique_ptr<ast::ASTExpression> parseExpression();
 
 			void handleImport();

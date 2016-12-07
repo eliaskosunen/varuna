@@ -65,7 +65,8 @@ namespace core
 
 			std::string toString() const
 			{
-				return fmt::format("{}:{}:{}", file, line, column);
+				//return fmt::format("{}:{}:{}", file, line, column);
+				return file + ":" + std::to_string(line) + ":" + std::to_string(column);
 			}
 		};
 
