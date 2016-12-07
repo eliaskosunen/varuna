@@ -9,16 +9,18 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CXX_STANDARD	"--std=c++14")
 
-	set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused")
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(WARNINGS "${WARNINGS} -Wlogical-op -Wnoexcept -Wstrict-null-sentinel -Wuseless-cast")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused")
+	else()
+		set(WARNINGS "-Weverything -Wno-c++98-compat -Wno-padded -Wno-unused -Wno-unused-parameter -Wno-weak-vtables -Wno-exit-time-destructors -Wno-global-constructors")
 	endif()
 
-	set(DEBUG_FLAGS		"-g -O1")
+	set(DEBUG_FLAGS		"-g -O0")
 	set(RELEASE_FLAGS	"-O3")
 
-	set(CMAKE_CXX_FLAGS_RELEASE	"${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS} ${WARNINGS} ${CXX_STANDARD} -pthread")
+	set(CMAKE_CXX_FLAGS_RELEASE	"${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS} ${CXX_STANDARD} -pthread")
 	set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS} ${WARNINGS} ${CXX_STANDARD} -pthread")
+
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(CXX_STANDARD 	"/std:c++14")
 

@@ -11,5 +11,8 @@ cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=clang++-3.8 -DCMAKE_C_COMPILER=cl
 make -j4
 
 cd ..
+# Comment out if you don't have valgrind
+# or don't want to use it
 valgrind bin/tests
+#bin/tests
 ./build-docs.sh

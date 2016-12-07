@@ -112,9 +112,8 @@ namespace core
 			std::unique_ptr<ast::ASTBoolLiteralExpression> parseFalseLiteralExpression();
 			std::unique_ptr<ast::ASTNoneLiteralExpression> parseNoneLiteralExpression();
 
-			std::unique_ptr<ast::ASTExpression> parseParenExpression();
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-			std::unique_ptr<ast::ASTExpression> parsePrimary();
+			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
 			std::unique_ptr<ast::ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ast::ASTExpression> lhs);
 			std::unique_ptr<ast::ASTExpression> parseExpression();
 

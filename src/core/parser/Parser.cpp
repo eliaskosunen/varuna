@@ -520,24 +520,6 @@ namespace core
 			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parseParenExpression()
-		{
-			// Parse an expression in parenthesis
-			++it; // Skip '('
-			auto v = parseExpression();
-			if(!v)
-			{
-				return nullptr;
-			}
-
-			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-			{
-				return parserError("Expected closing parenthesis, got '{}' instead", it->value);
-			}
-			++it; // Skip ')'
-			return v;
-		}
-
 		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
 		{
 			std::string idName = it->value;
@@ -615,15 +597,13 @@ namespace core
 			return std::make_unique<ASTVariableRefExpression>(idName);
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parsePrimary()
+		std::unique_ptr<ASTExpression> Parser::parsePrimary(bool tolerateUnrecognized)
 		{
 			// Parse primary expression
 			switch(it->type.get())
 			{
 			case TOKEN_IDENTIFIER:
 				return parseIdentifierExpression();
-			case TOKEN_PUNCT_PAREN_OPEN:
-				return parseParenExpression();
 			case TOKEN_LITERAL_INTEGER:
 				return parseIntegerLiteralExpression();
 			case TOKEN_LITERAL_FLOAT:
@@ -641,6 +621,10 @@ namespace core
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
 			default:
+				if(tolerateUnrecognized)
+				{
+					return nullptr;
+				}
 				return parserError("Unknown token: '{}'", it->value);
 			}
 		}
@@ -842,36 +826,67 @@ namespace core
 			}
 			return parseBinaryOperatorRHS(0, std::move(lhs));*/
 			std::stack<core::lexer::TokenVector::const_iterator> operators;
+			std::stack<std::unique_ptr<ASTExpression>> operands;
 			std::string result;
+			int parenCount = 0;
+
 			while(it != endTokens)
 			{
 				if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 				{
 					operators.push(it);
 					++it; // Skip '('
+					++parenCount;
 					continue;
 				}
 				else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 				{
-					++it; // Skip ')'
-					while(operators.top()->type != TOKEN_PUNCT_PAREN_OPEN)
+					if(parenCount == 0)
 					{
-						result.append(operators.top()->value);
-						operators.pop();
+						break;
 					}
-					operators.pop(); // Pop '('
-					continue;
+
+					++it; // Skip ')'
+					bool ok = false;
+					--parenCount;
+					if(parenCount >= 0)
+					{
+						while(!operators.empty())
+						{
+							if(operators.top()->type == TOKEN_PUNCT_PAREN_OPEN)
+							{
+								operators.pop();
+								ok = true;
+								break;
+							}
+							else
+							{
+								auto rhs = std::move(operands.top());
+								operands.pop();
+								auto lhs = std::move(operands.top());
+								operands.pop();
+
+								auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
+								operands.push(std::move(expr));
+
+								operators.pop();
+							}
+						}
+						if(ok)
+						{
+							continue;
+						}
+					}
+
+					return parserError("Parenthesis mismatch in expression");
 				}
 				else if(isOperator())
 				{
-					if(operators.empty() || operators.top()->type == TOKEN_PUNCT_PAREN_OPEN)
-					{
-						operators.push(it);
-						++it; // Skip operator
-						continue;
-					}
-					else if(
-						getBinOpPrecedence() > getBinOpPrecedence(operators.top()) ||
+					if(
+						operators.empty() || operators.top()->type == TOKEN_PUNCT_PAREN_OPEN ||
+						(
+							getBinOpPrecedence() > getBinOpPrecedence(operators.top())
+						) ||
 						(
 							isBinOpRightAssociative() &&
 							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
@@ -880,9 +895,10 @@ namespace core
 					{
 						operators.push(it);
 						++it; // Skip operator
+						continue;
 					}
 					else if(
-						getBinOpPrecedence() <= getBinOpPrecedence(operators.top()) ||
+						getBinOpPrecedence() < getBinOpPrecedence(operators.top()) ||
 						(
 							!isBinOpRightAssociative() &&
 							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
@@ -890,7 +906,7 @@ namespace core
 					)
 					{
 						while(
-							getBinOpPrecedence() <= getBinOpPrecedence(operators.top()) ||
+							getBinOpPrecedence() < getBinOpPrecedence(operators.top()) ||
 							(
 								!isBinOpRightAssociative() &&
 								getBinOpPrecedence() == getBinOpPrecedence(operators.top())
@@ -898,6 +914,15 @@ namespace core
 						)
 						{
 							result.append(operators.top()->value);
+
+							auto rhs = std::move(operands.top());
+							operands.pop();
+							auto lhs = std::move(operands.top());
+							operands.pop();
+
+							auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
+							operands.push(std::move(expr));
+
 							operators.pop();
 							if(operators.empty())
 							{
@@ -915,8 +940,12 @@ namespace core
 				else if(it->type == TOKEN_IDENTIFIER)
 				{
 					auto expr = parseIdentifierExpression();
+					if(!expr)
+					{
+						return nullptr;
+					}
+					operands.push(std::move(expr));
 					result.append("id");
-					DumpASTVisitor::dump(expr.get());
 					continue;
 				}
 				else if(it->type == TOKEN_PUNCT_SEMICOLON)
@@ -929,19 +958,16 @@ namespace core
 				}
 				else
 				{
-					auto primary = parsePrimary();
+					auto primary = parsePrimary(true);
 					if(!primary)
 					{
-						util::logger->trace("Operators.empty: {}, result: '{}'", operators.empty(), result);
-						while(!operators.empty())
+						if(operators.empty())
 						{
-							result.append(operators.top()->value);
-							operators.pop();
+							break;
 						}
-						util::logger->trace("Result: '{}'", result);
 						return parserError("Invalid token in expression: {}", it->value);
 					}
-					DumpASTVisitor::dump(primary.get());
+					operands.push(std::move(primary));
 					result.append("pr");
 					continue;
 				}
@@ -950,11 +976,26 @@ namespace core
 			while(!operators.empty())
 			{
 				result.append(operators.top()->value);
+
+				auto rhs = std::move(operands.top());
+				operands.pop();
+				auto lhs = std::move(operands.top());
+				operands.pop();
+
+				auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top()->type);
+				operands.push(std::move(expr));
+
 				operators.pop();
 			}
 
 			util::logger->trace("Parsed expression: '{}'", result);
-			return std::make_unique<ASTIdentifierExpression>(result);
+			if(operands.empty())
+			{
+				parserWarning("Expression evaluated as empty");
+				return std::make_unique<ASTEmptyExpression>();
+			}
+			auto top = std::move(operands.top());
+			return top;
 		}
 
 		void Parser::handleImport()

@@ -28,7 +28,7 @@ namespace util
 	{
 		enum VersionStatus : uint8_t
 		{
-			DEV = 0, RC, STABLE
+			DEV = 0, RC, STABLE, INVALID
 		};
 
 		struct Version
@@ -42,6 +42,7 @@ namespace util
 
 			constexpr VersionStatus getStatus() const
 			{
+				if(data[4] > 2) return INVALID;
 				return static_cast<VersionStatus>(data[4]);
 			}
 
@@ -55,7 +56,7 @@ namespace util
 					return fmt::format("{}.{}.{}-rc{}", data[0], data[1], data[2], data[3]);
 				case STABLE:
 					return fmt::format("{}.{}.{}", data[0], data[1], data[2]);
-				default:
+				case INVALID:
 					return fmt::format("INVALID: {}", data[4]);
 				}
 			}
