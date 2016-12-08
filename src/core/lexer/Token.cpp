@@ -45,6 +45,11 @@ namespace core
 			case TOKEN_LITERAL_NONE:
 				return "LITERAL_NONE";
 
+			case TOKEN_OPERATORB_ADD:
+				return "OPERATORB_ADD";
+			case TOKEN_OPERATORB_MUL:
+				return "OPERATORB_MUL";
+
 			case TOKEN_EOF:
 				return "EOF";
 			case TOKEN_DEFAULT:

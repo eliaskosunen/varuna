@@ -30,15 +30,16 @@ namespace core
 	{
 		enum TokenIntegerLiteralModifier_t
 		{
-			INTEGER_INTEGER	= 1,	// No suffix
-			INTEGER_UNSIGNED= 2,	// u
-			INTEGER_LONG	= 4,	// l
-			INTEGER_SHORT	= 8,	// s
+			INTEGER_INT8 	= 1,	// i8
+			INTEGER_INT16	= 2,	// i16
+			INTEGER_INT32	= 4,	// i32 or none
+			INTEGER_INT64	= 8,	// i64
 			INTEGER_BINARY	= 16,	// b
 			INTEGER_OCTAL	= 32,	// o
 			INTEGER_HEX		= 64,	// x
 
-			INTEGER_NONE	= INTEGER_INTEGER
+			INTEGER_INTEGER	= INTEGER_INT32,
+			INTEGER_NONE	= INTEGER_INT32
 		};
 
 		enum TokenFloatLiteralModifier_t
@@ -64,7 +65,8 @@ namespace core
 
 			std::string toString() const
 			{
-				return fmt::format("{}:{}:{}", file, line, column);
+				//return fmt::format("{}:{}:{}", file, line, column);
+				return file + ":" + std::to_string(line) + ":" + std::to_string(column);
 			}
 		};
 

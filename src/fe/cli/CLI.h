@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tclap.h"
 
+#include "util/ProgramInfo.h"
+
 namespace fe
 {
 	namespace cli
@@ -31,9 +33,11 @@ namespace fe
 
 			void showLicense() const;
 
+			bool setLoggingLevel(const std::string &level);
+
 		public:
 			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd("Varuna", ' ', "Pre-Alpha") {}
+				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version.toString()) {}
 
 			int run();
 		};

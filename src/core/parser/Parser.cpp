@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iterator> // For std::next
 #include <limits>
+#include <stack>
 
 // TODO: Needs cleanups and refactoring
 
@@ -46,31 +47,44 @@ namespace core
 		{
 			while(true)
 			{
+				// If reached end of token list, throw
+				// This should not be possible, EOF should be reached first
 				if(it == endTokens)
 				{
-					return;
+					throw std::logic_error("EOF not in the end of the token list");
 				}
+
+				// Check current token
 				switch(it->type.get())
 				{
+				// In case of EOF, stop
 				case TOKEN_EOF:
 					return;
+
+				// A lonely semicolon top-level token
 				case TOKEN_PUNCT_SEMICOLON:
+					// This means an empty statement
+					// That's a warning
 					parserWarning("Empty statement");
-					handleEmptyStatement();
+					handleEmptyStatement(); // Skips the ';'
 					break;
 
+				// Import statement
 				case TOKEN_KEYWORD_IMPORT:
 					handleImport();
 					break;
+				// Module statement
 				case TOKEN_KEYWORD_MODULE:
 					handleModule();
 					break;
+				// Function definition
 				case TOKEN_KEYWORD_DEFINE:
 					handleDef();
 					break;
 
+				// Unsupported top-level token
 				default:
-					util::logger->error("'{}' is not allowed as a top-level token", it->value);
+					parserError("'{}' is not allowed as a top-level token", it->value);
 					return;
 				}
 			}
@@ -78,8 +92,16 @@ namespace core
 
 		std::unique_ptr<ASTImportStatement> Parser::parseImportStatement()
 		{
+			// Import statement syntax:
+			// "import" [package/module] identifier/literal-string ;
+
 			++it; // Skip "import"
 
+			// Parse import type
+			// Options:
+			// 	* module
+			// 	* package
+			// Not required
 			ASTImportStatement::ImportType importType = ASTImportStatement::UNSPECIFIED;
 			if(it->type == TOKEN_KEYWORD_MODULE)
 			{
@@ -92,18 +114,30 @@ namespace core
 				++it;
 			}
 
+			// Parse module/file to import
+			// Either an identifier or a string literal
 			std::string toImport;
 			bool isPath = false;
+
+			// Identifier:
+			// Import a module/package by module/package statement
 			if(it->type == TOKEN_IDENTIFIER)
 			{
+				// '.' is a operator, construct string of module/package to import
 				while(true)
 				{
 					toImport += it->value;
+
+					// EOF or ';'
+					// Importee done
 					if(std::next(it)->type == TOKEN_EOF ||
 						std::next(it)->type == TOKEN_PUNCT_SEMICOLON)
 					{
 						break;
 					}
+
+					// '.' or identifier
+					// Add to toImport
 					if(std::next(it)->type == TOKEN_OPERATORB_MEMBER ||
 						std::next(it)->type == TOKEN_IDENTIFIER)
 					{
@@ -114,6 +148,8 @@ namespace core
 					return nullptr;
 				}
 			}
+			// String literal:
+			// Import a module/package by file path
 			else if(it->type == TOKEN_LITERAL_STRING)
 			{
 				isPath = true;
@@ -124,6 +160,7 @@ namespace core
 				return parserError("Invalid importee: '{}'", it->value);
 			}
 
+			// Semicolon required after import statement
 			if(std::next(it)->type != TOKEN_PUNCT_SEMICOLON)
 			{
 				return parserError("Expected semicolon after import statement");
@@ -136,256 +173,308 @@ namespace core
 			return stmt;
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parseParenExpression()
-		{
-			++it; // Skip '('
-			auto v = parseExpression();
-			if(!v)
-				return nullptr;
-
-			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-			{
-				return parserError("Expected closing parenthesis, got '{}' instead", it->value);
-			}
-			++it; // Skip ')'
-			return v;
-		}
-
-		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
-		{
-			std::string idName = it->value;
-			++it; // Skip identifier
-
-			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
-			{
-				--it;
-				return parseVariableDefinition();
-			}
-
-			if(it->type == TOKEN_OPERATORB_MEMBER)
-			{
-				while(true)
-				{
-					if(it->type == TOKEN_EOF)
-					{
-						return parserError("Invalid member access operand: '{}'", it->value);
-					}
-					if(it->type != TOKEN_OPERATORB_MEMBER)
-					{
-						break;
-					}
-					idName += it->value;
-					++it; // Skip '.'
-					if(it->type != TOKEN_IDENTIFIER)
-					{
-						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
-					}
-					idName += it->value;
-					++it; // Skip identifier
-				}
-			}
-			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
-			{
-				// Function call
-				++it; // Skip '('
-				std::vector<std::unique_ptr<ASTExpression>> args;
-				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-				{
-					while(it->type != TOKEN_EOF)
-					{
-						if(auto arg = parseExpression())
-						{
-							args.push_back(std::move(arg));
-						}
-						else
-						{
-							return nullptr;
-						}
-
-						if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
-						{
-							break;
-						}
-
-						if(it->type != TOKEN_PUNCT_COMMA)
-						{
-							return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
-						}
-						++it;
-					}
-				}
-
-				++it; // Skip ')'
-				auto id = std::make_unique<ASTIdentifierExpression>(idName);
-				return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
-			}
-
-			// Simple variable reference
-			return std::make_unique<ASTVariableRefExpression>(idName);
-		}
-
 		std::unique_ptr<ASTIfStatement> Parser::parseIfStatement()
 		{
+			// If statement syntax:
+			// "if" ( [expression] ) statement [ else statement ]
+
 			++it; // Skip 'if'
 
+			// Parse condition
 			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
 			{
 				return parserError("Invalid if statement: Expected '(', got '{}' instead", it->value);
 			}
-			auto cond = parseParenExpression();
+			++it; // Skip '('
+			auto cond = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				// No condition set
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					// If-condition is true by default
+					return std::make_unique<ASTBoolLiteralExpression>(true);
+				}
+				return parseExpression();
+			}();
 			if(!cond)
 			{
 				return nullptr;
 			}
-
-			auto then = std::make_unique<ASTBlockStatement>();
-			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
 			{
-				auto tmp = parseStatement();
-				if(!tmp)
-				{
-					return parserError("Invalid if statement then statement");
-				}
-				then->nodes.push_back(std::move(tmp));
+				return parserError("Invalid if statement: Expected ')', got '{}' instead", it->value);
 			}
-			else
+			++it; // Skip ')'
+
+			// Parse then statement
+			auto then = parseStatement();
+			if(!then)
 			{
-				then = parseBlockStatement();
-				if(!then)
-				{
-					return parserError("Invalid if statement then statement block");
-				}
+				return nullptr;
 			}
 
-			auto elseBlock = std::make_unique<ASTBlockStatement>();
-			if(it->type == TOKEN_KEYWORD_ELSE)
+			// Parse else statement
+			// Optional
+			auto elsestmt = [&]() -> std::unique_ptr<ASTStatement>
 			{
+				if(it->type != TOKEN_KEYWORD_ELSE) return std::make_unique<ASTEmptyStatement>();
+
 				++it; // Skip else
-				if(it->type != TOKEN_PUNCT_BRACE_OPEN)
-				{
-					auto tmp = parseStatement();
-					if(!tmp)
-					{
-						return parserError("Invalid if statement else block");
-					}
-					elseBlock->nodes.push_back(std::move(tmp));
-				}
-				else
-				{
-					elseBlock = parseBlockStatement();
-					if(!elseBlock)
-					{
-						return parserError("Invalid if statement else block");
-					}
-				}
+				return parseStatement();
+			}();
+			if(!elsestmt)
+			{
+				return nullptr;
 			}
 
-			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elseBlock));
+			return std::make_unique<ASTIfStatement>(std::move(cond), std::move(then), std::move(elsestmt));
+		}
+
+		std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
+			Parser::parseForCondition()
+		{
+			// Parse the condition of a for statement
+			// ( [init] ; [end] ; [step] )
+
+			auto makeTuple = [](std::unique_ptr<ASTExpression> i, std::unique_ptr<ASTExpression> e, std::unique_ptr<ASTExpression> s)
+				-> std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>
+			{
+				return std::make_tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>(std::move(i), std::move(e), std::move(s));
+			};
+			auto errorToTuple = [this, makeTuple](std::nullptr_t e)
+				-> auto
+			{
+				return makeTuple(e, e, e);
+			};
+
+			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected '(' after 'for', got '{}'", it->value));
+			}
+			++it; // Skip '('
+
+			// Empty for condition
+			if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				++it; // Skip ')'
+				// Default: ( empty ; "true" ; empty )
+				return makeTuple(std::make_unique<ASTEmptyExpression>(), std::make_unique<ASTBoolLiteralExpression>(true), std::make_unique<ASTEmptyExpression>());
+			}
+
+			// Parse init expression
+			// Must be either a variable definition or empty
+			auto init = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					return std::make_unique<ASTEmptyExpression>();
+				}
+
+				return parseVariableDefinition();
+			}();
+			if(!init)
+			{
+				return errorToTuple(parserError("Invalid for init expression"));
+			}
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ';' after 'for init', got '{}'", it->value));
+			}
+			++it; // Skip ';'
+
+			// Parse end expression
+			// Must be either an expression or empty
+			auto end = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					// "true" by default
+					return std::make_unique<ASTBoolLiteralExpression>(true);
+				}
+
+				return parseExpression();
+			}();
+			if(!end)
+			{
+				return errorToTuple(parserError("Invalid for end expression"));
+			}
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ';' after 'for end', got '{}'", it->value));
+			}
+			++it; // Skip ';'
+
+			// Parse step expression
+			// Must be either an expression or empty
+			auto step = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					return std::make_unique<ASTEmptyExpression>();
+				}
+
+				return parseExpression();
+			}();
+			if(!step)
+			{
+				return errorToTuple(parserError("Invalid for step expression"));
+			}
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				return errorToTuple(parserError("Invalid for statement: expected ')' after 'for step', got '{}'", it->value));
+			}
+			++it; // Skip ')'
+
+			return makeTuple(std::move(init), std::move(end), std::move(step));
 		}
 
 		std::unique_ptr<ASTForStatement> Parser::parseForStatement()
 		{
+			// For-statement syntax
+			// "for" () statement
+			// "for" ( [expression] ; [expression] ; [expression] ) statement
+
 			++it; // Skip 'for'
 
-			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
-			{
-				return parserError("Invalid for statement: expected '(' after 'for', got '{}'", it->value);
-			}
-			++it; // Skip '('
+			// TODO: Optimize
+			// Not utilizing constructors
+			// Not sure if possible in C++14
+			std::unique_ptr<ASTExpression> init, end, step;
+			std::tie(init, end, step) = parseForCondition();
 
-			std::unique_ptr<ASTExpression> start = nullptr, end = nullptr, step = nullptr;
-			if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+			// Parse statement
+			std::unique_ptr<ASTStatement> block = parseStatement();
+			if(!block)
 			{
-				++it; // Skip ')'
+				return nullptr;
 			}
-			else
+
+			return std::make_unique<ASTForStatement>(std::move(block), std::move(init), std::move(end), std::move(step));
+		}
+
+		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()
+		{
+			// Variable definition syntax:
+			// var/identifier name [ = init-expression ] ;
+
+			// Parse typename
+			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
 			{
-				if(it->type == TOKEN_PUNCT_SEMICOLON)
+				return parserError("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
+			}
+			std::string typen = it->value;
+			bool typeDetermined = it->type == TOKEN_IDENTIFIER; // Whether or not the type will have to
+																// be determined by the type of the init expression
+			++it; // Skip typename/'var'
+
+			// Check if it's an array
+			uint32_t arraySize = 0;
+			if(it->type == TOKEN_PUNCT_SQR_OPEN) // It's an array
+			{
+				++it; // Skip '['
+				// Array size is required
+				auto size = parseIntegerLiteralExpression();
+				if(!size)
 				{
-					++it; // Skip ';'
+					return parserError("Invalid array size");
 				}
-				else if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_VAR)
-				{
-					start = parseVariableDefinition();
-					if(!start)
-					{
-						return parserError("Invalid start expression in 'for'");
-					}
 
-					if(it->type != TOKEN_PUNCT_SEMICOLON)
-					{
-						return parserError("Invalid for statement: expected ';' after 'for start', got '{}'", it->value);
-					}
-					++it; // Skip ';'
+				util::logger->trace("It's an array: {}", size->value);
+				if(size->value < 0)
+				{
+					return parserError("Invalid array size: Array size cannot be negative, got {}", size->value);
+				}
+				if(size->value == 0)
+				{
+					return parserError("Invalid array size: Array size cannot be 0");
+				}
+				if(size->value > std::numeric_limits<int32_t>::max())
+				{
+					return parserError("Invalid array size: Array size cannot exceed {}, got {}", std::numeric_limits<int32_t>::max(), size->value);
+				}
+				arraySize = static_cast<uint32_t>(size->value);
+
+				// ']' required
+				if(it->type != TOKEN_PUNCT_SQR_CLOSE)
+				{
+					return parserError("Invalid array definition: Expected ']', got '{}' instead", it->value);
+				}
+				++it; // Skip ']'
+			}
+
+			// Parse variable name
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				return parserError("Invalid variable definition: expected identifier, got '{}' instead", it->value);
+			}
+			std::string name = it->value;
+			++it; // Skip variable name
+
+			// Parse possible init expression
+			auto init = [&]() -> std::unique_ptr<ASTExpression>
+			{
+				if(it->type == TOKEN_OPERATORA_SIMPLE)
+				{
+					++it; // Skip '='
+					return parseExpression();
+				}
+
+				// No init expression
+				return std::make_unique<ASTEmptyExpression>();
+			}();
+			if(!init)
+			{
+				return nullptr;
+			}
+
+			// Determine the type of the variable
+			ASTVariableDefinitionExpression::Type type;
+			if(!typeDetermined)
+			{
+				if(!init)
+				{
+					return parserError("Invalid variable definition: init expression is required when using 'var'");
 				}
 				else
 				{
-					return parserError("Invalid for statement: expected ';' or an identifier in 'for start', got '{}' instead", it->value);
-				}
-
-				if(it->type == TOKEN_PUNCT_SEMICOLON)
-				{
-					++it; // Skip ';'
-				}
-				else
-				{
-					end = parseExpression();
-					if(!end)
-					{
-						return parserError("Invalid 'for end' expression");
-					}
-
-					if(it->type != TOKEN_PUNCT_SEMICOLON)
-					{
-						return parserError("Invalid for statement: expected ',' after 'for end', got '{}'", it->value);
-					}
-					++it; // Skip ';'
-				}
-
-				if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-				{
-					step = parseExpression();
-					if(!step)
-					{
-						return parserError("Invalid 'for step' expression");
-					}
-
-					if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-					{
-						return parserError("Invalid for statement: expected ')' after 'for step', got '{}'", it->value);
-					}
-					++it; // Skip ')'
-				}
-			}
-
-			std::unique_ptr<ASTBlockStatement> block;
-			if(it->type == TOKEN_PUNCT_SEMICOLON)
-			{
-				block = nullptr;
-			}
-			else if(it->type == TOKEN_PUNCT_BRACE_OPEN)
-			{
-				block = parseBlockStatement();
-				if(!block)
-				{
-					return parserError("Invalid for statement block");
+					// TODO: Determine type of var
+					return parserError("Unimplemented");
 				}
 			}
 			else
 			{
-				auto tmp = parseStatement();
-				if(!tmp)
+				type = [this, &typen]()
 				{
-					return parserError("Invalid for statement");
-				}
-				block->nodes.push_back(std::move(tmp));
+					if(typen == "Integer") return ASTVariableDefinitionExpression::INTEGER;
+
+					if(typen == "Int8") return ASTVariableDefinitionExpression::INT8;
+					if(typen == "Int16") return ASTVariableDefinitionExpression::INT16;
+					if(typen == "Int32") return ASTVariableDefinitionExpression::INT32;
+					if(typen == "Int64") return ASTVariableDefinitionExpression::INT64;
+
+					if(typen == "Float") return ASTVariableDefinitionExpression::FLOAT;
+					if(typen == "F32") return ASTVariableDefinitionExpression::F32;
+					if(typen == "F64") return ASTVariableDefinitionExpression::F64;
+
+					if(typen == "String") return ASTVariableDefinitionExpression::STRING;
+					if(typen == "Char") return ASTVariableDefinitionExpression::CHAR;
+					if(typen == "Bool") return ASTVariableDefinitionExpression::BOOL;
+					if(typen == "None") return ASTVariableDefinitionExpression::NONE;
+
+					return ASTVariableDefinitionExpression::UDEF;
+				}();
 			}
 
-			return std::make_unique<ASTForStatement>(std::move(block), std::move(start), std::move(end), std::move(step));
+			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
+			auto name_ = std::make_unique<ASTIdentifierExpression>(name);
+			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init), arraySize);
 		}
 
 		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
 		{
+			// Module statement syntax
+			// "module" identifier ;
+
 			++it; // Skip 'module'
 
 			if(it->type != TOKEN_IDENTIFIER)
@@ -393,6 +482,7 @@ namespace core
 				return parserError("Invalid module statement: expected identifier after 'module', got '{}' instead", it->value);
 			}
 
+			// Construct module name
 			std::string name;
 			while(true)
 			{
@@ -430,89 +520,117 @@ namespace core
 			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
 		}
 
-		std::unique_ptr<ASTVariableDefinitionExpression> Parser::parseVariableDefinition()
+		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
 		{
-			if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
-			{
-				return parserError("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
-			}
-			std::string typen = it->value;
-			bool typeDetermined = it->type == TOKEN_IDENTIFIER;
-			++it; // Skip typename/̈́'var'
+			std::string idName = it->value;
+			++it; // Skip identifier
 
-			if(it->type != TOKEN_IDENTIFIER)
+			// If there is an identifier or a '[' (meaning array) after the initial identifier,
+			// it's a variable definition
+			if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_PUNCT_SQR_OPEN)
 			{
-				return parserError("Invalid variable definition: expected identifier, got '{}' instead", it->value);
+				--it; // Roll back to the previous identifier, which is the typename
+				return parseVariableDefinition();
 			}
-			std::string name = it->value;
-			++it; // Skip variable name
 
-			std::unique_ptr<ASTExpression> init = nullptr;
-			if(it->type == TOKEN_OPERATORA_SIMPLE)
+			// Member variable/function
+			if(it->type == TOKEN_OPERATORB_MEMBER)
 			{
-				++it; // Skip '='
-				init = parseExpression();
-				if(!init)
+				while(true)
 				{
-					return parserError("Invalid variable init expression");
+					if(it->type == TOKEN_EOF)
+					{
+						return parserError("Invalid member access operand: '{}'", it->value);
+					}
+					if(it->type != TOKEN_OPERATORB_MEMBER)
+					{
+						break;
+					}
+					idName += it->value;
+					++it; // Skip '.'
+					if(it->type != TOKEN_IDENTIFIER)
+					{
+						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
+					}
+					idName += it->value;
+					++it; // Skip identifier
 				}
 			}
 
-			ASTVariableDefinitionExpression::Type type;
-			if(!typeDetermined)
+			auto parseAssignment = [&]() -> std::unique_ptr<ASTExpression>
 			{
-				if(!init)
-				{
-					return parserError("Invalid variable definition: init expression is required when using 'var'");
-				}
-				else
-				{
-					// TODO: Determine type of var
-					return parserError("Unimplemented");
-				}
-			}
-			else
+				++it; // Skip assignment operator
+				return parseExpression();
+			};
+
+			// Function call
+			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
 			{
-				type = [this, &typen]()
-				{
-					if(typen == "Integer") return ASTVariableDefinitionExpression::INTEGER;
-
-					if(typen == "Int8") return ASTVariableDefinitionExpression::INT8;
-					if(typen == "Int16") return ASTVariableDefinitionExpression::INT16;
-					if(typen == "Int32") return ASTVariableDefinitionExpression::INT32;
-					if(typen == "Int64") return ASTVariableDefinitionExpression::INT64;
-
-					if(typen == "UInt8") return ASTVariableDefinitionExpression::UINT8;
-					if(typen == "UInt16") return ASTVariableDefinitionExpression::UINT16;
-					if(typen == "UInt32") return ASTVariableDefinitionExpression::UINT32;
-					if(typen == "UInt64") return ASTVariableDefinitionExpression::UINT64;
-
-					if(typen == "Float") return ASTVariableDefinitionExpression::FLOAT;
-					if(typen == "F32") return ASTVariableDefinitionExpression::F32;
-					if(typen == "F64") return ASTVariableDefinitionExpression::F64;
-
-					if(typen == "String") return ASTVariableDefinitionExpression::STRING;
-					if(typen == "Char") return ASTVariableDefinitionExpression::CHAR;
-					if(typen == "Bool") return ASTVariableDefinitionExpression::BOOL;
-					if(typen == "None") return ASTVariableDefinitionExpression::NONE;
-
-					return ASTVariableDefinitionExpression::UDEF;
-				}();
+				return parseFunctionCallExpression(idName);
 			}
 
-			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
-			auto name_ = std::make_unique<ASTIdentifierExpression>(name);
-			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init));
+			auto varref = std::make_unique<ASTVariableRefExpression>(idName);
+			std::unique_ptr<ASTAssignmentOperationExpression> assignment = nullptr;
+			if(isAssignmentOperator())
+			{
+				auto op = it;
+				auto rhs = parseAssignment();
+				if(!rhs)
+				{
+					return nullptr;
+				}
+				assignment = std::make_unique<ASTAssignmentOperationExpression>(std::move(varref), std::move(rhs), op->type);
+			}
+			if(!assignment)
+			{
+				return std::move(varref);
+			}
+			return std::move(assignment);
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parsePrimary()
+		std::unique_ptr<ast::ASTCallExpression> Parser::parseFunctionCallExpression(const std::string &idName)
 		{
+			++it; // Skip '('
+			std::vector<std::unique_ptr<ASTExpression>> args;
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				// Parse argument list
+				while(it->type != TOKEN_EOF)
+				{
+					if(auto arg = parseExpression())
+					{
+						args.push_back(std::move(arg));
+					}
+					else
+					{
+						return nullptr;
+					}
+
+					if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+					{
+						break;
+					}
+
+					if(it->type != TOKEN_PUNCT_COMMA)
+					{
+						return parserError("Invalid function call: Expected ')' or ',' in argument list, got '{}' instead", it->value);
+					}
+					++it; // Skip ','
+				}
+			}
+
+			++it; // Skip ')'
+			auto id = std::make_unique<ASTIdentifierExpression>(idName);
+			return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
+		}
+
+		std::unique_ptr<ASTExpression> Parser::parsePrimary(bool tolerateUnrecognized)
+		{
+			// Parse primary expression
 			switch(it->type.get())
 			{
 			case TOKEN_IDENTIFIER:
 				return parseIdentifierExpression();
-			case TOKEN_PUNCT_PAREN_OPEN:
-				return parseParenExpression();
 			case TOKEN_LITERAL_INTEGER:
 				return parseIntegerLiteralExpression();
 			case TOKEN_LITERAL_FLOAT:
@@ -527,69 +645,20 @@ namespace core
 				return parseFalseLiteralExpression();
 			case TOKEN_LITERAL_TRUE:
 				return parseTrueLiteralExpression();
-			/*case TOKEN_KEYWORD_IF:
-				return parseIfStatement();
-			case TOKEN_KEYWORD_FOR:
-				return parseForStatement();*/
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
 			default:
+				if(tolerateUnrecognized)
+				{
+					return nullptr;
+				}
 				return parserError("Unknown token: '{}'", it->value);
 			}
 		}
 
-		std::unique_ptr<ASTExpression> Parser::parseUnary()
-		{
-			if(getTokenPrecedence() == -1)
-			{
-				return parsePrimary();
-			}
-
-			TokenVector::const_iterator opc = it;
-			++it;
-			if(auto operand = parseUnary())
-			{
-				return std::make_unique<ASTUnaryOperationExpression>(std::move(operand), it->type);
-			}
-			return nullptr;
-		}
-
-		std::unique_ptr<ASTExpression> Parser::parseBinaryOperatorRHS(int prec, std::unique_ptr<ASTExpression> lhs)
-		{
-			while(it->type != TOKEN_EOF)
-			{
-				int tokenPrec = getTokenPrecedence();
-
-				if(tokenPrec < prec)
-					return lhs;
-
-				TokenVector::const_iterator binop = it;
-				++it;
-
-				auto rhs = parseUnary();
-				if(!rhs)
-				{
-					return nullptr;
-				}
-
-				int nextPrec = getTokenPrecedence();
-				if(tokenPrec < nextPrec)
-				{
-					rhs = parseBinaryOperatorRHS(tokenPrec + 1, std::move(rhs));
-					if(!rhs)
-					{
-						return nullptr;
-					}
-				}
-
-				lhs = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), binop->type);
-			}
-			return nullptr;
-		}
-
 		std::unique_ptr<ASTIntegerLiteralExpression> Parser::parseIntegerLiteralExpression()
 		{
-			const int base = [this]()
+			const int base = [&]()
 			{
 				if(it->modifierInt.isSet(INTEGER_HEX)) return 16;
 				if(it->modifierInt.isSet(INTEGER_OCTAL)) return 8;
@@ -601,50 +670,38 @@ namespace core
 
 			try
 			{
-				if(lit->modifierInt.isSet(INTEGER_UNSIGNED))
+				auto size = [&]()
 				{
-					if(lit->modifierInt.isSet(INTEGER_SHORT))
+					if(lit->modifierInt.isSet(INTEGER_INT64)) return 64u;
+					if(lit->modifierInt.isSet(INTEGER_INT16)) return 32u;
+					if(lit->modifierInt.isSet(INTEGER_INT8))  return 8u;
+					return 16u;
+				}();
+
+				int64_t val = std::stoll(lit->value, 0, base);
+				if(size == 8)
+				{
+					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
 					{
-						auto val = std::stoul(lit->value, 0, base);
-						if(val > std::numeric_limits<uint16_t>::max())
-						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into UInt16", lit->value));
-						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint16_t>(val), lit->modifierInt);
-					}
-					else if(lit->modifierInt.isSet(INTEGER_LONG))
-					{
-						auto val = std::stoull(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint64_t>(val), lit->modifierInt);
-					}
-					else
-					{
-						auto val = std::stoul(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<uint32_t>(val), lit->modifierInt);
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int8", lit->value));
 					}
 				}
-				else
+				else if(size == 16)
 				{
-					if(lit->modifierInt.isSet(INTEGER_SHORT))
+					if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
 					{
-						auto val = std::stol(lit->value, 0, base);
-						if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
-						{
-							throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
-						}
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int16_t>(val), lit->modifierInt);
-					}
-					else if(lit->modifierInt.isSet(INTEGER_LONG))
-					{
-						auto val = std::stoll(lit->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int64_t>(val), lit->modifierInt);
-					}
-					else
-					{
-						auto val = std::stol(it->value, 0, base);
-						return std::make_unique<ASTIntegerLiteralExpression>(static_cast<int32_t>(val), lit->modifierInt);
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
 					}
 				}
+				else if(size == 32)
+				{
+					if(val > std::numeric_limits<int32_t>::max() || val < std::numeric_limits<int32_t>::min())
+					{
+						throw std::out_of_range(fmt::format("'{}' cannot fit into Int32", lit->value));
+					}
+				}
+				return std::make_unique<ASTIntegerLiteralExpression>(val, lit->modifierInt);
+
 			}
 			catch(std::invalid_argument &e)
 			{
@@ -662,16 +719,15 @@ namespace core
 
 			try
 			{
-				if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+				double val = [&]()
 				{
-					float val = std::stof(lit->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
-				}
-				else
-				{
-					double val = std::stod(lit->value);
-					return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
-				}
+					if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+					{
+						return static_cast<double>(std::stof(lit->value));
+					}
+					return std::stod(lit->value);
+				}();
+				return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
 			}
 			catch(std::invalid_argument &e)
 			{
@@ -683,7 +739,6 @@ namespace core
 			}
 		}
 
-
 		std::unique_ptr<ASTStringLiteralExpression> Parser::parseStringLiteralExpression()
 		{
 			const TokenVector::const_iterator lit = it;
@@ -691,6 +746,7 @@ namespace core
 
 			return std::make_unique<ASTStringLiteralExpression>(lit->value);
 		}
+
 		std::unique_ptr<ASTCharLiteralExpression> Parser::parseCharLiteralExpression()
 		{
 			const TokenVector::const_iterator lit = it;
@@ -728,12 +784,214 @@ namespace core
 
 		std::unique_ptr<ASTExpression> Parser::parseExpression()
 		{
-			auto lhs = parseUnary();
-			if(!lhs)
+			std::stack<core::lexer::TokenType> operators;
+			std::stack<std::unique_ptr<ASTExpression>> operands;
+			int parenCount = 0;
+			const auto beginExprIt = it;
+
+			while(it != endTokens)
 			{
-				return nullptr;
+				if(it->type == TOKEN_PUNCT_PAREN_OPEN)
+				{
+					operators.push(it->type);
+					++it; // Skip '('
+					++parenCount;
+					continue;
+				}
+				else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+				{
+					if(parenCount == 0)
+					{
+						break;
+					}
+
+					++it; // Skip ')'
+					bool ok = false;
+					--parenCount;
+					if(parenCount >= 0)
+					{
+						while(!operators.empty())
+						{
+							if(operators.top() == TOKEN_PUNCT_PAREN_OPEN)
+							{
+								operators.pop();
+								ok = true;
+								break;
+							}
+							else
+							{
+								auto rhs = std::move(operands.top());
+								operands.pop();
+								auto lhs = std::move(operands.top());
+								operands.pop();
+
+								auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
+								operands.push(std::move(expr));
+
+								operators.pop();
+							}
+						}
+						if(ok)
+						{
+							continue;
+						}
+					}
+
+					return parserError("Parenthesis mismatch in expression");
+				}
+				else if(isBinaryOperator())
+				{
+					if(it == beginExprIt || getBinOpPrecedence(it - 1) >= 0)
+					{
+						if(it->type == TOKEN_OPERATORB_ADD)
+						{
+							operators.push(Token::create(TOKEN_OPERATORU_PLUS, it->value, it->loc).type);
+							++it;
+							continue;
+						}
+						else if(it->type == TOKEN_OPERATORB_SUB)
+						{
+							operators.push(Token::create(TOKEN_OPERATORU_MINUS, it->value, it->loc).type);
+							++it;
+							continue;
+						}
+					}
+
+
+					if(
+						operators.empty() || operators.top() == TOKEN_PUNCT_PAREN_OPEN ||
+						(
+							getBinOpPrecedence() > getBinOpPrecedence(operators.top())
+						) ||
+						(
+							isBinOpRightAssociative() &&
+							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+						)
+					)
+					{
+						operators.push(it->type);
+						++it; // Skip operator
+						continue;
+					}
+					else if(
+						getBinOpPrecedence() < getBinOpPrecedence(operators.top()) ||
+						(
+							!isBinOpRightAssociative() &&
+							getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+						)
+					)
+					{
+						while(
+							getBinOpPrecedence() < getBinOpPrecedence(operators.top()) ||
+							(
+								!isBinOpRightAssociative() &&
+								getBinOpPrecedence() == getBinOpPrecedence(operators.top())
+							)
+						)
+						{
+							auto rhs = std::move(operands.top());
+							operands.pop();
+							auto lhs = std::move(operands.top());
+							operands.pop();
+
+							auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
+							operands.push(std::move(expr));
+
+							operators.pop();
+							if(operators.empty())
+							{
+								break;
+							}
+						}
+						operators.push(it->type);
+						++it;
+					}
+					else
+					{
+						return parserError("No sufficent operator rule found");
+					}
+				}
+				else if(isPrefixUnaryOperator())
+				{
+					operators.push(it->type);
+					++it; // Skip operator
+					continue;
+				}
+				else if(it->type == TOKEN_IDENTIFIER)
+				{
+					auto expr = parseIdentifierExpression();
+					if(!expr)
+					{
+						return nullptr;
+					}
+					operands.push(std::move(expr));
+					continue;
+				}
+				else if(it->type == TOKEN_PUNCT_SEMICOLON)
+				{
+					break;
+				}
+				else if(it->type == TOKEN_EOF)
+				{
+					return parserError("Unexpected EOF in expression");
+				}
+				else
+				{
+					auto primary = parsePrimary(true);
+					if(!primary)
+					{
+						if(operators.empty())
+						{
+							break;
+						}
+						return parserError("Invalid token in expression: {}", it->value);
+					}
+					operands.push(std::move(primary));
+					continue;
+				}
 			}
-			return parseBinaryOperatorRHS(0, std::move(lhs));
+
+			while(!operators.empty())
+			{
+				if(isUnaryOperator(operators.top()))
+				{
+					if(operands.size() < 1)
+					{
+						return parserError("Unary operators require 1 operand");
+					}
+					auto rhs = std::move(operands.top());
+					operands.pop();
+
+					auto expr = std::make_unique<ASTUnaryOperationExpression>(std::move(rhs), operators.top());
+					operands.push(std::move(expr));
+
+					operators.pop();
+				}
+				else
+				{
+					if(operands.size() < 2)
+					{
+						return parserError("Binary operators require 2 operands");
+					}
+					auto rhs = std::move(operands.top());
+					operands.pop();
+					auto lhs = std::move(operands.top());
+					operands.pop();
+
+					auto expr = std::make_unique<ASTBinaryOperationExpression>(std::move(lhs), std::move(rhs), operators.top());
+					operands.push(std::move(expr));
+
+					operators.pop();
+				}
+			}
+
+			if(operands.empty())
+			{
+				parserWarning("Expression evaluated as empty");
+				return std::make_unique<ASTEmptyExpression>();
+			}
+			auto top = std::move(operands.top());
+			return top;
 		}
 
 		void Parser::handleImport()
@@ -798,6 +1056,8 @@ namespace core
 				return parseIfStatement();
 			case TOKEN_KEYWORD_FOR:
 				return parseForStatement();
+
+			case TOKEN_KEYWORD_VAR:
 			case TOKEN_IDENTIFIER:
 			{
 				auto expr = parseIdentifierExpression();
@@ -872,7 +1132,7 @@ namespace core
 					break;
 				}
 
-				auto type = [this]()
+				auto type = [&]()
 				{
 					if(it->type == TOKEN_KEYWORD_REF)
 					{
@@ -890,7 +1150,7 @@ namespace core
 				auto var = parseVariableDefinition();
 				if(!var)
 				{
-					return parserError("Invalid variable definition in function prototype");
+					return nullptr;
 				}
 
 				auto param = std::make_unique<ASTFunctionParameter>(std::move(var), type);
@@ -938,7 +1198,7 @@ namespace core
 			auto proto = parseFunctionPrototype();
 			if(!proto)
 			{
-				return parserError("Invalid function definition");
+				return nullptr;
 			}
 
 			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
@@ -949,11 +1209,15 @@ namespace core
 			{
 				return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), std::move(body));
 			}
-			return parserError("Invalid function definition body");
+			return nullptr;
 		}
 
 		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)
 		{
+			if(!expr)
+			{
+				return nullptr;
+			}
 			if(it->type != TOKEN_PUNCT_SEMICOLON)
 			{
 				return parserError("Expected semicolon after expression statement, got '{}' instead", it->value);
@@ -962,34 +1226,76 @@ namespace core
 			return std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
 		}
 
-		int Parser::getTokenPrecedence() const
+		bool Parser::isPrefixUnaryOperator() const
+		{
+			return isPrefixUnaryOperator(it->type);
+		}
+
+		bool Parser::isPrefixUnaryOperator(const core::lexer::TokenType &op) const
+		{
+			return (
+				op == TOKEN_OPERATORU_PLUS ||
+				op == TOKEN_OPERATORU_MINUS ||
+				op == TOKEN_OPERATORU_NOT ||
+				op == TOKEN_OPERATORU_SIZEOF ||
+				op == TOKEN_OPERATORU_TYPEOF ||
+				op == TOKEN_OPERATORU_ADDROF
+			);
+		}
+
+		bool Parser::isPostfixUnaryOperator() const
+		{
+			return isPostfixUnaryOperator(it->type);
+		}
+
+		bool Parser::isPostfixUnaryOperator(const core::lexer::TokenType &op) const
+		{
+			return (
+				op == TOKEN_OPERATORU_INC ||
+				op == TOKEN_OPERATORU_DEC
+			);
+		}
+
+		bool Parser::isUnaryOperator() const
+		{
+			return isUnaryOperator(it->type);
+		}
+
+		bool Parser::isUnaryOperator(const core::lexer::TokenType &op) const
+		{
+			return isPrefixUnaryOperator(op) || isPostfixUnaryOperator(op);
+		}
+
+		bool Parser::isBinaryOperator() const
+		{
+			return getBinOpPrecedence() >= 10;
+		}
+
+		bool Parser::isOperator() const
+		{
+			return isBinaryOperator() || isUnaryOperator();
+		}
+
+		int Parser::getBinOpPrecedence() const
+		{
+			return getBinOpPrecedence(it);
+		}
+
+		int Parser::getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const
+		{
+			return getBinOpPrecedence(op->type);
+		}
+
+		int Parser::getBinOpPrecedence(const core::lexer::TokenType &t) const
 		{
 			using namespace core::lexer;
-			switch(it->type.get())
-			{
-			case TOKEN_OPERATORA_SIMPLE:
-			case TOKEN_OPERATORA_ADD:
-			case TOKEN_OPERATORA_SUB:
-			case TOKEN_OPERATORA_MUL:
-			case TOKEN_OPERATORA_DIV:
-			case TOKEN_OPERATORA_MOD:
-			case TOKEN_OPERATORA_BITAND:
-			case TOKEN_OPERATORA_BITOR:
-			case TOKEN_OPERATORA_BITXOR:
-			case TOKEN_OPERATORA_SHIFTL:
-			case TOKEN_OPERATORA_SHIFTR:
-				return 10;
 
+			switch(t.get())
+			{
 			case TOKEN_OPERATORB_OR:
-				return 20;
+				return 10;
 			case TOKEN_OPERATORB_AND:
-				return 30;
-			case TOKEN_OPERATORB_BITOR:
-				return 40;
-			case TOKEN_OPERATORB_BITXOR:
-				return 50;
-			case TOKEN_OPERATORB_BITAND:
-				return 60;
+				return 20;
 
 			case TOKEN_OPERATORB_EQ:
 			case TOKEN_OPERATORB_NOTEQ:
@@ -1000,34 +1306,65 @@ namespace core
 			case TOKEN_OPERATORB_LESSEQ:
 				return 80;
 
-			case TOKEN_OPERATORB_SHIFTL:
-			case TOKEN_OPERATORB_SHIFTR:
-				return 90;
 			case TOKEN_OPERATORB_ADD:
 			case TOKEN_OPERATORB_SUB:
-				return 100;
+				return 90;
 			case TOKEN_OPERATORB_MUL:
 			case TOKEN_OPERATORB_DIV:
 			case TOKEN_OPERATORB_MOD:
+			case TOKEN_OPERATORB_REM:
+				return 100;
+			case TOKEN_OPERATORB_POW:
 				return 110;
 
-			case TOKEN_OPERATORU_NOT:
-			case TOKEN_OPERATORU_BITNOT:
-			case TOKEN_OPERATORU_PLUS:
-			case TOKEN_OPERATORU_MINUS:
-			case TOKEN_OPERATORU_SIZEOF:
-			case TOKEN_OPERATORU_TYPEOF:
-			case TOKEN_OPERATORU_INSTOF:
-			case TOKEN_OPERATORU_ADDROF:
-			case TOKEN_OPERATORU_DEC:
-			case TOKEN_OPERATORU_INC:
+			case TOKEN_OPERATORB_MEMBER:
 				return 120;
 
-			case TOKEN_OPERATORB_MEMBER:
+			case TOKEN_OPERATORB_INSTOF:
 				return 130;
 
 			default:
 				return -1;
+			}
+		}
+
+		bool Parser::isAssignmentOperator() const
+		{
+			return isAssignmentOperator(it);
+		}
+
+		bool Parser::isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const
+		{
+			using namespace core::lexer;
+
+			switch(op->type.get())
+			{
+			case TOKEN_OPERATORA_SIMPLE:
+			case TOKEN_OPERATORA_ADD:
+			case TOKEN_OPERATORA_SUB:
+			case TOKEN_OPERATORA_MUL:
+			case TOKEN_OPERATORA_DIV:
+			case TOKEN_OPERATORA_MOD:
+			case TOKEN_OPERATORA_POW:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		bool Parser::isBinOpRightAssociative() const
+		{
+			return isBinOpRightAssociative(it);
+		}
+
+		bool Parser::isBinOpRightAssociative(core::lexer::TokenVector::const_iterator op) const
+		{
+			switch(op->type.get())
+			{
+			case TOKEN_OPERATORB_POW:
+				return true;
+			default:
+				return false;
 			}
 		}
 	}

@@ -29,9 +29,9 @@ namespace core
 		{
 		public:
 			std::unique_ptr<ASTExpression> condition;
-			std::unique_ptr<ASTBlockStatement> ifBlock, elseBlock;
+			std::unique_ptr<ASTStatement> ifBlock, elseBlock;
 
-			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> ifb, std::unique_ptr<ASTBlockStatement> elseb = nullptr)
+			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTStatement> ifb, std::unique_ptr<ASTStatement> elseb = nullptr)
 				: condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
@@ -41,9 +41,9 @@ namespace core
 		{
 		public:
 			std::unique_ptr<ASTExpression> init, rangeDecl, rangeInit;
-			std::unique_ptr<ASTBlockStatement> block;
+			std::unique_ptr<ASTStatement> block;
 
-			ASTForStatement(std::unique_ptr<ASTBlockStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
+			ASTForStatement(std::unique_ptr<ASTStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
 				: init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);

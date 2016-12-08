@@ -15,22 +15,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "doctest.h"
+#pragma once
 
-#include <string>
-
-#include "core/preprocessor/Preprocessor.h"
-#include "util/Logger.h"
-
-TEST_CASE("Test Preprocessor")
+namespace core
 {
-	util::initLogger();
-	core::preprocessor::Preprocessor prep;
-	REQUIRE(prep.run("a") == "a");
-
-	SUBCASE("Test comments")
+	namespace parser
 	{
-		REQUIRE(prep.run("foo#bar") == "foo");
-		REQUIRE(prep.run("#bar\n\tfoo") == "\n\tfoo");
+		class Parser;
+	}
+
+	namespace ast
+	{
+		class AST;
 	}
 }

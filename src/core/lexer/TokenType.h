@@ -76,24 +76,15 @@ namespace core
 			TOKEN_OPERATORA_MUL,	// *=
 			TOKEN_OPERATORA_DIV,	// /=
 			TOKEN_OPERATORA_MOD,	// %=
-
-			TOKEN_OPERATORA_BITAND,	// &=
-			TOKEN_OPERATORA_BITOR,	// |=
-			TOKEN_OPERATORA_BITXOR,	// ^=
-			TOKEN_OPERATORA_SHIFTL,	// <<=
-			TOKEN_OPERATORA_SHIFTR,	// >>=
+			TOKEN_OPERATORA_POW,	// ^=
 
 			TOKEN_OPERATORB_ADD = 500,// a + b
 			TOKEN_OPERATORB_SUB,	// a - b
 			TOKEN_OPERATORB_MUL,	// a * b
 			TOKEN_OPERATORB_DIV,	// a / b
-			TOKEN_OPERATORB_MOD,	// a % b
-
-			TOKEN_OPERATORB_BITAND,	// a & b
-			TOKEN_OPERATORB_BITOR,	// a | b
-			TOKEN_OPERATORB_BITXOR,	// a ^ b
-			TOKEN_OPERATORB_SHIFTL,	// a << b
-			TOKEN_OPERATORB_SHIFTR,	// a >> b
+			TOKEN_OPERATORB_MOD,	// a % b, modulo
+			TOKEN_OPERATORB_REM,	// a rem b, remainder
+			TOKEN_OPERATORB_POW,	// a ^ b, power
 
 			TOKEN_OPERATORB_AND,	// a && b, a and b
 			TOKEN_OPERATORB_OR,		// a || b, a or b
@@ -110,18 +101,17 @@ namespace core
 
 			TOKEN_OPERATORB_OF,		// List of String
 			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
+			TOKEN_OPERATORB_INSTOF,	// a instanceof T
 
 			TOKEN_OPERATORU_INC = 600,// a++
 			TOKEN_OPERATORU_DEC,	// a--
 
-			TOKEN_OPERATORU_PLUS,	// +a
-			TOKEN_OPERATORU_MINUS,	// -a
-			TOKEN_OPERATORU_BITNOT,	// ~a
+			TOKEN_OPERATORU_PLUS,
+			TOKEN_OPERATORU_MINUS,
 			TOKEN_OPERATORU_NOT,	// !a, not a
 
 			TOKEN_OPERATORU_SIZEOF,	// sizeof a
 			TOKEN_OPERATORU_TYPEOF,	// typeof a
-			TOKEN_OPERATORU_INSTOF,	// instanceof a
 			TOKEN_OPERATORU_ADDROF,	// addressof a
 
 			TOKEN_PUNCT_PAREN_OPEN = 700,// (

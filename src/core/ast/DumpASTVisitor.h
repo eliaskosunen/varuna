@@ -75,23 +75,25 @@ namespace core
 			}
 
 			template <typename T>
-			void start(ASTNode *root)
+			void start(T *root)
 			{
 				util::loggerBasic->trace("");
 				log("*** AST DUMP ***");
-				auto castedRoot = dynamic_cast<T*>(root);
-				if(!castedRoot)
-				{
-					astlogger->warn("AST dump failed: Invalid root node");
-					return ;
-				}
-				visit(castedRoot);
+				visit(root);
 			}
 
 			void finish()
 			{
 				log("*** FINISHED AST DUMP ***");
 				astlogger->flush();
+			}
+
+			template <typename T>
+			static void dump(T *node)
+			{
+				auto dumpAST = std::make_unique<DumpASTVisitor>();
+				dumpAST->start<T>(node);
+				dumpAST->finish();
 			}
 
 			void visit(ASTNode *node, size_t ind = 0);
@@ -105,6 +107,7 @@ namespace core
 			void visit(ASTImportStatement *node, size_t ind = 0);
 			void visit(ASTModuleStatement *node, size_t ind = 0);
 
+			void visit(ASTEmptyExpression *node, size_t ind = 0);
 			void visit(ASTIdentifierExpression *node, size_t ind = 0);
 			void visit(ASTVariableRefExpression *node, size_t ind = 0);
 			void visit(ASTCallExpression *node, size_t ind = 0);

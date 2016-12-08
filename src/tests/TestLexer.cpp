@@ -46,7 +46,7 @@ TEST_CASE("Test lexer")
 
 		SUBCASE("Integer literals")
 		{
-			code = "123 9999999ul 8s 5u 10l 1001b 60o 0xff 0xdeadul";
+			code = "123 9999999i32 8i8 5i16 10i64 1001b 60o 0xff 0xdead";
 			Lexer l(code, TEST_FILE);
 			v = l.run();
 			CHECK(v.size() == 10);
@@ -61,19 +61,19 @@ TEST_CASE("Test lexer")
 			REQUIRE(v[0].modifierInt.get() == INTEGER_NONE);
 
 			REQUIRE(v[1].value == "9999999");
-			REQUIRE(v[1].modifierInt.isSet(INTEGER_UNSIGNED));
-			REQUIRE(v[1].modifierInt.isSet(INTEGER_LONG));
+			REQUIRE(v[1].modifierInt.isSet(INTEGER_INT32));
 			REQUIRE(v[1].modifierInt.isNotSet(INTEGER_HEX));
 
 			REQUIRE(v[2].value == "8");
-			REQUIRE(v[2].modifierInt.isSet(INTEGER_SHORT));
+			REQUIRE(v[2].modifierInt.isSet(INTEGER_INT8));
 
 			REQUIRE(v[3].value == "5");
-			REQUIRE(v[3].modifierInt.isSet(INTEGER_UNSIGNED));
-			REQUIRE(v[3].modifierInt.isNotSet(INTEGER_LONG));
+			REQUIRE(v[3].modifierInt.isSet(INTEGER_INT16));
+			REQUIRE(v[3].modifierInt.isNotSet(INTEGER_INT64));
+			REQUIRE(v[3].modifierInt.isNotSet(INTEGER_OCTAL));
 
 			REQUIRE(v[4].value == "10");
-			REQUIRE(v[4].modifierInt.isSet(INTEGER_LONG));
+			REQUIRE(v[4].modifierInt.isSet(INTEGER_INT64));
 
 			REQUIRE(v[5].value == "1001");
 			REQUIRE(v[5].modifierInt.isSet(INTEGER_BINARY));
@@ -83,13 +83,10 @@ TEST_CASE("Test lexer")
 
 			REQUIRE(v[7].value == "ff");
 			REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
-			REQUIRE(v[7].modifierInt.isNotSet(INTEGER_UNSIGNED));
-			REQUIRE(v[7].modifierInt.isNotSet(INTEGER_LONG));
+			REQUIRE(v[7].modifierInt.isNotSet(INTEGER_INT64));
 
 			REQUIRE(v[8].value == "dead");
 			REQUIRE(v[8].modifierInt.isSet(INTEGER_HEX));
-			REQUIRE(v[8].modifierInt.isSet(INTEGER_UNSIGNED));
-			REQUIRE(v[8].modifierInt.isSet(INTEGER_LONG));
 		}
 		SUBCASE("Float literals")
 		{

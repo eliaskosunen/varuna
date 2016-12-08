@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vector>
-#include <map>
 #include <sstream>
+#include <algorithm>
+#include <unordered_map>
 
 #include "util/Logger.h"
 #include "util/StringUtils.h"
@@ -36,7 +37,6 @@ namespace core
 
 			if(it == end)
 			{
-				util::logger->trace("Current character is EOF");
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
@@ -50,18 +50,26 @@ namespace core
 
 				if(it == end)
 				{
-					util::logger->trace("Current character is EOF");
 					return createToken(TOKEN_EOF, "EOF");
 				}
+				return getNextToken();
 			}
 
+			// Comments
+			if(!lexComment())
+			{
+				return createToken(TOKEN_EOF, "EOF");
+			}
+			currentChar = *it;
+
+			// Invalid character
 			if(util::StringUtils::isCharControlCharacter(currentChar) && !util::StringUtils::isCharWhitespace(currentChar))
 			{
 				fmt::MemoryWriter out;
 				out << "'" << currentChar
 					<< "', dec: " << util::StringUtils::charToString(currentChar)
 					<< " hex: " << fmt::hex(currentChar);
-				lexerWarning("Unrecognized character: {}", out.str());
+				lexerWarning("Unrecognized character: {}, skipped", out.str());
 				advance();
 				return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 			}
@@ -77,7 +85,6 @@ namespace core
 				{
 					buf.push_back(*it);
 				}
-				util::logger->trace("Word: '{}'", buf);
 
 				// Identify the meaning of the word
 				return getTokenFromWord(buf);
@@ -87,7 +94,6 @@ namespace core
 			// -?[0-9]([0-9\.]*)[dfulsboh]
 			if(
 				util::StringUtils::isCharDigit(currentChar) ||
-				(currentChar == '-' && util::StringUtils::isCharDigit(*(it + 1))) ||
 				(currentChar == '.' && util::StringUtils::isCharDigit(*(it + 1)))
 			)
 			{
@@ -111,34 +117,39 @@ namespace core
 					}
 					cont = (isHex ? util::StringUtils::isCharHexDigit(currentChar) : util::StringUtils::isCharDigit(currentChar));
 				} while(cont || currentChar == '.');
-				util::logger->trace("Number literal: '{}'", buf);
 
 				if(!isFloatingPoint)
 				{
 					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-					while(util::StringUtils::isCharAlpha(currentChar))
+					std::unordered_map<std::string, decltype(INTEGER_INTEGER)> allowedModifiers =
 					{
-						switch(currentChar)
+						{ "i64", INTEGER_INT64 },
+						{ "i32", INTEGER_INT32 },
+						{ "i16", INTEGER_INT16 },
+						{ "i8", INTEGER_INT8 },
+						{ "b", INTEGER_BINARY },
+						{ "o", INTEGER_OCTAL }
+					};
+					auto mod = [&]()
+					{
+						std::string modbuf;
+						while(util::StringUtils::isCharAlnum(currentChar))
 						{
-						case 'u':
-							t.modifierInt |= INTEGER_UNSIGNED;
-							break;
-						case 'l':
-							t.modifierInt |= INTEGER_LONG;
-							break;
-						case 's':
-							t.modifierInt |= INTEGER_SHORT;
-							break;
-						case 'b':
-							t.modifierInt |= INTEGER_BINARY;
-							break;
-						case 'o':
-							t.modifierInt |= INTEGER_OCTAL;
-							break;
-						default:
-							lexerError("Invalid integer literal suffix: '{}'", currentChar);
+							modbuf.push_back(currentChar);
+							auto modit = allowedModifiers.find(modbuf);
+							if(modit != allowedModifiers.end())
+							{
+								t.modifierInt |= modit->second;
+								allowedModifiers.erase(modit);
+								modbuf.clear();
+							}
+							currentChar = *advance();
 						}
-						currentChar = *advance();
+						return modbuf;
+					}();
+					if(!mod.empty())
+					{
+						lexerError("Invalid integer suffix: '{}'", mod);
 					}
 					if(isHex)
 					{
@@ -179,8 +190,6 @@ namespace core
 				std::string buf = lexStringLiteral();
 				if(!getError())
 				{
-					util::logger->trace("String literal: '{}'", buf);
-
 					return createToken(TOKEN_LITERAL_STRING, buf);
 				}
 
@@ -193,8 +202,6 @@ namespace core
 				std::string buf = lexStringLiteral(true);
 				if(!getError())
 				{
-					util::logger->trace("Character literal: '{}'", buf);
-
 					return createToken(TOKEN_LITERAL_CHAR, buf);
 				}
 			}
@@ -222,7 +229,6 @@ namespace core
 				{
 					lexerError("Invalid operator or punctuator: '{}'", buf);
 				}
-				util::logger->trace("Operator/punctuator: '{}'", buf);
 				return t;
 			}
 
@@ -268,36 +274,25 @@ namespace core
 			{
 				lexerError("No EOF token found");
 			}
-			#if 0
-			syntaxCheck(tokens);
-			#endif
 			return tokens;
 		}
 
-		void Lexer::syntaxCheck(const TokenVector &tokens)
+		bool Lexer::lexComment()
 		{
-			unsigned int parenL = 0, parenR = 0, bracketL = 0, bracketR = 0, braceL = 0, braceR = 0;
-			for(const auto &t : tokens)
+			if(*it == '/' && *peekNext() == '/')
 			{
-				if(t.type == TOKEN_PUNCT_PAREN_OPEN) ++parenL;
-				if(t.type == TOKEN_PUNCT_PAREN_CLOSE) ++parenR;
-				if(t.type == TOKEN_PUNCT_SQR_OPEN) ++bracketL;
-				if(t.type == TOKEN_PUNCT_SQR_CLOSE) ++bracketR;
-				if(t.type == TOKEN_PUNCT_BRACE_OPEN) ++braceL;
-				if(t.type == TOKEN_PUNCT_BRACE_CLOSE) ++braceR;
+				advance(); // Skip the both slashes
+				advance();
+				do
+				{
+					if(it == end)
+					{
+						return false;
+					}
+				} while(*advance() != '\n');
+				advance(); // Skip '\n'
 			}
-			if(parenL != parenR)
-			{
-				lexerError("Syntax Error: Parenthesis mismatch");
-			}
-			if(bracketL != bracketR)
-			{
-				lexerError("Syntax Error: Bracket mismatch");
-			}
-			if(braceL != braceR)
-			{
-				lexerError("Syntax Error: Brace mismatch");
-			}
+			return true;
 		}
 
 		std::string Lexer::lexStringLiteral(bool isChar)
@@ -330,13 +325,11 @@ namespace core
 					// Not escaped, end string
 					else
 					{
-						util::logger->trace("Current character is an unescaped quotation mark, end");
 						break;
 					}
 				}
 
 				buf.push_back(currentChar);
-				util::logger->trace("Pushed buffer: '{}'", buf);
 			}
 
 			util::logger->trace("Buffer before escaping: '{}'", buf);
@@ -497,9 +490,10 @@ namespace core
 			if(buf == "not")		return TOKEN_OPERATORU_NOT;
 			if(buf == "of")			return TOKEN_OPERATORB_OF;
 			if(buf == "as")			return TOKEN_OPERATORB_AS;
+			if(buf == "rem")		return TOKEN_OPERATORB_REM;
+			if(buf == "instanceof")	return TOKEN_OPERATORB_INSTOF;
 			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
 			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
-			if(buf == "instanceof")	return TOKEN_OPERATORU_INSTOF;
 			if(buf == "addressof")	return TOKEN_OPERATORU_ADDROF;
 
 			return TOKEN_IDENTIFIER;
@@ -518,24 +512,14 @@ namespace core
 			if(buf == "*=")			return TOKEN_OPERATORA_MUL;
 			if(buf == "/=")			return TOKEN_OPERATORA_DIV;
 			if(buf == "%=")			return TOKEN_OPERATORA_MOD;
-
-			if(buf == "&=")			return TOKEN_OPERATORA_BITAND;
-			if(buf == "|=")			return TOKEN_OPERATORA_BITOR;
-			if(buf == "^=")			return TOKEN_OPERATORA_BITXOR;
-			if(buf == "<<=")		return TOKEN_OPERATORA_SHIFTL;
-			if(buf == ">>=")		return TOKEN_OPERATORA_SHIFTR;
+			if(buf == "^=")			return TOKEN_OPERATORA_POW;
 
 			if(buf == "+")			return TOKEN_OPERATORB_ADD;
 			if(buf == "-")			return TOKEN_OPERATORB_SUB;
 			if(buf == "*")			return TOKEN_OPERATORB_MUL;
 			if(buf == "/")			return TOKEN_OPERATORB_DIV;
 			if(buf == "%")			return TOKEN_OPERATORB_MOD;
-
-			if(buf == "&")			return TOKEN_OPERATORB_BITAND;
-			if(buf == "|")			return TOKEN_OPERATORB_BITOR;
-			if(buf == "^")			return TOKEN_OPERATORB_BITXOR;
-			if(buf == "<<")			return TOKEN_OPERATORB_SHIFTL;
-			if(buf == ">>")			return TOKEN_OPERATORB_SHIFTR;
+			if(buf == "^")			return TOKEN_OPERATORB_POW;
 
 			if(buf == "&&")			return TOKEN_OPERATORB_AND;
 			if(buf == "||")			return TOKEN_OPERATORB_OR;
@@ -552,7 +536,6 @@ namespace core
 			if(buf == "++")			return TOKEN_OPERATORU_INC;
 			if(buf == "--")			return TOKEN_OPERATORU_DEC;
 
-			if(buf == "~")			return TOKEN_OPERATORU_BITNOT;
 			if(buf == "!")			return TOKEN_OPERATORU_NOT;
 
 			if(buf == "(")			return TOKEN_PUNCT_PAREN_OPEN;

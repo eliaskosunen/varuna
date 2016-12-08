@@ -1,22 +1,9 @@
-# code.va
+// code.va
 import io;
 
 module main;
 
 def main(): Void
 {
-	io.stdout.writeln("Hello World!");
-	String input = io.stdin.getln("What's your name?");
-	if(input == "John Doe")
-	{
-		io.stdout.writeln("My man!");
-	}
-	else
-	{
-		io.stdout.println("I don't know you, {}", input);
-	}
-	Bool yes = true;
-	None n = none;
-	String s = "\o0"; # \o0, \o60, \o141
-	Char c = '\n';
+	Integer num = 2 + 3 * 5; // Comment
 }

@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/Logger.h"
 #include "util/Compatibility.h"
 
+#include <tuple>
+
 namespace core
 {
 	namespace parser
@@ -36,6 +38,22 @@ namespace core
 
 		class Parser
 		{
+		public:
+			Parser(const core::lexer::TokenVector&);
+
+			void run();
+
+			bool getError() const;
+			ErrorLevel getErrorLevel() const;
+
+			ast::AST *getAST();
+			ast::AST &getASTRef();
+			const ast::AST &getASTConstRef() const;
+			std::unique_ptr<ast::AST> retrieveAST();
+
+			bool warningsAsErrors;
+
+		private:
 			std::unique_ptr<ast::AST> ast;
 			const core::lexer::TokenVector &tokens;
 			core::lexer::TokenVector::const_iterator it;
@@ -47,7 +65,12 @@ namespace core
 			std::nullptr_t parserError(const std::string &format, const Args& ... args)
 			{
 				error = ERROR_ERROR;
-				util::logger->error("{}: Parser error: {}", it->loc.toString(), fmt::format(format, args...));
+				auto loc = [&]()
+				{
+					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					return (it - 1)->loc;
+				}();
+				util::logger->error("{}: Parser error: {}", loc.toString(), fmt::format(format, args...));
 				return nullptr;
 			}
 
@@ -55,7 +78,12 @@ namespace core
 			void parserWarning(const std::string &format, const Args& ... args)
 			{
 				if(error != ERROR_ERROR) error = ERROR_WARNING;
-				util::logger->warn("{}: Parser warning: {}", it->loc.toString(), fmt::format(format, args...));
+				auto loc = [&]()
+				{
+					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					return (it - 1)->loc;
+				}();
+				util::logger->warn("{}: Parser warning: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
 			}
 
 			std::vector<std::unique_ptr<ast::ASTStatement>> &getGlobalNodeList()
@@ -63,15 +91,32 @@ namespace core
 				return ast->globalNode->nodes;
 			}
 
-			int getTokenPrecedence() const;
+			bool isPrefixUnaryOperator() const;
+			bool isPrefixUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isPostfixUnaryOperator() const;
+			bool isPostfixUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isUnaryOperator() const;
+			bool isUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isBinaryOperator() const;
+			bool isAssignmentOperator() const;
+			bool isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const;
+			bool isOperator() const;
+			int getBinOpPrecedence() const;
+			int getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const;
+			int getBinOpPrecedence(const core::lexer::TokenType &t) const;
+			bool isBinOpRightAssociative() const;
+			bool isBinOpRightAssociative(core::lexer::TokenVector::const_iterator op) const;
+
+			std::tuple<
+				std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>, std::unique_ptr<ast::ASTExpression>
+			>
+				parseForCondition();
 
 			std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
 			std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
 			std::unique_ptr<ast::ASTForStatement> parseForStatement();
 			std::unique_ptr<ast::ASTVariableDefinitionExpression> parseVariableDefinition();
 			std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
-
-			std::unique_ptr<ast::ASTExpression> parseUnary();
 
 			std::unique_ptr<ast::ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
 			std::unique_ptr<ast::ASTFloatLiteralExpression> parseFloatLiteralExpression();
@@ -81,10 +126,9 @@ namespace core
 			std::unique_ptr<ast::ASTBoolLiteralExpression> parseFalseLiteralExpression();
 			std::unique_ptr<ast::ASTNoneLiteralExpression> parseNoneLiteralExpression();
 
-			std::unique_ptr<ast::ASTExpression> parseParenExpression();
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-			std::unique_ptr<ast::ASTExpression> parsePrimary();
-			std::unique_ptr<ast::ASTExpression> parseBinaryOperatorRHS(int prec, std::unique_ptr<ast::ASTExpression> lhs);
+			std::unique_ptr<ast::ASTCallExpression> parseFunctionCallExpression(const std::string &idName);
+			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
 			std::unique_ptr<ast::ASTExpression> parseExpression();
 
 			void handleImport();
@@ -105,46 +149,45 @@ namespace core
 			}
 
 			void _runParser();
-		public:
-			bool warningsAsErrors;
-
-			Parser(const core::lexer::TokenVector &tok) : ast(std::make_unique<ast::AST>()), tokens(tok), it(tokens.begin()), endTokens(tokens.end()), error(ERROR_NONE), warningsAsErrors(false) {}
-
-			void run();
-
-			bool getError() const
-			{
-				if(error == ERROR_NONE) return false;
-				if(warningsAsErrors) return true;
-				if(error == ERROR_ERROR) return true;
-				return false;
-			}
-
-			ErrorLevel getErrorLevel() const
-			{
-				return error;
-			}
-
-			ast::AST *getAST()
-			{
-				assert(ast && "Trying to access nullptr AST");
-				return ast.get();
-			}
-			ast::AST &getASTRef()
-			{
-				assert(ast && "Trying to access nullptr AST");
-				return *(ast.get());
-			}
-			const ast::AST &getASTConstRef() const
-			{
-				assert(ast && "Trying to access nullptr AST");
-				return *(ast.get());
-			}
-			std::unique_ptr<ast::AST> retrieveAST()
-			{
-				assert(ast && "Trying to access nullptr AST");
-				return std::move(ast);
-			}
 		};
+
+		inline Parser::Parser(const core::lexer::TokenVector &tok)
+			: warningsAsErrors(false), ast(std::make_unique<ast::AST>()),
+			  tokens(tok), it(tokens.begin()), endTokens(tokens.end()),
+			  error(ERROR_NONE) {}
+
+		inline bool Parser::getError() const
+		{
+			if(error == ERROR_NONE) return false;
+			if(warningsAsErrors) return true;
+			if(error == ERROR_ERROR) return true;
+			return false;
+		}
+
+		inline ErrorLevel Parser::getErrorLevel() const
+		{
+			return error;
+		}
+
+		inline ast::AST *Parser::getAST()
+		{
+			assert(ast && "Trying to access nullptr AST");
+			return ast.get();
+		}
+		inline ast::AST &Parser::getASTRef()
+		{
+			assert(ast && "Trying to access nullptr AST");
+			return *(ast.get());
+		}
+		inline const ast::AST &Parser::getASTConstRef() const
+		{
+			assert(ast && "Trying to access nullptr AST");
+			return *(ast.get());
+		}
+		inline std::unique_ptr<ast::AST> Parser::retrieveAST()
+		{
+			assert(ast && "Trying to access nullptr AST");
+			return std::move(ast);
+		}
 	}
 }

@@ -32,26 +32,40 @@ namespace core
 		public:
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 
-			ASTExpression() {}
-			virtual ~ASTExpression() {}
+			ASTExpression() = default;
+			ASTExpression(const ASTExpression&) = default;
+			ASTExpression &operator = (const ASTExpression&) = default;
+			ASTExpression(ASTExpression&&) = default;
+			ASTExpression &operator = (ASTExpression&&) = default;
+			virtual ~ASTExpression() = default;
+		};
+
+		class ASTEmptyExpression : public ASTExpression
+		{
+		public:
+			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
 
 		class ASTIdentifierExpression : public ASTExpression
 		{
 		public:
-			std::string value;
+			std::string value {""};
 
-			ASTIdentifierExpression(std::string val) : value(std::move(val)) {}
+			ASTIdentifierExpression() = default;
+			ASTIdentifierExpression(std::string val) : value(val) {}
+			ASTIdentifierExpression(const ASTIdentifierExpression&) = default;
+			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = default;
+			ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
+			ASTIdentifierExpression &operator = (ASTIdentifierExpression&&) = default;
+			virtual ~ASTIdentifierExpression() = default;
 
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
-
-			virtual ~ASTIdentifierExpression() {}
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
 		{
 		public:
-			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(std::move(val)) {}
+			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};
@@ -87,7 +101,6 @@ namespace core
 			{
 				INTEGER,
 				INT8, INT16, INT32, INT64,
-				UINT8, UINT16, UINT32, UINT64,
 
 				FLOAT,
 				F32, F64,
@@ -98,9 +111,10 @@ namespace core
 				UDEF
 			} type;
 			std::unique_ptr<ASTExpression> init;
+			uint32_t arraySize;
 
-			ASTVariableDefinitionExpression(Type t, std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr)
-				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)) {}
+			ASTVariableDefinitionExpression(Type t, std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr, uint32_t arrSize = 0)
+				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)), arraySize(arrSize) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 		};

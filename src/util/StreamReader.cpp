@@ -63,6 +63,9 @@ namespace util
 			return ss.str();
 		}
 		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
+
+		catch(const std::ios_base::failure &e)
+		{
 			//
 			// e.code() is only available if the lib actually follows iso §27.5.3.1.1
 			// and derives ios_base::failure from system_error
@@ -79,7 +82,6 @@ namespace util
 		catch(const std::ios_base::failure&)
 		#endif
 		{
-
 		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 			util::logger->error("Error reading file: libc++ error #{}: {}", e.code().value(), e.code().message());
 		#else
@@ -93,9 +95,10 @@ namespace util
 		#endif // defined _MSC_VER
 
 			util::logger->error("Error reading file: libc error #{}: {}", errno, errmsg);
+		}
+
 		#endif // HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 
-		}
 		return "ERROR";
 	}
 }
