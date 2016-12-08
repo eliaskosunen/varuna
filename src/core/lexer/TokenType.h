@@ -101,6 +101,7 @@ namespace core
 
 			TOKEN_OPERATORB_OF,		// List of String
 			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
+			TOKEN_OPERATORB_INSTOF,	// a instanceof T
 
 			TOKEN_OPERATORU_INC = 600,// a++
 			TOKEN_OPERATORU_DEC,	// a--
@@ -111,7 +112,6 @@ namespace core
 
 			TOKEN_OPERATORU_SIZEOF,	// sizeof a
 			TOKEN_OPERATORU_TYPEOF,	// typeof a
-			TOKEN_OPERATORU_INSTOF,	// instanceof a
 			TOKEN_OPERATORU_ADDROF,	// addressof a
 
 			TOKEN_PUNCT_PAREN_OPEN = 700,// (

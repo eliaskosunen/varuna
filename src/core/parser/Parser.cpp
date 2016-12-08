@@ -424,7 +424,7 @@ namespace core
 			}();
 			if(!init)
 			{
-				return parserError("Invalid variable init expression");
+				return nullptr;
 			}
 
 			// Determine the type of the variable
@@ -955,6 +955,10 @@ namespace core
 			{
 				if(isUnaryOperator(operators.top()))
 				{
+					if(operands.size() < 1)
+					{
+						return parserError("Unary operators require 1 operand");
+					}
 					auto rhs = std::move(operands.top());
 					operands.pop();
 
@@ -965,6 +969,10 @@ namespace core
 				}
 				else
 				{
+					if(operands.size() < 2)
+					{
+						return parserError("Binary operators require 2 operands");
+					}
 					auto rhs = std::move(operands.top());
 					operands.pop();
 					auto lhs = std::move(operands.top());
@@ -1142,7 +1150,7 @@ namespace core
 				auto var = parseVariableDefinition();
 				if(!var)
 				{
-					return parserError("Invalid variable definition in function prototype");
+					return nullptr;
 				}
 
 				auto param = std::make_unique<ASTFunctionParameter>(std::move(var), type);
@@ -1190,7 +1198,7 @@ namespace core
 			auto proto = parseFunctionPrototype();
 			if(!proto)
 			{
-				return parserError("Invalid function definition");
+				return nullptr;
 			}
 
 			if(it->type != TOKEN_PUNCT_BRACE_OPEN)
@@ -1201,14 +1209,14 @@ namespace core
 			{
 				return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), std::move(body));
 			}
-			return parserError("Invalid function definition body");
+			return nullptr;
 		}
 
 		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)
 		{
 			if(!expr)
 			{
-				return parserError("Trying to wrap a nullptr expression");
+				return nullptr;
 			}
 			if(it->type != TOKEN_PUNCT_SEMICOLON)
 			{
@@ -1231,7 +1239,6 @@ namespace core
 				op == TOKEN_OPERATORU_NOT ||
 				op == TOKEN_OPERATORU_SIZEOF ||
 				op == TOKEN_OPERATORU_TYPEOF ||
-				op == TOKEN_OPERATORU_INSTOF ||
 				op == TOKEN_OPERATORU_ADDROF
 			);
 		}
@@ -1312,6 +1319,9 @@ namespace core
 
 			case TOKEN_OPERATORB_MEMBER:
 				return 120;
+
+			case TOKEN_OPERATORB_INSTOF:
+				return 130;
 
 			default:
 				return -1;
