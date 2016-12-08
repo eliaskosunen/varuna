@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "fe/api/API.h"
 
-#include "core/preprocessor/Preprocessor.h"
 #include "util/FileCache.h"
+#include "core/parser/Parser.h"
 
 namespace fe
 {
@@ -45,24 +45,14 @@ namespace fe
 			return true;
 		}
 
-		void preprocess(const std::string &file)
-		{
-			auto f = fileCache()->getFile(file);
-			if(f->preprocessed) return;
-			core::preprocessor::Preprocessor prep;
-			f->content = prep.run(f->content);
-			f->preprocessed = true;
-		}
-
 		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file)
 		{
 			auto f = fileCache()->getFile(file);
-			if(!f->preprocessed) return nullptr;
-
 			core::lexer::Lexer l(f->content, file);
 			auto t = std::make_unique<core::lexer::TokenVector>(l.run());
 			if(l.getError())
 			{
+				util::logger->info("Lexing of file '{}' failed, terminating", file);
 				return nullptr;
 			}
 			return t;
@@ -74,6 +64,7 @@ namespace fe
 			p.run();
 			if(p.getError())
 			{
+				util::logger->info("Parsing of file '{}' failed, terminating", (*tokens)[0].loc.file);
 				return nullptr;
 			}
 			return p.retrieveAST();
@@ -82,10 +73,6 @@ namespace fe
 		bool runFile(const std::string &file)
 		{
 			util::logger->info("Running file: '{}'", file);
-
-			util::logger->debug("Starting preprocessor");
-			preprocess(file);
-			util::logger->debug("Preprocessing finished\n");
 
 			util::logger->debug("Starting lexer");
 			auto tokens = lexer(file);

@@ -74,8 +74,6 @@ namespace core
 				util::logger->warn("{}: Lexer warning: {}", currentLocation.toString(), fmt::format(format, args...));
 			}
 
-			void syntaxCheck(const TokenVector &tokens);
-
 			void newline()
 			{
 				lastLineLen = currentLocation.column;
@@ -138,6 +136,8 @@ namespace core
 			{
 				return peekPassed(1);
 			}
+
+			bool lexComment();
 		public:
 			bool warningsAsErrors;
 

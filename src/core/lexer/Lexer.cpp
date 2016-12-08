@@ -52,15 +52,24 @@ namespace core
 				{
 					return createToken(TOKEN_EOF, "EOF");
 				}
+				return getNextToken();
 			}
 
+			// Comments
+			if(!lexComment())
+			{
+				return createToken(TOKEN_EOF, "EOF");
+			}
+			currentChar = *it;
+
+			// Invalid character
 			if(util::StringUtils::isCharControlCharacter(currentChar) && !util::StringUtils::isCharWhitespace(currentChar))
 			{
 				fmt::MemoryWriter out;
 				out << "'" << currentChar
 					<< "', dec: " << util::StringUtils::charToString(currentChar)
 					<< " hex: " << fmt::hex(currentChar);
-				lexerWarning("Unrecognized character: {}", out.str());
+				lexerWarning("Unrecognized character: {}, skipped", out.str());
 				advance();
 				return createToken(TOKEN_DEFAULT, util::StringUtils::charToString(currentChar));
 			}
@@ -265,36 +274,25 @@ namespace core
 			{
 				lexerError("No EOF token found");
 			}
-			#if 0
-			syntaxCheck(tokens);
-			#endif
 			return tokens;
 		}
 
-		void Lexer::syntaxCheck(const TokenVector &tokens)
+		bool Lexer::lexComment()
 		{
-			unsigned int parenL = 0, parenR = 0, bracketL = 0, bracketR = 0, braceL = 0, braceR = 0;
-			for(const auto &t : tokens)
+			if(*it == '/' && *peekNext() == '/')
 			{
-				if(t.type == TOKEN_PUNCT_PAREN_OPEN) ++parenL;
-				if(t.type == TOKEN_PUNCT_PAREN_CLOSE) ++parenR;
-				if(t.type == TOKEN_PUNCT_SQR_OPEN) ++bracketL;
-				if(t.type == TOKEN_PUNCT_SQR_CLOSE) ++bracketR;
-				if(t.type == TOKEN_PUNCT_BRACE_OPEN) ++braceL;
-				if(t.type == TOKEN_PUNCT_BRACE_CLOSE) ++braceR;
+				advance(); // Skip the both slashes
+				advance();
+				do
+				{
+					if(it == end)
+					{
+						return false;
+					}
+				} while(*advance() != '\n');
+				advance();
 			}
-			if(parenL != parenR)
-			{
-				lexerError("Syntax Error: Parenthesis mismatch");
-			}
-			if(bracketL != bracketR)
-			{
-				lexerError("Syntax Error: Bracket mismatch");
-			}
-			if(braceL != braceR)
-			{
-				lexerError("Syntax Error: Brace mismatch");
-			}
+			return true;
 		}
 
 		std::string Lexer::lexStringLiteral(bool isChar)

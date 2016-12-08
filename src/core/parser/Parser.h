@@ -65,7 +65,12 @@ namespace core
 			std::nullptr_t parserError(const std::string &format, const Args& ... args)
 			{
 				error = ERROR_ERROR;
-				util::logger->error("{}: Parser error: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
+				auto loc = [&]()
+				{
+					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					return (it - 1)->loc;
+				}();
+				util::logger->error("{}: Parser error: {}", loc.toString(), fmt::format(format, args...));
 				return nullptr;
 			}
 
@@ -73,6 +78,11 @@ namespace core
 			void parserWarning(const std::string &format, const Args& ... args)
 			{
 				if(error != ERROR_ERROR) error = ERROR_WARNING;
+				auto loc = [&]()
+				{
+					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					return (it - 1)->loc;
+				}();
 				util::logger->warn("{}: Parser warning: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
 			}
 

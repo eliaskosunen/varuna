@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/lexer/Lexer.h"
-#include "core/parser/Parser.h"
+#include "fe/api/FwdDecl.h"
 #include "util/Logger.h"
+#include "core/lexer/Lexer.h"
 
 namespace fe
 {
@@ -36,10 +36,9 @@ namespace fe
 
 		bool addFile(const std::string &file);
 
-		void preprocess(const std::string &file);
 		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file);
 		std::unique_ptr<core::ast::AST> parse(core::lexer::TokenVector *tokens);
-		
+
 		bool runFile(const std::string &file);
 	}
 }

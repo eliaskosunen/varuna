@@ -34,10 +34,9 @@ namespace util
 
 			std::string filename, content;
 			Checksum_t checksum;
-			bool preprocessed;
 
 			File(const std::string &filename_)
-				: filename(filename_), checksum(0), preprocessed(false) {}
+				: filename(filename_), checksum(0) {}
 
 			bool readFile()
 			{

@@ -1,9 +1,9 @@
-# code.va
+// code.va
 import io;
 
 module main;
 
 def main(): Void
 {
-	Integer num = instanceof 2;
+	Integer num = 2 + 3 * 5; // Comment
 }
