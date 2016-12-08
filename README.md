@@ -1,20 +1,20 @@
 # Varuna
 
-[![License](https://img.shields.io/github/license/eliaskosunen/varuna.svg)](LICENSE)
-
 **Master branch:**  
-Linux: [![Travis Build Status](https://img.shields.io/travis/eliaskosunen/varuna/master.svg)](https://travis-ci.org/eliaskosunen/varuna)  
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/eliaskosunen/varuna/master.svg)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/master)
+Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
+Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)
 
 **Develop branch:**  
-Linux: [![Travis Build Status](https://img.shields.io/travis/eliaskosunen/varuna/develop.svg)](https://travis-ci.org/eliaskosunen/varuna)  
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/eliaskosunen/varuna/develop.svg)](https://ci.appveyor.com/project/eliaskosunen/varuna/branch/develop)
+Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/develop.svg)](https://travis-ci.org/varuna-lang/varuna)  
+Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)
 
 ## About
 
-Varuna is a general-purpose interpreted programming language.
+Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
-WORK IN PROGRESS.
+
+WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
+Wait for 0.1 release (planned in Jan 1st) or grab the code from the develop branch.
 
 ## Building
 
@@ -27,19 +27,21 @@ Windows is supported, and macOS may work, but is not tested due to lack of resou
 A C++14 compliant compiler is required for building.
 The project is confirmed to build on
 Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.8.0) and
-on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported. Further support is not planned.
+on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported.
+Further support is not planned.
 
 ### Instructions
 
-The application can be build using CMake.
+The application can be built using CMake.
 The easiest way to do this is to run `build.sh`,
 which will build the application, tests and documentation.
 `build.sh` will only work on Linux.
 
 If you'd like to build on other platforms than Linux,
-or not to build documentation, here are the instructions
+or not to build documentation, here are the instructions:
 
 ### Linux
+
 ```sh
 # On the repository root folder
 $ mkdir build
