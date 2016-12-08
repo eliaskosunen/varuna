@@ -42,14 +42,9 @@ namespace util
 
 			constexpr VersionStatus getStatus() const
 			{
-				// Ugly workaround,
-				// because MSVC doesn't support
-				// multiple return statements in constexpr functions
-				// (why)
-				VersionStatus status = DEV;
-				if(data[4] > 3)	status = INVALID;
-				else			status = static_cast<VersionStatus>(data[4]);
-				return status;
+				return data[4] > 3
+							? INVALID
+							: static_cast<VersionStatus>(data[4]);
 			}
 
 			std::string toString() const
