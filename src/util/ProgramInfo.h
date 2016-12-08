@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <array>
+#include <stdexcept>
 
 #include "spdlog/fmt/fmt.h"
 
@@ -60,6 +61,7 @@ namespace util
 				case INVALID:
 					return fmt::format("INVALID: {}", data[4]);
 				}
+				throw std::logic_error("Invalid version");
 			}
 		};
 
