@@ -60,8 +60,9 @@ namespace util
 					return fmt::format("{}.{}.{}", data[0], data[1], data[2]);
 				case INVALID:
 					return fmt::format("INVALID: {}", data[4]);
+				default:
+					throw std::logic_error("Invalid version");
 				}
-				throw std::logic_error("Invalid version");
 			}
 		};
 
