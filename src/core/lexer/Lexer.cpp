@@ -290,7 +290,7 @@ namespace core
 						return false;
 					}
 				} while(*advance() != '\n');
-				advance();
+				advance(); // Skip '\n'
 			}
 			return true;
 		}
