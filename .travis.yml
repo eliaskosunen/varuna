@@ -17,6 +17,10 @@ addons:
             - cmake-data
 
 env:
+    global:
+        - secure: "fWZGN/tQeRgtWKqkPQuOYt/woRRudT0Ye5e5q5kcZpLKUiG58DZyary00r079YwFOWXAtjUH8H7FthelYtIgLYcohcMwmQFbSKEU7F3cORYIAKmd7p2UyTiwkfkHYWsYmQEUmhv6f6qWTgGz0hUrucMlCYa7R5AXoRwMSd5H3U06IfH6ZjF96y9saAybu68vRu1R0fI/MdIVKPHztNAy0vwZW9qgwCjvA7hzWSPStQDPLXJLEbrF95e7er3tbsvMpNSnqEzEL4+vLOHkDiN46x/UrnUkC5Cbtdgc48SGZTPSdcD2upzrgCTCAz7JdI58lybU3AdWBiN+JLXzZUlKPoy+TbCRTXdeHsoDPXugkzDuSI+qN8H5qavKc2dZDcthG4ggyQ4ms2ubwdHqlIDgQmFpLr6f36sv/vV7jSvhnv57FggVg41SZwcJ/666rfJYeqKMo5e7DsaTp8oYQ83Dbs19EOKSAAU4fo04H2fBA1dubjxuie4L99Wm4JQ41nr2tugKDUptgG+6P+EEIqaHEvgTNt1EC9zcWRMDT6jsA7e4Ez5A//Ga6jVYEHEThdwUDpAHZZenqdfUvnkM5cYFDOp1MGimh3SWn+YwCSKn74678dkJb4oq+ry0UwSSE//K/420uHy4g6e7A78jxHVeCK24vTvoB4gITu1ez9DS36o="
+
+
     matrix:
         - COMPILER=g++-5 PACKAGE=g++-5 LLVM_VERSION=0 COMPILER_C=gcc-5
         - COMPILER=g++-6 PACKAGE=g++-6 LLVM_VERSION=0 COMPILER_C=gcc-6
@@ -30,6 +34,7 @@ cache:
 before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
+    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 install:
     - sudo apt-get update -qq
@@ -38,6 +43,17 @@ install:
 script:
     - mkdir build
     - cd build
-    - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .. && make
+    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .. ; fi
+    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2 ; fi
     - cd ..
-    - ./bin/tests
+    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./bin/tests ; fi
+
+addons:
+    coverity_scan:
+        project:
+            name: "varuna-lang/varuna"
+            description: ""
+        notification_email: "varuna-lang@gmail.com"
+        build_command_preprend: "mkdir build && cd buildcmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .."
+        build_command: "cmake --build . -- -j2"
+        branch_pattern: coverity_scan
