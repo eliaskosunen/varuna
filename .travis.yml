@@ -9,6 +9,14 @@ git:
     depth: 5
 
 addons:
+    coverity_scan:
+        project:
+            name: "varuna-lang/varuna"
+            description: ""
+        notification_email: "varuna-lang@gmail.com"
+        build_command_preprend: "mkdir build && cd buildcmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .."
+        build_command: "cmake --build . -- -j2"
+        branch_pattern: coverity_scan
     apt:
         sources:
             - george-edison55-precise-backports
@@ -47,13 +55,3 @@ script:
     - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2 ; fi
     - cd ..
     - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./bin/tests ; fi
-
-addons:
-    coverity_scan:
-        project:
-            name: "varuna-lang/varuna"
-            description: ""
-        notification_email: "varuna-lang@gmail.com"
-        build_command_preprend: "mkdir build && cd buildcmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .."
-        build_command: "cmake --build . -- -j2"
-        branch_pattern: coverity_scan
