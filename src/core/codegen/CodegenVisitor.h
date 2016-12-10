@@ -17,24 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
+#include "core/codegen/LLVMCodegenVisitor.h"
 
 namespace core
 {
-	namespace ast
+	namespace codegen
 	{
-		class Visitor
-		{
-		public:
-			Visitor() = default;
-
-			Visitor(const Visitor&) = default;
-			Visitor(Visitor&&) = default;
-
-			Visitor &operator =(const Visitor&) = default;
-			Visitor &operator =(Visitor&&) = default;
-
-			virtual ~Visitor() = default;
-		};
+		typedef LLVMCodegenVisitor CodegenVisitor;
 	}
 }

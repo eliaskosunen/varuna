@@ -18,23 +18,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "core/ast/FwdDecl.h"
+#include "core/ast/Visitor.h"
+
+#include "llvm/IR/Value.h"
 
 namespace core
 {
-	namespace ast
+	namespace codegen
 	{
-		class Visitor
+		class CodegenVisitorBase : public ast::Visitor
 		{
 		public:
-			Visitor() = default;
+			CodegenVisitorBase() = default;
 
-			Visitor(const Visitor&) = default;
-			Visitor(Visitor&&) = default;
+			CodegenVisitorBase(const CodegenVisitorBase&) = default;
+			CodegenVisitorBase(CodegenVisitorBase&&) = default;
 
-			Visitor &operator =(const Visitor&) = default;
-			Visitor &operator =(Visitor&&) = default;
+			virtual CodegenVisitorBase &operator =(const CodegenVisitorBase&) = default;
+			virtual CodegenVisitorBase &operator =(CodegenVisitorBase&&) = default;
 
-			virtual ~Visitor() = default;
+			virtual ~CodegenVisitorBase() = default;
 		};
 	}
 }

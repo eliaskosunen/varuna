@@ -38,6 +38,7 @@ namespace fe
 
 		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file);
 		std::unique_ptr<core::ast::AST> parse(core::lexer::TokenVector *tokens);
+		void codegen(core::ast::AST *ast);
 
 		bool runFile(const std::string &file);
 	}

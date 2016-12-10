@@ -55,6 +55,7 @@ endif()
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake")
+message(STATUS "LLVM include directory: ${LLVM_INCLUDE_DIRS}")
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
