@@ -86,7 +86,7 @@ namespace core
 			llvm::Value *visit(ast::ASTAssignmentOperationExpression *node);
 
 			llvm::Value *visit(ast::ASTEmptyStatement *node);
-			llvm::Value *visit(ast::ASTBlockStatement *node) { return nullptr; }
+			llvm::Value *visit(ast::ASTBlockStatement *node);
 			llvm::Value *visit(ast::ASTWrappedExpressionStatement *node);
 		};
 	}
