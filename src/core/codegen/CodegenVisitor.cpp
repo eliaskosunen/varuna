@@ -35,6 +35,14 @@ namespace core
 
 		}
 
+		llvm::Value *CodegenVisitor::visit(ast::ASTExpression*)
+		{
+
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTStatement*)
+		{
+
+		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement*)
 		{
 
@@ -53,7 +61,7 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement*)
 		{
@@ -68,9 +76,14 @@ namespace core
 		{
 
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTVariableRefExpression*)
+		llvm::LoadInst *CodegenVisitor::visit(ast::ASTVariableRefExpression *expr)
 		{
-
+			llvm::Value *v = namedValues[expr->value];
+			if(!v)
+			{
+				return codegenError("Undefined variable: '{}'", expr->value);
+			}
+			return builder.CreateLoad(v, expr->value.c_str());
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression*)
 		{
@@ -106,7 +119,7 @@ namespace core
 
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
+		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
 		{
 			auto type = [&]() -> llvm::IntegerType*
 			{
@@ -120,7 +133,7 @@ namespace core
 			};
 			return llvm::ConstantInt::getSigned(type(), expr->value);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
 		{
 			auto type = [&]() -> llvm::Type*
 			{
@@ -130,15 +143,15 @@ namespace core
 			};
 			return llvm::ConstantFP::get(type(), expr->value);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
 			return llvm::ConstantDataArray::getString(context, expr->value);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
+		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{
 			return llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), expr->value);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
+		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
 		{
 			return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), expr->value);
 		}
@@ -147,13 +160,67 @@ namespace core
 
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTBinaryOperationExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTBinaryOperationExpression *expr)
 		{
+			llvm::Value *lhs = expr->left->accept(this);
+			llvm::Value *rhs = expr->right->accept(this);
+			if(!lhs || !rhs)
+			{
+				return nullptr;
+			}
 
+			auto *lhsType = lhs->getType();
+			auto *rhsType = rhs->getType();
+			switch(expr->oper.get())
+			{
+			case lexer::TOKEN_OPERATORB_ADD:
+			{
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					uint32_t lhsW = lhsType->getIntegerBitWidth();
+					uint32_t rhsW = rhsType->getIntegerBitWidth();
+					uint32_t width = lhsW;
+					llvm::Value *lhsNew = lhs;
+					llvm::Value *rhsNew = rhs;
+					if(lhsW < rhsW)
+					{
+						width = rhsW;
+						codegenWarning("Implicit cast: Casting from Int{} to Int{}", lhsW, rhsW);
+						lhsNew = builder.CreateIntCast(lhs, llvm::Type::getIntNTy(context, rhsW), true, "casttmp");
+					}
+					else if(lhsW > rhsW)
+					{
+						//width = lhsW // Already done in init
+						codegenWarning("Implicit cast: Casting from Int{} to Int{}", rhsW, lhsW);
+						rhsNew = builder.CreateIntCast(rhs, llvm::Type::getIntNTy(context, lhsW), true, "casttmp");
+					}
+					return builder.CreateAdd(lhsNew, rhsNew, "addtmp");
+				}
+				return nullptr;
+			}
+			default:
+				return nullptr;
+			}
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTUnaryOperationExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTUnaryOperationExpression *expr)
 		{
+			llvm::Value *operand = expr->operand->accept(this);
+			if(!operand)
+			{
+				return nullptr;
+			}
 
+			switch(expr->oper.get())
+			{
+			case lexer::TOKEN_OPERATORU_PLUS:
+				return nullptr; // TODO
+			case lexer::TOKEN_OPERATORU_MINUS:
+				return nullptr; // TODO
+			case lexer::TOKEN_OPERATORU_NOT:
+				return nullptr; // TODO
+			default:
+				return nullptr; // TODO
+			}
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression*)
 		{
@@ -164,9 +231,14 @@ namespace core
 		{
 
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
 		{
-
+			auto &children = stmt->nodes;
+			for(auto &&child : children)
+			{
+				child->accept(this);
+			}
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement*)
 		{

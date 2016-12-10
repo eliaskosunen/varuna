@@ -73,4 +73,7 @@ namespace core
 namespace llvm
 {
 	class Value;
+	class Constant;
+	class ConstantInt;
+	class LoadInst;
 }

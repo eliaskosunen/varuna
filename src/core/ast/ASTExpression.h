@@ -31,6 +31,7 @@ namespace core
 		{
 		public:
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
 
 			ASTExpression() = default;
 			ASTExpression(const ASTExpression&) = default;

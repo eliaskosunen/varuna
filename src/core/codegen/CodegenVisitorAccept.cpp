@@ -25,6 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
 
+llvm::Value *core::ast::ASTExpression::accept(core::codegen::CodegenVisitor *v)
+{
+	return v->visit(this);
+}
+llvm::Value *core::ast::ASTStatement::accept(core::codegen::CodegenVisitor *v)
+{
+	return v->visit(this);
+}
+
 llvm::Value *core::ast::ASTIfStatement::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
