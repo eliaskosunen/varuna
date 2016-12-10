@@ -63,4 +63,9 @@ namespace core
 		class Visitor;
 		class DumpASTVisitor;
 	}
+
+	namespace codegen
+	{
+		class CodegenVisitor;
+	}
 }

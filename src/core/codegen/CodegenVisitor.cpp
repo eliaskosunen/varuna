@@ -15,29 +15,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include "core/ast/FwdDecl.h"
-#include "core/ast/Visitor.h"
-
-#include "llvm/IR/Value.h"
+#include "core/codegen/CodegenVisitor.h"
 
 namespace core
 {
 	namespace codegen
 	{
-		class CodegenVisitorBase : public ast::Visitor
+		CodegenVisitor::CodegenVisitor()
+			: context{}, builder(context), module{}, namedValues{}
 		{
-		public:
-			CodegenVisitorBase() = default;
 
-			CodegenVisitorBase(const CodegenVisitorBase&) = default;
-			CodegenVisitorBase(CodegenVisitorBase&&) = default;
-
-			virtual CodegenVisitorBase &operator =(const CodegenVisitorBase&) = default;
-			virtual CodegenVisitorBase &operator =(CodegenVisitorBase&&) = default;
-
-			virtual ~CodegenVisitorBase() = default;
-		};
+		}
 	}
 }
