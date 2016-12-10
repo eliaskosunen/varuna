@@ -56,17 +56,6 @@ CMAKE_BINARY_DIR = /home/elias/code/projects/varuna
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
@@ -77,6 +66,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named html
+# Target rules for targets named thirdparty
 
 # Build rule for target.
-html: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 html
-.PHONY : html
+thirdparty: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 thirdparty
+.PHONY : thirdparty
 
 # fast build rule for target.
-html/fast:
-	$(MAKE) -f CMakeFiles/html.dir/build.make CMakeFiles/html.dir/build
-.PHONY : html/fast
+thirdparty/fast:
+	$(MAKE) -f third-party/CMakeFiles/thirdparty.dir/build.make third-party/CMakeFiles/thirdparty.dir/build
+.PHONY : thirdparty/fast
 
 #=============================================================================
 # Target rules for targets named varuna
@@ -137,17 +137,43 @@ varuna/fast:
 .PHONY : varuna/fast
 
 #=============================================================================
-# Target rules for targets named varunasrc
+# Target rules for targets named core
 
 # Build rule for target.
-varunasrc: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 varunasrc
-.PHONY : varunasrc
+core: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 core
+.PHONY : core
 
 # fast build rule for target.
-varunasrc/fast:
-	$(MAKE) -f src/CMakeFiles/varunasrc.dir/build.make src/CMakeFiles/varunasrc.dir/build
-.PHONY : varunasrc/fast
+core/fast:
+	$(MAKE) -f src/core/CMakeFiles/core.dir/build.make src/core/CMakeFiles/core.dir/build
+.PHONY : core/fast
+
+#=============================================================================
+# Target rules for targets named api
+
+# Build rule for target.
+api: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 api
+.PHONY : api
+
+# fast build rule for target.
+api/fast:
+	$(MAKE) -f src/fe/api/CMakeFiles/api.dir/build.make src/fe/api/CMakeFiles/api.dir/build
+.PHONY : api/fast
+
+#=============================================================================
+# Target rules for targets named cli
+
+# Build rule for target.
+cli: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cli
+.PHONY : cli
+
+# fast build rule for target.
+cli/fast:
+	$(MAKE) -f src/fe/cli/CMakeFiles/cli.dir/build.make src/fe/cli/CMakeFiles/cli.dir/build
+.PHONY : cli/fast
 
 #=============================================================================
 # Target rules for targets named tests
@@ -159,8 +185,21 @@ tests: cmake_check_build_system
 
 # fast build rule for target.
 tests/fast:
-	$(MAKE) -f tests/CMakeFiles/tests.dir/build.make tests/CMakeFiles/tests.dir/build
+	$(MAKE) -f src/tests/CMakeFiles/tests.dir/build.make src/tests/CMakeFiles/tests.dir/build
 .PHONY : tests/fast
+
+#=============================================================================
+# Target rules for targets named util
+
+# Build rule for target.
+util: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 util
+.PHONY : util
+
+# fast build rule for target.
+util/fast:
+	$(MAKE) -f src/util/CMakeFiles/util.dir/build.make src/util/CMakeFiles/util.dir/build
+.PHONY : util/fast
 
 # Help Target
 help:
@@ -168,12 +207,15 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... html"
+	@echo "... rebuild_cache"
+	@echo "... thirdparty"
 	@echo "... varuna"
-	@echo "... varunasrc"
+	@echo "... core"
+	@echo "... api"
+	@echo "... cli"
 	@echo "... tests"
+	@echo "... util"
 .PHONY : help
 
 

@@ -68,6 +68,6 @@ namespace util
 
 		constexpr Version version = {DEV, 0, 1, 0};
 
-		constexpr const char *name = "varuna";
+		constexpr const char *name = "Varuna";
 	}
 }

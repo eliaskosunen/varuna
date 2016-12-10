@@ -52,10 +52,17 @@ else()
 	message(STATUS "Build flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake")
+
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(third-party/include)
 include_directories(SYSTEM third-party/include-private)
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+
+add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(third-party)
 add_subdirectory(src)
