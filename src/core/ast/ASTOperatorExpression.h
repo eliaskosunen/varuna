@@ -35,6 +35,7 @@ namespace core
 				: left(std::move(l)), right(std::move(r)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTUnaryOperationExpression : public ASTExpression
@@ -47,6 +48,7 @@ namespace core
 				: operand(std::move(_operand)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTAssignmentOperationExpression : public ASTExpression
@@ -60,6 +62,7 @@ namespace core
 				: lval(std::move(l)), rval(std::move(r)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 	}
 }

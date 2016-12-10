@@ -44,6 +44,7 @@ namespace core
 		{
 		public:
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTIdentifierExpression : public ASTExpression
@@ -60,6 +61,7 @@ namespace core
 			virtual ~ASTIdentifierExpression() = default;
 
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
@@ -68,6 +70,7 @@ namespace core
 			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -80,6 +83,7 @@ namespace core
 				: callee(std::move(_callee)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTCastExpression : public ASTExpression
@@ -91,6 +95,7 @@ namespace core
 				: type(std::move(_type)), castee(std::move(_castee)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTVariableDefinitionExpression : public ASTExpression
@@ -117,6 +122,7 @@ namespace core
 				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)), arraySize(arrSize) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 	}
 }

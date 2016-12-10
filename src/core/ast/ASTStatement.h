@@ -45,6 +45,7 @@ namespace core
 		{
 		public:
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -63,6 +64,7 @@ namespace core
 				: nodes(std::move(vec)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -73,6 +75,7 @@ namespace core
 			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 	}
 }

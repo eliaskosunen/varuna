@@ -40,6 +40,7 @@ namespace core
 			ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
@@ -53,6 +54,7 @@ namespace core
 			ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
@@ -63,6 +65,7 @@ namespace core
 			ASTStringLiteralExpression(const std::string &val) : value(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
@@ -73,6 +76,7 @@ namespace core
 			ASTCharLiteralExpression(char32_t val) : value(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
@@ -83,6 +87,7 @@ namespace core
 			ASTBoolLiteralExpression(bool val) : value(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
@@ -91,6 +96,7 @@ namespace core
 			ASTNoneLiteralExpression() {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 	}
 }

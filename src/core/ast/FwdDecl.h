@@ -69,3 +69,8 @@ namespace core
 		class CodegenVisitor;
 	}
 }
+
+namespace llvm
+{
+	class Value;
+}

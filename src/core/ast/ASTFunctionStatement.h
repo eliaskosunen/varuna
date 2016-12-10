@@ -40,6 +40,7 @@ namespace core
 				: var(std::move(_var)), passType(_passType) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTFunctionPrototypeStatement : public ASTStatement
@@ -51,6 +52,7 @@ namespace core
 			ASTFunctionPrototypeStatement(std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTIdentifierExpression> retType, std::vector<std::unique_ptr<ASTFunctionParameter>> _params) : name(std::move(_name)), returnType(std::move(retType)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTFunctionDefinitionStatement : public ASTStatement
@@ -62,6 +64,7 @@ namespace core
 			ASTFunctionDefinitionStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, std::unique_ptr<ASTBlockStatement> _body) : proto(std::move(_proto)), body(std::move(_body)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTFunctionDeclarationStatement : public ASTStatement
@@ -73,6 +76,7 @@ namespace core
 			ASTFunctionDeclarationStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, bool _isExtern = false) : proto(std::move(_proto)), isExtern(_isExtern) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTReturnStatement : public ASTStatement
@@ -84,6 +88,7 @@ namespace core
 				: returnValue(std::move(retval)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
+			llvm::Value *accept(codegen::CodegenVisitor *v);
 		};
 	}
 }

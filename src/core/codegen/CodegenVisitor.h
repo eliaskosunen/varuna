@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/FwdDecl.h"
 #include "core/ast/ASTNode.h"
 #include "core/ast/Visitor.h"
-#include "util/Logger.h"
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
@@ -51,44 +50,44 @@ namespace core
 				visit(root);
 			}
 
-			void visit(ast::ASTNode *node) = delete;
-			void visit(ast::ASTStatement *stmt) = delete;
-			void visit(ast::ASTExpression *expr) = delete;
+			llvm::Value *visit(ast::ASTNode *node) = delete;
+			llvm::Value *visit(ast::ASTStatement *stmt) = delete;
+			llvm::Value *visit(ast::ASTExpression *expr) = delete;
 
-			void visit(ast::ASTIfStatement *node);
-			void visit(ast::ASTForStatement *node);
-			void visit(ast::ASTForeachStatement *node);
-			void visit(ast::ASTWhileStatement *node);
-			void visit(ast::ASTImportStatement *node);
-			void visit(ast::ASTModuleStatement *node);
+			llvm::Value *visit(ast::ASTIfStatement *node);
+			llvm::Value *visit(ast::ASTForStatement *node);
+			llvm::Value *visit(ast::ASTForeachStatement *node);
+			llvm::Value *visit(ast::ASTWhileStatement *node);
+			llvm::Value *visit(ast::ASTImportStatement *node);
+			llvm::Value *visit(ast::ASTModuleStatement *node);
 
-			void visit(ast::ASTEmptyExpression *node);
-			void visit(ast::ASTIdentifierExpression *node);
-			void visit(ast::ASTVariableRefExpression *node);
-			void visit(ast::ASTCallExpression *node);
-			void visit(ast::ASTCastExpression *node);
-			void visit(ast::ASTVariableDefinitionExpression *node);
+			llvm::Value *visit(ast::ASTEmptyExpression *node);
+			llvm::Value *visit(ast::ASTIdentifierExpression *node);
+			llvm::Value *visit(ast::ASTVariableRefExpression *node);
+			llvm::Value *visit(ast::ASTCallExpression *node);
+			llvm::Value *visit(ast::ASTCastExpression *node);
+			llvm::Value *visit(ast::ASTVariableDefinitionExpression *node);
 
-			void visit(ast::ASTFunctionParameter *node);
-			void visit(ast::ASTFunctionPrototypeStatement *node);
-			void visit(ast::ASTFunctionDefinitionStatement *node);
-			void visit(ast::ASTFunctionDeclarationStatement *node);
-			void visit(ast::ASTReturnStatement *node);
+			llvm::Value *visit(ast::ASTFunctionParameter *node);
+			llvm::Value *visit(ast::ASTFunctionPrototypeStatement *node);
+			llvm::Value *visit(ast::ASTFunctionDefinitionStatement *node);
+			llvm::Value *visit(ast::ASTFunctionDeclarationStatement *node);
+			llvm::Value *visit(ast::ASTReturnStatement *node);
 
-			void visit(ast::ASTIntegerLiteralExpression *node);
-			void visit(ast::ASTFloatLiteralExpression *node);
-			void visit(ast::ASTStringLiteralExpression *node);
-			void visit(ast::ASTCharLiteralExpression *node);
-			void visit(ast::ASTBoolLiteralExpression *node);
-			void visit(ast::ASTNoneLiteralExpression *node);
+			llvm::Value *visit(ast::ASTIntegerLiteralExpression *node);
+			llvm::Value *visit(ast::ASTFloatLiteralExpression *node);
+			llvm::Value *visit(ast::ASTStringLiteralExpression *node);
+			llvm::Value *visit(ast::ASTCharLiteralExpression *node);
+			llvm::Value *visit(ast::ASTBoolLiteralExpression *node);
+			llvm::Value *visit(ast::ASTNoneLiteralExpression *node);
 
-			void visit(ast::ASTBinaryOperationExpression *node);
-			void visit(ast::ASTUnaryOperationExpression *node);
-			void visit(ast::ASTAssignmentOperationExpression *node);
+			llvm::Value *visit(ast::ASTBinaryOperationExpression *node);
+			llvm::Value *visit(ast::ASTUnaryOperationExpression *node);
+			llvm::Value *visit(ast::ASTAssignmentOperationExpression *node);
 
-			void visit(ast::ASTEmptyStatement *node);
-			void visit(ast::ASTBlockStatement *node) {}
-			void visit(ast::ASTWrappedExpressionStatement *node);
+			llvm::Value *visit(ast::ASTEmptyStatement *node);
+			llvm::Value *visit(ast::ASTBlockStatement *node) { return nullptr; }
+			llvm::Value *visit(ast::ASTWrappedExpressionStatement *node);
 		};
 	}
 }
