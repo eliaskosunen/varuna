@@ -5,5 +5,5 @@ module main;
 
 def main(): Void
 {
-	Integer num = 2 + 3 * 5; // Comment
+	Integer num = 2 + 3;
 }

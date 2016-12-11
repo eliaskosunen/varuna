@@ -70,10 +70,6 @@ namespace core
 	}
 }
 
-namespace llvm
-{
-	class Value;
-	class Constant;
-	class ConstantInt;
-	class LoadInst;
-}
+#include "llvm/IR/Value.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Constants.h"

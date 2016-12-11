@@ -71,7 +71,7 @@ namespace core
 			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
+			llvm::LoadInst *accept(codegen::CodegenVisitor *v);
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -102,25 +102,12 @@ namespace core
 		class ASTVariableDefinitionExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<ASTIdentifierExpression> typen, name;
-			enum Type
-			{
-				INTEGER,
-				INT8, INT16, INT32, INT64,
-
-				FLOAT,
-				F32, F64,
-
-				STRING, CHAR,
-				BOOL, NONE,
-
-				UDEF
-			} type;
+			std::unique_ptr<ASTIdentifierExpression> type, name;
 			std::unique_ptr<ASTExpression> init;
 			uint32_t arraySize;
 
-			ASTVariableDefinitionExpression(Type t, std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr, uint32_t arrSize = 0)
-				: typen(std::move(_type)), name(std::move(_name)), type(t), init(std::move(_init)), arraySize(arrSize) {}
+			ASTVariableDefinitionExpression(std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr, uint32_t arrSize = 0)
+				: type(std::move(_type)), name(std::move(_name)), init(std::move(_init)), arraySize(arrSize) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);

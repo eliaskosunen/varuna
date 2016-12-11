@@ -269,11 +269,10 @@ namespace core
 		void DumpASTVisitor::visit(ASTVariableDefinitionExpression *node, size_t ind)
 		{
 			log(ind, "ASTVariableDefinitionExpression:");
-			log(ind + 1, "TypeName:");
-			node->typen->accept(this, ind + 2);
+			log(ind + 1, "Type:");
+			node->type->accept(this, ind + 2);
 			log(ind + 1, "Name:");
 			node->name->accept(this, ind + 2);
-			log(ind + 1, "Type: {}", node->type);
 			log(ind + 1, "ArraySize: {}", node->arraySize);
 			log(ind + 1, "InitExpression:");
 			node->init->accept(this, ind + 2);

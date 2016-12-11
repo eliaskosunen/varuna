@@ -428,7 +428,6 @@ namespace core
 			}
 
 			// Determine the type of the variable
-			ASTVariableDefinitionExpression::Type type;
 			if(!typeDetermined)
 			{
 				if(!init)
@@ -441,33 +440,10 @@ namespace core
 					return parserError("Unimplemented");
 				}
 			}
-			else
-			{
-				type = [this, &typen]()
-				{
-					if(typen == "Integer") return ASTVariableDefinitionExpression::INTEGER;
-
-					if(typen == "Int8") return ASTVariableDefinitionExpression::INT8;
-					if(typen == "Int16") return ASTVariableDefinitionExpression::INT16;
-					if(typen == "Int32") return ASTVariableDefinitionExpression::INT32;
-					if(typen == "Int64") return ASTVariableDefinitionExpression::INT64;
-
-					if(typen == "Float") return ASTVariableDefinitionExpression::FLOAT;
-					if(typen == "F32") return ASTVariableDefinitionExpression::F32;
-					if(typen == "F64") return ASTVariableDefinitionExpression::F64;
-
-					if(typen == "String") return ASTVariableDefinitionExpression::STRING;
-					if(typen == "Char") return ASTVariableDefinitionExpression::CHAR;
-					if(typen == "Bool") return ASTVariableDefinitionExpression::BOOL;
-					if(typen == "None") return ASTVariableDefinitionExpression::NONE;
-
-					return ASTVariableDefinitionExpression::UDEF;
-				}();
-			}
 
 			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
 			auto name_ = std::make_unique<ASTIdentifierExpression>(name);
-			return std::make_unique<ASTVariableDefinitionExpression>(type, std::move(typename_), std::move(name_), std::move(init), arraySize);
+			return std::make_unique<ASTVariableDefinitionExpression>(std::move(typename_), std::move(name_), std::move(init), arraySize);
 		}
 
 		std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()

@@ -67,7 +67,7 @@ llvm::Value *core::ast::ASTIdentifierExpression::accept(core::codegen::CodegenVi
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTVariableRefExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::LoadInst *core::ast::ASTVariableRefExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
@@ -88,11 +88,11 @@ llvm::Value *core::ast::ASTFunctionParameter::accept(core::codegen::CodegenVisit
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTFunctionPrototypeStatement::accept(core::codegen::CodegenVisitor *v)
+llvm::Function *core::ast::ASTFunctionPrototypeStatement::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTFunctionDefinitionStatement::accept(core::codegen::CodegenVisitor *v)
+llvm::Function *core::ast::ASTFunctionDefinitionStatement::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
@@ -105,27 +105,27 @@ llvm::Value *core::ast::ASTReturnStatement::accept(core::codegen::CodegenVisitor
 	return v->visit(this);
 }
 
-llvm::Value *core::ast::ASTIntegerLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::ConstantInt *core::ast::ASTIntegerLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTFloatLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTFloatLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTStringLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTStringLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTCharLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::ConstantInt *core::ast::ASTCharLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTBoolLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::ConstantInt *core::ast::ASTBoolLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::Value *core::ast::ASTNoneLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTNoneLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }

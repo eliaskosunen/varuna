@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/FwdDecl.h"
 #include "core/ast/ASTNode.h"
 #include "core/ast/Visitor.h"
+#include "core/ast/ASTFunctionStatement.h"
 #include "util/Logger.h"
 
 #include "llvm/IR/IRBuilder.h"
@@ -31,12 +32,27 @@ namespace core
 {
 	namespace codegen
 	{
+		struct Type
+		{
+			llvm::Type *underlying;
+			bool isReducedClass{false};
+		};
+
+		struct Variable
+		{
+			llvm::Value *value;
+			Type type;
+		};
+
 		class CodegenVisitor : public ast::Visitor
 		{
 			llvm::LLVMContext context;
 			llvm::IRBuilder<> builder;
 			std::unique_ptr<llvm::Module> module;
-			std::map<std::string, llvm::Value*> namedValues;
+			std::unordered_map<std::string, Variable> variables;
+			std::unordered_map<std::string, Variable> globalVariables;
+			std::unordered_map<std::string, std::unique_ptr<ast::ASTFunctionPrototypeStatement>> functionProtos;
+			std::unordered_map<std::string, Type> types;
 		public:
 			CodegenVisitor();
 
@@ -64,6 +80,16 @@ namespace core
 				util::logger->warn(format.c_str(), args...);
 			}
 
+			llvm::Type *findType(const std::string &name)
+			{
+				auto type = types.find(name);
+				if(type == types.end())
+				{
+					return codegenError("Undefined typename: '{}'", name);
+				}
+				return type->second.underlying;
+			}
+
 			llvm::Value *visit(ast::ASTNode *node) = delete;
 			llvm::Value *visit(ast::ASTStatement *stmt);
 			llvm::Value *visit(ast::ASTExpression *expr);
@@ -83,8 +109,8 @@ namespace core
 			llvm::Value *visit(ast::ASTVariableDefinitionExpression *node);
 
 			llvm::Value *visit(ast::ASTFunctionParameter *node);
-			llvm::Value *visit(ast::ASTFunctionPrototypeStatement *node);
-			llvm::Value *visit(ast::ASTFunctionDefinitionStatement *node);
+			llvm::Function *visit(ast::ASTFunctionPrototypeStatement *node);
+			llvm::Function *visit(ast::ASTFunctionDefinitionStatement *node);
 			llvm::Value *visit(ast::ASTFunctionDeclarationStatement *node);
 			llvm::Value *visit(ast::ASTReturnStatement *node);
 
@@ -93,7 +119,7 @@ namespace core
 			llvm::Constant *visit(ast::ASTStringLiteralExpression *node);
 			llvm::ConstantInt *visit(ast::ASTCharLiteralExpression *node);
 			llvm::ConstantInt *visit(ast::ASTBoolLiteralExpression *node);
-			llvm::Value *visit(ast::ASTNoneLiteralExpression *node);
+			llvm::Constant *visit(ast::ASTNoneLiteralExpression *node);
 
 			llvm::Value *visit(ast::ASTBinaryOperationExpression *node);
 			llvm::Value *visit(ast::ASTUnaryOperationExpression *node);
