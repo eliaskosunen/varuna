@@ -27,21 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include "llvm/IR/Verifier.h"
 
 namespace core
 {
 	namespace codegen
 	{
-		struct Type
-		{
-			llvm::Type *underlying;
-			bool isReducedClass{false};
-		};
-
 		struct Variable
 		{
 			llvm::Value *value;
-			Type type;
+			llvm::Type *type;
+			const std::string &name;
 		};
 
 		class CodegenVisitor : public ast::Visitor
@@ -52,19 +48,37 @@ namespace core
 			std::unordered_map<std::string, Variable> variables;
 			std::unordered_map<std::string, Variable> globalVariables;
 			std::unordered_map<std::string, std::unique_ptr<ast::ASTFunctionPrototypeStatement>> functionProtos;
-			std::unordered_map<std::string, Type> types;
+			std::unordered_map<std::string, llvm::Type*> types;
 		public:
 			CodegenVisitor();
 
-			template <typename T>
-			void codegen(T *root)
+			bool codegen(ast::ASTBlockStatement *root)
 			{
-				auto casted = dynamic_cast<ast::ASTNode*>(root);
-				if(!casted)
+				for(auto &child : root->nodes)
 				{
-					throw std::invalid_argument("Invalid root node given to code generator");
+					if(!child->accept(this))
+					{
+						switch (child->nodeType.get()) {
+						case ast::ASTNode::IMPORT_STMT:
+							util::logger->trace("Import codegen returned nullptr");
+							break;
+						case ast::ASTNode::MODULE_STMT:
+							util::logger->trace("Module codegen returned nullptr");
+							break;
+						case ast::ASTNode::FUNCTION_DEF_STMT:
+							util::logger->trace("Function codegen returned nullptr");
+							break;
+						}
+					}
 				}
-				visit(root);
+				util::logger->trace("Verifying module");
+				/*if(!llvm::verifyModule(*module))
+				{
+					util::logger->error("Module verification failed");
+					return false;
+				}*/
+				util::logger->trace("Module verification successful");
+				return true;
 			}
 
 			template <typename... Args>
@@ -87,7 +101,35 @@ namespace core
 				{
 					return codegenError("Undefined typename: '{}'", name);
 				}
-				return type->second.underlying;
+				return type->second;
+			}
+
+			llvm::Function *findFunction(const std::string &name)
+			{
+				llvm::Function *f = module->getFunction(name);
+				if(f)
+				{
+					return f;
+				}
+
+				auto fit = functionProtos.find(name);
+				if(fit != functionProtos.end())
+				{
+					return fit->second->accept(this);
+				}
+
+				return codegenError("Undefined function: '{}'", name);
+			}
+
+			void dumpModule()
+			{
+				module->dump();
+			}
+
+			llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *func, const Variable &var)
+			{
+				llvm::IRBuilder<> tmp(&func->getEntryBlock(), func->getEntryBlock().begin());
+				return tmp.CreateAlloca(var.type, nullptr, var.name.c_str());
 			}
 
 			llvm::Value *visit(ast::ASTNode *node) = delete;
@@ -114,7 +156,7 @@ namespace core
 			llvm::Value *visit(ast::ASTFunctionDeclarationStatement *node);
 			llvm::Value *visit(ast::ASTReturnStatement *node);
 
-			llvm::ConstantInt *visit(ast::ASTIntegerLiteralExpression *node);
+			llvm::Constant *visit(ast::ASTIntegerLiteralExpression *node);
 			llvm::Constant *visit(ast::ASTFloatLiteralExpression *node);
 			llvm::Constant *visit(ast::ASTStringLiteralExpression *node);
 			llvm::ConstantInt *visit(ast::ASTCharLiteralExpression *node);

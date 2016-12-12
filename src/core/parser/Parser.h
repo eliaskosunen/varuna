@@ -117,6 +117,7 @@ namespace core
 			std::unique_ptr<ast::ASTForStatement> parseForStatement();
 			std::unique_ptr<ast::ASTVariableDefinitionExpression> parseVariableDefinition();
 			std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
+			std::unique_ptr<ast::ASTReturnStatement> parseReturnStatement();
 
 			std::unique_ptr<ast::ASTIntegerLiteralExpression> parseIntegerLiteralExpression();
 			std::unique_ptr<ast::ASTFloatLiteralExpression> parseFloatLiteralExpression();

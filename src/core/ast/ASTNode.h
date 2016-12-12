@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/ast/FwdDecl.h"
 
+#include "util/SafeEnum.h"
+
 namespace core
 {
 	namespace ast
@@ -26,7 +28,51 @@ namespace core
 		class ASTNode
 		{
 		public:
+			enum NodeType_t
+			{
+				NODE,
+
+				EXPR,
+				ASSIGNMENT_OPERATION_EXPR,
+				BINARY_OPERATION_EXPR,
+				BOOL_LITERAL_EXPR,
+				CALL_EXPR,
+				CAST_EXPR,
+				CHAR_LITERAL_EXPR,
+				EMPTY_EXPR,
+				FLOAT_LITERAL_EXPR,
+				IDENTIFIER_EXPR,
+				VARIABLE_REF_EXPR,
+				INTEGER_LITERAL_EXPR,
+				NONE_LITERAL_EXPR,
+				STRING_LITERAL_EXPR,
+				UNARY_OPERATION_EXPR,
+				VARIABLE_DEFINITION_EXPR,
+
+				STMT,
+				BLOCK_STMT,
+				EMPTY_STMT,
+				FOREACH_STMT,
+				FOR_STMT,
+				FUNCTION_DECL_STMT,
+				FUNCTION_DEF_STMT,
+				FUNCTION_PARAMETER,
+				FUNCTION_PROTO_STMT,
+				IF_STMT,
+				IMPORT_STMT,
+				MODULE_STMT,
+				RETURN_STMT,
+				WHILE_STMT,
+				WRAPPED_EXPR_STMT
+			};
+
+			typedef util::SafeEnum<NodeType_t> NodeType;
+			NodeType nodeType {NODE};
+
+			ASTNode *parent {nullptr};
+
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0) = 0;
+			virtual void accept(ASTParentSolverVisitor *v, ASTNode *p) = 0;
 
 			ASTNode() = default;
 			ASTNode(const ASTNode&) = default;
@@ -34,6 +80,8 @@ namespace core
 			ASTNode(ASTNode&&) = default;
 			ASTNode &operator = (ASTNode&&) = default;
 			virtual ~ASTNode() = default;
+		protected:
+			ASTNode(NodeType t) : nodeType(t) {}
 		};
 	}
 }

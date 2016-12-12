@@ -33,70 +33,83 @@ namespace core
 		{
 		public:
 			int64_t value;
+			std::unique_ptr<ASTIdentifierExpression> type;
 
-			core::lexer::TokenIntegerLiteralModifier mod;
-
-			ASTIntegerLiteralExpression(core::lexer::TokenIntegerLiteralModifier _mod = core::lexer::INTEGER_INTEGER) : value(0), mod(_mod) {}
-			ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTIntegerLiteralExpression(int64_t val, std::unique_ptr<ASTIdentifierExpression> _type)
+				: ASTExpression(INTEGER_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::ConstantInt *accept(codegen::CodegenVisitor *v);
+			llvm::Constant *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
 		{
 		public:
 			double value;
+			std::unique_ptr<ASTIdentifierExpression> type;
 
-			core::lexer::TokenFloatLiteralModifier mod;
-
-			ASTFloatLiteralExpression(core::lexer::TokenFloatLiteralModifier _mod = core::lexer::FLOAT_FLOAT) : value(0.0), mod(_mod) {}
-			ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
+			ASTFloatLiteralExpression(double val, std::unique_ptr<ASTIdentifierExpression> _type)
+				: ASTExpression(FLOAT_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Constant *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
 		{
 		public:
 			const std::string &value;
+			std::unique_ptr<ASTIdentifierExpression> type;
 
-			ASTStringLiteralExpression(const std::string &val) : value(val) {}
+			ASTStringLiteralExpression(const std::string &val)
+				: ASTExpression(STRING_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("String")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Constant *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
 		{
 		public:
 			char32_t value;
+			std::unique_ptr<ASTIdentifierExpression> type;
 
-			ASTCharLiteralExpression(char32_t val) : value(val) {}
+			ASTCharLiteralExpression(char32_t val)
+				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Char")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::ConstantInt *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
 		{
 		public:
 			bool value;
+			std::unique_ptr<ASTIdentifierExpression> type;
 
-			ASTBoolLiteralExpression(bool val) : value(val) {}
+			ASTBoolLiteralExpression(bool val)
+				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Bool")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::ConstantInt *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
 		{
 		public:
-			ASTNoneLiteralExpression() {}
+			std::unique_ptr<ASTIdentifierExpression> type;
+
+			ASTNoneLiteralExpression()
+				: ASTExpression(NONE_LITERAL_EXPR), type(std::make_unique<ASTIdentifierExpression>("None")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Constant *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 	}
 }

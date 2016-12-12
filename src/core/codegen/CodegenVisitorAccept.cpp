@@ -105,7 +105,7 @@ llvm::Value *core::ast::ASTReturnStatement::accept(core::codegen::CodegenVisitor
 	return v->visit(this);
 }
 
-llvm::ConstantInt *core::ast::ASTIntegerLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTIntegerLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }

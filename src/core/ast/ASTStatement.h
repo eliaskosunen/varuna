@@ -30,11 +30,15 @@ namespace core
 	{
 		class ASTStatement : public ASTNode
 		{
+		protected:
+			ASTStatement(NodeType t) : ASTNode(t) {}
+
 		public:
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
+			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 
-			ASTStatement() = default;
+			ASTStatement() : ASTNode(STMT) {}
 			ASTStatement(const ASTStatement&) = default;
 			ASTStatement &operator = (const ASTStatement&) = default;
 			ASTStatement(ASTStatement&&) = default;
@@ -45,8 +49,11 @@ namespace core
 		class ASTEmptyStatement : public ASTStatement
 		{
 		public:
+			ASTEmptyStatement() : ASTStatement(EMPTY_STMT) {}
+
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -56,16 +63,17 @@ namespace core
 			typedef std::vector<Statement> StatementVector;
 			StatementVector nodes;
 
-			ASTBlockStatement() {}
-			ASTBlockStatement(Statement first)
+			ASTBlockStatement() : ASTStatement(BLOCK_STMT) {}
+			ASTBlockStatement(Statement first) : ASTStatement(BLOCK_STMT)
 			{
 				nodes.push_back(std::move(first));
 			}
 			ASTBlockStatement(StatementVector vec)
-				: nodes(std::move(vec)) {}
+				: ASTStatement(BLOCK_STMT), nodes(std::move(vec)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -73,10 +81,12 @@ namespace core
 		public:
 			std::unique_ptr<ASTExpression> expr;
 
-			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
+			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression)
+				: ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(expression)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 	}
 }

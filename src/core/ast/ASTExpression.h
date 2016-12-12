@@ -29,11 +29,15 @@ namespace core
 	{
 		class ASTExpression : public ASTNode
 		{
+		protected:
+			ASTExpression(NodeType t) : ASTNode(t) {}
+
 		public:
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
+			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 
-			ASTExpression() = default;
+			ASTExpression() : ASTNode(EXPR) {}
 			ASTExpression(const ASTExpression&) = default;
 			ASTExpression &operator = (const ASTExpression&) = default;
 			ASTExpression(ASTExpression&&) = default;
@@ -44,17 +48,23 @@ namespace core
 		class ASTEmptyExpression : public ASTExpression
 		{
 		public:
+			ASTEmptyExpression() : ASTExpression(EMPTY_EXPR) {}
+
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTIdentifierExpression : public ASTExpression
 		{
-		public:
-			std::string value {""};
+		protected:
+			ASTIdentifierExpression(NodeType t, std::string val) : ASTExpression(t), value(val) {}
 
-			ASTIdentifierExpression() = default;
-			ASTIdentifierExpression(std::string val) : value(val) {}
+		public:
+			std::string value {"__undef"};
+
+			ASTIdentifierExpression() : ASTExpression(IDENTIFIER_EXPR) {}
+			ASTIdentifierExpression(std::string val) : ASTExpression(IDENTIFIER_EXPR), value(val) {}
 			ASTIdentifierExpression(const ASTIdentifierExpression&) = default;
 			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = default;
 			ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
@@ -62,16 +72,19 @@ namespace core
 			virtual ~ASTIdentifierExpression() = default;
 
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
+			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
+			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
 		{
 		public:
-			ASTVariableRefExpression(std::string val) : ASTIdentifierExpression(val) {}
+			ASTVariableRefExpression(std::string val)
+				: ASTIdentifierExpression(VARIABLE_REF_EXPR, val) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::LoadInst *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -81,10 +94,11 @@ namespace core
 			std::vector<std::unique_ptr<ASTExpression>> params;
 
 			ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
-				: callee(std::move(_callee)), params(std::move(_params)) {}
+				: ASTExpression(CALL_EXPR), callee(std::move(_callee)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTCastExpression : public ASTExpression
@@ -93,10 +107,11 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> type, castee;
 
 			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
-				: type(std::move(_type)), castee(std::move(_castee)) {}
+				: ASTExpression(CAST_EXPR), type(std::move(_type)), castee(std::move(_castee)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTVariableDefinitionExpression : public ASTExpression
@@ -107,10 +122,12 @@ namespace core
 			uint32_t arraySize;
 
 			ASTVariableDefinitionExpression(std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr, uint32_t arrSize = 0)
-				: type(std::move(_type)), name(std::move(_name)), init(std::move(_init)), arraySize(arrSize) {}
+				: ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(_type)), name(std::move(_name)),
+					init(std::move(_init)), arraySize(arrSize) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 	}
 }

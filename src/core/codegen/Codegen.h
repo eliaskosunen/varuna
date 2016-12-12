@@ -17,29 +17,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "fe/api/FwdDecl.h"
-#include "util/Logger.h"
-#include "core/lexer/Lexer.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/AST.h"
+#include "core/codegen/CodegenVisitor.h"
 
-namespace fe
+namespace core
 {
-	namespace api
+	namespace codegen
 	{
-		enum LoggingLevel
+		class Codegen
 		{
-			LOG_TRACE = spdlog::level::trace,
-			LOG_DEBUG = spdlog::level::debug,
-			LOG_INFO = spdlog::level::info
+			std::unique_ptr<ast::AST> ast;
+			std::unique_ptr<CodegenVisitor> codegen;
+
+			bool prepare();
+			bool visit();
+			bool finish();
+
+		public:
+			Codegen(std::unique_ptr<ast::AST> a);
+
+			bool run();
 		};
-
-		void setLoggingLevel(LoggingLevel l);
-
-		bool addFile(const std::string &file);
-
-		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file);
-		std::unique_ptr<core::ast::AST> parse(core::lexer::TokenVector *tokens);
-		bool codegen(std::unique_ptr<core::ast::AST> ast);
-
-		bool runFile(const std::string &file);
 	}
 }

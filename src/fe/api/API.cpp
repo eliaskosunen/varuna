@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "util/FileCache.h"
 #include "core/parser/Parser.h"
-#include "core/codegen/CodegenVisitor.h"
+#include "core/codegen/Codegen.h"
 
 namespace fe
 {
@@ -71,10 +71,10 @@ namespace fe
 			return p.retrieveAST();
 		}
 
-		void codegen(core::ast::AST *ast)
+		bool codegen(std::unique_ptr<core::ast::AST> ast)
 		{
-			auto codegen = std::make_unique<core::codegen::CodegenVisitor>();
-			codegen->codegen<core::ast::ASTBlockStatement>(ast->globalNode.get());
+			auto codegen = std::make_unique<core::codegen::Codegen>(std::move(ast));
+			return codegen->run();
 		}
 
 		bool runFile(const std::string &file)
@@ -102,7 +102,11 @@ namespace fe
 			core::ast::DumpASTVisitor::dump<core::ast::ASTBlockStatement>(ast->globalNode.get());
 
 			util::logger->debug("Starting code generation");
-			codegen(ast.get());
+			if(!codegen(std::move(ast)))
+			{
+				util::logger->debug("Code generation failed");
+				return false;
+			}
 			util::logger->debug("Code generation finished");
 
 			return true;

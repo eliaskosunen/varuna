@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTLiteralExpression.h"
 #include "core/ast/DumpASTVisitor.h"
+#include "core/ast/ASTParentSolverVisitor.h"
 #include "core/lexer/Token.h"
 #include "util/Compatibility.h"
 #include "util/StringUtils.h"
@@ -41,6 +42,9 @@ namespace core
 		void Parser::run()
 		{
 			_runParser();
+
+			auto parentSolver = std::make_unique<ASTParentSolverVisitor>();
+			parentSolver->run<ASTBlockStatement>(ast->globalNode.get());
 		}
 
 		void Parser::_runParser()
@@ -496,6 +500,30 @@ namespace core
 			return std::make_unique<ASTModuleStatement>(std::move(moduleName));
 		}
 
+		std::unique_ptr<ASTReturnStatement> Parser::parseReturnStatement()
+		{
+			++it; // Skip return
+
+			if(it->type == TOKEN_PUNCT_SEMICOLON)
+			{
+				++it; // Skip ';'
+				return std::make_unique<ASTReturnStatement>(std::make_unique<ASTEmptyExpression>());
+			}
+
+			auto expr = parseExpression();
+			if(!expr)
+			{
+				return nullptr;
+			}
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return parserError("Expected ';' after return statement, got '{}' instead", it->value);
+			}
+			++it; // Skip ';'
+
+			return std::make_unique<ASTReturnStatement>(std::move(expr));
+		}
+
 		std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
 		{
 			std::string idName = it->value;
@@ -649,12 +677,13 @@ namespace core
 				auto size = [&]()
 				{
 					if(lit->modifierInt.isSet(INTEGER_INT64)) return 64u;
-					if(lit->modifierInt.isSet(INTEGER_INT16)) return 32u;
+					if(lit->modifierInt.isSet(INTEGER_INT16)) return 16u;
 					if(lit->modifierInt.isSet(INTEGER_INT8))  return 8u;
-					return 16u;
+					return 32u;
 				}();
 
 				int64_t val = std::stoll(lit->value, 0, base);
+				std::string type = "Int" + std::to_string(size);
 				if(size == 8)
 				{
 					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
@@ -676,7 +705,7 @@ namespace core
 						throw std::out_of_range(fmt::format("'{}' cannot fit into Int32", lit->value));
 					}
 				}
-				return std::make_unique<ASTIntegerLiteralExpression>(val, lit->modifierInt);
+				return std::make_unique<ASTIntegerLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 
 			}
 			catch(std::invalid_argument &e)
@@ -695,15 +724,17 @@ namespace core
 
 			try
 			{
-				double val = [&]()
+				double val;
+				std::string type;
+				std::tie(val, type) = [&]()
 				{
 					if(lit->modifierFloat.isSet(FLOAT_FLOAT))
 					{
-						return static_cast<double>(std::stof(lit->value));
+						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "Float");
 					}
-					return std::stod(lit->value);
+					return std::make_tuple<double, std::string>(std::stod(lit->value), "Double");
 				}();
-				return std::make_unique<ASTFloatLiteralExpression>(val, lit->modifierFloat);
+				return std::make_unique<ASTFloatLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 			}
 			catch(std::invalid_argument &e)
 			{
@@ -1032,6 +1063,9 @@ namespace core
 				return parseIfStatement();
 			case TOKEN_KEYWORD_FOR:
 				return parseForStatement();
+
+			case TOKEN_KEYWORD_RETURN:
+				return parseReturnStatement();
 
 			case TOKEN_KEYWORD_VAR:
 			case TOKEN_IDENTIFIER:

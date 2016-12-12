@@ -62,6 +62,7 @@ namespace core
 
 		class Visitor;
 		class DumpASTVisitor;
+		class ASTParentSolverVisitor;
 	}
 
 	namespace codegen

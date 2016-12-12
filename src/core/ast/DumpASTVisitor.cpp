@@ -323,29 +323,36 @@ namespace core
 		{
 			log(ind, "ASTIntegerLiteralExpression:");
 			log(ind + 1, "Value: {}", node->value);
-			log(ind + 1, "Modifiers: {0:b}", node->mod.get());
+			log(ind + 1, "Type: {}", node->type->value);
 		}
 		void DumpASTVisitor::visit(ASTFloatLiteralExpression *node, size_t ind)
 		{
 			log(ind, "ASTFloatLiteralExpression:");
 			log(ind + 1, "Value: {}", node->value);
-			log(ind + 1, "Modifiers: {0:b}", node->mod.get());
+			log(ind + 1, "Type: {}", node->type->value);
 		}
 		void DumpASTVisitor::visit(ASTStringLiteralExpression *node, size_t ind)
 		{
-			log(ind, "ASTStringLiteralExpression: {}", node->value);
+			log(ind, "ASTStringLiteralExpression:");
+			log(ind + 1, "Value: {}", node->value);
+			log(ind + 1, "Type: {}", node->type->value);
 		}
 		void DumpASTVisitor::visit(ASTCharLiteralExpression *node, size_t ind)
 		{
-			log(ind, "ASTCharLiteralExpression: {}", node->value);
+			log(ind, "ASTCharLiteralExpression:");
+			log(ind + 1, "Value: {}", node->value);
+			log(ind + 1, "Type: {}", node->type->value);
 		}
 		void DumpASTVisitor::visit(ASTBoolLiteralExpression *node, size_t ind)
 		{
-			log(ind, "ASTBoolLiteralExpression: {}", node->value);
+			log(ind, "ASTBoolLiteralExpression:");
+			log(ind + 1, "Value: {}", node->value);
+			log(ind + 1, "Type: {}", node->type->value);
 		}
-		void DumpASTVisitor::visit(ASTNoneLiteralExpression*, size_t ind)
+		void DumpASTVisitor::visit(ASTNoneLiteralExpression *node, size_t ind)
 		{
 			log(ind, "ASTNoneLiteralExpression");
+			log(ind + 1, "Type: {}", node->type->value);
 		}
 
 		void DumpASTVisitor::visit(ASTBinaryOperationExpression *node, size_t ind)

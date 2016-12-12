@@ -32,10 +32,12 @@ namespace core
 			std::unique_ptr<ASTStatement> ifBlock, elseBlock;
 
 			ASTIfStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTStatement> ifb, std::unique_ptr<ASTStatement> elseb = nullptr)
-				: condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
+				: ASTStatement(IF_STMT),
+					condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTForStatement : public ASTStatement
@@ -45,10 +47,12 @@ namespace core
 			std::unique_ptr<ASTStatement> block;
 
 			ASTForStatement(std::unique_ptr<ASTStatement> stmt, std::unique_ptr<ASTExpression> _init = nullptr, std::unique_ptr<ASTExpression> _rangeDecl = nullptr, std::unique_ptr<ASTExpression> _rangeInit = nullptr)
-				: init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
+				: ASTStatement(FOR_STMT),
+					init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTForeachStatement : public ASTStatement
@@ -58,10 +62,12 @@ namespace core
 			std::unique_ptr<ASTBlockStatement> block;
 
 			ASTForeachStatement(std::unique_ptr<ASTExpression> _iteratee, std::unique_ptr<ASTExpression> _iterator, std::unique_ptr<ASTBlockStatement> _block)
-				: iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
+				: ASTStatement(FOREACH_STMT),
+					iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTWhileStatement : public ASTStatement
@@ -71,10 +77,12 @@ namespace core
 			std::unique_ptr<ASTBlockStatement> block;
 
 			ASTWhileStatement(std::unique_ptr<ASTExpression> cond, std::unique_ptr<ASTBlockStatement> _block)
-				: condition(std::move(cond)), block(std::move(_block)) {}
+				: ASTStatement(WHILE_STMT),
+					condition(std::move(cond)), block(std::move(_block)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTImportStatement : public ASTStatement
@@ -91,10 +99,12 @@ namespace core
 			} importType;
 
 			ASTImportStatement(ImportType type, std::unique_ptr<ASTIdentifierExpression> toImport, bool _isPath = false)
-				: importee(std::move(toImport)), isPath(_isPath), importType(type) {}
+				: ASTStatement(IMPORT_STMT),
+					importee(std::move(toImport)), isPath(_isPath), importType(type) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 
 		class ASTModuleStatement : public ASTStatement
@@ -103,10 +113,11 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> moduleName;
 
 			ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
-				: moduleName(std::move(name)) {}
+				: ASTStatement(MODULE_STMT), moduleName(std::move(name)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
 			llvm::Value *accept(codegen::CodegenVisitor *v);
+			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
 		};
 	}
 }

@@ -15,31 +15,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "core/codegen/Codegen.h"
 
-#include "fe/api/FwdDecl.h"
-#include "util/Logger.h"
-#include "core/lexer/Lexer.h"
-
-namespace fe
+namespace core
 {
-	namespace api
+	namespace codegen
 	{
-		enum LoggingLevel
+		Codegen::Codegen(std::unique_ptr<ast::AST> a)
+			: ast(std::move(a)), codegen(std::make_unique<CodegenVisitor>()) {}
+
+		bool Codegen::run()
 		{
-			LOG_TRACE = spdlog::level::trace,
-			LOG_DEBUG = spdlog::level::debug,
-			LOG_INFO = spdlog::level::info
-		};
+			if(!prepare())	return false;
+			if(!visit())	return false;
+			if(!finish())	return false;
+			return true;
+		}
 
-		void setLoggingLevel(LoggingLevel l);
+		bool Codegen::prepare()
+		{
+			
+			return true;
+		}
 
-		bool addFile(const std::string &file);
+		bool Codegen::visit()
+		{
+			if(!codegen->codegen(ast->globalNode.get()))
+			{
+				return false;
+			}
+			return true;
+		}
 
-		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file);
-		std::unique_ptr<core::ast::AST> parse(core::lexer::TokenVector *tokens);
-		bool codegen(std::unique_ptr<core::ast::AST> ast);
-
-		bool runFile(const std::string &file);
+		bool Codegen::finish()
+		{
+			util::logger->trace("Module dump:");
+			codegen->dumpModule();
+			return true;
+		}
 	}
 }

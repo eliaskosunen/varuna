@@ -79,7 +79,12 @@ namespace core
 			{
 				util::loggerBasic->trace("");
 				log("*** AST DUMP ***");
-				visit(root);
+				auto castedRoot = dynamic_cast<ASTNode*>(root);
+				if(!castedRoot)
+				{
+					throw std::invalid_argument("Invalid root node given to DumpASTVisitor");
+				}
+				root->accept(this);
 			}
 
 			void finish()

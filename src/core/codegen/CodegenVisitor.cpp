@@ -30,57 +30,51 @@ namespace core
 	namespace codegen
 	{
 		CodegenVisitor::CodegenVisitor()
-			: context{}, builder(context), module{}, variables{}, globalVariables{}, functionProtos{}, types{}
+			: context{}, builder(context), module(std::make_unique<llvm::Module>("Module", context)),
+			variables{}, globalVariables{}, functionProtos{}, types{}
 		{
-			// Literal types
-			types.insert({"__i8_t", {llvm::Type::getInt8Ty(context)} });
-			types.insert({"__i16_t", {llvm::Type::getInt16Ty(context)} });
-			types.insert({"__i32_t", {llvm::Type::getInt32Ty(context)} });
-			types.insert({"__i64_t", {llvm::Type::getInt64Ty(context)} });
-			types.insert({"__f32_t", {llvm::Type::getFloatTy(context)} });
-			types.insert({"__f64_t", {llvm::Type::getDoubleTy(context)} });
-			types.insert({"__i1_t", {llvm::Type::getInt1Ty(context)} });
-			types.insert({"__char_t", {llvm::Type::getInt8Ty(context)} });
-			types.insert({"__string_t", {llvm::StructType::create({ llvm::Type::getInt8PtrTy(context), llvm::Type::getInt32Ty(context) }), "StringLiteral"} });
+			types.insert({ "Void", {llvm::Type::getVoidTy(context)} });
+			types.insert({ "Integer", {llvm::Type::getInt32Ty(context)} });
+			types.insert({ "Int8", {llvm::Type::getInt8Ty(context)} });
+			types.insert({ "Int16", {llvm::Type::getInt16Ty(context)} });
+			types.insert({ "Int32", {llvm::Type::getInt32Ty(context)} });
+			types.insert({ "Int64", {llvm::Type::getInt64Ty(context)} });
+			types.insert({ "Float", {llvm::Type::getFloatTy(context)} });
+			types.insert({ "Double", {llvm::Type::getDoubleTy(context)} });
+			types.insert({ "Bool", {llvm::Type::getInt1Ty(context)} });
+			types.insert({ "Char", {llvm::Type::getInt8Ty(context)} });
 
-			// First-class types
-			types.insert({"Integer", {llvm::StructType::create({ llvm::Type::getInt32Ty(context) }, "Integer"), true} });
-			types.insert({"Int8", {llvm::StructType::create({ llvm::Type::getInt8Ty(context) }, "Int8"), true} });
-			types.insert({"Int16", {llvm::StructType::create({ llvm::Type::getInt16Ty(context) }, "Int16"), true} });
-			types.insert({"Int32", {llvm::StructType::create({ llvm::Type::getInt32Ty(context) }, "Int32"), true} });
-			types.insert({"Int64", {llvm::StructType::create({ llvm::Type::getInt64Ty(context) }, "Int64"), true} });
-
-			types.insert({"Float", {llvm::StructType::create({ llvm::Type::getFloatTy(context) }, "Float"), true} });
-			types.insert({"Double", {llvm::StructType::create({ llvm::Type::getDoubleTy(context) }, "Double"), true} });
-
-			types.insert({"Bool", {llvm::StructType::create({ llvm::Type::getInt1Ty(context) }, "Bool"), true} });
-			types.insert({"Char", {llvm::StructType::create({ llvm::Type::getInt8Ty(context) }, "Char"), true} });
-			types.insert({"String", {llvm::StructType::create({ llvm::Type::getInt8PtrTy(context), llvm::Type::getInt32Ty(context) }, "String")} });
+			types.insert({ "String",
+				{ llvm::StructType::create(context, {
+					llvm::Type::getInt8PtrTy(context),
+					llvm::Type::getInt32Ty(context)
+				}, "StringLiteral") }
+			});
 		}
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTExpression*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement*)
 		{
@@ -93,11 +87,11 @@ namespace core
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression*)
 		{
-
+			return nullptr;
 		}
 		llvm::LoadInst *CodegenVisitor::visit(ast::ASTVariableRefExpression *expr)
 		{
@@ -110,24 +104,50 @@ namespace core
 					return codegenError("Undefined variable: '{}'", expr->value);
 				}
 			}
-			return builder.CreateLoad(var->second.type.underlying, var->second.value, expr->value.c_str());
+			return builder.CreateLoad(var->second.type, var->second.value, expr->value.c_str());
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression*)
 		{
-
+			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTVariableDefinitionExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
 		{
+			llvm::Function *func = builder.GetInsertBlock()->getParent();
 
+			llvm::Type *type = findType(expr->type->value);
+			if(!type)
+			{
+				return nullptr;
+			}
+			auto *init = expr->init.get();
+
+			llvm::Value *initVal = nullptr;
+			if(init)
+			{
+				initVal = init->accept(this);
+				if(!initVal)
+				{
+					return nullptr;
+				}
+			}
+
+			Variable var = { nullptr, type, expr->name->value };
+			auto *alloca = createEntryBlockAlloca(func, var);
+			builder.CreateStore(initVal, alloca);
+
+			var.value = alloca;
+			variables.insert({expr->name->value, var});
+
+			return initVal;
 		}
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter*)
 		{
-
+			return nullptr;
 		}
 		llvm::Function *CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement *stmt)
 		{
@@ -162,43 +182,66 @@ namespace core
 		}
 		llvm::Function *CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement *stmt)
 		{
-			auto &p = *stmt->proto;
+			auto name = stmt->proto->name->value;
 			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
+			auto func = findFunction(name);
+			if(!func)
+			{
+				codegenWarning("Invalid function");
+				return nullptr;
+			}
 
-			return nullptr;
+			auto entry = llvm::BasicBlock::Create(context, "entry", func);
+			builder.SetInsertPoint(entry);
+
+			variables.clear();
+			for(auto &arg : func->args())
+			{
+				auto alloca = createEntryBlockAlloca(func, Variable{ nullptr, arg.getType(), arg.getName() });
+				builder.CreateStore(&arg, alloca);
+				variables.insert({ arg.getName(), Variable{ alloca, arg.getType(), arg.getName() } });
+			}
+
+			if(!stmt->body->accept(this))
+			{
+				func->eraseFromParent();
+				codegenWarning("Invalid function body");
+				return nullptr;
+			}
+
+			if(func->getReturnType()->isVoidTy())
+			{
+				builder.CreateRetVoid();
+			}
+			/*if(!llvm::verifyFunction(*func))
+			{
+				func->eraseFromParent();
+				return codegenError("Function verification failed");
+			}*/
+			return func;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement*)
 		{
-
+			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
 		{
-
-		}
-
-		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
-		{
-			auto type = [&]() -> llvm::IntegerType*
+			auto ret = stmt->returnValue->accept(this);
+			if(!ret)
 			{
-				if(expr->mod.isSet(lexer::INTEGER_INT64))
-					return llvm::Type::getInt64Ty(context);
-				if(expr->mod.isSet(lexer::INTEGER_INT16))
-					return llvm::Type::getInt16Ty(context);
-				if(expr->mod.isSet(lexer::INTEGER_INT8))
-					return llvm::Type::getInt8Ty(context);
-				return llvm::Type::getInt32Ty(context);
-			};
-			return llvm::ConstantInt::getSigned(type(), expr->value);
+				return nullptr;
+			}
+			builder.CreateRet(ret);
+			return ret;
+		}
+
+		llvm::Constant *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
+		{
+			return llvm::ConstantInt::getSigned(findType(expr->type->value), expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
 		{
-			auto type = [&]() -> llvm::Type*
-			{
-				if(expr->mod.isSet(lexer::FLOAT_DOUBLE))
-					return llvm::Type::getDoubleTy(context);
-				return llvm::Type::getFloatTy(context);
-			};
-			return llvm::ConstantFP::get(type(), expr->value);
+			return llvm::ConstantFP::get(findType(expr->type->value), expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
@@ -236,20 +279,17 @@ namespace core
 				{
 					uint32_t lhsW = lhsType->getIntegerBitWidth();
 					uint32_t rhsW = rhsType->getIntegerBitWidth();
-					uint32_t width = lhsW;
 					llvm::Value *lhsNew = lhs;
 					llvm::Value *rhsNew = rhs;
 					if(lhsW < rhsW)
 					{
-						width = rhsW;
-						codegenWarning("Implicit cast: Casting from Int{} to Int{}", lhsW, rhsW);
-						lhsNew = builder.CreateIntCast(lhs, llvm::Type::getIntNTy(context, rhsW), true, "casttmp");
+						codegenWarning("Implicit cast: Casting from Int{} to Int{}", rhsW, lhsW);
+						rhsNew = builder.CreateIntCast(rhs, llvm::Type::getIntNTy(context, lhsW), true, "casttmp");
 					}
 					else if(lhsW > rhsW)
 					{
-						//width = lhsW // Already done in init
-						codegenWarning("Implicit cast: Casting from Int{} to Int{}", rhsW, lhsW);
-						rhsNew = builder.CreateIntCast(rhs, llvm::Type::getIntNTy(context, lhsW), true, "casttmp");
+						codegenWarning("Implicit cast: Casting from Int{} to Int{}", lhsW, rhsW);
+						lhsNew = builder.CreateIntCast(lhs, llvm::Type::getIntNTy(context, rhsW), true, "casttmp");
 					}
 					return builder.CreateAdd(lhsNew, rhsNew, "addtmp");
 				}
@@ -281,25 +321,27 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression*)
 		{
-
+			return nullptr;
 		}
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement*)
 		{
-
+			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
 		{
-			auto &children = stmt->nodes;
-			for(auto &&child : children)
+			for(auto &child : stmt->nodes)
 			{
-				child->accept(this);
+				if(!child->accept(this))
+				{
+					return nullptr;
+				}
 			}
-			return nullptr;
+			return llvm::BasicBlock::Create(context);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement *stmt)
 		{
-
+			return stmt->expr->accept(this);
 		}
 	}
 }
