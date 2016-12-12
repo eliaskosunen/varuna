@@ -72,11 +72,11 @@ namespace core
 					}
 				}
 				util::logger->trace("Verifying module");
-				/*if(!llvm::verifyModule(*module))
+				if(!llvm::verifyModule(*module))
 				{
 					util::logger->error("Module verification failed");
 					return false;
-				}*/
+				}
 				util::logger->trace("Module verification successful");
 				return true;
 			}

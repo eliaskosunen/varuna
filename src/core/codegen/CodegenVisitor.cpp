@@ -48,7 +48,7 @@ namespace core
 				{ llvm::StructType::create(context, {
 					llvm::Type::getInt8PtrTy(context),
 					llvm::Type::getInt32Ty(context)
-				}, "StringLiteral") }
+				}, "String") }
 			});
 		}
 
@@ -106,9 +106,30 @@ namespace core
 			}
 			return builder.CreateLoad(var->second.type, var->second.value, expr->value.c_str());
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression *expr)
 		{
-			return nullptr;
+			llvm::Function *callee = findFunction(expr->callee->value);
+			if(!callee)
+			{
+				return nullptr;
+			}
+
+			if(callee->arg_size() != expr->params.size())
+			{
+				return codegenError("{} expects {} arguments, {} provided", expr->callee->value, callee->arg_size(), expr->params.size());
+			}
+
+			std::vector<llvm::Value*> args;
+			for(auto &arg : expr->params)
+			{
+				args.push_back(arg->accept(this));
+				if(!args.back())
+				{
+					return nullptr;
+				}
+			}
+
+			return builder.CreateCall(callee, args, "calltmp");
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression*)
 		{
@@ -213,11 +234,11 @@ namespace core
 			{
 				builder.CreateRetVoid();
 			}
-			/*if(!llvm::verifyFunction(*func))
+			if(!llvm::verifyFunction(*func))
 			{
 				func->eraseFromParent();
 				return codegenError("Function verification failed");
-			}*/
+			}
 			return func;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement*)
@@ -226,6 +247,11 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
 		{
+			if(stmt->nodeType == ast::ASTNode::EMPTY_EXPR)
+			{
+				builder.CreateRetVoid();
+				return llvm::ConstantInt::getSigned(llvm::Type::getInt1Ty(context), 1);
+			}
 			auto ret = stmt->returnValue->accept(this);
 			if(!ret)
 			{

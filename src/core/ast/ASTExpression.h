@@ -90,10 +90,10 @@ namespace core
 		class ASTCallExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<ASTExpression> callee;
+			std::unique_ptr<ASTIdentifierExpression> callee;
 			std::vector<std::unique_ptr<ASTExpression>> params;
 
-			ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
+			ASTCallExpression(std::unique_ptr<ASTIdentifierExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
 				: ASTExpression(CALL_EXPR), callee(std::move(_callee)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0);
