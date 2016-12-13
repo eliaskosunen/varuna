@@ -83,5 +83,5 @@ namespace core
 		protected:
 			ASTNode(NodeType t) : nodeType(t) {}
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

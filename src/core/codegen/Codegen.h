@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/AST.h"
+#include "core/ast/FwdDecl.h"
 #include "core/codegen/CodegenVisitor.h"
 
 namespace core
@@ -39,5 +39,5 @@ namespace core
 
 			bool run();
 		};
-	}
-}
+	} // namespace codegen
+} // namespace core

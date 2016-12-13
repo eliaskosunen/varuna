@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
 #include <array>
 #include <stdexcept>
+#include <string>
 
 #include "spdlog/fmt/fmt.h"
 
@@ -27,42 +27,41 @@ namespace util
 {
 	namespace programinfo
 	{
-		enum VersionStatus : uint8_t
+		namespace version
 		{
-			DEV = 0, RC, STABLE
-		};
-
-		struct Version
-		{
-			// 0 = major, 1 = minor, 2 = patch
-			// 3 = rc, 4 = status
-			const std::array<uint8_t, 5> data;
-
-			constexpr Version(const std::array<uint8_t, 5> &arr) : data(arr) {}
-			constexpr Version(VersionStatus status, uint8_t major, uint8_t minor, uint8_t patch, uint8_t rc = 1) : data({{ major, minor, patch, rc, static_cast<uint8_t>(status) }}) {}
-
-			constexpr VersionStatus getStatus() const
+			enum Status : uint8_t
 			{
-				if(data[4] > 2) throw std::logic_error("Invalid version");
-				return static_cast<VersionStatus>(data[4]);
+				STABLE	= 0,
+				RC		= 1,
+				DEV		= 2
+			};
+
+			constexpr uint8_t major		= 0;
+			constexpr uint8_t minor		= 1;
+			constexpr uint8_t patch		= 0;
+			constexpr uint8_t status	= static_cast<uint8_t>(DEV);
+			constexpr uint8_t rc		= 0;
+
+			static constexpr Status getStatus()
+			{
+				static_assert(status <= 2, "Invalid version status");
+				return static_cast<Status>(status);
 			}
 
-			std::string toString() const
+			inline std::string toString()
 			{
 				switch(getStatus())
 				{
 				case DEV:
-					return fmt::format("{}.{}.{}-dev", data[0], data[1], data[2]);
+					return fmt::format("{}.{}.{}-dev", major, minor, patch);
 				case RC:
-					return fmt::format("{}.{}.{}-rc{}", data[0], data[1], data[2], data[3]);
+					return fmt::format("{}.{}.{}-rc{}", major, minor, patch, rc);
 				case STABLE:
-					return fmt::format("{}.{}.{}", data[0], data[1], data[2]);
+					return fmt::format("{}.{}.{}", major, minor, patch);
 				}
 			}
-		};
-
-		constexpr Version version = {DEV, 0, 1, 0};
+		}
 
 		constexpr const char *name = "Varuna";
-	}
-}
+	} // namespace programinfo
+} // namespace util

@@ -16,9 +16,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/codegen/CodegenVisitor.h"
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
 #include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTLiteralExpression.h"
@@ -52,44 +52,44 @@ namespace core
 			});
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTExpression* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement* /*unused*/)
 		{
 			return nullptr;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression* /*unused*/)
 		{
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -131,7 +131,7 @@ namespace core
 
 			return builder.CreateCall(callee, args, "calltmp");
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -166,7 +166,7 @@ namespace core
 			return initVal;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -241,7 +241,7 @@ namespace core
 			}
 			return func;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -281,7 +281,7 @@ namespace core
 		{
 			return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), expr->value);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression*)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -345,12 +345,12 @@ namespace core
 				return nullptr; // TODO
 			}
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression* /*unused*/)
 		{
 			return nullptr;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement*)
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement* /*unused*/)
 		{
 			return nullptr;
 		}
@@ -369,5 +369,5 @@ namespace core
 		{
 			return stmt->expr->accept(this);
 		}
-	}
-}
+	} // namespace codegen
+} // namespace core

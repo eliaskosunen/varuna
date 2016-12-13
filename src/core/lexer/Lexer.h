@@ -70,7 +70,10 @@ namespace core
 			template <typename... Args>
 			void lexerWarning(const std::string &format, const Args& ... args)
 			{
-				if(error != ERROR_ERROR) error = ERROR_WARNING;
+				if(error != ERROR_ERROR)
+				{
+					error = ERROR_WARNING;
+				}
 				util::logger->warn("{}: Lexer warning: {}", currentLocation.toString(), fmt::format(format, args...));
 			}
 
@@ -147,9 +150,18 @@ namespace core
 
 			bool getError() const
 			{
-				if(error == ERROR_NONE) return false;
-				if(warningsAsErrors) return true;
-				if(error == ERROR_ERROR) return true;
+				if(error == ERROR_NONE)
+				{
+					return false;
+				}
+				if(warningsAsErrors)
+				{
+					return true;
+				}
+				if(error == ERROR_ERROR)
+				{
+					return true;
+				}
 				return false;
 			}
 
@@ -158,5 +170,5 @@ namespace core
 				return error;
 			}
 		};
-	}
-}
+	} // namespace lexer
+} // namespace core

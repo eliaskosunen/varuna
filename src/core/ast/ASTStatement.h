@@ -17,12 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
 #include "core/ast/ASTExpression.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace core
 {
@@ -34,16 +34,16 @@ namespace core
 			ASTStatement(NodeType t) : ASTNode(t) {}
 
 		public:
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
-			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 
 			ASTStatement() : ASTNode(STMT) {}
 			ASTStatement(const ASTStatement&) = default;
 			ASTStatement &operator = (const ASTStatement&) = default;
 			ASTStatement(ASTStatement&&) = default;
 			ASTStatement &operator = (ASTStatement&&) = default;
-			virtual ~ASTStatement() = default;
+			~ASTStatement() override = default;
 		};
 
 		class ASTEmptyStatement : public ASTStatement
@@ -51,9 +51,9 @@ namespace core
 		public:
 			ASTEmptyStatement() : ASTStatement(EMPTY_STMT) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -71,9 +71,9 @@ namespace core
 			ASTBlockStatement(StatementVector vec)
 				: ASTStatement(BLOCK_STMT), nodes(std::move(vec)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -84,9 +84,9 @@ namespace core
 			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression)
 				: ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(expression)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

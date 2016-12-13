@@ -26,25 +26,29 @@ namespace core
 
 		bool Codegen::run()
 		{
-			if(!prepare())	return false;
-			if(!visit())	return false;
-			if(!finish())	return false;
+			if(!prepare())
+			{
+				return false;
+			}
+			if(!visit())
+			{
+				return false;
+			}
+			if(!finish())
+			{
+				return false;
+			}
 			return true;
 		}
 
 		bool Codegen::prepare()
 		{
-			
 			return true;
 		}
 
 		bool Codegen::visit()
 		{
-			if(!codegen->codegen(ast->globalNode.get()))
-			{
-				return false;
-			}
-			return true;
+			return codegen->codegen(ast->globalNode.get());
 		}
 
 		bool Codegen::finish()
@@ -53,5 +57,5 @@ namespace core
 			codegen->dumpModule();
 			return true;
 		}
-	}
-}
+	} // namespace codegen
+} // namespace core

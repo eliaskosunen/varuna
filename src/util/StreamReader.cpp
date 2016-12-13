@@ -18,12 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <string>
 #include <sstream>
+#include <string>
 #include <cerrno>
 #include <stdexcept>
-#include <system_error>
 #include <string.h>
+#include <system_error>
 
 #include "util/StreamReader.h"
 #include "util/Logger.h"
@@ -37,30 +37,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
-	std::string StreamReader::readStream(std::istream &stream) const
-	{
-		std::stringstream ss;
-		ss << stream.rdbuf();
-		return ss.str();
-	}
-
-	std::string StreamReader::readFile(const std::string &filename) const
+	std::string StreamReader::readFile(const std::string &filename)
 	{
 		try {
 			std::ifstream s;
-			s.exceptions(std::ios::badbit);
+			s.exceptions(std::ios::badbit | std::ios::failbit);
 			s.open(filename.c_str(), std::ios::binary | std::ios::in);
 
-			if(!s.is_open() || s.fail())
+			if(s.is_open() && s.good())
 			{
-				util::logger->warn("File not open gracefully");
-				return "ERROR";
+				std::stringstream ss;
+				ss << s.rdbuf();
+				s.close();
+				return ss.str();
 			}
 
-			std::stringstream ss;
-			ss << s.rdbuf();
-			s.close();
-			return ss.str();
+			throw std::runtime_error("File reading failed");
 		}
 		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
 
@@ -83,7 +75,7 @@ namespace util
 		#endif
 		{
 		#if HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
-			util::logger->error("Error reading file: libc++ error #{}: {}", e.code().value(), e.code().message());
+			util::logger->error("Error reading file: Error #{} (libc++): {}", e.code().value(), e.code().message());
 		#else
 			std::string errmsg;
 		#ifdef _MSC_VER
@@ -94,11 +86,10 @@ namespace util
 			errmsg = strerror(errno);
 		#endif // defined _MSC_VER
 
-			util::logger->error("Error reading file: libc error #{}: {}", errno, errmsg);
+			util::logger->error("Error reading file: Error #{} (libc): {}", errno, errmsg);
+
+			throw std::runtime_error("File reading failed");
 		}
-
 		#endif // HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
-
-		return "ERROR";
 	}
-}
+} // namespace util

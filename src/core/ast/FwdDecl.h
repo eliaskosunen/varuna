@@ -63,13 +63,13 @@ namespace core
 		class Visitor;
 		class DumpASTVisitor;
 		class ASTParentSolverVisitor;
-	}
+	} // namespace ast
 
 	namespace codegen
 	{
 		class CodegenVisitor;
-	}
-}
+	} // namespace codegen
+} // namespace core
 
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instructions.h"

@@ -16,9 +16,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/codegen/CodegenVisitor.h"
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
 #include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTLiteralExpression.h"

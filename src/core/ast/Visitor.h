@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
-
 namespace core
 {
 	namespace ast
@@ -36,5 +34,5 @@ namespace core
 
 			virtual ~Visitor() = default;
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

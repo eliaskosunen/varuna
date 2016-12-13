@@ -17,10 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
-#include "core/ast/Visitor.h"
 #include "core/ast/ASTFunctionStatement.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/Visitor.h"
 #include "util/Logger.h"
 
 #include "llvm/IR/IRBuilder.h"
@@ -145,31 +145,31 @@ namespace core
 
 			llvm::Value *visit(ast::ASTEmptyExpression *node);
 			llvm::Value *visit(ast::ASTIdentifierExpression *node);
-			llvm::LoadInst *visit(ast::ASTVariableRefExpression *node);
-			llvm::Value *visit(ast::ASTCallExpression *node);
+			llvm::LoadInst *visit(ast::ASTVariableRefExpression *expr);
+			llvm::Value *visit(ast::ASTCallExpression *expr);
 			llvm::Value *visit(ast::ASTCastExpression *node);
-			llvm::Value *visit(ast::ASTVariableDefinitionExpression *node);
+			llvm::Value *visit(ast::ASTVariableDefinitionExpression *expr);
 
 			llvm::Value *visit(ast::ASTFunctionParameter *node);
-			llvm::Function *visit(ast::ASTFunctionPrototypeStatement *node);
-			llvm::Function *visit(ast::ASTFunctionDefinitionStatement *node);
+			llvm::Function *visit(ast::ASTFunctionPrototypeStatement *stmt);
+			llvm::Function *visit(ast::ASTFunctionDefinitionStatement *stmt);
 			llvm::Value *visit(ast::ASTFunctionDeclarationStatement *node);
-			llvm::Value *visit(ast::ASTReturnStatement *node);
+			llvm::Value *visit(ast::ASTReturnStatement *stmt);
 
-			llvm::Constant *visit(ast::ASTIntegerLiteralExpression *node);
-			llvm::Constant *visit(ast::ASTFloatLiteralExpression *node);
-			llvm::Constant *visit(ast::ASTStringLiteralExpression *node);
-			llvm::ConstantInt *visit(ast::ASTCharLiteralExpression *node);
-			llvm::ConstantInt *visit(ast::ASTBoolLiteralExpression *node);
+			llvm::Constant *visit(ast::ASTIntegerLiteralExpression *expr);
+			llvm::Constant *visit(ast::ASTFloatLiteralExpression *expr);
+			llvm::Constant *visit(ast::ASTStringLiteralExpression *expr);
+			llvm::ConstantInt *visit(ast::ASTCharLiteralExpression *expr);
+			llvm::ConstantInt *visit(ast::ASTBoolLiteralExpression *expr);
 			llvm::Constant *visit(ast::ASTNoneLiteralExpression *node);
 
-			llvm::Value *visit(ast::ASTBinaryOperationExpression *node);
-			llvm::Value *visit(ast::ASTUnaryOperationExpression *node);
+			llvm::Value *visit(ast::ASTBinaryOperationExpression *expr);
+			llvm::Value *visit(ast::ASTUnaryOperationExpression *expr);
 			llvm::Value *visit(ast::ASTAssignmentOperationExpression *node);
 
 			llvm::Value *visit(ast::ASTEmptyStatement *node);
-			llvm::Value *visit(ast::ASTBlockStatement *node);
-			llvm::Value *visit(ast::ASTWrappedExpressionStatement *node);
+			llvm::Value *visit(ast::ASTBlockStatement *stmt);
+			llvm::Value *visit(ast::ASTWrappedExpressionStatement *stmt);
 		};
-	}
-}
+	} // namespace codegen
+} // namespace core

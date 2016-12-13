@@ -18,9 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "util/StreamReader.h"
+#include "util/Logger.h"
 
+#include <string>
 #include <unordered_map>
-#include <memory>
+#include <stdexcept>
 
 namespace util
 {
@@ -35,8 +37,8 @@ namespace util
 			std::string filename, content;
 			Checksum_t checksum;
 
-			File(const std::string &filename_)
-				: filename(filename_), checksum(0) {}
+			File(std::string filename_)
+				: filename(std::move(filename_)), checksum(0) {}
 
 			bool readFile()
 			{
@@ -44,18 +46,22 @@ namespace util
 				{
 					return true;
 				}
-				const util::StreamReader sr;
-				content = sr.readFile(filename);
-				if(content.empty() || content == "ERROR")
+				try
 				{
+					content = StreamReader::readFile(filename);
+				}
+				catch(const std::exception &e)
+				{
+					util::logger->error(e.what());
 					return false;
 				}
 				return true;
 			}
 
+			[[noreturn]]
 			void calculateChecksum()
 			{
-				// TODO
+				throw std::logic_error("util::FileCache::File::calculateChecksum() not implemented");
 			}
 		};
 
@@ -67,7 +73,12 @@ namespace util
 
 		File *getFile(const std::string &name)
 		{
-			return cache.at(name).get();
+			auto fileit = cache.find(name);
+			if(fileit == cache.end())
+			{
+				return nullptr;
+			}
+			return fileit->second.get();
 		}
 
 		bool addFile(std::unique_ptr<File> file, bool read = true)
@@ -88,4 +99,4 @@ namespace util
 			return addFile(std::move(file), read);
 		}
 	};
-}
+} // namespace util

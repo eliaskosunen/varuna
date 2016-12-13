@@ -50,18 +50,24 @@ namespace fe
 				}
 
 				std::vector<std::string> files = fileArg.getValue();
-				if(files.size() == 0)
+				if(files.empty())
 				{
 					throw TCLAP::ArgException("File to process is required, see --help", fileArg.longID());
 				}
 
 				for(const auto &file : files)
 				{
-					fe::api::addFile(file);
+					if(!fe::api::addFile(file))
+					{
+						return 1;
+					}
 				}
 				for(const auto &file : files)
 				{
-					if(!fe::api::runFile(file)) return 1;
+					if(!fe::api::runFile(file))
+					{
+						return 1;
+					}
 				}
 				return 0;
 			}
@@ -105,5 +111,5 @@ namespace fe
 			util::loggerBasic->info("TCLAP - Copyright (c) 2003 Michael E. Smoot. Licensed under the MIT License");
 			util::loggerBasic->info("Boost Variant - Copyright (c) 2002, 2003 Eric Friedman, Itay Maman. Licensed under the Boost Software License, Version 1.0");
 		}
-	}
-}
+	} // namespace cli
+} // namespace fe

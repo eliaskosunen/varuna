@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTStatement.h"
 #include "core/ast/ASTExpression.h"
+#include "core/ast/ASTStatement.h"
+#include "core/ast/FwdDecl.h"
 
 namespace core
 {
@@ -35,9 +35,9 @@ namespace core
 				: ASTStatement(IF_STMT),
 					condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTForStatement : public ASTStatement
@@ -50,9 +50,9 @@ namespace core
 				: ASTStatement(FOR_STMT),
 					init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTForeachStatement : public ASTStatement
@@ -65,9 +65,9 @@ namespace core
 				: ASTStatement(FOREACH_STMT),
 					iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTWhileStatement : public ASTStatement
@@ -80,9 +80,9 @@ namespace core
 				: ASTStatement(WHILE_STMT),
 					condition(std::move(cond)), block(std::move(_block)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTImportStatement : public ASTStatement
@@ -102,9 +102,9 @@ namespace core
 				: ASTStatement(IMPORT_STMT),
 					importee(std::move(toImport)), isPath(_isPath), importType(type) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTModuleStatement : public ASTStatement
@@ -115,9 +115,9 @@ namespace core
 			ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
 				: ASTStatement(MODULE_STMT), moduleName(std::move(name)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

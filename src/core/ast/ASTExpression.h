@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 
 #include <memory>
 #include <vector>
@@ -33,16 +33,16 @@ namespace core
 			ASTExpression(NodeType t) : ASTNode(t) {}
 
 		public:
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
-			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 
 			ASTExpression() : ASTNode(EXPR) {}
 			ASTExpression(const ASTExpression&) = default;
 			ASTExpression &operator = (const ASTExpression&) = default;
 			ASTExpression(ASTExpression&&) = default;
 			ASTExpression &operator = (ASTExpression&&) = default;
-			virtual ~ASTExpression() = default;
+			~ASTExpression() override = default;
 		};
 
 		class ASTEmptyExpression : public ASTExpression
@@ -50,30 +50,30 @@ namespace core
 		public:
 			ASTEmptyExpression() : ASTExpression(EMPTY_EXPR) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTIdentifierExpression : public ASTExpression
 		{
 		protected:
-			ASTIdentifierExpression(NodeType t, std::string val) : ASTExpression(t), value(val) {}
+			ASTIdentifierExpression(NodeType t, std::string val) : ASTExpression(t), value(std::move(val)) {}
 
 		public:
 			std::string value {"__undef"};
 
 			ASTIdentifierExpression() : ASTExpression(IDENTIFIER_EXPR) {}
-			ASTIdentifierExpression(std::string val) : ASTExpression(IDENTIFIER_EXPR), value(val) {}
+			ASTIdentifierExpression(std::string val) : ASTExpression(IDENTIFIER_EXPR), value(std::move(val)) {}
 			ASTIdentifierExpression(const ASTIdentifierExpression&) = default;
 			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = default;
 			ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
 			ASTIdentifierExpression &operator = (ASTIdentifierExpression&&) = default;
-			virtual ~ASTIdentifierExpression() = default;
+			~ASTIdentifierExpression() override = default;
 
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
-			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
-			virtual void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
@@ -82,9 +82,9 @@ namespace core
 			ASTVariableRefExpression(std::string val)
 				: ASTIdentifierExpression(VARIABLE_REF_EXPR, val) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::LoadInst *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::LoadInst *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -96,9 +96,9 @@ namespace core
 			ASTCallExpression(std::unique_ptr<ASTIdentifierExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
 				: ASTExpression(CALL_EXPR), callee(std::move(_callee)), params(std::move(_params)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTCastExpression : public ASTExpression
@@ -109,9 +109,9 @@ namespace core
 			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
 				: ASTExpression(CAST_EXPR), type(std::move(_type)), castee(std::move(_castee)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTVariableDefinitionExpression : public ASTExpression
@@ -125,9 +125,9 @@ namespace core
 				: ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(_type)), name(std::move(_name)),
 					init(std::move(_init)), arraySize(arrSize) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Value *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

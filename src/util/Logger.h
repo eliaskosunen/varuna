@@ -38,4 +38,4 @@ namespace util
 	void initLogger();
 
 	void dropLogger();
-}
+} // namespace util

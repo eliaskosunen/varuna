@@ -17,12 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "core/lexer/TokenType.h"
-#include "util/SafeEnum.h"
 #include "util/Logger.h"
+#include "util/SafeEnum.h"
 
 namespace core
 {
@@ -60,8 +60,8 @@ namespace core
 			std::string file;
 			uint64_t line, column;
 
-			SourceLocation(const std::string &f = "undefined", uint64_t l = 0, uint64_t c = 0)
-				: file(f), line(l), column(c) {}
+			SourceLocation(std::string f = "undefined", uint64_t l = 0, uint64_t c = 0)
+				: file(std::move(f)), line(l), column(c) {}
 
 			std::string toString() const
 			{
@@ -81,7 +81,7 @@ namespace core
 			TokenIntegerLiteralModifier modifierInt;
 			TokenFloatLiteralModifier modifierFloat;
 
-			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : loc(), type(t), value(val), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
+			Token(TokenType t = TOKEN_DEFAULT, std::string val = "") : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
 
 			std::string typeToString() const;
 
@@ -98,5 +98,5 @@ namespace core
 				return tok;
 			}
 		};
-	}
-}
+	} // namespace lexer
+} // namespace core

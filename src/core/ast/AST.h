@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTStatement.h"
+#include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
 #include "util/Compatibility.h"
 
@@ -51,5 +51,5 @@ namespace core
 				return globalNode->nodes.size();
 			}
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

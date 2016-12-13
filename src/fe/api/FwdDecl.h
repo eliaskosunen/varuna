@@ -22,10 +22,10 @@ namespace core
 	namespace parser
 	{
 		class Parser;
-	}
+	} // namespace parser
 
 	namespace ast
 	{
 		class AST;
-	}
-}
+	} // namespace ast
+} // namespace core

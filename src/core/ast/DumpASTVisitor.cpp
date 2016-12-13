@@ -17,17 +17,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/ast/FwdDecl.h"
 #include "core/ast/ASTNode.h"
-#include "core/ast/Visitor.h"
 #include "core/ast/DumpASTVisitor.h"
 #include "core/ast/AST.h"
 #include "core/ast/ASTControlStatement.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTLiteralExpression.h"
-#include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
 
 #include "util/Logger.h"
+
+#include <string>
 
 namespace core
 {
@@ -167,12 +167,12 @@ namespace core
 
 
 
-		void DumpASTVisitor::visit(ASTStatement*, size_t ind)
+		void DumpASTVisitor::visit(ASTStatement* /*unused*/, size_t ind)
 		{
 			log(ind, "ASTStatement");
 		}
 
-		void DumpASTVisitor::visit(ASTExpression*, size_t ind)
+		void DumpASTVisitor::visit(ASTExpression* /*unused*/, size_t ind)
 		{
 			log(ind, "ASTExpression");
 		}
@@ -234,7 +234,7 @@ namespace core
 			node->moduleName->accept(this, ind + 1);
 		}
 
-		void DumpASTVisitor::visit(ASTEmptyExpression*, size_t ind)
+		void DumpASTVisitor::visit(ASTEmptyExpression* /*unused*/, size_t ind)
 		{
 			log(ind, "ASTEmptyExpression");
 		}
@@ -384,7 +384,7 @@ namespace core
 			node->rval->accept(this, ind + 2);
 		}
 
-		void DumpASTVisitor::visit(ASTEmptyStatement*, size_t ind)
+		void DumpASTVisitor::visit(ASTEmptyStatement* /*unused*/, size_t ind)
 		{
 			log(ind, "ASTEmptyStatement");
 		}
@@ -402,5 +402,5 @@ namespace core
 			log(ind, "ASTWrappedExpressionStatement:");
 			node->expr->accept(this, ind + 1);
 		}
-	}
-}
+	} // namespace ast
+} // namespace core

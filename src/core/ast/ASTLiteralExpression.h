@@ -17,13 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTExpression.h"
+#include "core/ast/FwdDecl.h"
+#include "core/ast/ASTOperatorExpression.h"
 
 #include "core/lexer/Token.h"
 #include "util/SafeEnum.h"
-
-#include <string>
 
 namespace core
 {
@@ -38,9 +37,9 @@ namespace core
 			ASTIntegerLiteralExpression(int64_t val, std::unique_ptr<ASTIdentifierExpression> _type)
 				: ASTExpression(INTEGER_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Constant *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
@@ -52,9 +51,9 @@ namespace core
 			ASTFloatLiteralExpression(double val, std::unique_ptr<ASTIdentifierExpression> _type)
 				: ASTExpression(FLOAT_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Constant *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
@@ -66,9 +65,9 @@ namespace core
 			ASTStringLiteralExpression(const std::string &val)
 				: ASTExpression(STRING_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("String")) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Constant *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
@@ -80,9 +79,9 @@ namespace core
 			ASTCharLiteralExpression(char32_t val)
 				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Char")) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::ConstantInt *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::ConstantInt *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
@@ -94,9 +93,9 @@ namespace core
 			ASTBoolLiteralExpression(bool val)
 				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Bool")) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::ConstantInt *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::ConstantInt *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
@@ -107,9 +106,9 @@ namespace core
 			ASTNoneLiteralExpression()
 				: ASTExpression(NONE_LITERAL_EXPR), type(std::make_unique<ASTIdentifierExpression>("None")) {}
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-			llvm::Constant *accept(codegen::CodegenVisitor *v);
-			void accept(ASTParentSolverVisitor *v, ASTNode *parent);
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <type_traits>
 #include <ostream>
+#include <type_traits>
 
 #include "util/Logger.h"
 
@@ -35,7 +35,7 @@ namespace util
 
 		SafeEnum() : flags(static_cast<Enum_t>(0)) {}
 		SafeEnum(Enum_t flag) : flags(flag) {}
-		SafeEnum(const SafeEnum &orig) : flags(orig.flags) {}
+		SafeEnum(const SafeEnum &orig) = default;
 
 		Underlying_t get() const
 		{
@@ -138,4 +138,4 @@ namespace util
 			flags = static_cast<Enum_t>(0);
 		}
 	};
-}
+} // namespace util

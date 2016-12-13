@@ -37,9 +37,9 @@ namespace fe
 
 		public:
 			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version.toString()) {}
+				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version::toString()) {}
 
 			int run();
 		};
-	}
-}
+	} // namespace cli
+} // namespace fe

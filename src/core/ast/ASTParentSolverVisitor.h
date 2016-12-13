@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "core/ast/ASTNode.h"
 #include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
-#include "core/ast/ASTNode.h"
 
 namespace core
 {
@@ -42,8 +42,8 @@ namespace core
 			}
 
 			void visit(ASTNode *node, ASTNode *parent);
-			void visit(ASTStatement *stmt, ASTNode *parent);
-			void visit(ASTExpression *expr, ASTNode *parent);
+			void visit(ASTStatement *node, ASTNode *parent);
+			void visit(ASTExpression *node, ASTNode *parent);
 
 			void visit(ASTIfStatement *node, ASTNode *parent);
 			void visit(ASTForStatement *node, ASTNode *parent);
@@ -80,5 +80,5 @@ namespace core
 			void visit(ASTBlockStatement *node, ASTNode *parent);
 			void visit(ASTWrappedExpressionStatement *node, ASTNode *parent);
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

@@ -37,7 +37,7 @@ namespace core
 				astlogger->flush_on(spdlog::level::warn);
 			}
 
-			~DumpASTVisitor()
+			~DumpASTVisitor() override
 			{
 				spdlog::drop("DumpAST");
 			}
@@ -140,5 +140,5 @@ namespace core
 			void visit(ASTBlockStatement *node, size_t ind = 0);
 			void visit(ASTWrappedExpressionStatement *node, size_t ind = 0);
 		};
-	}
-}
+	} // namespace ast
+} // namespace core

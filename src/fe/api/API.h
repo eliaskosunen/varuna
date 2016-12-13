@@ -41,5 +41,5 @@ namespace fe
 		bool codegen(std::unique_ptr<core::ast::AST> ast);
 
 		bool runFile(const std::string &file);
-	}
-}
+	} // namespace api
+} // namespace fe

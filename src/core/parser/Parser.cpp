@@ -16,12 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/parser/Parser.h"
-#include "core/ast/ASTFunctionStatement.h"
+#include "core/ast/ASTExpression.h"
 #include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTLiteralExpression.h"
-#include "core/ast/DumpASTVisitor.h"
 #include "core/ast/ASTParentSolverVisitor.h"
+#include "core/ast/DumpASTVisitor.h"
 #include "core/lexer/Token.h"
 #include "util/Compatibility.h"
 #include "util/StringUtils.h"
@@ -221,7 +222,10 @@ namespace core
 			// Optional
 			auto elsestmt = [&]() -> std::unique_ptr<ASTStatement>
 			{
-				if(it->type != TOKEN_KEYWORD_ELSE) return std::make_unique<ASTEmptyStatement>();
+				if(it->type != TOKEN_KEYWORD_ELSE)
+				{
+					return std::make_unique<ASTEmptyStatement>();
+				}
 
 				++it; // Skip else
 				return parseStatement();
@@ -438,11 +442,8 @@ namespace core
 				{
 					return parserError("Invalid variable definition: init expression is required when using 'var'");
 				}
-				else
-				{
-					// TODO: Determine type of var
-					return parserError("Unimplemented");
-				}
+				// TODO: Determine type of var
+				return parserError("Unimplemented");
 			}
 
 			auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
@@ -664,8 +665,14 @@ namespace core
 		{
 			const int base = [&]()
 			{
-				if(it->modifierInt.isSet(INTEGER_HEX)) return 16;
-				if(it->modifierInt.isSet(INTEGER_OCTAL)) return 8;
+				if(it->modifierInt.isSet(INTEGER_HEX))
+				{
+					return 16;
+				}
+				if(it->modifierInt.isSet(INTEGER_OCTAL))
+				{
+					return 8;
+				}
 				return 10;
 			}();
 
@@ -676,13 +683,22 @@ namespace core
 			{
 				auto size = [&]()
 				{
-					if(lit->modifierInt.isSet(INTEGER_INT64)) return 64u;
-					if(lit->modifierInt.isSet(INTEGER_INT16)) return 16u;
-					if(lit->modifierInt.isSet(INTEGER_INT8))  return 8u;
+					if(lit->modifierInt.isSet(INTEGER_INT64))
+					{
+						return 64u;
+					}
+					if(lit->modifierInt.isSet(INTEGER_INT16))
+					{
+						return 16u;
+					}
+					if(lit->modifierInt.isSet(INTEGER_INT8))
+					{
+						return 8u;
+					}
 					return 32u;
 				}();
 
-				int64_t val = std::stoll(lit->value, 0, base);
+				int64_t val = std::stoll(lit->value, nullptr, base);
 				std::string type = "Int" + std::to_string(size);
 				if(size == 8)
 				{
@@ -962,7 +978,7 @@ namespace core
 			{
 				if(isUnaryOperator(operators.top()))
 				{
-					if(operands.size() < 1)
+					if(operands.empty())
 					{
 						return parserError("Unary operators require 1 operand");
 					}
@@ -1170,7 +1186,7 @@ namespace core
 				{
 					return parserError("Invalid function prototype: expected ')' or ',' in parameter list, got '{}' instead", it->value);
 				}
-				else if(it->type == TOKEN_PUNCT_COMMA)
+				if(it->type == TOKEN_PUNCT_COMMA)
 				{
 					++it; // Skip ','
 					continue;
@@ -1377,5 +1393,5 @@ namespace core
 				return false;
 			}
 		}
-	}
-}
+	} // namespace parser
+} // namespace core

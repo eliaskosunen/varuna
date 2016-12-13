@@ -58,5 +58,5 @@ namespace core
 				return "[unknown]";
 			}
 		}
-	}
-}
+	} // namespace lexer
+} // namespace core

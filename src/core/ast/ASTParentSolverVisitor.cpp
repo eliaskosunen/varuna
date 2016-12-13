@@ -16,9 +16,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/ast/ASTParentSolverVisitor.h"
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
 #include "core/ast/ASTControlStatement.h"
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTLiteralExpression.h"
@@ -163,8 +163,8 @@ namespace core
 		{
 			node->parent = parent;
 		}
-	}
-}
+	} // namespace ast
+} // namespace core
 
 void core::ast::ASTExpression::accept(core::ast::ASTParentSolverVisitor *v, core::ast::ASTNode *p)
 {

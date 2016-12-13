@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <iostream>
-#include <stdexcept>
 #include <cstdlib>
+#include <stdexcept>
 
 #include "fe/cli/CLI.h"
 #include "util/Logger.h"
@@ -36,21 +36,35 @@ static void logException(const std::exception *e)
 {
 	std::string what = [&]()
 	{
-		if(!e)	return "[NULL]";
+		if(!e)
+		{
+			return "Unable to fetch exception message";
+		}
 		return e->what();
 	}();
 
 	if(util::logger)
 	{
-		util::logger->critical("Main has caught an exception: {}", what);
-		return;
+		util::logger->critical("An exception occured during program execution.");
+		util::logger->info("Exception message: '{}'", what);
+		util::logger->info("Program will be terminated.");
 	}
-	if(util::loggerBasic)
+	else if(util::loggerBasic)
 	{
-		util::loggerBasic->critical("Main has caught an exception: {}", what);
-		return;
+		util::loggerBasic->critical("An exception occured during program execution.");
+		util::loggerBasic->info("Exception message: '{}'", what);
+		util::loggerBasic->info("Program will be terminated.");
 	}
-	std::cerr << "Main has caught an exception: " << what << "\n";
+	else
+	{
+		std::cerr
+			<< "An exception occured during program execution.\n"
+			<< "Exception message: '" << what << "'\n"
+			<< "Program will be terminated.\n"
+			<< "No loggers available for message delivery."
+			<< std::endl;
+	}
+
 }
 
 /**
@@ -77,7 +91,12 @@ int main(int argc, char **argv)
 	}
 	catch(const spdlog::spdlog_ex &e)
 	{
-		std::cerr << "Main has caught an exception: Logging failed: " << e.what() << "\n";
+		std::cerr
+			<< "An exception occured during program execution.\n"
+			<< "Application logger threw an exception.\n"
+			<< "Exception message: '" << e.what() << "'\n"
+			<< "Program will be terminated.\n"
+			<< std::endl;
 	}
 	catch(const std::exception &e)
 	{
@@ -87,5 +106,5 @@ int main(int argc, char **argv)
 	{
 		logException(nullptr);
 	}
-	return 1;
+	return -1;
 }

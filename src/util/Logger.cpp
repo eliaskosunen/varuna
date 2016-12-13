@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/Logger.h"
 #include "util/ProgramInfo.h"
 
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace util
 {
@@ -50,4 +50,4 @@ namespace util
 	{
 		spdlog::drop_all();
 	}
-}
+} // namespace util

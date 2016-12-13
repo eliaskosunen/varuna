@@ -40,6 +40,7 @@ namespace fe
 		{
 			if(!fileCache()->addFile(file))
 			{
+				util::logger->error("Failed to add file '{}' to the cache", file);
 				return false;
 			}
 			util::logger->trace("Added file to cache: '{}'", file);
@@ -49,6 +50,11 @@ namespace fe
 		std::unique_ptr<core::lexer::TokenVector> lexer(const std::string &file)
 		{
 			auto f = fileCache()->getFile(file);
+			if(!f)
+			{
+				util::logger->error("No file '{}' found from cache", file);
+				return nullptr;
+			}
 			core::lexer::Lexer l(f->content, file);
 			auto t = std::make_unique<core::lexer::TokenVector>(l.run());
 			if(l.getError())
@@ -111,5 +117,5 @@ namespace fe
 
 			return true;
 		}
-	}
-}
+	} // namespace api
+} // namespace fe

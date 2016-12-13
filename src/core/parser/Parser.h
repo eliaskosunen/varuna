@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/AST.h"
 #include "core/ast/DumpASTVisitor.h"
 #include "core/lexer/Lexer.h"
-#include "util/Logger.h"
 #include "util/Compatibility.h"
+#include "util/Logger.h"
 
 #include <tuple>
 
@@ -39,7 +39,7 @@ namespace core
 		class Parser
 		{
 		public:
-			Parser(const core::lexer::TokenVector&);
+			Parser(const core::lexer::TokenVector& /*tok*/);
 
 			void run();
 
@@ -67,7 +67,10 @@ namespace core
 				error = ERROR_ERROR;
 				auto loc = [&]()
 				{
-					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					if(it == tokens.begin())
+					{
+						return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					}
 					return (it - 1)->loc;
 				}();
 				util::logger->error("{}: Parser error: {}", loc.toString(), fmt::format(format, args...));
@@ -77,10 +80,16 @@ namespace core
 			template <typename... Args>
 			void parserWarning(const std::string &format, const Args& ... args)
 			{
-				if(error != ERROR_ERROR) error = ERROR_WARNING;
+				if(error != ERROR_ERROR)
+				{
+					error = ERROR_WARNING;
+				}
 				auto loc = [&]()
 				{
-					if(it == tokens.begin()) return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					if(it == tokens.begin())
+					{
+						return core::lexer::SourceLocation(it->loc.file, 1, 1);
+					}
 					return (it - 1)->loc;
 				}();
 				util::logger->warn("{}: Parser warning: {}", (it - 1)->loc.toString(), fmt::format(format, args...));
@@ -92,11 +101,11 @@ namespace core
 			}
 
 			bool isPrefixUnaryOperator() const;
-			bool isPrefixUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isPrefixUnaryOperator(const core::lexer::TokenType &op) const;
 			bool isPostfixUnaryOperator() const;
-			bool isPostfixUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isPostfixUnaryOperator(const core::lexer::TokenType &op) const;
 			bool isUnaryOperator() const;
-			bool isUnaryOperator(const core::lexer::TokenType &t) const;
+			bool isUnaryOperator(const core::lexer::TokenType &op) const;
 			bool isBinaryOperator() const;
 			bool isAssignmentOperator() const;
 			bool isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const;
@@ -159,9 +168,18 @@ namespace core
 
 		inline bool Parser::getError() const
 		{
-			if(error == ERROR_NONE) return false;
-			if(warningsAsErrors) return true;
-			if(error == ERROR_ERROR) return true;
+			if(error == ERROR_NONE)
+			{
+				return false;
+			}
+			if(warningsAsErrors)
+			{
+				return true;
+			}
+			if(error == ERROR_ERROR)
+			{
+				return true;
+			}
 			return false;
 		}
 
@@ -190,5 +208,5 @@ namespace core
 			assert(ast && "Trying to access nullptr AST");
 			return std::move(ast);
 		}
-	}
-}
+	} // namespace parser
+} // namespace core

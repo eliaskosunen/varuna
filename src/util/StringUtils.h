@@ -18,11 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <algorithm>
-#include <functional>
 #include <cctype>
+#include <functional>
 #include <locale>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 
 namespace util
@@ -266,5 +266,5 @@ namespace util
 		{
 			return std::iscntrl(c) != 0;
 		}
-	}
-}
+	} // namespace StringUtils
+} // namespace util
