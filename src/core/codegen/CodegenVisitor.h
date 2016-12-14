@@ -19,15 +19,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/ast/ASTNode.h"
+#include "core/ast/AST.h"
 #include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
 #include "util/Logger.h"
 
-#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
+
+#include <utility>
+
+#define USE_LLVM_FUNCTION_VERIFY 0
+#define USE_LLVM_MODULE_VERIFY 0
 
 namespace core
 {
@@ -42,59 +48,38 @@ namespace core
 
 		class CodegenVisitor : public ast::Visitor
 		{
-			llvm::LLVMContext context;
+			llvm::LLVMContext &context;
 			llvm::IRBuilder<> builder;
-			std::unique_ptr<llvm::Module> module;
+			llvm::Module *module;
 			std::unordered_map<std::string, Variable> variables;
 			std::unordered_map<std::string, Variable> globalVariables;
 			std::unordered_map<std::string, std::unique_ptr<ast::ASTFunctionPrototypeStatement>> functionProtos;
 			std::unordered_map<std::string, llvm::Type*> types;
 		public:
-			CodegenVisitor();
+			CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m);
 
-			bool codegen(ast::ASTBlockStatement *root)
+			bool codegen(ast::AST *ast);
+
+			llvm::Value *getDummyValue() const
 			{
-				for(auto &child : root->nodes)
-				{
-					if(!child->accept(this))
-					{
-						switch (child->nodeType.get()) {
-						case ast::ASTNode::IMPORT_STMT:
-							util::logger->trace("Import codegen returned nullptr");
-							break;
-						case ast::ASTNode::MODULE_STMT:
-							util::logger->trace("Module codegen returned nullptr");
-							break;
-						case ast::ASTNode::FUNCTION_DEF_STMT:
-							util::logger->trace("Function codegen returned nullptr");
-							break;
-						}
-					}
-				}
-				util::logger->trace("Verifying module");
-				if(!llvm::verifyModule(*module))
-				{
-					util::logger->error("Module verification failed");
-					return false;
-				}
-				util::logger->trace("Module verification successful");
-				return true;
+				static llvm::Constant *ret = llvm::ConstantInt::get(findType("Int32"), 0);
+				return ret;
 			}
 
 			template <typename... Args>
-			std::nullptr_t codegenError(const std::string &format, Args... args)
+			std::nullptr_t codegenError(const std::string &format, Args... args) const
 			{
 				util::logger->error(format.c_str(), args...);
 				return nullptr;
 			}
 
 			template <typename... Args>
-			void codegenWarning(const std::string &format, Args... args)
+			void codegenWarning(const std::string &format, Args... args) const
 			{
 				util::logger->warn(format.c_str(), args...);
 			}
 
-			llvm::Type *findType(const std::string &name)
+			llvm::Type *findType(const std::string &name) const
 			{
 				auto type = types.find(name);
 				if(type == types.end())
@@ -121,7 +106,7 @@ namespace core
 				return codegenError("Undefined function: '{}'", name);
 			}
 
-			void dumpModule()
+			void dumpModule() const
 			{
 				module->dump();
 			}

@@ -1,15 +1,9 @@
 // code.va
-import io;
-
 module main;
 
-def func(Int64 a): Int16
+def main(): Integer
 {
-	return a + 4i8;
-}
-
-def main(): Void
-{
-	Integer a = 1;
-	Int32 b = func(a + 0xFF);
+	Integer i = 1;
+	i = 0;
+	return i;
 }

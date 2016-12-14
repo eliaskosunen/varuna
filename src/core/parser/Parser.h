@@ -162,7 +162,7 @@ namespace core
 		};
 
 		inline Parser::Parser(const core::lexer::TokenVector &tok)
-			: warningsAsErrors(false), ast(std::make_unique<ast::AST>()),
+			: warningsAsErrors(false), ast(std::make_unique<ast::AST>(tok.front().loc.file)),
 			  tokens(tok), it(tokens.begin()), endTokens(tokens.end()),
 			  error(ERROR_NONE) {}
 

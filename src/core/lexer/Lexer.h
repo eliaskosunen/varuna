@@ -94,6 +94,10 @@ namespace core
 			ContentIterator &advance()
 			{
 				++it;
+				if(!lexComment())
+				{
+					return it;
+				}
 
 				bool newLine = false;
 				if(it != end)

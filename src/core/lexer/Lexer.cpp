@@ -40,6 +40,12 @@ namespace core
 				return createToken(TOKEN_EOF, "EOF");
 			}
 
+			if(!lexComment())
+			{
+				return createToken(TOKEN_EOF, "EOF");
+			}
+			currentChar = *it;
+
 			util::logger->trace("Getting next token. Current character: '{}', on {}", std::to_string(currentChar), currentLocation.toString());
 
 			// Skip any whitespace
@@ -55,7 +61,6 @@ namespace core
 				return getNextToken();
 			}
 
-			// Comments
 			if(!lexComment())
 			{
 				return createToken(TOKEN_EOF, "EOF");

@@ -20,6 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/AST.h"
 #include "core/ast/FwdDecl.h"
 #include "core/codegen/CodegenVisitor.h"
+#include "core/codegen/Optimizer.h"
+
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
 
 namespace core
 {
@@ -28,7 +32,10 @@ namespace core
 		class Codegen
 		{
 			std::unique_ptr<ast::AST> ast;
+			llvm::LLVMContext context;
+			std::unique_ptr<llvm::Module> module;
 			std::unique_ptr<CodegenVisitor> codegen;
+			std::unique_ptr<Optimizer> optimizer;
 
 			bool prepare();
 			bool visit();

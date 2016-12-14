@@ -32,8 +32,9 @@ namespace core
 		{
 		public:
 			std::unique_ptr<ASTBlockStatement> globalNode;
+			const std::string &file;
 
-			AST() : globalNode(std::make_unique<ASTBlockStatement>()) {}
+			AST(const std::string &f) : globalNode(std::make_unique<ASTBlockStatement>()), file(f) {}
 
 			void pushStatement(std::unique_ptr<ASTStatement> stmt)
 			{

@@ -39,6 +39,17 @@ TEST_CASE("Test lexer")
 
 			REQUIRE(v[0].type == TOKEN_EOF);
 		}
+
+		SUBCASE("Comments")
+		{
+			code = "// Comment\n\t// Comment\n123//Literal";
+			Lexer l(code, TEST_FILE);
+			v = l.run();
+			CHECK(v.size() == 2);
+			REQUIRE(!l.getError());
+
+			REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
+		}
 	}
 
 	SUBCASE("Literals")

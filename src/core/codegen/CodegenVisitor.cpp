@@ -29,8 +29,8 @@ namespace core
 {
 	namespace codegen
 	{
-		CodegenVisitor::CodegenVisitor()
-			: context{}, builder(context), module(std::make_unique<llvm::Module>("Module", context)),
+		CodegenVisitor::CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m)
+			: context{c}, builder(context), module(m),
 			variables{}, globalVariables{}, functionProtos{}, types{}
 		{
 			types.insert({ "Void", {llvm::Type::getVoidTy(context)} });
@@ -52,45 +52,126 @@ namespace core
 			});
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTExpression* /*unused*/)
+		bool CodegenVisitor::codegen(ast::AST *ast)
 		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement* /*unused*/)
-		{
-			return nullptr;
-		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement* /*unused*/)
-		{
-			return nullptr;
+			module->setSourceFileName(ast->file);
+
+			auto root = ast->globalNode.get();
+			for(auto &child : root->nodes)
+			{
+				if(!child->accept(this))
+				{
+					util::logger->debug("visit failed, child->nodeType: {}", child->nodeType);
+					return false;
+				}
+			}
+
+			#if USE_LLVM_MODULE_VERIFY
+			util::logger->trace("Verifying module");
+			if(!llvm::verifyModule(*module))
+			{
+				util::logger->error("Module verification failed");
+				util::logger->trace("Module dump:");
+				dumpModule();
+				return false;
+			}
+			util::logger->trace("Module verification successful");
+			#endif
+
+			return true;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTExpression *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTStatement *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement *stmt)
+		{
+			llvm::Value *cond = stmt->condition->accept(this);
+			if(!cond)
+			{
+				return nullptr;
+			}
+
+			if(cond->getType()->isIntegerTy())
+			{
+				cond = builder.CreateIntCast(cond, findType("Bool"), false, "comptmp");
+			}
+
+			llvm::Function *func = builder.GetInsertBlock()->getParent();
+
+			llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "then", func);
+			llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "else");
+			llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "ifcont");
+
+			builder.CreateCondBr(cond, thenBB, elseBB);
+			builder.SetInsertPoint(thenBB);
+
+			llvm::Value *thenV = stmt->ifBlock->accept(this);
+			if(!thenV)
+			{
+				return nullptr;
+			}
+
+			builder.CreateBr(mergeBB);
+			thenBB = builder.GetInsertBlock();
+
+			func->getBasicBlockList().push_back(elseBB);
+			builder.SetInsertPoint(elseBB);
+
+			llvm::Value *elseV = stmt->elseBlock->accept(this);
+			if(!elseV)
+			{
+				return nullptr;
+			}
+
+			builder.CreateBr(mergeBB);
+			elseBB = builder.GetInsertBlock();
+
+			func->getBasicBlockList().push_back(mergeBB);
+			builder.SetInsertPoint(mergeBB);
+			return mergeBB;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement *node)
+		{
+			module->setModuleIdentifier(node->moduleName->value);
+			return getDummyValue();
+		}
+
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 		llvm::LoadInst *CodegenVisitor::visit(ast::ASTVariableRefExpression *expr)
@@ -131,8 +212,9 @@ namespace core
 
 			return builder.CreateCall(callee, args, "calltmp");
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
@@ -144,20 +226,24 @@ namespace core
 			{
 				return nullptr;
 			}
-			auto *init = expr->init.get();
+			auto init = expr->init.get();
 
 			llvm::Value *initVal = nullptr;
-			if(init)
+			if(init->nodeType == ast::ASTNode::EMPTY_EXPR)
+			{
+				initVal = llvm::UndefValue::get(type);
+			}
+			else
 			{
 				initVal = init->accept(this);
-				if(!initVal)
-				{
-					return nullptr;
-				}
+			}
+			if(!initVal)
+			{
+				return nullptr;
 			}
 
 			Variable var = { nullptr, type, expr->name->value };
-			auto *alloca = createEntryBlockAlloca(func, var);
+			auto alloca = createEntryBlockAlloca(func, var);
 			builder.CreateStore(initVal, alloca);
 
 			var.value = alloca;
@@ -166,8 +252,9 @@ namespace core
 			return initVal;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 		llvm::Function *CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement *stmt)
@@ -191,7 +278,7 @@ namespace core
 			}
 			llvm::FunctionType *ft = llvm::FunctionType::get(retType, args, false);
 
-			llvm::Function *f = llvm::Function::Create(ft, llvm::Function::ExternalLinkage, stmt->name->value, module.get());
+			llvm::Function *f = llvm::Function::Create(ft, llvm::Function::ExternalLinkage, stmt->name->value, module);
 
 			size_t i = 0;
 			for(auto &arg : f->args())
@@ -230,27 +317,36 @@ namespace core
 				return nullptr;
 			}
 
-			if(func->getReturnType()->isVoidTy())
+			if(func->getReturnType()->isVoidTy() &&
+				stmt->body->nodes.back()->nodeType != ast::ASTNode::RETURN_STMT)
 			{
 				builder.CreateRetVoid();
 			}
+
+			#if USE_LLVM_FUNCTION_VERIFY
 			if(!llvm::verifyFunction(*func))
 			{
+				codegenError("Function verification failed");
+				util::logger->trace("Invalid function dump:");
+				func->dump();
 				func->eraseFromParent();
-				return codegenError("Function verification failed");
+				return nullptr;
 			}
+			#endif
+
 			return func;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
 		{
-			if(stmt->nodeType == ast::ASTNode::EMPTY_EXPR)
+			if(stmt->returnValue->nodeType == ast::ASTNode::EMPTY_EXPR)
 			{
 				builder.CreateRetVoid();
-				return llvm::ConstantInt::getSigned(llvm::Type::getInt1Ty(context), 1);
+				return getDummyValue();
 			}
 			auto ret = stmt->returnValue->accept(this);
 			if(!ret)
@@ -281,8 +377,9 @@ namespace core
 		{
 			return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), expr->value);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression* /*unused*/)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 
@@ -295,34 +392,32 @@ namespace core
 				return nullptr;
 			}
 
-			auto *lhsType = lhs->getType();
-			auto *rhsType = rhs->getType();
+			auto lhsType = lhs->getType();
+			auto rhsType = rhs->getType();
 			switch(expr->oper.get())
 			{
 			case lexer::TOKEN_OPERATORB_ADD:
-			{
 				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
 				{
-					uint32_t lhsW = lhsType->getIntegerBitWidth();
-					uint32_t rhsW = rhsType->getIntegerBitWidth();
-					llvm::Value *lhsNew = lhs;
-					llvm::Value *rhsNew = rhs;
-					if(lhsW < rhsW)
-					{
-						codegenWarning("Implicit cast: Casting from Int{} to Int{}", rhsW, lhsW);
-						rhsNew = builder.CreateIntCast(rhs, llvm::Type::getIntNTy(context, lhsW), true, "casttmp");
-					}
-					else if(lhsW > rhsW)
-					{
-						codegenWarning("Implicit cast: Casting from Int{} to Int{}", lhsW, rhsW);
-						lhsNew = builder.CreateIntCast(lhs, llvm::Type::getIntNTy(context, rhsW), true, "casttmp");
-					}
-					return builder.CreateAdd(lhsNew, rhsNew, "addtmp");
+					return builder.CreateAdd(lhs, rhs, "addtmp");
 				}
-				return nullptr;
-			}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFAdd(lhs, rhs, "addtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
+			case lexer::TOKEN_OPERATORB_EQ:
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					return builder.CreateICmpEQ(lhs, rhs, "cmpeqtmp");
+				}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFCmpOEQ(lhs, rhs, "cmpeqtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
 			default:
-				return nullptr;
+				return codegenError("Unimplemented binary operator");
 			}
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTUnaryOperationExpression *expr)
@@ -345,13 +440,45 @@ namespace core
 				return nullptr; // TODO
 			}
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression *node)
 		{
-			return nullptr;
+			if(node->oper != lexer::TOKEN_OPERATORA_SIMPLE)
+			{
+				codegenWarning("Unimplemented CodegenVisitor::visit({}) for this operator", node->nodeType.get());
+				return nullptr;
+			}
+
+			auto lhs = dynamic_cast<ast::ASTVariableRefExpression*>(node->lval.get());
+			if(!lhs)
+			{
+				return codegenError("'=' requires lhs to be a variable");
+			}
+
+			auto val = lhs->accept(this);
+			if(!val)
+			{
+				codegenWarning("Assignment operator lhs codegen failed");
+				return nullptr;
+			}
+
+			auto varit = variables.find(lhs->value);
+			if(varit == variables.end())
+			{
+				return codegenError("Undefined variable '{}'", lhs->value);
+			}
+
+			llvm::Value *var = varit->second.value;
+			if(!var)
+			{
+				return codegenError("Variable value is null");
+			}
+			builder.CreateStore(val, var);
+			return val;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement* /*unused*/)
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement *node)
 		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
@@ -360,6 +487,7 @@ namespace core
 			{
 				if(!child->accept(this))
 				{
+					codegenWarning("Block child codegen failed: {}", child->nodeType);
 					return nullptr;
 				}
 			}
@@ -367,7 +495,12 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement *stmt)
 		{
-			return stmt->expr->accept(this);
+			auto val = stmt->expr->accept(this);
+			if(!val)
+			{
+				codegenWarning("Wrapped expression codegen failed: {}", stmt->expr->nodeType);
+			}
+			return val;
 		}
 	} // namespace codegen
 } // namespace core

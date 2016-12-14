@@ -22,7 +22,9 @@ namespace core
 	namespace codegen
 	{
 		Codegen::Codegen(std::unique_ptr<ast::AST> a)
-			: ast(std::move(a)), codegen(std::make_unique<CodegenVisitor>()) {}
+			: ast(std::move(a)), context{}, module(std::make_unique<llvm::Module>("Varuna", context)),
+			codegen(std::make_unique<CodegenVisitor>(context, module.get())),
+			optimizer(std::make_unique<Optimizer>(module.get())) {}
 
 		bool Codegen::run()
 		{
@@ -48,12 +50,19 @@ namespace core
 
 		bool Codegen::visit()
 		{
-			return codegen->codegen(ast->globalNode.get());
+			return codegen->codegen(ast.get());
 		}
 
 		bool Codegen::finish()
 		{
 			util::logger->trace("Module dump:");
+			codegen->dumpModule();
+
+			util::logger->trace("Optimizing...");
+			optimizer->init();
+			optimizer->run();
+
+			util::logger->trace("Optimized module dump:");
 			codegen->dumpModule();
 			return true;
 		}
