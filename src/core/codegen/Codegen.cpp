@@ -55,14 +55,14 @@ namespace core
 
 		bool Codegen::finish()
 		{
-			util::logger->trace("Module dump:");
+			util::loggerBasic->info("\nModule dump:");
 			codegen->dumpModule();
 
 			util::logger->trace("Optimizing...");
 			optimizer->init();
 			optimizer->run();
 
-			util::logger->trace("Optimized module dump:");
+			util::loggerBasic->info("\nOptimized module dump:");
 			codegen->dumpModule();
 			return true;
 		}

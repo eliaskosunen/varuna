@@ -71,7 +71,7 @@ namespace core
 			if(!llvm::verifyModule(*module))
 			{
 				util::logger->error("Module verification failed");
-				util::logger->trace("Module dump:");
+				util::loggerBasic->info("Module dump:");
 				dumpModule();
 				return false;
 			}
@@ -99,9 +99,21 @@ namespace core
 				return nullptr;
 			}
 
-			if(cond->getType()->isIntegerTy())
+			auto boolcond = [&]() -> llvm::Value*
 			{
-				cond = builder.CreateIntCast(cond, findType("Bool"), false, "comptmp");
+				if(cond->getType()->isIntegerTy())
+				{
+					return builder.CreateICmpNE(cond, llvm::ConstantInt::get(cond->getType(), 0), "ifcond");
+				}
+				if(cond->getType()->isFloatingPointTy())
+				{
+					return builder.CreateFCmpONE(cond, llvm::ConstantFP::get(cond->getType(), 0.0), "ifcond");
+				}
+				return nullptr;
+			}();
+			if(!boolcond)
+			{
+				return codegenError("Unable to compare if condition with 0");
 			}
 
 			llvm::Function *func = builder.GetInsertBlock()->getParent();
@@ -110,7 +122,7 @@ namespace core
 			llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "else");
 			llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "ifcont");
 
-			builder.CreateCondBr(cond, thenBB, elseBB);
+			builder.CreateCondBr(boolcond, thenBB, elseBB);
 			builder.SetInsertPoint(thenBB);
 
 			llvm::Value *thenV = stmt->ifBlock->accept(this);
@@ -406,14 +418,55 @@ namespace core
 					return builder.CreateFAdd(lhs, rhs, "addtmp");
 				}
 				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
-			case lexer::TOKEN_OPERATORB_EQ:
+			case lexer::TOKEN_OPERATORB_SUB:
 				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
 				{
-					return builder.CreateICmpEQ(lhs, rhs, "cmpeqtmp");
+					return builder.CreateSub(lhs, rhs, "subtmp");
 				}
 				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
 				{
-					return builder.CreateFCmpOEQ(lhs, rhs, "cmpeqtmp");
+					return builder.CreateFSub(lhs, rhs, "subtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform subtract on Integer and Float");
+			case lexer::TOKEN_OPERATORB_MUL:
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					return builder.CreateMul(lhs, rhs, "multmp");
+				}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFMul(lhs, rhs, "multmp");
+				}
+				return codegenError("Type mismatch: Cannot perform multiply on Integer and Float");
+			case lexer::TOKEN_OPERATORB_DIV:
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					return builder.CreateSDiv(lhs, rhs, "divtmp");
+				}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFDiv(lhs, rhs, "divtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform divide on Integer and Float");
+			case lexer::TOKEN_OPERATORB_REM:
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					return builder.CreateSRem(lhs, rhs, "remtmp");
+				}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFRem(lhs, rhs, "remtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform reminder on Integer and Float");
+
+			case lexer::TOKEN_OPERATORB_EQ:
+				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				{
+					return builder.CreateICmpEQ(lhs, rhs, "eqtmp");
+				}
+				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				{
+					return builder.CreateFCmpOEQ(lhs, rhs, "eqtmp");
 				}
 				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
 			default:
@@ -428,14 +481,31 @@ namespace core
 				return nullptr;
 			}
 
+			auto operandType = operand->getType();
 			switch(expr->oper.get())
 			{
 			case lexer::TOKEN_OPERATORU_PLUS:
-				return nullptr; // TODO
+				return builder.CreateIntCast(operand, findType("Int32"), true, "casttmp");
 			case lexer::TOKEN_OPERATORU_MINUS:
-				return nullptr; // TODO
+				if(operandType->isIntegerTy())
+				{
+					return builder.CreateNeg(operand, "negtmp");
+				}
+				else if(operandType->isFloatingPointTy())
+				{
+					return builder.CreateFNeg(operand, "negtmp");
+				}
+				return codegenError("Type mismatch: Cannot perform neg on this type");
 			case lexer::TOKEN_OPERATORU_NOT:
-				return nullptr; // TODO
+				if(operandType->isIntegerTy())
+				{
+					return builder.CreateNot(operand, "nottmp");
+				}
+				else if(operandType->isFloatingPointTy())
+				{
+					return builder.CreateNot(operand, "nottmp");
+				}
+				return codegenError("Type mismatch: Cannot perform not on this type");
 			default:
 				return nullptr; // TODO
 			}

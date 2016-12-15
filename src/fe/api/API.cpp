@@ -79,8 +79,14 @@ namespace fe
 
 		bool codegen(std::unique_ptr<core::ast::AST> ast)
 		{
+			const auto &file = ast->file;
 			auto codegen = std::make_unique<core::codegen::Codegen>(std::move(ast));
-			return codegen->run();
+			const bool result = codegen->run();
+			if(!result)
+			{
+				util::logger->info("Code generation of file '{}' failed, terminating", file);
+			}
+			return result;
 		}
 
 		bool runFile(const std::string &file)
