@@ -69,7 +69,7 @@ namespace core
 				{
 					if(it == tokens.begin())
 					{
-						return core::lexer::SourceLocation(it->loc.file, 1, 1);
+						return core::lexer::SourceLocation(it->loc.file, 1);
 					}
 					return (it - 1)->loc;
 				}();
@@ -88,7 +88,7 @@ namespace core
 				{
 					if(it == tokens.begin())
 					{
-						return core::lexer::SourceLocation(it->loc.file, 1, 1);
+						return core::lexer::SourceLocation(it->loc.file, 1);
 					}
 					return (it - 1)->loc;
 				}();

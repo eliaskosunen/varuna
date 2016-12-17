@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "fe/api/FwdDecl.h"
 #include "util/Logger.h"
 #include "core/lexer/Lexer.h"
+#include "util/ThreadPool.h"
 
 namespace fe
 {

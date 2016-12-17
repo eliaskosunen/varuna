@@ -128,6 +128,6 @@ namespace core
 		};
 
 
-		typedef util::SafeEnum<TokenType_t> TokenType;
+		using TokenType = util::SafeEnum<TokenType_t>;
 	} // namespace lexer
 } // namespace core

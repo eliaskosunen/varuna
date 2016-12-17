@@ -32,7 +32,7 @@ namespace util
 		class File
 		{
 		public:
-			typedef uint64_t Checksum_t;
+			using Checksum_t = uint64_t;
 
 			std::string filename, content;
 			Checksum_t checksum;

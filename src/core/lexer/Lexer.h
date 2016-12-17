@@ -27,8 +27,8 @@ namespace core
 {
 	namespace lexer
 	{
-		typedef std::vector<core::lexer::Token> TokenVector;
-		typedef char char_t;
+		using TokenVector = std::vector<core::lexer::Token>;
+		using char_t = char;
 
 		enum ErrorLevel
 		{
@@ -40,12 +40,11 @@ namespace core
 		class Lexer
 		{
 			const std::string &content;
-			typedef std::string::const_iterator ContentIterator;
+			using ContentIterator = std::string::const_iterator;
 			ContentIterator it;
 			const ContentIterator end;
 
 			SourceLocation currentLocation;
-			uint64_t lastLineLen;
 
 			ErrorLevel error;
 
@@ -79,9 +78,7 @@ namespace core
 
 			void newline()
 			{
-				lastLineLen = currentLocation.column;
 				currentLocation.line++;
-				currentLocation.column = 1;
 			}
 			ContentIterator peekUpcoming(std::ptrdiff_t i) const
 			{
@@ -121,10 +118,6 @@ namespace core
 				{
 					newline();
 				}
-				else
-				{
-					currentLocation.column++;
-				}
 
 				return it;
 			}
@@ -132,8 +125,6 @@ namespace core
 			void prevline()
 			{
 				currentLocation.line--;
-				currentLocation.column = lastLineLen;
-				lastLineLen = 0;
 			}
 			ContentIterator peekPassed(std::ptrdiff_t i) const
 			{
@@ -148,7 +139,7 @@ namespace core
 		public:
 			bool warningsAsErrors;
 
-			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), it(content.begin()), end(content.end()), currentLocation(file, 1, 1), lastLineLen(0), error(ERROR_NONE), warningsAsErrors(false) {}
+			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), it(content.begin()), end(content.end()), currentLocation(file, 1), error(ERROR_NONE), warningsAsErrors(false) {}
 
 			TokenVector run();
 

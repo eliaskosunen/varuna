@@ -66,7 +66,7 @@ namespace core
 				WRAPPED_EXPR_STMT
 			};
 
-			typedef util::SafeEnum<NodeType_t> NodeType;
+			using NodeType = util::SafeEnum<NodeType_t>;
 			NodeType nodeType {NODE};
 
 			ASTNode *parent {nullptr};

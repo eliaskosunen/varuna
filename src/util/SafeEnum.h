@@ -30,8 +30,8 @@ namespace util
 	protected:
 		Underlying_t flags;
 	public:
-		typedef Enum_t			EnumType;
-		typedef Underlying_t 	UnderlyingType;
+		using EnumType = 		Enum_t;
+		using UnderlyingType = 	Underlying_t;
 
 		SafeEnum() : flags(static_cast<Enum_t>(0)) {}
 		SafeEnum(Enum_t flag) : flags(flag) {}

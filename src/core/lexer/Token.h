@@ -51,22 +51,22 @@ namespace core
 			FLOAT_NONE		= FLOAT_DOUBLE
 		};
 
-		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
-		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
+		using TokenIntegerLiteralModifier = util::SafeEnum<TokenIntegerLiteralModifier_t>;
+		using TokenFloatLiteralModifier = util::SafeEnum<TokenFloatLiteralModifier_t>;
 
 		class SourceLocation
 		{
 		public:
 			std::string file;
-			uint64_t line, column;
+			uint64_t line;
 
-			SourceLocation(std::string f = "undefined", uint64_t l = 0, uint64_t c = 0)
-				: file(std::move(f)), line(l), column(c) {}
+			SourceLocation(std::string f = "undefined", uint64_t l = 0)
+				: file(std::move(f)), line(l) {}
 
 			std::string toString() const
 			{
 				//return fmt::format("{}:{}:{}", file, line, column);
-				return file + ":" + std::to_string(line) + ":" + std::to_string(column);
+				return file + ":" + std::to_string(line);
 			}
 		};
 

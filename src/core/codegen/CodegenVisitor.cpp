@@ -122,7 +122,17 @@ namespace core
 			llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "else");
 			llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "ifcont");
 
-			builder.CreateCondBr(boolcond, thenBB, elseBB);
+			bool elseExists = stmt->elseBlock->nodeType != ast::ASTNode::EMPTY_STMT;
+
+			if(elseExists)
+			{
+				builder.CreateCondBr(boolcond, thenBB, elseBB);
+			}
+			else
+			{
+				builder.CreateCondBr(boolcond, thenBB, mergeBB);
+			}
+
 			builder.SetInsertPoint(thenBB);
 
 			llvm::Value *thenV = stmt->ifBlock->accept(this);
@@ -134,17 +144,20 @@ namespace core
 			builder.CreateBr(mergeBB);
 			thenBB = builder.GetInsertBlock();
 
-			func->getBasicBlockList().push_back(elseBB);
-			builder.SetInsertPoint(elseBB);
-
-			llvm::Value *elseV = stmt->elseBlock->accept(this);
-			if(!elseV)
+			if(elseExists)
 			{
-				return nullptr;
-			}
+				func->getBasicBlockList().push_back(elseBB);
+				builder.SetInsertPoint(elseBB);
 
-			builder.CreateBr(mergeBB);
-			elseBB = builder.GetInsertBlock();
+				llvm::Value *elseV = stmt->elseBlock->accept(this);
+				if(!elseV)
+				{
+					return nullptr;
+				}
+
+				builder.CreateBr(mergeBB);
+				elseBB = builder.GetInsertBlock();
+			}
 
 			func->getBasicBlockList().push_back(mergeBB);
 			builder.SetInsertPoint(mergeBB);
@@ -176,10 +189,9 @@ namespace core
 			return getDummyValue();
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression *node)
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression*)
 		{
-			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
-			return nullptr;
+			return getDummyValue();
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression *node)
 		{
@@ -329,8 +341,17 @@ namespace core
 				return nullptr;
 			}
 
+			auto backNodeType = [&]() -> ast::ASTNode::NodeType
+			{
+				auto &nodes = stmt->body->nodes;
+				if(nodes.empty())
+				{
+					return ast::ASTNode::EMPTY_STMT;
+				}
+				return nodes.back()->nodeType;
+			};
 			if(func->getReturnType()->isVoidTy() &&
-				stmt->body->nodes.back()->nodeType != ast::ASTNode::RETURN_STMT)
+				backNodeType() != ast::ASTNode::RETURN_STMT)
 			{
 				builder.CreateRetVoid();
 			}
@@ -468,7 +489,18 @@ namespace core
 				{
 					return builder.CreateFCmpOEQ(lhs, rhs, "eqtmp");
 				}
-				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
+				return codegenError("Type mismatch: Cannot perform eq on Integer and Float");
+			case lexer::TOKEN_OPERATORB_NOTEQ:
+			if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+			{
+				return builder.CreateICmpNE(lhs, rhs, "noteqtmp");
+			}
+			else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+			{
+				return builder.CreateFCmpONE(lhs, rhs, "noteqtmp");
+			}
+			return codegenError("Type mismatch: Cannot perform noteq on Integer and Float");
+
 			default:
 				return codegenError("Unimplemented binary operator");
 			}
@@ -507,7 +539,7 @@ namespace core
 				}
 				return codegenError("Type mismatch: Cannot perform not on this type");
 			default:
-				return nullptr; // TODO
+				return codegenError("Unimplemented unary operator"); // TODO
 			}
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression *node)
@@ -524,10 +556,10 @@ namespace core
 				return codegenError("'=' requires lhs to be a variable");
 			}
 
-			auto val = lhs->accept(this);
+			auto val = node->rval->accept(this);
 			if(!val)
 			{
-				codegenWarning("Assignment operator lhs codegen failed");
+				codegenWarning("Assignment operator rhs codegen failed");
 				return nullptr;
 			}
 
@@ -546,13 +578,19 @@ namespace core
 			return val;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement *node)
+		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement*)
 		{
-			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
-			return nullptr;
+			return getDummyValue();
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
 		{
+			auto bb = llvm::BasicBlock::Create(context);
+
+			if(stmt->nodes.empty())
+			{
+				return codegenError("Empty block statement");
+			}
+
 			for(auto &child : stmt->nodes)
 			{
 				if(!child->accept(this))
@@ -561,7 +599,8 @@ namespace core
 					return nullptr;
 				}
 			}
-			return llvm::BasicBlock::Create(context);
+
+			return bb;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement *stmt)
 		{

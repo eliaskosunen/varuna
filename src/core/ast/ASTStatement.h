@@ -59,8 +59,8 @@ namespace core
 		class ASTBlockStatement : public ASTStatement
 		{
 		public:
-			typedef std::unique_ptr<ASTStatement> Statement;
-			typedef std::vector<Statement> StatementVector;
+			using Statement = std::unique_ptr<ASTStatement>;
+			using StatementVector = std::vector<Statement>;
 			StatementVector nodes;
 
 			ASTBlockStatement() : ASTStatement(BLOCK_STMT) {}

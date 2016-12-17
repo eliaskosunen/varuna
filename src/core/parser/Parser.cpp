@@ -196,8 +196,7 @@ namespace core
 				// No condition set
 				if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 				{
-					// If-condition is true by default
-					return std::make_unique<ASTBoolLiteralExpression>(true);
+					return parserError("No if condition given");
 				}
 				return parseExpression();
 			}();
@@ -249,7 +248,7 @@ namespace core
 			{
 				return std::make_tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>>(std::move(i), std::move(e), std::move(s));
 			};
-			auto errorToTuple = [this, makeTuple](std::nullptr_t e)
+			auto errorToTuple = [&](std::nullptr_t e)
 				-> auto
 			{
 				return makeTuple(e, e, e);
@@ -265,8 +264,7 @@ namespace core
 			if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
 			{
 				++it; // Skip ')'
-				// Default: ( empty ; "true" ; empty )
-				return makeTuple(std::make_unique<ASTEmptyExpression>(), std::make_unique<ASTBoolLiteralExpression>(true), std::make_unique<ASTEmptyExpression>());
+				return errorToTuple(parserError("Empty for condition"));
 			}
 
 			// Parse init expression
