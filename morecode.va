@@ -1,0 +1,7 @@
+// morecode.va
+module more;
+
+def main(): Int32
+{
+	return 0;
+}

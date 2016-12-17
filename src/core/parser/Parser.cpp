@@ -40,6 +40,11 @@ namespace core
 		using namespace core::lexer;
 		using namespace core::ast;
 
+		Parser::Parser(const core::lexer::TokenVector &tok)
+			: warningsAsErrors(false), ast(std::make_unique<ast::AST>(std::move(tok.front().loc.file))),
+			tokens(tok), it(tokens.begin()), endTokens(tokens.end()),
+			error(ERROR_NONE) {}
+
 		void Parser::run()
 		{
 			_runParser();

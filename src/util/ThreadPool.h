@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <future>
 #include <functional>
 #include <stdexcept>
+#include <chrono>
 
 namespace util
 {
@@ -34,12 +35,22 @@ namespace util
 	// Licensed under the zlib/libpng license
 	class ThreadPool final
 	{
-		size_t threads;
 		std::vector<std::thread> workers;
 		std::queue<std::function<void()>> tasks;
+
 		std::mutex queueMutex;
 		std::condition_variable condition;
-		bool stop {false};
+		bool stop;
+		int waiters;
+
+		static thread_local bool working;
+		std::atomic_int maxIdle;
+		std::atomic_int pendingStopSignal;
+		std::thread monitor;
+
+		void work();
+		void recycle();
+		
 	public:
 		ThreadPool(size_t threadCount = std::thread::hardware_concurrency());
 		~ThreadPool() noexcept;
@@ -53,54 +64,6 @@ namespace util
 		ThreadPool &operator =(const ThreadPool&) = delete;
 		ThreadPool &operator =(ThreadPool&&) = delete;
 	};
-
-	inline ThreadPool::ThreadPool(size_t threadCount)
-	{
-		if(!threadCount)
-		{
-			throw std::invalid_argument("ThreadPool needs more than 0 threads");
-		}
-
-		workers.reserve(threadCount);
-		for(; threadCount; --threadCount)
-		{
-			workers.emplace_back([&]()
-			{
-				while(true)
-				{
-					std::function<void()> task;
-
-					{
-						std::unique_lock<std::mutex> lock(queueMutex);
-
-						condition.wait(lock, [&]()
-						{
-							return stop || !tasks.empty();
-						});
-						if(stop && tasks.empty())
-						{
-							return;
-						}
-
-						task = std::move(tasks.front());
-						tasks.pop();
-					}
-
-					task();
-				}
-			});
-		}
-	}
-
-	inline ThreadPool::~ThreadPool() noexcept
-	{
-		stop = true;
-		condition.notify_all();
-		for(auto &worker : workers)
-		{
-			worker.join();
-		}
-	}
 
 	template <typename F, typename... Args>
 	inline auto ThreadPool::enqueue(F&& f, Args&&... args)
@@ -126,6 +89,15 @@ namespace util
 			{
 				(*task)();
 			});
+
+			if(waiters == 0)
+			{
+				std::thread t([&]()
+				{
+					work();
+				});
+				workers.push_back(std::move(t));
+			}
 		}
 
 		condition.notify_one();

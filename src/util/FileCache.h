@@ -81,8 +81,33 @@ namespace util
 			return fileit->second.get();
 		}
 
+		const auto &viewCache() const
+		{
+			return cache;
+		}
+
+		auto getCache() -> decltype(cache)
+		{
+			return std::move(cache);
+		}
+
+		std::vector<std::string> getFileList() const
+		{
+			std::vector<std::string> files;
+			files.reserve(cache.size());
+			for(const auto &file : cache)
+			{
+				files.push_back(file.first);
+			}
+			return files;
+		}
+
 		bool addFile(std::unique_ptr<File> file, bool read = true)
 		{
+			if(!file)
+			{
+				throw std::invalid_argument("Invalid file given to FileCache::addFile");
+			}
 			if(read)
 			{
 				if(!file->readFile())
@@ -90,7 +115,8 @@ namespace util
 					return false;
 				}
 			}
-			cache.insert(std::make_pair(file->filename, std::move(file)));
+			decltype(cache)::value_type elem { file->filename, std::move(file) };
+			cache.insert(std::move(elem));
 			return true;
 		}
 		bool addFile(const std::string &name, bool read = true)

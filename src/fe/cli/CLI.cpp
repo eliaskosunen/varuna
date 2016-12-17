@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "fe/cli/CLI.h"
-#include "fe/api/API.h"
+#include "fe/api/App.h"
 
 namespace fe
 {
@@ -32,10 +32,21 @@ namespace fe
 				TCLAP::SwitchArg licenseArg("", "license", "Print the license and copyright information", false);
 				cmd.add(licenseArg);
 
+				TCLAP::ValueArg<int> threadsArg("j", "jobs", "Number of threads to use. Default: 1", false, 1, "Threads");
+				cmd.add(threadsArg);
+
 				TCLAP::UnlabeledMultiArg<std::string> fileArg("file", "Files to process", false, "List of files to process");
 				cmd.add(fileArg);
 
 				cmd.parse(argc, argv);
+
+				int threads = threadsArg.getValue();
+				auto app = std::make_unique<api::Application>(threads);
+
+				if(!setLoggingLevel(app.get(), loggingArg.getValue()))
+				{
+					throw TCLAP::ArgException("Unsupported value for --logging, see --help", loggingArg.longID());
+				}
 
 				bool lic = licenseArg.getValue();
 				if(lic)
@@ -44,31 +55,14 @@ namespace fe
 					return 0;
 				}
 
-				if(!setLoggingLevel(loggingArg.getValue()))
-				{
-					throw TCLAP::ArgException("Unsupported value for --logging, see --help", loggingArg.longID());
-				}
-
 				std::vector<std::string> files = fileArg.getValue();
 				if(files.empty())
 				{
 					throw TCLAP::ArgException("File to process is required, see --help", fileArg.longID());
 				}
 
-				for(const auto &file : files)
-				{
-					if(!fe::api::addFile(file))
-					{
-						return 1;
-					}
-				}
-				for(const auto &file : files)
-				{
-					if(!fe::api::runFile(file))
-					{
-						return 1;
-					}
-				}
+				app->execute(std::move(files));
+
 				return 0;
 			}
 			catch(TCLAP::ArgException &e)
@@ -78,19 +72,19 @@ namespace fe
 			}
 		}
 
-		bool CLI::setLoggingLevel(const std::string &level)
+		bool CLI::setLoggingLevel(api::Application *app, const std::string &level)
 		{
 			if(level == "trace")
 			{
-				fe::api::setLoggingLevel(fe::api::LOG_TRACE);
+				app->setLoggingLevel(api::Application::LOG_TRACE);
 			}
 			else if(level == "debug")
 			{
-				fe::api::setLoggingLevel(fe::api::LOG_DEBUG);
+				app->setLoggingLevel(api::Application::LOG_DEBUG);
 			}
 			else if(level == "info")
 			{
-				fe::api::setLoggingLevel(fe::api::LOG_INFO);
+				app->setLoggingLevel(api::Application::LOG_INFO);
 			}
 			else
 			{

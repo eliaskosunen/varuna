@@ -36,21 +36,15 @@ namespace util
 				DEV		= 2
 			};
 
-			constexpr uint8_t major		= 0;
-			constexpr uint8_t minor		= 1;
-			constexpr uint8_t patch		= 0;
-			constexpr uint8_t status	= static_cast<uint8_t>(DEV);
-			constexpr uint8_t rc		= 0;
-
-			static constexpr Status getStatus()
-			{
-				static_assert(status <= 2, "Invalid version status");
-				return static_cast<Status>(status);
-			}
+			constexpr uint8_t major	= 0;
+			constexpr uint8_t minor	= 1;
+			constexpr uint8_t patch	= 0;
+			constexpr Status status	= DEV;
+			constexpr uint8_t rc	= 0;
 
 			inline std::string toString()
 			{
-				switch(getStatus())
+				switch(status)
 				{
 				case DEV:
 					return fmt::format("{}.{}.{}-dev", major, minor, patch);

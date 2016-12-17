@@ -23,6 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace fe
 {
+	namespace api
+	{
+		class Application;
+	}
+
 	namespace cli
 	{
 		class CLI
@@ -33,7 +38,7 @@ namespace fe
 
 			void showLicense() const;
 
-			bool setLoggingLevel(const std::string &level);
+			bool setLoggingLevel(api::Application *app, const std::string &level);
 
 		public:
 			CLI(int argc_, char **argv_)

@@ -57,10 +57,11 @@ namespace core
 		class SourceLocation
 		{
 		public:
-			std::string file;
-			uint64_t line;
+			std::string file {"undefined"};
+			uint64_t line {0};
 
-			SourceLocation(std::string f = "undefined", uint64_t l = 0)
+			SourceLocation() = default;
+			SourceLocation(std::string f, uint64_t l)
 				: file(std::move(f)), line(l) {}
 
 			std::string toString() const
@@ -70,7 +71,7 @@ namespace core
 			}
 		};
 
-		class Token
+		class Token final
 		{
 		public:
 			SourceLocation loc;
@@ -81,7 +82,8 @@ namespace core
 			TokenIntegerLiteralModifier modifierInt;
 			TokenFloatLiteralModifier modifierFloat;
 
-			Token(TokenType t = TOKEN_DEFAULT, std::string val = "") : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
+			Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
+				: loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
 
 			std::string typeToString() const;
 

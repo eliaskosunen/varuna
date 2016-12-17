@@ -37,7 +37,7 @@ namespace core
 			ERROR_ERROR
 		};
 
-		class Lexer
+		class Lexer final
 		{
 			const std::string &content;
 			using ContentIterator = std::string::const_iterator;
@@ -139,7 +139,15 @@ namespace core
 		public:
 			bool warningsAsErrors;
 
-			Lexer(const std::string &cont, const std::string &file = "(undefined)") : content(cont), it(content.begin()), end(content.end()), currentLocation(file, 1), error(ERROR_NONE), warningsAsErrors(false) {}
+			Lexer(const std::string &cont, const std::string &file = "(undefined)")
+				: content(cont), it(content.begin()), end(content.end()),
+				currentLocation(file, 1), error(ERROR_NONE), warningsAsErrors(false) {}
+
+			Lexer(const Lexer&) = delete;
+			Lexer(Lexer&&) = default;
+			Lexer &operator =(const Lexer&) = delete;
+			Lexer &operator =(Lexer&&) = default;
+			~Lexer() = default;
 
 			TokenVector run();
 

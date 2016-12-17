@@ -28,13 +28,19 @@ namespace core
 {
 	namespace ast
 	{
-		class AST
+		class AST final
 		{
 		public:
 			std::unique_ptr<ASTBlockStatement> globalNode;
-			const std::string &file;
+			std::string file;
 
-			AST(const std::string &f) : globalNode(std::make_unique<ASTBlockStatement>()), file(f) {}
+			AST(std::string f) : globalNode(std::make_unique<ASTBlockStatement>()), file(std::move(f)) {}
+
+			AST(const AST&) = delete;
+			AST(AST&&) = default;
+			AST &operator =(const AST&) = delete;
+			AST &operator =(AST&&) = default;
+			~AST() = default;
 
 			void pushStatement(std::unique_ptr<ASTStatement> stmt)
 			{

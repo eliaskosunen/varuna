@@ -1,9 +1,12 @@
 // code.va
 module main;
 
-def main(): Void
+def main(): Int32
 {
-	Int32 i = -1;
-	Int32 j = +1;
-	Int32 k = +1.0;
+	Int32 ret = 1 + 2;
+	if(true)
+	{
+		ret = ret - 3;
+	}
+	return ret;
 }

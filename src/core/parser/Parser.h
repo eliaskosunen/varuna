@@ -36,10 +36,16 @@ namespace core
 			ERROR_ERROR
 		};
 
-		class Parser
+		class Parser final
 		{
 		public:
-			Parser(const core::lexer::TokenVector& /*tok*/);
+			Parser(const core::lexer::TokenVector &tok);
+
+			Parser(const Parser&) = delete;
+			Parser(Parser&&) = default;
+			Parser &operator =(const Parser&) = delete;
+			Parser &operator =(Parser&&) = default;
+			~Parser() = default;
 
 			void run();
 
@@ -160,11 +166,6 @@ namespace core
 
 			void _runParser();
 		};
-
-		inline Parser::Parser(const core::lexer::TokenVector &tok)
-			: warningsAsErrors(false), ast(std::make_unique<ast::AST>(tok.front().loc.file)),
-			  tokens(tok), it(tokens.begin()), endTokens(tokens.end()),
-			  error(ERROR_NONE) {}
 
 		inline bool Parser::getError() const
 		{

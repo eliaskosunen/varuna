@@ -29,7 +29,7 @@ namespace core
 {
 	namespace codegen
 	{
-		class Codegen
+		class Codegen final
 		{
 			std::unique_ptr<ast::AST> ast;
 			llvm::LLVMContext context;
@@ -43,6 +43,12 @@ namespace core
 
 		public:
 			Codegen(std::unique_ptr<ast::AST> a);
+
+			Codegen(const Codegen&) = delete;
+			Codegen(Codegen&&) = default;
+			Codegen &operator =(const Codegen&) = delete;
+			Codegen &operator =(Codegen&&) = default;
+			~Codegen() = default;
 
 			bool run();
 		};

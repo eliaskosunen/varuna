@@ -38,8 +38,8 @@ namespace util
 		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
 		loggerBasic->set_pattern("%v");
 		#endif
-		spdlog::set_pattern(std::string(programinfo::name) + " [%n] [%l]: %v");
-		logger->set_pattern(std::string(programinfo::name) + " [%l]: %v");
+		spdlog::set_pattern(std::string(programinfo::name) + " [thread %t] [%n] [%l]: %v");
+		logger->set_pattern(std::string(programinfo::name) + " [thread %t] [%l]: %v");
 		loggerBasic->set_pattern("%v");
 
 		logger->flush_on(spdlog::level::err);
