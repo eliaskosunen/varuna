@@ -18,8 +18,8 @@ The MIT License (MIT). Copyright (c) 2003 Michael E. Smoot
 
 View the full license at third-party/info/tclap/COPYING
 
-# Boost Variant
+# CTPL
 
-The Boost Software License, Version 1.0. Copyright (c) 2002, 2003 Eric Friedman, Itay Maman
+The Apache License (Version 2.0). Copyright (C) 2014 by Vitaliy Vitsentiy
 
-View the full license at http://www.boost.org/LICENSE_1_0.txt
+View the full license at third-party/info/ctpl/LICENSE
