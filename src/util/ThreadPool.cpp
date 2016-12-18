@@ -71,9 +71,13 @@ namespace util
 				});
 				--waiters;
 
-				if(stop && tasks.empty())
+				if(tasks.empty())
 				{
-					return;
+					if(stop)
+					{
+						return;
+					}
+					throw std::logic_error("No tasks available");
 				}
 				task = std::move(tasks.front());
 				tasks.pop();
