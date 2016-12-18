@@ -165,8 +165,61 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement *node)
 		{
-			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
-			return nullptr;
+			llvm::Function *func = builder.GetInsertBlock()->getParent();
+
+			llvm::Value *init = node->init->accept(this);
+			if(!init)
+			{
+				return nullptr;
+			}
+
+			llvm::BasicBlock *loopBB = llvm::BasicBlock::Create(context, "loop", func);
+			builder.CreateBr(loopBB);
+			builder.SetInsertPoint(loopBB);
+
+			if(!node->block->accept(this))
+			{
+				return nullptr;
+			}
+
+			llvm::BasicBlock *loopCondBB = llvm::BasicBlock::Create(context, "loopcond", func);
+			builder.CreateBr(loopCondBB);
+			builder.SetInsertPoint(loopCondBB);
+
+			llvm::Value *step = node->rangeInit->accept(this);
+			if(!step)
+			{
+				return nullptr;
+			}
+
+			llvm::Value *end = node->rangeDecl->accept(this);
+			if(!end)
+			{
+				return nullptr;
+			}
+
+			auto boolcond = [&]() -> llvm::Value*
+			{
+				if(end->getType()->isIntegerTy())
+				{
+					return builder.CreateICmpNE(end, llvm::ConstantInt::get(end->getType(), 0), "forendcond");
+				}
+				if(end->getType()->isFloatingPointTy())
+				{
+					return builder.CreateFCmpONE(end, llvm::ConstantFP::get(end->getType(), 0.0), "forend");
+				}
+				return nullptr;
+			}();
+			if(!boolcond)
+			{
+				return codegenError("Unable to compare for end condition with 0");
+			}
+
+			llvm::BasicBlock *afterBB = llvm::BasicBlock::Create(context, "afterloop", func);
+			builder.CreateCondBr(end, loopBB, afterBB);
+			builder.SetInsertPoint(afterBB);
+
+			return getDummyValue();
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement *node)
 		{
