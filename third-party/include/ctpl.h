@@ -17,9 +17,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "ctpl.h"
+#ifdef _MSC_VER
 
-namespace util
-{
-	using ThreadPool = ctpl::thread_pool;
-}
+#pragma warning(push, 3)
+#pragma warning(disable: 4514 4711)
+
+#endif
+
+#include "ctpl/ctpl_stl.h"
+
+#ifdef _MSC_VER
+
+#pragma warning(pop)
+
+#endif

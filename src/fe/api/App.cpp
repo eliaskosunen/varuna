@@ -42,7 +42,7 @@ namespace fe
 
 		std::future<bool> Application::runFile(const std::string &file)
 		{
-			return pool->enqueue([&]()
+			return pool->push([&](int dummy)
 			{
 				util::logger->info("Running file: '{}'", file);
 
