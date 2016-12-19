@@ -26,45 +26,64 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "fe/cli/CLI.h"
 #include "util/Logger.h"
+#include "utf8.h"
 
 static void cleanup()
 {
 	util::dropLogger();
 }
 
-static void logException(const std::exception *e)
+static void logException(const std::string &msg)
 {
-	std::string what = [&]()
-	{
-		if(!e)
-		{
-			return "Unable to fetch exception message";
-		}
-		return e->what();
-	}();
-
 	if(util::logger)
 	{
 		util::logger->critical("An exception occured during program execution.");
-		util::logger->info("Exception message: '{}'", what);
+		util::logger->info("Exception message: '{}'", msg);
 		util::logger->info("Program will be terminated.");
 	}
 	else if(util::loggerBasic)
 	{
 		util::loggerBasic->critical("An exception occured during program execution.");
-		util::loggerBasic->info("Exception message: '{}'", what);
+		util::loggerBasic->info("Exception message: '{}'", msg);
 		util::loggerBasic->info("Program will be terminated.");
 	}
 	else
 	{
 		std::cerr
 			<< "An exception occured during program execution.\n"
-			<< "Exception message: '" << what << "'\n"
+			<< "Exception message: '" << msg << "'\n"
 			<< "Program will be terminated.\n"
 			<< "No loggers available for message delivery."
 			<< std::endl;
 	}
+}
 
+static void logException(const std::string &msg, const std::string &additionalMsg)
+{
+	if(util::logger)
+	{
+		util::logger->critical("An exception occured during program execution.");
+		util::logger->info("Exception message: '{}'", msg);
+		util::logger->info("Additional message: '{}'", additionalMsg);
+		util::logger->info("Program will be terminated.");
+	}
+	else if(util::loggerBasic)
+	{
+		util::loggerBasic->critical("An exception occured during program execution.");
+		util::loggerBasic->info("Exception message: '{}'", msg);
+		util::loggerBasic->info("Additional message: '{}'", additionalMsg);
+		util::loggerBasic->info("Program will be terminated.");
+	}
+	else
+	{
+		std::cerr
+			<< "An exception occured during program execution.\n"
+			<< "Exception message: '" << msg << "'\n"
+			<< "Additional message: '" << additionalMsg << "'\n"
+			<< "Program will be terminated.\n"
+			<< "No loggers available for message delivery."
+			<< std::endl;
+	}
 }
 
 /**
@@ -98,13 +117,35 @@ int main(int argc, char **argv)
 			<< "Program will be terminated.\n"
 			<< std::endl;
 	}
+
+	catch(const utf8::invalid_code_point &e)
+	{
+		logException(e.what(), "Invalid code point: " + std::to_string(e.code_point()));
+	}
+	catch(const utf8::invalid_utf8 &e)
+	{
+		logException(e.what(), "Invalid utf8: " + std::to_string(static_cast<uint32_t>(e.utf8_octet())));
+	}
+	catch(const utf8::not_enough_room &e)
+	{
+		logException(e.what());
+	}
+	catch(const utf8::exception &e)
+	{
+		logException(e.what());
+	}
+
+	catch(const std::logic_error &e)
+	{
+		logException(e.what(), "Logic error");
+	}
+	catch(const std::runtime_error &e)
+	{
+		logException(e.what(), "Runtime error");
+	}
 	catch(const std::exception &e)
 	{
-		logException(&e);
-	}
-	catch(...)
-	{
-		logException(nullptr);
+		logException(e.what());
 	}
 	return -1;
 }

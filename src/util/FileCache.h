@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/StreamReader.h"
 #include "util/Logger.h"
 
+#include "utf8.h"
+
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
@@ -56,6 +58,11 @@ namespace util
 					return false;
 				}
 				return true;
+			}
+
+			bool checkUtf8()
+			{
+				return utf8::is_valid(content.begin(), content.end());
 			}
 
 			[[noreturn]]
@@ -113,6 +120,10 @@ namespace util
 				if(!file->readFile())
 				{
 					return false;
+				}
+				if(!file->checkUtf8())
+				{
+					throw std::runtime_error("Invalid file encoding");
 				}
 			}
 			decltype(cache)::value_type elem { file->filename, std::move(file) };

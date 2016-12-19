@@ -3,5 +3,5 @@ module main;
 
 def main(): Void
 {
-	String s = "Hello World!";
+	String åäö = "aaa";
 }

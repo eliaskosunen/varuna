@@ -161,7 +161,8 @@ namespace util
 		 * @param  cstr C string to convert
 		 * @return      Equivalent C++ string
 		 */
-		inline std::string cstrToString(const char *cstr)
+		template <typename CharT>
+		inline std::string cstrToString(const CharT *cstr)
 		{
 			std::stringstream ss;
 			ss << cstr;
@@ -174,7 +175,8 @@ namespace util
 		 * @param  len  Length of the C string
 		 * @return      Equivalent C++ string
 		 */
-		inline std::string cstrToStringLen(const char *cstr, size_t len)
+		template <typename CharT>
+		inline std::string cstrToStringLen(const CharT *cstr, size_t len)
 		{
 			return std::string(cstr, len);
 		}
@@ -184,7 +186,8 @@ namespace util
 		 * @param  c Char to convert
 		 * @return   Equivalent C++ string
 		 */
-		inline std::string charToString(const char &c)
+		template <typename CharT>
+		inline std::string charToString(const CharT &c)
 		{
 			std::stringstream ss;
 			ss << c;
@@ -198,7 +201,8 @@ namespace util
 		 * @param elems Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		inline void split(const std::string &s, char delim, std::vector<std::string> &elems)
+		template <typename CharT>
+		inline void split(const std::string &s, CharT delim, std::vector<std::string> &elems)
 		{
 			std::stringstream ss;
 			ss.str(s);
@@ -215,39 +219,46 @@ namespace util
 		 * @return       Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		inline std::vector<std::string> split(const std::string &s, char delim)
+		template <typename CharT>
+		inline std::vector<std::string> split(const std::string &s, CharT delim)
 		{
 			std::vector<std::string> elems;
 			split(s, delim, elems);
 			return elems;
 		}
 
-		inline bool isCharAlpha(int c)
+		template <typename CharT>
+		inline bool isCharAlpha(CharT c)
 		{
 			return std::isalpha(c) != 0;
 		}
 
-		inline bool isCharAlnum(int c)
+		template <typename CharT>
+		inline bool isCharAlnum(CharT c)
 		{
 			return std::isalnum(c) != 0;
 		}
 
-		inline bool isCharDigit(int c)
+		template <typename CharT>
+		inline bool isCharDigit(CharT c)
 		{
 			return std::isdigit(c) != 0;
 		}
 
-		inline bool isCharHexDigit(int c)
+		template <typename CharT>
+		inline bool isCharHexDigit(CharT c)
 		{
 			return std::isxdigit(c) != 0;
 		}
 
-		inline bool isCharOctDigit(int c)
+		template <typename CharT>
+		inline bool isCharOctDigit(CharT c)
 		{
 			return (c >= '0' && c <= '7');
 		}
 
-		inline bool isCharPunctuation(int c)
+		template <typename CharT>
+		inline bool isCharPunctuation(CharT c)
 		{
 			return std::ispunct(c) != 0;
 		}
@@ -257,12 +268,14 @@ namespace util
 		 * @param  c Char to check
 		 * @return   true = whitespace
 		 */
-		inline bool isCharWhitespace(int c)
+ 		template <typename CharT>
+		inline bool isCharWhitespace(CharT c)
 		{
 			return std::isspace(c) != 0;
 		}
 
-		inline bool isCharControlCharacter(int c)
+		template <typename CharT>
+		inline bool isCharControlCharacter(CharT c)
 		{
 			return std::iscntrl(c) != 0;
 		}

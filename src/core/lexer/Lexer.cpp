@@ -282,7 +282,7 @@ namespace core
 
 		bool Lexer::lexComment()
 		{
-			if(*it == '/' && *peekNext() == '/')
+			if(*it == '/' && peekNext() == '/')
 			{
 				advance(); // Skip the both slashes
 				advance();
@@ -306,8 +306,8 @@ namespace core
 			while(advance() != end)
 			{
 				char_t currentChar = *it;
-				char_t prev = *peekPrevious();
-				char_t next = *peekNext();
+				char_t prev = peekPrevious();
+				char_t next = peekNext();
 				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", std::to_string(currentChar), prev, next);
 
 				// Current char is a newline
@@ -320,7 +320,7 @@ namespace core
 				// Current char is a quotation mark
 				if(currentChar == quote)
 				{
-					if(prev == '\\' && *peekPassed(2) != '\\')
+					if(prev == '\\' && peekPassed(2) != '\\')
 					{
 						// Remove the backslash
 						buf.pop_back();

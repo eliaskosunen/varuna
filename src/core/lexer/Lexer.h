@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "utf8.h"
+
 #include "core/lexer/Token.h"
 #include "util/Logger.h"
 
@@ -28,7 +30,7 @@ namespace core
 	namespace lexer
 	{
 		using TokenVector = std::vector<core::lexer::Token>;
-		using char_t = char;
+		using char_t = int64_t;
 
 		enum ErrorLevel
 		{
@@ -80,17 +82,23 @@ namespace core
 			{
 				currentLocation.line++;
 			}
-			ContentIterator peekUpcoming(std::ptrdiff_t i) const
+			char_t peekUpcoming(std::ptrdiff_t) const
 			{
-				return (it + i);
+				throw std::logic_error("Lexer::peekUpcoming() is unimplemented");
 			}
-			ContentIterator peekNext() const
+			char_t peekNext() const
 			{
-				return peekUpcoming(1);
+				//return peekUpcoming(1);
+				return static_cast<char_t>(utf8::peek_next(it, end));
+			}
+
+			char_t _next()
+			{
+				return static_cast<char_t>(utf8::next(it, end));
 			}
 			ContentIterator &advance()
 			{
-				++it;
+				_next();
 				if(!lexComment())
 				{
 					return it;
@@ -103,9 +111,9 @@ namespace core
 					{
 						newLine = true;
 						// Skip '\r' if next is '\n'
-						if(*peekNext() != '\n')
+						if(peekNext() != '\n')
 						{
-							++it;
+							_next();
 						}
 					}
 					if(*it == '\n')
@@ -126,13 +134,18 @@ namespace core
 			{
 				currentLocation.line--;
 			}
-			ContentIterator peekPassed(std::ptrdiff_t i) const
+			char_t peekPrevious() const
 			{
-				return (it - i);
+				auto copy = it;
+				return utf8::prior(copy, content.begin());
 			}
-			ContentIterator peekPrevious() const
+			char_t peekPassed(std::ptrdiff_t n) const
 			{
-				return peekPassed(1);
+				for(int i = 1; i < n; ++i)
+				{
+					peekPrevious();
+				}
+				return peekPrevious();
 			}
 
 			bool lexComment();
