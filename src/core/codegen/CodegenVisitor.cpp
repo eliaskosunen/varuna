@@ -46,9 +46,9 @@ namespace core
 
 			types.insert({ "String",
 				{ llvm::StructType::create(context, {
-					llvm::Type::getInt8PtrTy(context),
-					llvm::Type::getInt32Ty(context)
-				}, "String") }
+					llvm::Type::getInt64Ty(context),
+					llvm::Type::getInt8PtrTy(context)
+				}, "String", true) }
 			});
 		}
 
@@ -453,15 +453,32 @@ namespace core
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
-			return llvm::ConstantDataArray::getString(context, expr->value);
+			auto val = llvm::ConstantDataArray::getString(context, expr->value, false);
+			if(!val)
+			{
+				return codegenError("Invalid string literal");
+			}
+
+			auto literal = llvm::dyn_cast<llvm::ConstantDataArray>(val);
+			if(!literal)
+			{
+				return codegenError("Unable to cast String literal to ConstantDataArray");
+			}
+
+			auto type = llvm::dyn_cast<llvm::StructType>(findType("String"));
+			return llvm::ConstantStruct::get(type,
+			{
+				llvm::ConstantInt::get(findType("Int64"), literal->getNumElements()),
+				val
+			});
 		}
-		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), expr->value);
+			return llvm::ConstantInt::get(findType("Char"), expr->value);
 		}
-		llvm::ConstantInt *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
+		llvm::Constant *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), expr->value);
+			return llvm::ConstantInt::get(findType("Bool"), expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
 		{

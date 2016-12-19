@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/codegen/Codegen.h"
 
+#include "llvm/Support/TargetSelect.h"
+
 namespace core
 {
 	namespace codegen
@@ -24,7 +26,7 @@ namespace core
 		Codegen::Codegen(std::unique_ptr<ast::AST> a)
 			: ast(std::move(a)), context{}, module(std::make_unique<llvm::Module>("Varuna", context)),
 			codegen(std::make_unique<CodegenVisitor>(context, module.get())),
-			optimizer(std::make_unique<Optimizer>(module.get())) {}
+			optimizer(std::make_unique<Optimizer>(module.get(), 2, 0)) {}
 
 		bool Codegen::run()
 		{
@@ -45,6 +47,21 @@ namespace core
 
 		bool Codegen::prepare()
 		{
+			if(!llvm::InitializeNativeTarget())
+			{
+				util::logger->debug("LLVM native target init failed");
+				//return false;
+			}
+			if(!llvm::InitializeNativeTargetAsmPrinter())
+			{
+				util::logger->debug("LLVM native target assembly printer init failed");
+				//return false;
+			}
+			if(!llvm::InitializeNativeTargetAsmParser())
+			{
+				util::logger->debug("LLVM native target assembly parser init failed");
+				//return false;
+			}
 			return true;
 		}
 

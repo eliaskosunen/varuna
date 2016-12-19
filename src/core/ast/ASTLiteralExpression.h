@@ -80,7 +80,7 @@ namespace core
 				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Char")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::ConstantInt *accept(codegen::CodegenVisitor *v) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
@@ -94,7 +94,7 @@ namespace core
 				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Bool")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::ConstantInt *accept(codegen::CodegenVisitor *v) override;
+			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 

@@ -28,14 +28,21 @@ namespace util
 	class SafeEnum
 	{
 	protected:
-		Underlying_t flags;
+		Underlying_t flags { static_cast<Underlying_t>(0) };
 	public:
 		using EnumType = 		Enum_t;
 		using UnderlyingType = 	Underlying_t;
 
-		SafeEnum() : flags(static_cast<Enum_t>(0)) {}
+		SafeEnum() = default;
 		SafeEnum(Enum_t flag) : flags(flag) {}
-		SafeEnum(const SafeEnum &orig) = default;
+
+		SafeEnum(const SafeEnum&) = default;
+		SafeEnum(SafeEnum&&) = default;
+
+		SafeEnum &operator =(const SafeEnum&) = default;
+		SafeEnum &operator =(SafeEnum&&) = default;
+
+		~SafeEnum() = default;
 
 		Underlying_t get() const
 		{

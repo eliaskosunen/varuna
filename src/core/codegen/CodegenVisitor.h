@@ -144,8 +144,8 @@ namespace core
 			llvm::Constant *visit(ast::ASTIntegerLiteralExpression *expr);
 			llvm::Constant *visit(ast::ASTFloatLiteralExpression *expr);
 			llvm::Constant *visit(ast::ASTStringLiteralExpression *expr);
-			llvm::ConstantInt *visit(ast::ASTCharLiteralExpression *expr);
-			llvm::ConstantInt *visit(ast::ASTBoolLiteralExpression *expr);
+			llvm::Constant *visit(ast::ASTCharLiteralExpression *expr);
+			llvm::Constant *visit(ast::ASTBoolLiteralExpression *expr);
 			llvm::Constant *visit(ast::ASTNoneLiteralExpression *node);
 
 			llvm::Value *visit(ast::ASTBinaryOperationExpression *expr);

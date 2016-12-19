@@ -75,8 +75,8 @@ namespace core
 			virtual void accept(ASTParentSolverVisitor *v, ASTNode *p) = 0;
 
 			ASTNode() = default;
-			ASTNode(const ASTNode&) = default;
-			ASTNode &operator = (const ASTNode&) = default;
+			ASTNode(const ASTNode&) = delete;
+			ASTNode &operator = (const ASTNode&) = delete;
 			ASTNode(ASTNode&&) = default;
 			ASTNode &operator = (ASTNode&&) = default;
 			virtual ~ASTNode() = default;

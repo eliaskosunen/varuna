@@ -26,10 +26,10 @@ namespace core
 		public:
 			Visitor() = default;
 
-			Visitor(const Visitor&) = default;
+			Visitor(const Visitor&) = delete;
 			Visitor(Visitor&&) = default;
 
-			Visitor &operator =(const Visitor&) = default;
+			Visitor &operator =(const Visitor&) = delete;
 			Visitor &operator =(Visitor&&) = default;
 
 			virtual ~Visitor() = default;

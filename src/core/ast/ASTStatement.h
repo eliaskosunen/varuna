@@ -39,8 +39,8 @@ namespace core
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 
 			ASTStatement() : ASTNode(STMT) {}
-			ASTStatement(const ASTStatement&) = default;
-			ASTStatement &operator = (const ASTStatement&) = default;
+			ASTStatement(const ASTStatement&) = delete;
+			ASTStatement &operator = (const ASTStatement&) = delete;
 			ASTStatement(ASTStatement&&) = default;
 			ASTStatement &operator = (ASTStatement&&) = default;
 			~ASTStatement() override = default;

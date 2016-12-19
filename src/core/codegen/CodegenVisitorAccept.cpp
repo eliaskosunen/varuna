@@ -117,11 +117,11 @@ llvm::Constant *core::ast::ASTStringLiteralExpression::accept(core::codegen::Cod
 {
 	return v->visit(this);
 }
-llvm::ConstantInt *core::ast::ASTCharLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTCharLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }
-llvm::ConstantInt *core::ast::ASTBoolLiteralExpression::accept(core::codegen::CodegenVisitor *v)
+llvm::Constant *core::ast::ASTBoolLiteralExpression::accept(core::codegen::CodegenVisitor *v)
 {
 	return v->visit(this);
 }

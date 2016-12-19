@@ -42,10 +42,10 @@ namespace core
 				spdlog::drop("DumpAST");
 			}
 
-			DumpASTVisitor(const DumpASTVisitor&) = default;
+			DumpASTVisitor(const DumpASTVisitor&) = delete;
 			DumpASTVisitor(DumpASTVisitor&&) = default;
 
-			DumpASTVisitor &operator =(const DumpASTVisitor&) & = default;
+			DumpASTVisitor &operator =(const DumpASTVisitor&) & = delete;
 			DumpASTVisitor &operator =(DumpASTVisitor&&) & = default;
 
 			template <typename... Args>

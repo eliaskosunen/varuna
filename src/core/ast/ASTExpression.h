@@ -38,8 +38,8 @@ namespace core
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 
 			ASTExpression() : ASTNode(EXPR) {}
-			ASTExpression(const ASTExpression&) = default;
-			ASTExpression &operator = (const ASTExpression&) = default;
+			ASTExpression(const ASTExpression&) = delete;
+			ASTExpression &operator = (const ASTExpression&) = delete;
 			ASTExpression(ASTExpression&&) = default;
 			ASTExpression &operator = (ASTExpression&&) = default;
 			~ASTExpression() override = default;
@@ -65,8 +65,8 @@ namespace core
 
 			ASTIdentifierExpression() : ASTExpression(IDENTIFIER_EXPR) {}
 			ASTIdentifierExpression(std::string val) : ASTExpression(IDENTIFIER_EXPR), value(std::move(val)) {}
-			ASTIdentifierExpression(const ASTIdentifierExpression&) = default;
-			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = default;
+			ASTIdentifierExpression(const ASTIdentifierExpression&) = delete;
+			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = delete;
 			ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
 			ASTIdentifierExpression &operator = (ASTIdentifierExpression&&) = default;
 			~ASTIdentifierExpression() override = default;
