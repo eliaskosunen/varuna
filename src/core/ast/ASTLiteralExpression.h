@@ -40,6 +40,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
@@ -54,6 +55,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
@@ -68,6 +70,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
@@ -82,6 +85,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
@@ -96,6 +100,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
@@ -109,6 +114,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

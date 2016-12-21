@@ -36,6 +36,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 
 			ASTExpression() : ASTNode(EXPR) {}
 			ASTExpression(const ASTExpression&) = delete;
@@ -53,6 +54,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTIdentifierExpression : public ASTExpression
@@ -74,6 +76,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTVariableRefExpression : public ASTIdentifierExpression
@@ -85,6 +88,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::LoadInst *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTCallExpression : public ASTExpression
@@ -99,19 +103,22 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTCastExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<ASTIdentifierExpression> type, castee;
+			std::unique_ptr<ASTIdentifierExpression> type;
+			std::unique_ptr<ASTExpression> castee;
 
-			ASTCastExpression(std::unique_ptr<ASTIdentifierExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
+			ASTCastExpression(std::unique_ptr<ASTExpression> _castee, std::unique_ptr<ASTIdentifierExpression> _type)
 				: ASTExpression(CAST_EXPR), type(std::move(_type)), castee(std::move(_castee)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTVariableDefinitionExpression : public ASTExpression
@@ -128,6 +135,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

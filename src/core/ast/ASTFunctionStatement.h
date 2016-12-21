@@ -55,6 +55,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Function *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTFunctionDefinitionStatement : public ASTStatement

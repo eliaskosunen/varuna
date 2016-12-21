@@ -594,6 +594,10 @@ namespace core
 			{
 				return TOKEN_KEYWORD_LET;
 			}
+			if(buf == "cast")
+			{
+				return TOKEN_KEYWORD_CAST;
+			}
 
 			// Literals
 			if(buf == "true")

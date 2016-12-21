@@ -288,12 +288,52 @@ namespace core
 				}
 			}
 
-			return builder.CreateCall(callee, args, "calltmp");
+			return builder.CreateCall(callee->getFunctionType(), callee, args, "calltmp");
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression *node)
 		{
-			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
-			return nullptr;
+			llvm::Value *castee = node->castee->accept(this);
+			if(!castee)
+			{
+				return nullptr;
+			}
+
+			llvm::Type *type = findType(node->type->value);
+			if(!type)
+			{
+				return nullptr;
+			}
+
+			return [&]() -> llvm::Value*
+			{
+				if(castee->getType()->isIntegerTy())
+				{
+					if(type->isIntegerTy())
+					{
+						return builder.CreateIntCast(castee, type, true, "casttmp");
+					}
+					else if(type->isFloatingPointTy())
+					{
+						return builder.CreateSIToFP(castee, type, "casttmp");
+					}
+				}
+				else if(castee->getType()->isFloatingPointTy())
+				{
+					if(type->isFloatingPointTy())
+					{
+						return builder.CreateFPCast(castee, type, "casttmp");
+					}
+					else if(type->isIntegerTy())
+					{
+						return builder.CreateFPToSI(castee, type, "casttmp");
+					}
+				}
+				else if(castee->getType()->isPointerTy())
+				{
+					return builder.CreatePointerBitCastOrAddrSpaceCast(castee, type, "casttmp");
+				}
+				return builder.CreateBitCast(castee, type, "casttmp");
+			}();
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
 		{
@@ -423,10 +463,27 @@ namespace core
 
 			return func;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *node)
+		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *stmt)
 		{
-			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
-			return nullptr;
+			auto name = stmt->proto->name->value;
+			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
+			auto func = findFunction(name);
+			if(!func)
+			{
+				codegenWarning("Invalid function");
+				return nullptr;
+			}
+			#if USE_LLVM_FUNCTION_VERIFY
+			if(!llvm::verifyFunction(*func))
+			{
+				codegenError("Function verification failed");
+				util::logger->trace("Invalid function dump:");
+				func->dump();
+				func->eraseFromParent();
+				return nullptr;
+			}
+			#endif
+			return func;
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
 		{
@@ -466,7 +523,7 @@ namespace core
 				return codegenError("Unable to cast String literal to ConstantDataArray");
 			}
 
-			auto type = llvm::dyn_cast<llvm::StructType>(findType("tring"));
+			auto type = llvm::dyn_cast<llvm::StructType>(findType("string"));
 			return llvm::ConstantStruct::get(type,
 			{
 				llvm::ConstantInt::get(findType("int64"), literal->getNumElements()),

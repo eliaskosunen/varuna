@@ -46,7 +46,7 @@ namespace core
 
 			void visit(ast::ASTNode *node) = delete;
 			void visit(ast::ASTStatement *node);
-			void visit(ast::ASTExpression *node) = delete;
+			void visit(ast::ASTExpression *node);
 
 			void visit(ast::ASTIfStatement *node);
 			void visit(ast::ASTForStatement *node);
@@ -55,12 +55,12 @@ namespace core
 			void visit(ast::ASTImportStatement *node);
 			void visit(ast::ASTModuleStatement *node);
 
-			void visit(ast::ASTEmptyExpression *node) = delete;
-			void visit(ast::ASTIdentifierExpression *node) = delete;
-			void visit(ast::ASTVariableRefExpression *node) = delete;
-			void visit(ast::ASTCallExpression *node) = delete;
-			void visit(ast::ASTCastExpression *node) = delete;
-			void visit(ast::ASTVariableDefinitionExpression *node) = delete;
+			void visit(ast::ASTEmptyExpression *node);
+			void visit(ast::ASTIdentifierExpression *node);
+			void visit(ast::ASTVariableRefExpression *node);
+			void visit(ast::ASTCallExpression *node);
+			void visit(ast::ASTCastExpression *node);
+			void visit(ast::ASTVariableDefinitionExpression *node);
 
 			void visit(ast::ASTFunctionParameter *node) = delete;
 			void visit(ast::ASTFunctionPrototypeStatement *node);
@@ -68,16 +68,16 @@ namespace core
 			void visit(ast::ASTFunctionDeclarationStatement *node);
 			void visit(ast::ASTReturnStatement *node);
 
-			void visit(ast::ASTIntegerLiteralExpression *node) = delete;
-			void visit(ast::ASTFloatLiteralExpression *node) = delete;
-			void visit(ast::ASTStringLiteralExpression *node) = delete;
-			void visit(ast::ASTCharLiteralExpression *node) = delete;
-			void visit(ast::ASTBoolLiteralExpression *node) = delete;
-			void visit(ast::ASTNoneLiteralExpression *node) = delete;
+			void visit(ast::ASTIntegerLiteralExpression *node);
+			void visit(ast::ASTFloatLiteralExpression *node);
+			void visit(ast::ASTStringLiteralExpression *node);
+			void visit(ast::ASTCharLiteralExpression *node);
+			void visit(ast::ASTBoolLiteralExpression *node);
+			void visit(ast::ASTNoneLiteralExpression *node);
 
-			void visit(ast::ASTBinaryOperationExpression *node) = delete;
-			void visit(ast::ASTUnaryOperationExpression *node) = delete;
-			void visit(ast::ASTAssignmentOperationExpression *node) = delete;
+			void visit(ast::ASTBinaryOperationExpression *node);
+			void visit(ast::ASTUnaryOperationExpression *node);
+			void visit(ast::ASTAssignmentOperationExpression *node);
 
 			void visit(ast::ASTEmptyStatement *node);
 			void visit(ast::ASTBlockStatement *node);

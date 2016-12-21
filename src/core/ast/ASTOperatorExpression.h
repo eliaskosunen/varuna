@@ -37,6 +37,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTUnaryOperationExpression : public ASTExpression
@@ -51,6 +52,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTAssignmentOperationExpression : public ASTExpression
@@ -66,6 +68,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

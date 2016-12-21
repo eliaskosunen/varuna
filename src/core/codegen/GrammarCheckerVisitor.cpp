@@ -29,58 +29,129 @@ namespace core
 {
 	namespace codegen
 	{
-		void GrammarCheckerVisitor::visit(ast::ASTStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTExpression*)
 		{
 
 		}
 
-		void GrammarCheckerVisitor::visit(ast::ASTIfStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTIfStatement*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTForStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTForStatement*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTForeachStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTForeachStatement*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTWhileStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTWhileStatement*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTImportStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTImportStatement*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTModuleStatement *node)
-		{
-
-		}
-
-		void GrammarCheckerVisitor::visit(ast::ASTFunctionDefinitionStatement *node)
-		{
-
-		}
-		void GrammarCheckerVisitor::visit(ast::ASTFunctionDeclarationStatement *node)
-		{
-
-		}
-		void GrammarCheckerVisitor::visit(ast::ASTReturnStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTModuleStatement*)
 		{
 
 		}
 
-		void GrammarCheckerVisitor::visit(ast::ASTEmptyStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTEmptyExpression*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTBlockStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTIdentifierExpression*)
 		{
 
 		}
-		void GrammarCheckerVisitor::visit(ast::ASTWrappedExpressionStatement *node)
+		void GrammarCheckerVisitor::visit(ast::ASTVariableRefExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTCallExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTCastExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTVariableDefinitionExpression*)
+		{
+
+		}
+
+		void GrammarCheckerVisitor::visit(ast::ASTFunctionPrototypeStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTFunctionDefinitionStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTFunctionDeclarationStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTReturnStatement*)
+		{
+
+		}
+
+		void GrammarCheckerVisitor::visit(ast::ASTIntegerLiteralExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTFloatLiteralExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTStringLiteralExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTCharLiteralExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTBoolLiteralExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTNoneLiteralExpression*)
+		{
+
+		}
+
+		void GrammarCheckerVisitor::visit(ast::ASTBinaryOperationExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTUnaryOperationExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTAssignmentOperationExpression*)
+		{
+
+		}
+
+		void GrammarCheckerVisitor::visit(ast::ASTEmptyStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTBlockStatement*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTWrappedExpressionStatement*)
 		{
 
 		}

@@ -76,6 +76,7 @@ namespace core
 
 			virtual void accept(DumpASTVisitor *v, size_t ind = 0) = 0;
 			virtual void accept(ASTParentSolverVisitor *v, ASTNode *p) = 0;
+			virtual void accept(codegen::GrammarCheckerVisitor *v) = 0;
 
 			ASTNode() = default;
 			ASTNode(const ASTNode&) = delete;

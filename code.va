@@ -1,7 +1,13 @@
 // code.va
 module main;
 
-def main(): void
+def main(): int
 {
-	int i = 0;
+	float f = 3.14f;
+	int i = cast<int>(f);
+	int i2 = 99999;
+	int64 i64 = cast<int64>(i2);
+	fp64 d = cast<fp64>(f);
+	fp32 f2 = cast<fp32>(d);
+	return cast<int>(i64);
 }

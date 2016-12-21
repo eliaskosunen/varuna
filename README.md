@@ -14,7 +14,7 @@ Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
 
 WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
-Wait for 0.1 release (planned in Jan 1st) or grab the code from the develop branch.
+Wait for 0.1 release (coming soon(tm)) or grab the code from the develop branch.
 
 ## Building
 

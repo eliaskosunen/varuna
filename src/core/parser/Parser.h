@@ -144,18 +144,21 @@ namespace core
 
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
 			std::unique_ptr<ast::ASTCallExpression> parseFunctionCallExpression(const std::string &idName);
+			std::unique_ptr<ast::ASTCastExpression> parseCastExpression();
 			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
 			std::unique_ptr<ast::ASTExpression> parseExpression();
 
 			void handleImport();
 			void handleModule();
 			void handleDef();
+			void handleDecl();
 			void handleEmptyStatement();
 
 			std::unique_ptr<ast::ASTStatement> parseStatement();
 			std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();
 			std::unique_ptr<ast::ASTFunctionPrototypeStatement> parseFunctionPrototype();
 			std::unique_ptr<ast::ASTFunctionDefinitionStatement> parseFunctionDefinitionStatement();
+			std::unique_ptr<ast::ASTFunctionDeclarationStatement> parseFunctionDeclarationStatement();
 
 			std::unique_ptr<ast::ASTWrappedExpressionStatement> wrapExpression(std::unique_ptr<ast::ASTExpression> expr);
 			std::unique_ptr<ast::ASTEmptyStatement> emptyStatement()

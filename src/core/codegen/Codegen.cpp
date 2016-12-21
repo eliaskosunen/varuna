@@ -68,6 +68,7 @@ namespace core
 				util::logger->debug("LLVM native target assembly parser init failed");
 				//return false;
 			}
+
 			return true;
 		}
 

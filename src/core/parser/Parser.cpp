@@ -91,6 +91,10 @@ namespace core
 				case TOKEN_KEYWORD_DEFINE:
 					handleDef();
 					break;
+				// Function declaration
+				case TOKEN_KEYWORD_DECLARE:
+					handleDecl();
+					break;
 
 				// Unsupported top-level token
 				default:
@@ -633,6 +637,46 @@ namespace core
 			return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
 		}
 
+		std::unique_ptr<ASTCastExpression> Parser::parseCastExpression()
+		{
+			++it; // Skip 'cast'
+
+			if(it->type != TOKEN_OPERATORB_LESS)
+			{
+				return parserError("Invalid cast: Expected '<' after 'cast', got '{}' instead", it->value);
+			}
+			++it; // Skip '<'
+
+			if(it->type != TOKEN_IDENTIFIER)
+			{
+				return parserError("Invalid cast: Expected identifier after '<', got '{}' instead", it->value);
+			}
+			auto type = std::make_unique<ASTIdentifierExpression>(it->value);
+			++it; // Skip identifier
+
+			if(it->type != TOKEN_OPERATORB_GREATER)
+			{
+				return parserError("Invalid cast: Expected '>' after identifier, got '{}' instead", it->value);
+			}
+			++it; // Skip '>'
+
+			if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+			{
+				return parserError("Invalid cast: Expected '(' after '>', got '{}' instead", it->value);
+			}
+			++it; // Skip '('
+
+			auto castee = parseExpression();
+
+			if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+			{
+				return parserError("Invalid cast: Expected ')' after identifier, got '{}' instead", it->value);
+			}
+			++it; // Skip ')'
+
+			return std::make_unique<ASTCastExpression>(std::move(castee), std::move(type));
+		}
+
 		std::unique_ptr<ASTExpression> Parser::parsePrimary(bool tolerateUnrecognized)
 		{
 			// Parse primary expression
@@ -656,6 +700,8 @@ namespace core
 				return parseTrueLiteralExpression();
 			case TOKEN_KEYWORD_VAR:
 				return parseVariableDefinition();
+			case TOKEN_KEYWORD_CAST:
+				return parseCastExpression();
 			default:
 				if(tolerateUnrecognized)
 				{
@@ -1062,6 +1108,19 @@ namespace core
 			}
 		}
 
+		void Parser::handleDecl()
+		{
+			if(auto decl = parseFunctionDeclarationStatement())
+			{
+				util::logger->trace("Parsed function declaration:  name: '{}', return: '{}', params.size: '{}'", decl->proto->name->value, decl->proto->returnType->value, decl->proto->params.size());
+				getAST()->pushStatement(std::move(decl));
+			}
+			else
+			{
+				++it;
+			}
+		}
+
 		void Parser::handleEmptyStatement()
 		{
 			if(auto stmt = emptyStatement())
@@ -1240,6 +1299,23 @@ namespace core
 				return std::make_unique<ASTFunctionDefinitionStatement>(std::move(proto), std::move(body));
 			}
 			return nullptr;
+		}
+
+		std::unique_ptr<ASTFunctionDeclarationStatement> Parser::parseFunctionDeclarationStatement()
+		{
+			++it; // Skip 'decl'
+			auto proto = parseFunctionPrototype();
+			if(!proto)
+			{
+				return nullptr;
+			}
+
+			if(it->type != TOKEN_PUNCT_SEMICOLON)
+			{
+				return parserError("Invalid function declaration: expected ';', got '{}' instead", it->value);
+			}
+			++it; // Skip ';'
+			return std::make_unique<ASTFunctionDeclarationStatement>(std::move(proto));
 		}
 
 		std::unique_ptr<ASTWrappedExpressionStatement> Parser::wrapExpression(std::unique_ptr<ASTExpression> expr)

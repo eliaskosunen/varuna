@@ -37,7 +37,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			virtual void accept(codegen::GrammarCheckerVisitor *v);
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 
 			ASTStatement() : ASTNode(STMT) {}
 			ASTStatement(const ASTStatement&) = delete;

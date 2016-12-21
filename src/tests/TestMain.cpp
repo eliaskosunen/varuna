@@ -23,8 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, char **argv)
 {
 	util::initLogger();
-	spdlog::set_level(spdlog::level::trace);
-	//spdlog::set_level(spdlog::level::debug);
+	//spdlog::set_level(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::debug);
 
 	doctest::Context context;
 	context.applyCommandLine(argc, argv);

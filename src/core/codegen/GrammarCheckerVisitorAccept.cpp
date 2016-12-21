@@ -25,6 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
 
+void core::ast::ASTExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
 void core::ast::ASTStatement::accept(core::codegen::GrammarCheckerVisitor *v)
 {
 	return v->visit(this);
@@ -55,6 +59,35 @@ void core::ast::ASTModuleStatement::accept(core::codegen::GrammarCheckerVisitor 
 	return v->visit(this);
 }
 
+void core::ast::ASTEmptyExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTIdentifierExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTVariableRefExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTCallExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTCastExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTVariableDefinitionExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+
+void core::ast::ASTFunctionPrototypeStatement::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
 void core::ast::ASTFunctionDefinitionStatement::accept(core::codegen::GrammarCheckerVisitor *v)
 {
 	return v->visit(this);
@@ -64,6 +97,44 @@ void core::ast::ASTFunctionDeclarationStatement::accept(core::codegen::GrammarCh
 	return v->visit(this);
 }
 void core::ast::ASTReturnStatement::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+
+void core::ast::ASTIntegerLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTFloatLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTStringLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTCharLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTBoolLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTNoneLiteralExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+
+void core::ast::ASTBinaryOperationExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTUnaryOperationExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTAssignmentOperationExpression::accept(core::codegen::GrammarCheckerVisitor *v)
 {
 	return v->visit(this);
 }
