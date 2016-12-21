@@ -32,7 +32,7 @@ namespace core
 	{
 		Token Lexer::getNextToken()
 		{
-			char_t currentChar = *it;
+			util::char_t currentChar = *it;
 			util::loggerBasic->trace("");
 
 			if(it == end)
@@ -103,7 +103,7 @@ namespace core
 			// [a-zA-Z_][a-zA-Z_0-9]*
 			if(util::StringUtils::isCharAlpha(currentChar) || currentChar == '_')
 			{
-				std::string buf;
+				util::string_t buf;
 				buf.reserve(8);
 				buf.push_back(currentChar);
 				while(util::StringUtils::isCharAlnum(*advance()) || *it == '_')
@@ -122,7 +122,7 @@ namespace core
 				(currentChar == '.' && util::StringUtils::isCharDigit(*(it + 1)))
 			)
 			{
-				std::string buf;
+				util::string_t buf;
 				buf.reserve(8);
 				bool isFloatingPoint = (currentChar == '.');
 				bool isHex = false;
@@ -157,7 +157,7 @@ namespace core
 					};
 					auto mod = [&]()
 					{
-						std::string modbuf;
+						util::string_t modbuf;
 						while(util::StringUtils::isCharAlnum(currentChar))
 						{
 							modbuf.push_back(currentChar);
@@ -210,7 +210,7 @@ namespace core
 			// ".+"
 			if(currentChar == '"')
 			{
-				std::string buf = lexStringLiteral();
+				util::string_t buf = lexStringLiteral();
 				if(!getError())
 				{
 					return createToken(TOKEN_LITERAL_STRING, buf);
@@ -222,7 +222,7 @@ namespace core
 			// '.'
 			if(currentChar == '\'')
 			{
-				std::string buf = lexStringLiteral(true);
+				util::string_t buf = lexStringLiteral(true);
 				if(!getError())
 				{
 					return createToken(TOKEN_LITERAL_CHAR, buf);
@@ -232,12 +232,12 @@ namespace core
 			// Operator or punctuator
 			if(util::StringUtils::isCharPunctuation(currentChar))
 			{
-				std::string buf;
+				util::string_t buf;
 				while(util::StringUtils::isCharPunctuation(currentChar))
 				{
 					if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
 					{
-						std::string tmp(buf);
+						util::string_t tmp(buf);
 						tmp.push_back(*it);
 						if(getTokenTypeFromOperator(tmp) == TOKEN_UNDEFINED)
 						{
@@ -318,16 +318,16 @@ namespace core
 			return true;
 		}
 
-		std::string Lexer::lexStringLiteral(bool isChar)
+		util::string_t Lexer::lexStringLiteral(bool isChar)
 		{
-			std::string buf;
+			util::string_t buf;
 			buf.reserve(isChar ? 2 : 8);
-			const char_t quote = (isChar ? '\'' : '"');
+			const util::char_t quote = (isChar ? '\'' : '"');
 			while(advance() != end)
 			{
-				char_t currentChar = *it;
-				char_t prev = peekPrevious();
-				char_t next = peekNext();
+				util::char_t currentChar = *it;
+				util::char_t prev = peekPrevious();
+				util::char_t next = peekNext();
 				util::logger->trace("Current character: '{}', prev: '{}', next: '{}'", std::to_string(currentChar), prev, next);
 
 				// Current char is a newline
@@ -356,7 +356,7 @@ namespace core
 			}
 
 			util::logger->trace("Buffer before escaping: '{}'", buf);
-			std::string escaped;
+			util::string_t escaped;
 			std::string::const_iterator rit = buf.begin();
 			while(rit != buf.end())
 			{
@@ -391,7 +391,7 @@ namespace core
 						break;
 					case 'x':
 					{
-						std::string hex;
+						util::string_t hex;
 						if(!util::StringUtils::isCharHexDigit(*rit))
 						{
 							lexerWarning("Invalid hexadecimal escape sequence: The first character after an \\x should be a number in hexadecimal, got '{}' instead", *rit);
@@ -409,7 +409,7 @@ namespace core
 					}
 					case 'o':
 					{
-						std::string oct;
+						util::string_t oct;
 						if(!util::StringUtils::isCharOctDigit(*rit))
 						{
 							lexerWarning("Invalid octal escape sequence: The first character after an \\o should be a number in octal, got '{}' instead", *rit);
@@ -462,12 +462,12 @@ namespace core
 			return escaped;
 		}
 
-		Token Lexer::createToken(TokenType type, const std::string &val) const
+		Token Lexer::createToken(TokenType type, const util::string_t &val) const
 		{
 			return Token::create(type, val, currentLocation);
 		}
 
-		TokenType Lexer::getTokenTypeFromWord(const std::string &buf) const
+		TokenType Lexer::getTokenTypeFromWord(const util::string_t &buf) const
 		{
 			// Keywords
 			if(buf == "import")
@@ -654,12 +654,12 @@ namespace core
 			return TOKEN_IDENTIFIER;
 		}
 
-		Token Lexer::getTokenFromWord(const std::string &buf) const
+		Token Lexer::getTokenFromWord(const util::string_t &buf) const
 		{
 			return createToken(getTokenTypeFromWord(buf), buf);
 		}
 
-		TokenType Lexer::getTokenTypeFromOperator(const std::string &buf) const
+		TokenType Lexer::getTokenTypeFromOperator(const util::string_t &buf) const
 		{
 			if(buf == "=")
 			{
@@ -808,7 +808,7 @@ namespace core
 			return TOKEN_UNDEFINED;
 		}
 
-		Token Lexer::getTokenFromOperator(const std::string &buf) const
+		Token Lexer::getTokenFromOperator(const util::string_t &buf) const
 		{
 			return createToken(getTokenTypeFromOperator(buf), buf);
 		}

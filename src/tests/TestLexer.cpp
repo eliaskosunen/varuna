@@ -44,13 +44,16 @@ TEST_CASE("Test lexer")
 		SUBCASE("Comments")
 		{
 			//code = "// Comment\n\t// Comment\n123//Literal\n ";
-			code = R"(
-// Comment
-	// Comment
+			code = R"(// Comment
 123//Literal
 			)";
 			Lexer l(code, TEST_FILE);
 			v = l.run();
+
+			for(const auto &t : v)
+			{
+				util::logger->debug("Token: '{}', {}, {}", t.value, t.typeToString(), t.loc.toString());
+			}
 
 			CHECK(v.size() == 2);
 			REQUIRE(!l.getError());
