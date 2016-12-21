@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "util/String.h"
+
 namespace util
 {
 	/**
@@ -38,10 +40,10 @@ namespace util
 		 * @param needle      String to replace
 		 * @param replacement Replacement string
 		 */
-		inline void replaceAll(std::string &haystack, const std::string &needle, const std::string &replacement)
+		inline void replaceAll(string_t &haystack, const string_t &needle, const string_t &replacement)
 		{
 			size_t start_pos = 0;
-			while((start_pos = haystack.find(needle, start_pos)) != std::string::npos) {
+			while((start_pos = haystack.find(needle, start_pos)) != string_t::npos) {
 				haystack.replace(start_pos, needle.length(), replacement);
 				start_pos += replacement.length(); // Handles case where 'replacement' is a substring of 'needle'
 			}
@@ -54,7 +56,7 @@ namespace util
 		 * @param  replacement Replacement string
 		 * @return             Copy of the final string
 		 */
-		inline std::string replaceAllCopy(std::string haystack, const std::string &needle, const std::string &replacement)
+		inline string_t replaceAllCopy(string_t haystack, const string_t &needle, const string_t &replacement)
 		{
 			replaceAll(haystack, needle, replacement);
 			return haystack;
@@ -64,7 +66,7 @@ namespace util
 		 * Trim off whitespace from the beginning of the string
 		 * @param str String to trim
 		 */
-		inline void ltrim(std::string &str)
+		inline void ltrim(string_t &str)
 		{
 			str.erase(str.begin(),
 				std::find_if(
@@ -80,7 +82,7 @@ namespace util
 		 * Trim off whitespace from the end of the string
 		 * @param str String to trim
 		 */
-		inline void rtrim(std::string &str)
+		inline void rtrim(string_t &str)
 		{
 			str.erase(
 				std::find_if(
@@ -96,7 +98,7 @@ namespace util
 		 * Trim off whitespace from both sides of the string
 		 * @param str String to trim
 		 */
-		inline void trim(std::string &str)
+		inline void trim(string_t &str)
 		{
 			ltrim(str);
 			rtrim(str);
@@ -107,7 +109,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		inline std::string ltrimCopy(std::string str)
+		inline string_t ltrimCopy(string_t str)
 		{
 			ltrim(str);
 			return str;
@@ -118,7 +120,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		inline std::string rtrimCopy(std::string str)
+		inline string_t rtrimCopy(string_t str)
 		{
 			rtrim(str);
 			return str;
@@ -129,7 +131,7 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		inline std::string trimCopy(std::string str)
+		inline string_t trimCopy(string_t str)
 		{
 			trim(str);
 			return str;
@@ -139,9 +141,9 @@ namespace util
 		 * Trim off all consecutive spaces from a string
 		 * @param str String to trim
 		 */
-		inline void trimConsecutiveSpaces(std::string &str)
+		inline void trimConsecutiveSpaces(string_t &str)
 		{
-			std::string::iterator newEnd = std::unique(str.begin(), str.end(), [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); });
+			string_t::iterator newEnd = std::unique(str.begin(), str.end(), [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); });
 			str.erase(newEnd, str.end());
 		}
 
@@ -150,35 +152,33 @@ namespace util
 		 * @param  str String to trim
 		 * @return     Trimmed string
 		 */
-		inline std::string trimConsecutiveSpacesCopy(std::string str)
+		inline string_t trimConsecutiveSpacesCopy(string_t str)
 		{
 			trimConsecutiveSpaces(str);
 			return str;
 		}
 
 		/**
-		 * Convert a C string (const char*) to a C++ string (std::string)
+		 * Convert a C string (const char*) to a C++ string (string_t)
 		 * @param  cstr C string to convert
 		 * @return      Equivalent C++ string
 		 */
-		template <typename CharT>
-		inline std::string cstrToString(const CharT *cstr)
+		inline string_t cstrToString(const char_t *cstr)
 		{
-			std::stringstream ss;
+			stringstream_t ss;
 			ss << cstr;
 			return ss.str();
 		}
 
 		/**
-		 * Convert a C string (const char*) to a C++ string (std::string) with length information
+		 * Convert a C string (const char*) to a C++ string (string_t) with length information
 		 * @param  cstr C string to convert
 		 * @param  len  Length of the C string
 		 * @return      Equivalent C++ string
 		 */
-		template <typename CharT>
-		inline std::string cstrToStringLen(const CharT *cstr, size_t len)
+		inline string_t cstrToStringLen(const char_t *cstr, size_t len)
 		{
-			return std::string(cstr, len);
+			return string_t(cstr, len);
 		}
 
 		/**
@@ -186,10 +186,9 @@ namespace util
 		 * @param  c Char to convert
 		 * @return   Equivalent C++ string
 		 */
-		template <typename CharT>
-		inline std::string charToString(const CharT &c)
+		inline string_t charToString(const char_t &c)
 		{
-			std::stringstream ss;
+			stringstream_t ss;
 			ss << c;
 			return ss.str();
 		}
@@ -201,12 +200,11 @@ namespace util
 		 * @param elems Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		template <typename CharT>
-		inline void split(const std::string &s, CharT delim, std::vector<std::string> &elems)
+		inline void split(const string_t &s, char_t delim, std::vector<string_t> &elems)
 		{
-			std::stringstream ss;
+			stringstream_t ss;
 			ss.str(s);
-			std::string item;
+			string_t item;
 			while (std::getline(ss, item, delim)) {
 				elems.push_back(item);
 			}
@@ -219,46 +217,39 @@ namespace util
 		 * @return       Element vector
 		 * @author Evan Teran: http://stackoverflow.com/questions/236129/split-a-string-in-c
 		 */
-		template <typename CharT>
-		inline std::vector<std::string> split(const std::string &s, CharT delim)
+		inline std::vector<string_t> split(const string_t &s, char_t delim)
 		{
-			std::vector<std::string> elems;
+			std::vector<string_t> elems;
 			split(s, delim, elems);
 			return elems;
 		}
 
-		template <typename CharT>
-		inline bool isCharAlpha(CharT c)
+		inline bool isCharAlpha(char_t c)
 		{
 			return std::isalpha(c) != 0;
 		}
 
-		template <typename CharT>
-		inline bool isCharAlnum(CharT c)
+		inline bool isCharAlnum(char_t c)
 		{
 			return std::isalnum(c) != 0;
 		}
 
-		template <typename CharT>
-		inline bool isCharDigit(CharT c)
+		inline bool isCharDigit(char_t c)
 		{
 			return std::isdigit(c) != 0;
 		}
 
-		template <typename CharT>
-		inline bool isCharHexDigit(CharT c)
+		inline bool isCharHexDigit(char_t c)
 		{
 			return std::isxdigit(c) != 0;
 		}
 
-		template <typename CharT>
-		inline bool isCharOctDigit(CharT c)
+		inline bool isCharOctDigit(char_t c)
 		{
 			return (c >= '0' && c <= '7');
 		}
 
-		template <typename CharT>
-		inline bool isCharPunctuation(CharT c)
+		inline bool isCharPunctuation(char_t c)
 		{
 			return std::ispunct(c) != 0;
 		}
@@ -268,14 +259,12 @@ namespace util
 		 * @param  c Char to check
 		 * @return   true = whitespace
 		 */
- 		template <typename CharT>
-		inline bool isCharWhitespace(CharT c)
+		inline bool isCharWhitespace(char_t c)
 		{
 			return std::isspace(c) != 0;
 		}
 
-		template <typename CharT>
-		inline bool isCharControlCharacter(CharT c)
+		inline bool isCharControlCharacter(char_t c)
 		{
 			return std::iscntrl(c) != 0;
 		}

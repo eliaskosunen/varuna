@@ -100,7 +100,7 @@ namespace util
 
 		bool operator ==(const Enum_t &b) const
 		{
-			return flags == b;
+			return flags == static_cast<Underlying_t>(b);
 		}
 		bool operator !=(const Enum_t &b) const
 		{

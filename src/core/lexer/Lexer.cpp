@@ -66,7 +66,27 @@ namespace core
 				return createToken(TOKEN_EOF, "EOF");
 			}
 			currentChar = *it;
-
+/*
+			if(currentChar == '\0')
+			{
+				while(true)
+				{
+					currentChar = *advance();
+					if(it == end)
+					{
+						return createToken(TOKEN_EOF, "EOF");
+					}
+					else if(currentChar == '\0')
+					{
+						continue;
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+*/
 			// Invalid character
 			if(util::StringUtils::isCharControlCharacter(currentChar) && !util::StringUtils::isCharWhitespace(currentChar))
 			{

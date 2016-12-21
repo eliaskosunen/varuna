@@ -62,7 +62,7 @@ namespace core
 
 			llvm::Value *getDummyValue() const
 			{
-				static llvm::Constant *ret = llvm::Constant::getNullValue(findType("Int32"));
+				static llvm::Constant *ret = llvm::Constant::getNullValue(findType("int32"));
 				return ret;
 			}
 

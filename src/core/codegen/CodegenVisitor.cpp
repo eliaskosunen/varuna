@@ -33,22 +33,23 @@ namespace core
 			: context{c}, builder(context), module(m),
 			variables{}, globalVariables{}, functionProtos{}, types{}
 		{
-			types.insert({ "Void", {llvm::Type::getVoidTy(context)} });
-			types.insert({ "Integer", {llvm::Type::getInt32Ty(context)} });
-			types.insert({ "Int8", {llvm::Type::getInt8Ty(context)} });
-			types.insert({ "Int16", {llvm::Type::getInt16Ty(context)} });
-			types.insert({ "Int32", {llvm::Type::getInt32Ty(context)} });
-			types.insert({ "Int64", {llvm::Type::getInt64Ty(context)} });
-			types.insert({ "Float", {llvm::Type::getFloatTy(context)} });
-			types.insert({ "Double", {llvm::Type::getDoubleTy(context)} });
-			types.insert({ "Bool", {llvm::Type::getInt1Ty(context)} });
-			types.insert({ "Char", {llvm::Type::getInt8Ty(context)} });
+			types.insert({ "void", {llvm::Type::getVoidTy(context)} });
+			types.insert({ "int", {llvm::Type::getInt32Ty(context)} });
+			types.insert({ "int8", {llvm::Type::getInt8Ty(context)} });
+			types.insert({ "int16", {llvm::Type::getInt16Ty(context)} });
+			types.insert({ "int32", {llvm::Type::getInt32Ty(context)} });
+			types.insert({ "int64", {llvm::Type::getInt64Ty(context)} });
+			types.insert({ "float", {llvm::Type::getFloatTy(context)} });
+			types.insert({ "fp32", {llvm::Type::getFloatTy(context)} });
+			types.insert({ "fp64", {llvm::Type::getDoubleTy(context)} });
+			types.insert({ "bool", {llvm::Type::getInt1Ty(context)} });
+			types.insert({ "char", {llvm::Type::getInt8Ty(context)} });
 
-			types.insert({ "String",
+			types.insert({ "string",
 				{ llvm::StructType::create(context, {
 					llvm::Type::getInt64Ty(context),
 					llvm::Type::getInt8PtrTy(context)
-				}, "String", true) }
+				}, "string", true) }
 			});
 		}
 
@@ -465,20 +466,20 @@ namespace core
 				return codegenError("Unable to cast String literal to ConstantDataArray");
 			}
 
-			auto type = llvm::dyn_cast<llvm::StructType>(findType("String"));
+			auto type = llvm::dyn_cast<llvm::StructType>(findType("tring"));
 			return llvm::ConstantStruct::get(type,
 			{
-				llvm::ConstantInt::get(findType("Int64"), literal->getNumElements()),
+				llvm::ConstantInt::get(findType("int64"), literal->getNumElements()),
 				val
 			});
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("Char"), expr->value);
+			return llvm::ConstantInt::get(findType("char"), expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("Bool"), expr->value);
+			return llvm::ConstantInt::get(findType("bool"), expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
 		{
@@ -587,7 +588,7 @@ namespace core
 			switch(expr->oper.get())
 			{
 			case lexer::TOKEN_OPERATORU_PLUS:
-				return builder.CreateIntCast(operand, findType("Int32"), true, "casttmp");
+				return builder.CreateIntCast(operand, findType("int32"), true, "casttmp");
 			case lexer::TOKEN_OPERATORU_MINUS:
 				if(operandType->isIntegerTy())
 				{

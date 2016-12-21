@@ -1,7 +1,7 @@
 // code.va
 module main;
 
-def main(): Void
+def main(): void
 {
-	String åäö = "aaa";
+	int i = 0;
 }

@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "core/codegen/Codegen.h"
+#include "core/codegen/GrammarCheckerVisitor.h"
 
 #include "llvm/Support/TargetSelect.h"
 
@@ -47,6 +48,11 @@ namespace core
 
 		bool Codegen::prepare()
 		{
+			{
+				auto ref = std::make_unique<GrammarCheckerVisitor>();
+				ref->run<ast::ASTBlockStatement*>(ast->globalNode.get());
+			}
+
 			if(!llvm::InitializeNativeTarget())
 			{
 				util::logger->debug("LLVM native target init failed");

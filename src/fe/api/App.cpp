@@ -54,7 +54,7 @@ namespace fe
 				}
 
 				util::logger->debug("Starting lexer");
-				core::lexer::Lexer l(f->content, file);
+				core::lexer::Lexer l(std::move(f->content), file);
 				auto tokens = l.run();
 				if(l.getError())
 				{

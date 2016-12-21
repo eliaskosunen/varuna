@@ -26,6 +26,7 @@ TEST_CASE("Test lexer")
 
 	TokenVector v;
 	std::string code;
+
 	SUBCASE("General")
 	{
 		SUBCASE("Whitespace skipping")
@@ -42,19 +43,25 @@ TEST_CASE("Test lexer")
 
 		SUBCASE("Comments")
 		{
-			code = "// Comment\n\t// Comment\n123//Literal";
+			//code = "// Comment\n\t// Comment\n123//Literal\n ";
+			code = R"(
+// Comment
+	// Comment
+123//Literal
+			)";
 			Lexer l(code, TEST_FILE);
 			v = l.run();
+
 			CHECK(v.size() == 2);
 			REQUIRE(!l.getError());
 
 			REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
 		}
+
 	}
 
 	SUBCASE("Literals")
 	{
-
 		SUBCASE("Integer literals")
 		{
 			code = "123 9999999i32 8i8 5i16 10i64 1001b 60o 0xff 0xdead";

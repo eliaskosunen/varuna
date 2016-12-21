@@ -38,6 +38,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTForStatement : public ASTStatement
@@ -53,6 +54,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTForeachStatement : public ASTStatement
@@ -68,6 +70,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTWhileStatement : public ASTStatement
@@ -83,6 +86,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTImportStatement : public ASTStatement
@@ -105,6 +109,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTModuleStatement : public ASTStatement
@@ -118,6 +123,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

@@ -21,6 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "util/SafeEnum.h"
 
+#include "llvm/IR/Value.h"
+#include "llvm/IR/Type.h"
+
 namespace core
 {
 	namespace ast

@@ -374,8 +374,9 @@ namespace core
 				return parserError("Invalid variable definition: expected typename or 'var', got '{}' instead", it->value);
 			}
 			std::string typen = it->value;
-			bool typeDetermined = it->type == TOKEN_IDENTIFIER; // Whether or not the type will have to
-																// be determined by the type of the init expression
+			// Whether or not the type will have to
+			// be determined by the type of the init expression
+			bool typeDetermined = it->type == TOKEN_IDENTIFIER;
 			++it; // Skip typename/'var'
 
 			// Check if it's an array
@@ -702,7 +703,7 @@ namespace core
 				}();
 
 				int64_t val = std::stoll(lit->value, nullptr, base);
-				std::string type = "Int" + std::to_string(size);
+				std::string type = "int" + std::to_string(size);
 				if(size == 8)
 				{
 					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
@@ -749,9 +750,9 @@ namespace core
 				{
 					if(lit->modifierFloat.isSet(FLOAT_FLOAT))
 					{
-						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "Float");
+						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "fp32");
 					}
-					return std::make_tuple<double, std::string>(std::stod(lit->value), "Double");
+					return std::make_tuple<double, std::string>(std::stod(lit->value), "fp64");
 				}();
 				return std::make_unique<ASTFloatLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 			}

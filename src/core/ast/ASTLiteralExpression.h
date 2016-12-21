@@ -63,7 +63,7 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> type;
 
 			ASTStringLiteralExpression(const std::string &val)
-				: ASTExpression(STRING_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("String")) {}
+				: ASTExpression(STRING_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("string")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
@@ -77,7 +77,7 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> type;
 
 			ASTCharLiteralExpression(char32_t val)
-				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Char")) {}
+				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("char")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
@@ -91,7 +91,7 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> type;
 
 			ASTBoolLiteralExpression(bool val)
-				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("Bool")) {}
+				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("bool")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
@@ -104,7 +104,7 @@ namespace core
 			std::unique_ptr<ASTIdentifierExpression> type;
 
 			ASTNoneLiteralExpression()
-				: ASTExpression(NONE_LITERAL_EXPR), type(std::make_unique<ASTIdentifierExpression>("None")) {}
+				: ASTExpression(NONE_LITERAL_EXPR), type(std::make_unique<ASTIdentifierExpression>("none_t")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Constant *accept(codegen::CodegenVisitor *v) override;

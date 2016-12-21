@@ -24,13 +24,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/lexer/Token.h"
 #include "util/Logger.h"
+#include "util/IteratorUtils.h"
 
 namespace core
 {
 	namespace lexer
 	{
 		using TokenVector = std::vector<core::lexer::Token>;
-		using char_t = int64_t;
+		using char_t = unsigned char;
 
 		enum ErrorLevel
 		{
@@ -41,10 +42,10 @@ namespace core
 
 		class Lexer final
 		{
-			const std::string &content;
+			std::string content;
 			using ContentIterator = std::string::const_iterator;
 			ContentIterator it;
-			const ContentIterator end;
+			ContentIterator end;
 
 			SourceLocation currentLocation;
 
@@ -94,7 +95,13 @@ namespace core
 
 			char_t _next()
 			{
-				return static_cast<char_t>(utf8::next(it, end));
+				auto tmp = static_cast<char_t>(utf8::next(it, end));
+				//std::string tmpstr("\0");
+				// <3 STL iterators
+				// plz ranges come fast
+				//auto tmpit = std::find_end(content.rbegin(), content.rend(), tmpstr.begin(), tmpstr.end());
+				//end = util::ritToFwdIt(tmpit);
+				return tmp;
 			}
 			ContentIterator &advance()
 			{
@@ -137,7 +144,7 @@ namespace core
 			char_t peekPrevious() const
 			{
 				auto copy = it;
-				return utf8::prior(copy, content.begin());
+				return static_cast<char_t>(utf8::prior(copy, content.begin()));
 			}
 			char_t peekPassed(std::ptrdiff_t n) const
 			{
@@ -152,9 +159,14 @@ namespace core
 		public:
 			bool warningsAsErrors;
 
-			Lexer(const std::string &cont, const std::string &file = "(undefined)")
-				: content(cont), it(content.begin()), end(content.end()),
-				currentLocation(file, 1), error(ERROR_NONE), warningsAsErrors(false) {}
+			Lexer(std::string cont, const std::string &file = "(undefined)")
+				: content(std::move(cont)), it(content.begin()), end(content.end()),
+				currentLocation(file, 1), error(ERROR_NONE), warningsAsErrors(false)
+			{
+				const size_t endPadding = 4;
+				//content.resize(content.size() + endPadding, 0);
+				//end -= (endPadding - 1);
+			}
 
 			Lexer(const Lexer&) = delete;
 			Lexer(Lexer&&) = default;

@@ -68,6 +68,7 @@ namespace core
 	namespace codegen
 	{
 		class CodegenVisitor;
+		class GrammarCheckerVisitor;
 	} // namespace codegen
 } // namespace core
 

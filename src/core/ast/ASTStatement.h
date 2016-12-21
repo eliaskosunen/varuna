@@ -37,6 +37,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			virtual void accept(codegen::GrammarCheckerVisitor *v);
 
 			ASTStatement() : ASTNode(STMT) {}
 			ASTStatement(const ASTStatement&) = delete;
@@ -54,6 +55,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -74,6 +76,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -87,6 +90,7 @@ namespace core
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core
