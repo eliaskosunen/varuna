@@ -58,6 +58,9 @@ namespace core
 			void visit(ASTCallExpression *node, ASTNode *parent);
 			void visit(ASTCastExpression *node, ASTNode *parent);
 			void visit(ASTVariableDefinitionExpression *node, ASTNode *parent);
+			void visit(ASTSubscriptExpression *node, ASTNode *parent);
+			void visit(ASTSubscriptRangedExpression *node, ASTNode *parent);
+			void visit(ASTMemberAccessExpression *node, ASTNode *parent);
 
 			void visit(ASTFunctionParameter *node, ASTNode *parent);
 			void visit(ASTFunctionPrototypeStatement *node, ASTNode *parent);

@@ -92,6 +92,18 @@ namespace core
 		{
 			v->visit(this, ind);
 		}
+		void ASTSubscriptExpression::accept(DumpASTVisitor *v, size_t ind)
+		{
+			v->visit(this, ind);
+		}
+		void ASTSubscriptRangedExpression::accept(DumpASTVisitor *v, size_t ind)
+		{
+			v->visit(this, ind);
+		}
+		void ASTMemberAccessExpression::accept(DumpASTVisitor *v, size_t ind)
+		{
+			v->visit(this, ind);
+		}
 
 		void ASTFunctionParameter::accept(DumpASTVisitor *v, size_t ind)
 		{
@@ -276,6 +288,26 @@ namespace core
 			log(ind + 1, "ArraySize: {}", node->arraySize);
 			log(ind + 1, "InitExpression:");
 			node->init->accept(this, ind + 2);
+		}
+		void DumpASTVisitor::visit(ASTSubscriptExpression *node, size_t ind)
+		{
+			log(ind, "ASTSubscriptExpression:");
+			log(ind + 1, "LHS:");
+			node->lhs->accept(this, ind + 2);
+			log(ind + 1, "Index:");
+			node->index->accept(this, ind + 2);
+		}
+		void DumpASTVisitor::visit(ASTSubscriptRangedExpression*, size_t ind)
+		{
+			log(ind, "ASTSubscriptRangedExpression");
+		}
+		void DumpASTVisitor::visit(ASTMemberAccessExpression *node, size_t ind)
+		{
+			log(ind, "ASTMemberAccessExpression:");
+			log(ind + 1, "LHS:");
+			node->lhs->accept(this, ind + 2);
+			log(ind + 1, "RHS:");
+			node->rhs->accept(this, ind + 2);
 		}
 
 		void DumpASTVisitor::visit(ASTFunctionParameter *node, size_t ind)

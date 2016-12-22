@@ -61,6 +61,9 @@ namespace core
 			void visit(ast::ASTCallExpression *node);
 			void visit(ast::ASTCastExpression *node);
 			void visit(ast::ASTVariableDefinitionExpression *node);
+			void visit(ast::ASTSubscriptExpression *node);
+			void visit(ast::ASTSubscriptRangedExpression *node);
+			void visit(ast::ASTMemberAccessExpression *node);
 
 			void visit(ast::ASTFunctionParameter *node) = delete;
 			void visit(ast::ASTFunctionPrototypeStatement *node);

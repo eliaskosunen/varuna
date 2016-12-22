@@ -83,6 +83,18 @@ void core::ast::ASTVariableDefinitionExpression::accept(core::codegen::GrammarCh
 {
 	return v->visit(this);
 }
+void core::ast::ASTSubscriptExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTSubscriptRangedExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
+void core::ast::ASTMemberAccessExpression::accept(core::codegen::GrammarCheckerVisitor *v)
+{
+	return v->visit(this);
+}
 
 void core::ast::ASTFunctionPrototypeStatement::accept(core::codegen::GrammarCheckerVisitor *v)
 {

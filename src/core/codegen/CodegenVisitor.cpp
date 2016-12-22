@@ -67,6 +67,8 @@ namespace core
 				}
 			}
 
+			stripInstructionsAfterTerminators();
+
 			#if USE_LLVM_MODULE_VERIFY
 			util::logger->trace("Verifying module");
 			if(!llvm::verifyModule(*module))
@@ -80,6 +82,34 @@ namespace core
 			#endif
 
 			return true;
+		}
+
+		void CodegenVisitor::stripInstructionsAfterTerminators()
+		{
+			for(auto &func : *module)
+			{
+				for(auto &bb : func)
+				{
+					bool termFound = false;
+					for(auto inst = bb.begin(); inst != bb.end(); )
+					{
+						if(!termFound && inst->isTerminator())
+						{
+							termFound = true;
+							++inst;
+							continue;
+						}
+						if(termFound)
+						{
+							inst = inst->eraseFromParent();
+						}
+						else
+						{
+							++inst;
+						}
+					}
+				}
+			}
 		}
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTExpression *node)
@@ -267,7 +297,10 @@ namespace core
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression *expr)
 		{
-			llvm::Function *callee = findFunction(expr->callee->value);
+			//auto calleeExpr = expr->callee->accept(this);
+			//auto calleeName = calleeExpr->getName().str();
+			auto calleeName = static_cast<ast::ASTIdentifierExpression*>(expr->callee.get())->value;
+			llvm::Function *callee = findFunction(calleeName);
 			if(!callee)
 			{
 				return nullptr;
@@ -275,7 +308,7 @@ namespace core
 
 			if(callee->arg_size() != expr->params.size())
 			{
-				return codegenError("{} expects {} arguments, {} provided", expr->callee->value, callee->arg_size(), expr->params.size());
+				return codegenError("{} expects {} arguments, {} provided", calleeName, callee->arg_size(), expr->params.size());
 			}
 
 			std::vector<llvm::Value*> args;
@@ -349,7 +382,24 @@ namespace core
 			llvm::Value *initVal = nullptr;
 			if(init->nodeType == ast::ASTNode::EMPTY_EXPR)
 			{
+				codegenWarning("Uninitialized variable: {}", expr->name->value);
 				initVal = llvm::UndefValue::get(type);
+				/*initVal = [type]() -> llvm::Value*
+				{
+					if(type->isIntegerTy())
+					{
+						return llvm::ConstantInt::get(type, 0, false);
+					}
+					else if(type->isFloatingPointTy())
+					{
+						return llvm::ConstantFP::get(type, 0.0);
+					}
+					else if(type->isPointerTy())
+					{
+						return llvm::ConstantPointerNull::get(llvm::cast<llvm::PointerType>(type));
+					}
+					return llvm::UndefValue::get(type);
+				}();*/
 			}
 			else
 			{
@@ -368,6 +418,21 @@ namespace core
 			variables.insert({expr->name->value, var});
 
 			return initVal;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTSubscriptExpression *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTSubscriptRangedExpression *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
+		}
+		llvm::Value *CodegenVisitor::visit(ast::ASTMemberAccessExpression *node)
+		{
+			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
+			return nullptr;
 		}
 
 		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter *node)

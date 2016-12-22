@@ -39,7 +39,7 @@ namespace util
 			std::string filename, content;
 			Checksum_t checksum;
 
-			File(std::string filename_)
+			explicit File(std::string filename_)
 				: filename(std::move(filename_)), checksum(0) {}
 
 			bool readFile()

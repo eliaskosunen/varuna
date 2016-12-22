@@ -83,6 +83,18 @@ llvm::Value *core::ast::ASTVariableDefinitionExpression::accept(core::codegen::C
 {
 	return v->visit(this);
 }
+llvm::Value *core::ast::ASTSubscriptExpression::accept(core::codegen::CodegenVisitor *v)
+{
+	return v->visit(this);
+}
+llvm::Value *core::ast::ASTSubscriptRangedExpression::accept(core::codegen::CodegenVisitor *v)
+{
+	return v->visit(this);
+}
+llvm::Value *core::ast::ASTMemberAccessExpression::accept(core::codegen::CodegenVisitor *v)
+{
+	return v->visit(this);
+}
 
 llvm::Value *core::ast::ASTFunctionParameter::accept(core::codegen::CodegenVisitor *v)
 {

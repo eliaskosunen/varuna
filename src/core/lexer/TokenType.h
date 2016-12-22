@@ -78,6 +78,7 @@ namespace core
 			TOKEN_OPERATORA_DIV,	// /=
 			TOKEN_OPERATORA_MOD,	// %=
 			TOKEN_OPERATORA_POW,	// ^=
+			TOKEN_OPERATORA_MOVE,	// <-
 
 			TOKEN_OPERATORB_ADD = 500,// a + b
 			TOKEN_OPERATORB_SUB,	// a - b
@@ -98,7 +99,6 @@ namespace core
 			TOKEN_OPERATORB_GREATEQ,// a >= b
 
 			TOKEN_OPERATORB_MEMBER,	// a.b
-			//TOKEN_OPERATORB_ACCESS,	// a[b]
 
 			TOKEN_OPERATORB_OF,		// List of String
 			TOKEN_OPERATORB_AS,		// foreach(list as String elem)
@@ -106,6 +106,8 @@ namespace core
 
 			TOKEN_OPERATORU_INC = 600,// a++
 			TOKEN_OPERATORU_DEC,	// a--
+
+			TOKEN_OPERATORU_REF,	// &a
 
 			TOKEN_OPERATORU_PLUS,
 			TOKEN_OPERATORU_MINUS,

@@ -91,6 +91,18 @@ namespace core
 		{
 			node->parent = parent;
 		}
+		void ASTParentSolverVisitor::visit(ASTSubscriptExpression *node, ASTNode *parent)
+		{
+			node->parent = parent;
+		}
+		void ASTParentSolverVisitor::visit(ASTSubscriptRangedExpression *node, ASTNode *parent)
+		{
+			node->parent = parent;
+		}
+		void ASTParentSolverVisitor::visit(ASTMemberAccessExpression *node, ASTNode *parent)
+		{
+			node->parent = parent;
+		}
 
 		void ASTParentSolverVisitor::visit(ASTFunctionParameter *node, ASTNode *parent)
 		{
@@ -221,6 +233,18 @@ void core::ast::ASTCastExpression::accept(core::ast::ASTParentSolverVisitor *v, 
 	return v->visit(this, p);
 }
 void core::ast::ASTVariableDefinitionExpression::accept(core::ast::ASTParentSolverVisitor *v, core::ast::ASTNode *p)
+{
+	return v->visit(this, p);
+}
+void core::ast::ASTSubscriptExpression::accept(core::ast::ASTParentSolverVisitor *v, core::ast::ASTNode *p)
+{
+	return v->visit(this, p);
+}
+void core::ast::ASTSubscriptRangedExpression::accept(core::ast::ASTParentSolverVisitor *v, core::ast::ASTNode *p)
+{
+	return v->visit(this, p);
+}
+void core::ast::ASTMemberAccessExpression::accept(core::ast::ASTParentSolverVisitor *v, core::ast::ASTNode *p)
 {
 	return v->visit(this, p);
 }

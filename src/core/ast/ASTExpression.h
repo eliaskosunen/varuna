@@ -63,9 +63,8 @@ namespace core
 			ASTIdentifierExpression(NodeType t, std::string val) : ASTExpression(t), value(std::move(val)) {}
 
 		public:
-			std::string value {"__undef"};
+			std::string value;
 
-			ASTIdentifierExpression() : ASTExpression(IDENTIFIER_EXPR) {}
 			ASTIdentifierExpression(std::string val) : ASTExpression(IDENTIFIER_EXPR), value(std::move(val)) {}
 			ASTIdentifierExpression(const ASTIdentifierExpression&) = delete;
 			ASTIdentifierExpression &operator = (const ASTIdentifierExpression&) = delete;
@@ -94,10 +93,10 @@ namespace core
 		class ASTCallExpression : public ASTExpression
 		{
 		public:
-			std::unique_ptr<ASTIdentifierExpression> callee;
+			std::unique_ptr<ASTExpression> callee;
 			std::vector<std::unique_ptr<ASTExpression>> params;
 
-			ASTCallExpression(std::unique_ptr<ASTIdentifierExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
+			ASTCallExpression(std::unique_ptr<ASTExpression> _callee, std::vector<std::unique_ptr<ASTExpression>> _params)
 				: ASTExpression(CALL_EXPR), callee(std::move(_callee)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
@@ -131,6 +130,54 @@ namespace core
 			ASTVariableDefinitionExpression(std::unique_ptr<ASTIdentifierExpression> _type, std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTExpression> _init = nullptr, uint32_t arrSize = 0)
 				: ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(_type)), name(std::move(_name)),
 					init(std::move(_init)), arraySize(arrSize) {}
+
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
+		};
+
+		class ASTSubscriptExpression : public ASTExpression
+		{
+		protected:
+			ASTSubscriptExpression(NodeType t, std::unique_ptr<ASTExpression> lhs_, std::unique_ptr<ASTExpression> index_)
+				: ASTExpression(t), lhs(std::move(lhs_)), index(std::move(index_)) {}
+
+		public:
+			std::unique_ptr<ASTExpression> lhs;
+			std::unique_ptr<ASTExpression> index;
+
+			ASTSubscriptExpression(std::unique_ptr<ASTExpression> lhs_, std::unique_ptr<ASTExpression> index_)
+				: ASTExpression(SUBSCRIPT_EXPR), lhs(std::move(lhs_)), index(std::move(index_)) {}
+
+			ASTSubscriptExpression(const ASTSubscriptExpression&) = delete;
+			ASTSubscriptExpression(ASTSubscriptExpression&&) = default;
+			ASTSubscriptExpression &operator =(const ASTSubscriptExpression&) = delete;
+			ASTSubscriptExpression &operator =(ASTSubscriptExpression&&) = default;
+			virtual ~ASTSubscriptExpression() = default;
+
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
+		};
+
+		class ASTSubscriptRangedExpression : public ASTSubscriptExpression
+		{
+		public:
+			void accept(DumpASTVisitor *v, size_t ind = 0) override;
+			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
+			void accept(codegen::GrammarCheckerVisitor *v) override;
+		};
+
+		class ASTMemberAccessExpression : public ASTExpression
+		{
+		public:
+			std::unique_ptr<ASTExpression> lhs, rhs;
+
+			ASTMemberAccessExpression(std::unique_ptr<ASTExpression> l, std::unique_ptr<ASTExpression> r)
+				: ASTExpression(MEMBER_ACCESS_EXPR), lhs(std::move(l)), rhs(std::move(r)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
 			llvm::Value *accept(codegen::CodegenVisitor *v) override;

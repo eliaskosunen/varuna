@@ -546,28 +546,26 @@ namespace core
 				return parseVariableDefinition();
 			}
 
-			// Member variable/function
+			auto id = std::make_unique<ASTIdentifierExpression>(idName);
+
+			// Member access
 			if(it->type == TOKEN_OPERATORB_MEMBER)
 			{
-				while(true)
-				{
-					if(it->type == TOKEN_EOF)
-					{
-						return parserError("Invalid member access operand: '{}'", it->value);
-					}
-					if(it->type != TOKEN_OPERATORB_MEMBER)
-					{
-						break;
-					}
-					idName += it->value;
-					++it; // Skip '.'
-					if(it->type != TOKEN_IDENTIFIER)
-					{
-						return parserError("Invalid member access operand: Expected identifier, got '{}' instead", it->value);
-					}
-					idName += it->value;
-					++it; // Skip identifier
-				}
+				++it; // Skip '.'
+				auto rhs = parseExpression();
+				return std::make_unique<ASTMemberAccessExpression>(std::move(id), std::move(rhs));
+			}
+
+			// Subscript
+			if(it->type == TOKEN_PUNCT_SQR_OPEN)
+			{
+				return parseSubscriptExpression(std::move(id));
+			}
+
+			// Function call
+			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
+			{
+				return parseFunctionCallExpression(std::move(id));
 			}
 
 			auto parseAssignment = [&]() -> std::unique_ptr<ASTExpression>
@@ -575,12 +573,6 @@ namespace core
 				++it; // Skip assignment operator
 				return parseExpression();
 			};
-
-			// Function call
-			if(it->type == TOKEN_PUNCT_PAREN_OPEN)
-			{
-				return parseFunctionCallExpression(idName);
-			}
 
 			auto varref = std::make_unique<ASTVariableRefExpression>(idName);
 			std::unique_ptr<ASTAssignmentOperationExpression> assignment = nullptr;
@@ -601,7 +593,7 @@ namespace core
 			return std::move(assignment);
 		}
 
-		std::unique_ptr<ast::ASTCallExpression> Parser::parseFunctionCallExpression(const std::string &idName)
+		std::unique_ptr<ast::ASTCallExpression> Parser::parseFunctionCallExpression(std::unique_ptr<ASTExpression> lhs)
 		{
 			++it; // Skip '('
 			std::vector<std::unique_ptr<ASTExpression>> args;
@@ -633,8 +625,25 @@ namespace core
 			}
 
 			++it; // Skip ')'
-			auto id = std::make_unique<ASTIdentifierExpression>(idName);
-			return std::make_unique<ASTCallExpression>(std::move(id), std::move(args));
+			return std::make_unique<ASTCallExpression>(std::move(lhs), std::move(args));
+		}
+
+		std::unique_ptr<ASTSubscriptExpression> Parser::parseSubscriptExpression(std::unique_ptr<ASTExpression> lhs)
+		{
+			++it; // Skip '['
+			auto subscr = parseExpression();
+			if(!subscr)
+			{
+				return nullptr;
+			}
+
+			if(it->type != TOKEN_PUNCT_SQR_CLOSE)
+			{
+				return parserError("Invalid subscript expression: Expected ']' after expression, got '{}' instead", it->value);
+			}
+			++it; // Skip ']'
+
+			return std::make_unique<ASTSubscriptExpression>(std::move(lhs), std::move(subscr));
 		}
 
 		std::unique_ptr<ASTCastExpression> Parser::parseCastExpression()
@@ -879,10 +888,10 @@ namespace core
 					}
 
 					++it; // Skip ')'
-					bool ok = false;
 					--parenCount;
 					if(parenCount >= 0)
 					{
+						bool ok = false;
 						while(!operators.empty())
 						{
 							if(operators.top() == TOKEN_PUNCT_PAREN_OPEN)

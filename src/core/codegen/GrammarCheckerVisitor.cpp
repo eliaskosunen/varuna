@@ -87,6 +87,18 @@ namespace core
 		{
 
 		}
+		void GrammarCheckerVisitor::visit(ast::ASTSubscriptExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTSubscriptRangedExpression*)
+		{
+
+		}
+		void GrammarCheckerVisitor::visit(ast::ASTMemberAccessExpression*)
+		{
+
+		}
 
 		void GrammarCheckerVisitor::visit(ast::ASTFunctionPrototypeStatement*)
 		{

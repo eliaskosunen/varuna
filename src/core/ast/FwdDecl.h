@@ -39,8 +39,11 @@ namespace core
 		class ASTIdentifierExpression;
 		class ASTVariableRefExpression;
 		class ASTIntegerLiteralExpression;
+		class ASTMemberAccessExpression;
 		class ASTNoneLiteralExpression;
 		class ASTStringLiteralExpression;
+		class ASTSubscriptExpression;
+		class ASTSubscriptRangedExpression;
 		class ASTUnaryOperationExpression;
 		class ASTVariableDefinitionExpression;
 

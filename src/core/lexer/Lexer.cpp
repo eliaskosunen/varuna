@@ -470,190 +470,55 @@ namespace core
 		TokenType Lexer::getTokenTypeFromWord(const util::string_t &buf) const
 		{
 			// Keywords
-			if(buf == "import")
-			{
-				return TOKEN_KEYWORD_IMPORT;
-			}
-			if(buf == "def")
-			{
-				return TOKEN_KEYWORD_DEFINE;
-			}
-			if(buf == "decl")
-			{
-				return TOKEN_KEYWORD_DECLARE;
-			}
-			if(buf == "class")
-			{
-				return TOKEN_KEYWORD_CLASS;
-			}
-			if(buf == "override")
-			{
-				return TOKEN_KEYWORD_OVERRIDE;
-			}
-			if(buf == "final")
-			{
-				return TOKEN_KEYWORD_FINAL;
-			}
-			if(buf == "extend")
-			{
-				return TOKEN_KEYWORD_EXTEND;
-			}
-			if(buf == "abstract")
-			{
-				return TOKEN_KEYWORD_ABSTRACT;
-			}
-			if(buf == "implement")
-			{
-				return TOKEN_KEYWORD_IMPLEMENT;
-			}
-			if(buf == "interface")
-			{
-				return TOKEN_KEYWORD_INTERFACE;
-			}
-			if(buf == "public")
-			{
-				return TOKEN_KEYWORD_PUBLIC;
-			}
-			if(buf == "protected")
-			{
-				return TOKEN_KEYWORD_PROTECTED;
-			}
-			if(buf == "private")
-			{
-				return TOKEN_KEYWORD_PRIVATE;
-			}
-			if(buf == "if")
-			{
-				return TOKEN_KEYWORD_IF;
-			}
-			if(buf == "else")
-			{
-				return TOKEN_KEYWORD_ELSE;
-			}
-			if(buf == "while")
-			{
-				return TOKEN_KEYWORD_WHILE;
-			}
-			if(buf == "for")
-			{
-				return TOKEN_KEYWORD_FOR;
-			}
-			if(buf == "foreach")
-			{
-				return TOKEN_KEYWORD_FOREACH;
-			}
-			if(buf == "switch")
-			{
-				return TOKEN_KEYWORD_SWITCH;
-			}
-			if(buf == "case")
-			{
-				return TOKEN_KEYWORD_CASE;
-			}
-			if(buf == "break")
-			{
-				return TOKEN_KEYWORD_BREAK;
-			}
-			if(buf == "return")
-			{
-				return TOKEN_KEYWORD_RETURN;
-			}
-			if(buf == "continue")
-			{
-				return TOKEN_KEYWORD_CONTINUE;
-			}
-			if(buf == "module")
-			{
-				return TOKEN_KEYWORD_MODULE;
-			}
-			if(buf == "package")
-			{
-				return TOKEN_KEYWORD_PACKAGE;
-			}
-			if(buf == "extern")
-			{
-				return TOKEN_KEYWORD_EXTERN;
-			}
-			if(buf == "readonly")
-			{
-				return TOKEN_KEYWORD_READONLY;
-			}
-			if(buf == "view")
-			{
-				return TOKEN_KEYWORD_VIEW;
-			}
-			if(buf == "ref")
-			{
-				return TOKEN_KEYWORD_REF;
-			}
-			if(buf == "var")
-			{
-				return TOKEN_KEYWORD_VAR;
-			}
-			if(buf == "let")
-			{
-				return TOKEN_KEYWORD_LET;
-			}
-			if(buf == "cast")
-			{
-				return TOKEN_KEYWORD_CAST;
-			}
+			if(buf == "import")		return TOKEN_KEYWORD_IMPORT;
+			if(buf == "def")		return TOKEN_KEYWORD_DEFINE;
+			if(buf == "decl")		return TOKEN_KEYWORD_DECLARE;
+			if(buf == "class")		return TOKEN_KEYWORD_CLASS;
+			if(buf == "override")	return TOKEN_KEYWORD_OVERRIDE;
+			if(buf == "final")		return TOKEN_KEYWORD_FINAL;
+			if(buf == "extend")		return TOKEN_KEYWORD_EXTEND;
+			if(buf == "abstract")	return TOKEN_KEYWORD_ABSTRACT;
+			if(buf == "implement")	return TOKEN_KEYWORD_IMPLEMENT;
+			if(buf == "interface")	return TOKEN_KEYWORD_INTERFACE;
+			if(buf == "public")		return TOKEN_KEYWORD_PUBLIC;
+			if(buf == "protected")	return TOKEN_KEYWORD_PROTECTED;
+			if(buf == "private")	return TOKEN_KEYWORD_PRIVATE;
+			if(buf == "if")			return TOKEN_KEYWORD_IF;
+			if(buf == "else")		return TOKEN_KEYWORD_ELSE;
+			if(buf == "while")		return TOKEN_KEYWORD_WHILE;
+			if(buf == "for")		return TOKEN_KEYWORD_FOR;
+			if(buf == "foreach")	return TOKEN_KEYWORD_FOREACH;
+			if(buf == "switch")		return TOKEN_KEYWORD_SWITCH;
+			if(buf == "case")		return TOKEN_KEYWORD_CASE;
+			if(buf == "break")		return TOKEN_KEYWORD_BREAK;
+			if(buf == "return")		return TOKEN_KEYWORD_RETURN;
+			if(buf == "continue")	return TOKEN_KEYWORD_CONTINUE;
+			if(buf == "module")		return TOKEN_KEYWORD_MODULE;
+			if(buf == "package")	return TOKEN_KEYWORD_PACKAGE;
+			if(buf == "extern")		return TOKEN_KEYWORD_EXTERN;
+			if(buf == "readonly")	return TOKEN_KEYWORD_READONLY;
+			if(buf == "view")		return TOKEN_KEYWORD_VIEW;
+			if(buf == "ref")		return TOKEN_KEYWORD_REF;
+			if(buf == "var")		return TOKEN_KEYWORD_VAR;
+			if(buf == "let")		return TOKEN_KEYWORD_LET;
+			if(buf == "cast")		return TOKEN_KEYWORD_CAST;
 
 			// Literals
-			if(buf == "true")
-			{
-				return TOKEN_LITERAL_TRUE;
-			}
-			if(buf == "false")
-			{
-				return TOKEN_LITERAL_FALSE;
-			}
-			if(buf == "none")
-			{
-				return TOKEN_LITERAL_NONE;
-			}
+			if(buf == "true")		return TOKEN_LITERAL_TRUE;
+			if(buf == "false")		return TOKEN_LITERAL_FALSE;
+			if(buf == "none")		return TOKEN_LITERAL_NONE;
 
 			// Textual operators
-			if(buf == "and")
-			{
-				return TOKEN_OPERATORB_AND;
-			}
-			if(buf == "or")
-			{
-				return TOKEN_OPERATORB_OR;
-			}
-			if(buf == "not")
-			{
-				return TOKEN_OPERATORU_NOT;
-			}
-			if(buf == "of")
-			{
-				return TOKEN_OPERATORB_OF;
-			}
-			if(buf == "as")
-			{
-				return TOKEN_OPERATORB_AS;
-			}
-			if(buf == "rem")
-			{
-				return TOKEN_OPERATORB_REM;
-			}
-			if(buf == "instanceof")
-			{
-				return TOKEN_OPERATORB_INSTOF;
-			}
-			if(buf == "sizeof")
-			{
-				return TOKEN_OPERATORU_SIZEOF;
-			}
-			if(buf == "typeof")
-			{
-				return TOKEN_OPERATORU_TYPEOF;
-			}
-			if(buf == "addressof")
-			{
-				return TOKEN_OPERATORU_ADDROF;
-			}
+			if(buf == "and")		return TOKEN_OPERATORB_AND;
+			if(buf == "or")			return TOKEN_OPERATORB_OR;
+			if(buf == "not")		return TOKEN_OPERATORU_NOT;
+			if(buf == "of")			return TOKEN_OPERATORB_OF;
+			if(buf == "as")			return TOKEN_OPERATORB_AS;
+			if(buf == "rem")		return TOKEN_OPERATORB_REM;
+			if(buf == "instanceof")	return TOKEN_OPERATORB_INSTOF;
+			if(buf == "sizeof")		return TOKEN_OPERATORU_SIZEOF;
+			if(buf == "typeof")		return TOKEN_OPERATORU_TYPEOF;
+			if(buf == "addressof")	return TOKEN_OPERATORU_ADDROF;
 
 			return TOKEN_IDENTIFIER;
 		}
@@ -665,149 +530,50 @@ namespace core
 
 		TokenType Lexer::getTokenTypeFromOperator(const util::string_t &buf) const
 		{
-			if(buf == "=")
-			{
-				return TOKEN_OPERATORA_SIMPLE;
-			}
-			if(buf == "+=")
-			{
-				return TOKEN_OPERATORA_ADD;
-			}
-			if(buf == "-=")
-			{
-				return TOKEN_OPERATORA_SUB;
-			}
-			if(buf == "*=")
-			{
-				return TOKEN_OPERATORA_MUL;
-			}
-			if(buf == "/=")
-			{
-				return TOKEN_OPERATORA_DIV;
-			}
-			if(buf == "%=")
-			{
-				return TOKEN_OPERATORA_MOD;
-			}
-			if(buf == "^=")
-			{
-				return TOKEN_OPERATORA_POW;
-			}
+			if(buf == "=")		return TOKEN_OPERATORA_SIMPLE;
+			if(buf == "+=")		return TOKEN_OPERATORA_ADD;
+			if(buf == "-=")		return TOKEN_OPERATORA_SUB;
+			if(buf == "*=")		return TOKEN_OPERATORA_MUL;
+			if(buf == "/=")		return TOKEN_OPERATORA_DIV;
+			if(buf == "%=")		return TOKEN_OPERATORA_MOD;
+			if(buf == "^=")		return TOKEN_OPERATORA_POW;
+			if(buf == "<-")		return TOKEN_OPERATORA_MOVE;
 
-			if(buf == "+")
-			{
-				return TOKEN_OPERATORB_ADD;
-			}
-			if(buf == "-")
-			{
-				return TOKEN_OPERATORB_SUB;
-			}
-			if(buf == "*")
-			{
-				return TOKEN_OPERATORB_MUL;
-			}
-			if(buf == "/")
-			{
-				return TOKEN_OPERATORB_DIV;
-			}
-			if(buf == "%")
-			{
-				return TOKEN_OPERATORB_MOD;
-			}
-			if(buf == "^")
-			{
-				return TOKEN_OPERATORB_POW;
-			}
+			if(buf == "+")		return TOKEN_OPERATORB_ADD;
+			if(buf == "-")		return TOKEN_OPERATORB_SUB;
+			if(buf == "*")		return TOKEN_OPERATORB_MUL;
+			if(buf == "/")		return TOKEN_OPERATORB_DIV;
+			if(buf == "%")		return TOKEN_OPERATORB_MOD;
+			if(buf == "^")		return TOKEN_OPERATORB_POW;
 
-			if(buf == "&&")
-			{
-				return TOKEN_OPERATORB_AND;
-			}
-			if(buf == "||")
-			{
-				return TOKEN_OPERATORB_OR;
-			}
+			if(buf == "&&")		return TOKEN_OPERATORB_AND;
+			if(buf == "||")		return TOKEN_OPERATORB_OR;
 
-			if(buf == "==")
-			{
-				return TOKEN_OPERATORB_EQ;
-			}
-			if(buf == "!=")
-			{
-				return TOKEN_OPERATORB_NOTEQ;
-			}
-			if(buf == "<")
-			{
-				return TOKEN_OPERATORB_LESS;
-			}
-			if(buf == ">")
-			{
-				return TOKEN_OPERATORB_GREATER;
-			}
-			if(buf == "<=")
-			{
-				return TOKEN_OPERATORB_LESSEQ;
-			}
-			if(buf == ">=")
-			{
-				return TOKEN_OPERATORB_GREATEQ;
-			}
+			if(buf == "==")		return TOKEN_OPERATORB_EQ;
+			if(buf == "!=")		return TOKEN_OPERATORB_NOTEQ;
+			if(buf == "<")		return TOKEN_OPERATORB_LESS;
+			if(buf == ">")		return TOKEN_OPERATORB_GREATER;
+			if(buf == "<=")		return TOKEN_OPERATORB_LESSEQ;
+			if(buf == ">=")		return TOKEN_OPERATORB_GREATEQ;
 
-			if(buf == ".")
-			{
-				return TOKEN_OPERATORB_MEMBER;
-			}
+			if(buf == ".")		return TOKEN_OPERATORB_MEMBER;
 
-			if(buf == "++")
-			{
-				return TOKEN_OPERATORU_INC;
-			}
-			if(buf == "--")
-			{
-				return TOKEN_OPERATORU_DEC;
-			}
+			if(buf == "++")		return TOKEN_OPERATORU_INC;
+			if(buf == "--")		return TOKEN_OPERATORU_DEC;
 
-			if(buf == "!")
-			{
-				return TOKEN_OPERATORU_NOT;
-			}
+			if(buf == "&")		return TOKEN_OPERATORU_REF;
 
-			if(buf == "(")
-			{
-				return TOKEN_PUNCT_PAREN_OPEN;
-			}
-			if(buf == ")")
-			{
-				return TOKEN_PUNCT_PAREN_CLOSE;
-			}
-			if(buf == "{")
-			{
-				return TOKEN_PUNCT_BRACE_OPEN;
-			}
-			if(buf == "}")
-			{
-				return TOKEN_PUNCT_BRACE_CLOSE;
-			}
-			if(buf == "[")
-			{
-				return TOKEN_PUNCT_SQR_OPEN;
-			}
-			if(buf == "]")
-			{
-				return TOKEN_PUNCT_SQR_CLOSE;
-			}
-			if(buf == ":")
-			{
-				return TOKEN_PUNCT_COLON;
-			}
-			if(buf == ";")
-			{
-				return TOKEN_PUNCT_SEMICOLON;
-			}
-			if(buf == ",")
-			{
-				return TOKEN_PUNCT_COMMA;
-			}
+			if(buf == "!")		return TOKEN_OPERATORU_NOT;
+
+			if(buf == "(")		return TOKEN_PUNCT_PAREN_OPEN;
+			if(buf == ")")		return TOKEN_PUNCT_PAREN_CLOSE;
+			if(buf == "{")		return TOKEN_PUNCT_BRACE_OPEN;
+			if(buf == "}")		return TOKEN_PUNCT_BRACE_CLOSE;
+			if(buf == "[")		return TOKEN_PUNCT_SQR_OPEN;
+			if(buf == "]")		return TOKEN_PUNCT_SQR_CLOSE;
+			if(buf == ":")		return TOKEN_PUNCT_COLON;
+			if(buf == ";")		return TOKEN_PUNCT_SEMICOLON;
+			if(buf == ",")		return TOKEN_PUNCT_COMMA;
 
 			return TOKEN_UNDEFINED;
 		}

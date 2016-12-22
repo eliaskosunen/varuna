@@ -118,6 +118,9 @@ namespace core
 			void visit(ASTCallExpression *node, size_t ind = 0);
 			void visit(ASTCastExpression *node, size_t ind = 0);
 			void visit(ASTVariableDefinitionExpression *node, size_t ind = 0);
+			void visit(ASTSubscriptExpression *node, size_t ind = 0);
+			void visit(ASTSubscriptRangedExpression *node, size_t ind = 0);
+			void visit(ASTMemberAccessExpression *node, size_t ind = 0);
 
 			void visit(ASTFunctionParameter *node, size_t ind = 0);
 			void visit(ASTFunctionPrototypeStatement *node, size_t ind = 0);

@@ -106,10 +106,17 @@ namespace core
 				return codegenError("Undefined function: '{}'", name);
 			}
 
+			std::string createFunctionName(llvm::Value*)
+			{
+				return {};
+			}
+
 			void dumpModule() const
 			{
 				module->dump();
 			}
+
+			void stripInstructionsAfterTerminators();
 
 			llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *func, const Variable &var)
 			{
@@ -134,6 +141,9 @@ namespace core
 			llvm::Value *visit(ast::ASTCallExpression *expr);
 			llvm::Value *visit(ast::ASTCastExpression *node);
 			llvm::Value *visit(ast::ASTVariableDefinitionExpression *expr);
+			llvm::Value *visit(ast::ASTSubscriptExpression *node);
+			llvm::Value *visit(ast::ASTSubscriptRangedExpression *node);
+			llvm::Value *visit(ast::ASTMemberAccessExpression *node);
 
 			llvm::Value *visit(ast::ASTFunctionParameter *node);
 			llvm::Function *visit(ast::ASTFunctionPrototypeStatement *stmt);

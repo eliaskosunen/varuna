@@ -39,7 +39,7 @@ namespace core
 		class Parser final
 		{
 		public:
-			Parser(const core::lexer::TokenVector &tok);
+			explicit Parser(const core::lexer::TokenVector &tok);
 
 			Parser(const Parser&) = delete;
 			Parser(Parser&&) = default;
@@ -143,7 +143,8 @@ namespace core
 			std::unique_ptr<ast::ASTNoneLiteralExpression> parseNoneLiteralExpression();
 
 			std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-			std::unique_ptr<ast::ASTCallExpression> parseFunctionCallExpression(const std::string &idName);
+			std::unique_ptr<ast::ASTCallExpression> parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
+			std::unique_ptr<ast::ASTSubscriptExpression> parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
 			std::unique_ptr<ast::ASTCastExpression> parseCastExpression();
 			std::unique_ptr<ast::ASTExpression> parsePrimary(bool tolerateUnrecognized = false);
 			std::unique_ptr<ast::ASTExpression> parseExpression();

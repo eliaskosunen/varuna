@@ -42,7 +42,7 @@ namespace fe
 				LOG_SILENT = spdlog::level::critical
 			};
 
-			Application(size_t threads = 1)
+			explicit Application(size_t threads = 1)
 				: pool(std::make_unique<util::ThreadPool>(threads)), fileCache(std::make_unique<util::FileCache>()) {}
 			Application(const Application&) = delete;
 			Application(Application&&) = delete;
