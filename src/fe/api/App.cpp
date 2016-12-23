@@ -42,7 +42,7 @@ namespace fe
 
 		std::future<bool> Application::runFile(const std::string &file)
 		{
-			return pool->push([&](int dummy)
+			return pool->push([&](int)
 			{
 				util::logger->info("Running file: '{}'", file);
 
@@ -79,7 +79,8 @@ namespace fe
 				core::ast::DumpASTVisitor::dump<core::ast::ASTBlockStatement>(ast->globalNode.get());
 
 				util::logger->debug("Starting code generation");
-				core::codegen::Codegen codegen(std::move(ast));
+				core::codegen::CodegenInfo cinfo { ast->file, 2, 0 };
+				core::codegen::Codegen codegen(std::move(ast), std::move(cinfo));
 				if(!codegen.run())
 				{
 					util::logger->debug("Code generation failed");

@@ -22,11 +22,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/AST.h"
 #include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
+#include "core/codegen/CodegenInfo.h"
 #include "util/Logger.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
 
@@ -39,30 +41,52 @@ namespace core
 {
 	namespace codegen
 	{
+		struct Type
+		{
+			llvm::Type *type;
+			llvm::DIType *dtype;
+			std::string name;
+
+			Type(llvm::Type *t, llvm::DIType *d, const std::string &n)
+				: type(t), dtype(d), name(n) {}
+		};
+
 		struct Variable
 		{
 			llvm::Value *value;
-			llvm::Type *type;
+			Type *type;
 			const std::string &name;
 		};
 
 		class CodegenVisitor : public ast::Visitor
 		{
 			llvm::LLVMContext &context;
-			llvm::IRBuilder<> builder;
 			llvm::Module *module;
+			const CodegenInfo &info;
+			llvm::IRBuilder<> builder;
+
+			std::unique_ptr<llvm::DIBuilder> dbuilder;
+			llvm::DICompileUnit *dcu;
+			std::vector<llvm::DIScope*> dBlocks;
+
 			std::unordered_map<std::string, Variable> variables;
 			std::unordered_map<std::string, Variable> globalVariables;
 			std::unordered_map<std::string, std::unique_ptr<ast::ASTFunctionPrototypeStatement>> functionProtos;
-			std::unordered_map<std::string, llvm::Type*> types;
+			std::unordered_map<std::string, std::unique_ptr<Type>> types;
+
+			std::array<std::unique_ptr<Type>, 11> _buildTypeArray();
+			std::unordered_map<std::string, std::unique_ptr<Type>> _createTypeMap();
+
+			void emitDebugLocation(ast::ASTNode *node);
+
 		public:
-			CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m);
+			CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m, const CodegenInfo &i);
 
 			bool codegen(ast::AST *ast);
 
 			llvm::Value *getDummyValue() const
 			{
-				static llvm::Constant *ret = llvm::Constant::getNullValue(findType("int32"));
+				static llvm::Constant *ret = llvm::Constant::getNullValue(findType("int32")->type);
 				return ret;
 			}
 
@@ -79,14 +103,26 @@ namespace core
 				util::logger->warn(format.c_str(), args...);
 			}
 
-			llvm::Type *findType(const std::string &name) const
+			Type *findType(const std::string &name) const
 			{
 				auto type = types.find(name);
 				if(type == types.end())
 				{
 					return codegenError("Undefined typename: '{}'", name);
 				}
-				return type->second;
+				return type->second.get();
+			}
+
+			Type *findType(llvm::Type *type) const
+			{
+				for(const auto &t : types)
+				{
+					if(t.second->type == type)
+					{
+						return t.second.get();
+					}
+				}
+				return nullptr;
 			}
 
 			llvm::Function *findFunction(const std::string &name)
@@ -118,10 +154,10 @@ namespace core
 
 			void stripInstructionsAfterTerminators();
 
-			llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *func, const Variable &var)
+			llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *func, llvm::Type *type, const std::string &name)
 			{
 				llvm::IRBuilder<> tmp(&func->getEntryBlock(), func->getEntryBlock().begin());
-				return tmp.CreateAlloca(var.type, nullptr, var.name.c_str());
+				return tmp.CreateAlloca(type, nullptr, name.c_str());
 			}
 
 			llvm::Value *visit(ast::ASTNode *node) = delete;

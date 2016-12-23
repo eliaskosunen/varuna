@@ -24,24 +24,106 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "core/ast/ASTLiteralExpression.h"
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
+#include "util/ProgramInfo.h"
 
 namespace core
 {
 	namespace codegen
 	{
-		CodegenVisitor::CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m)
-			: context{c}, builder(context), module(m),
-			variables{}, globalVariables{}, functionProtos{}, types{}
+		std::array<std::unique_ptr<Type>, 11> CodegenVisitor::_buildTypeArray()
 		{
-			types.insert({ "void", {llvm::Type::getVoidTy(context)} });
+			auto makeType = [](const std::string &name, llvm::Type *type, llvm::DIType *dtype)
+			{
+				return std::make_unique<Type>(type, dtype, name);
+			};
+
+			std::array<std::unique_ptr<Type>, 11> arr = {{
+				makeType(
+					"void", llvm::Type::getVoidTy(context), nullptr
+				),
+				makeType(
+					"int", llvm::Type::getInt32Ty(context),
+					dbuilder->createBasicType("int", 32, 32, llvm::dwarf::DW_ATE_signed)
+				),
+				makeType(
+					"int8", llvm::Type::getInt8Ty(context),
+					dbuilder->createBasicType("int8", 8, 8, llvm::dwarf::DW_ATE_signed)
+				),
+				makeType(
+					"int16", llvm::Type::getInt16Ty(context),
+					dbuilder->createBasicType("int16", 16, 16, llvm::dwarf::DW_ATE_signed)
+				),
+				makeType(
+					"int32", llvm::Type::getInt32Ty(context),
+					dbuilder->createBasicType("int32", 32, 32, llvm::dwarf::DW_ATE_signed)
+				),
+				makeType(
+					"int64", llvm::Type::getInt64Ty(context),
+					dbuilder->createBasicType("int64", 64, 64, llvm::dwarf::DW_ATE_signed)
+				),
+				makeType(
+					"bool", llvm::Type::getInt1Ty(context),
+					dbuilder->createBasicType("bool", 1, 1, llvm::dwarf::DW_ATE_boolean)
+				),
+
+				makeType(
+					"float", llvm::Type::getFloatTy(context),
+					dbuilder->createBasicType("float", 32, 32, llvm::dwarf::DW_ATE_float)
+				),
+				makeType(
+					"f32", llvm::Type::getFloatTy(context),
+					dbuilder->createBasicType("f32", 32, 32, llvm::dwarf::DW_ATE_float)
+				),
+				makeType(
+					"f64", llvm::Type::getDoubleTy(context),
+					dbuilder->createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float)
+				),
+
+				makeType(
+					"char", llvm::Type::getInt32Ty(context),
+					dbuilder->createBasicType("char", 32, 32, llvm::dwarf::DW_ATE_unsigned_char)
+				)
+			}};
+
+			return arr;
+		}
+
+		std::unordered_map<std::string, std::unique_ptr<Type>> CodegenVisitor::_createTypeMap()
+		{
+			auto arr = _buildTypeArray();
+			std::unordered_map<std::string, std::unique_ptr<Type>> ret;
+
+			for(auto &i : arr)
+			{
+				ret.insert(
+					std::make_pair(
+						i->name, std::move(i)
+					)
+				);
+			}
+			return ret;
+		}
+
+		CodegenVisitor::CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m, const CodegenInfo &i)
+			: context{c}, module(m), info{i}, builder(context),
+			dbuilder(std::make_unique<llvm::DIBuilder>(*m)), dcu{nullptr}, dBlocks{},
+			variables{}, globalVariables{}, functionProtos{}, types{_createTypeMap()}
+		{
+			dcu = dbuilder->createCompileUnit(
+				llvm::dwarf::DW_LANG_C, info.filename, ".",
+				util::programinfo::getIdentifier(),
+				info.optEnabled(), "", 0
+			);
+
+			/*types.insert({ "void", {llvm::Type::getVoidTy(context)} });
 			types.insert({ "int", {llvm::Type::getInt32Ty(context)} });
 			types.insert({ "int8", {llvm::Type::getInt8Ty(context)} });
 			types.insert({ "int16", {llvm::Type::getInt16Ty(context)} });
 			types.insert({ "int32", {llvm::Type::getInt32Ty(context)} });
 			types.insert({ "int64", {llvm::Type::getInt64Ty(context)} });
 			types.insert({ "float", {llvm::Type::getFloatTy(context)} });
-			types.insert({ "fp32", {llvm::Type::getFloatTy(context)} });
-			types.insert({ "fp64", {llvm::Type::getDoubleTy(context)} });
+			types.insert({ "f32", {llvm::Type::getFloatTy(context)} });
+			types.insert({ "f64", {llvm::Type::getDoubleTy(context)} });
 			types.insert({ "bool", {llvm::Type::getInt1Ty(context)} });
 			types.insert({ "char", {llvm::Type::getInt8Ty(context)} });
 
@@ -50,7 +132,7 @@ namespace core
 					llvm::Type::getInt64Ty(context),
 					llvm::Type::getInt8PtrTy(context)
 				}, "string", true) }
-			});
+			});*/
 		}
 
 		bool CodegenVisitor::codegen(ast::AST *ast)
@@ -68,6 +150,8 @@ namespace core
 			}
 
 			stripInstructionsAfterTerminators();
+
+			dbuilder->finalize();
 
 			#if USE_LLVM_MODULE_VERIFY
 			util::logger->trace("Verifying module");
@@ -293,7 +377,7 @@ namespace core
 					return codegenError("Undefined variable: '{}'", expr->value);
 				}
 			}
-			return builder.CreateLoad(var->second.type, var->second.value, expr->value.c_str());
+			return builder.CreateLoad(var->second.type->type, var->second.value, expr->value.c_str());
 		}
 		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression *expr)
 		{
@@ -331,11 +415,12 @@ namespace core
 				return nullptr;
 			}
 
-			llvm::Type *type = findType(node->type->value);
-			if(!type)
+			auto t = findType(node->type->value);
+			if(!t)
 			{
 				return nullptr;
 			}
+			llvm::Type *type = t->type;
 
 			return [&]() -> llvm::Value*
 			{
@@ -372,11 +457,12 @@ namespace core
 		{
 			llvm::Function *func = builder.GetInsertBlock()->getParent();
 
-			llvm::Type *type = findType(expr->type->value);
-			if(!type)
+			auto t = findType(expr->type->value);
+			if(!t)
 			{
 				return nullptr;
 			}
+			llvm::Type *type = t->type;
 			auto init = expr->init.get();
 
 			llvm::Value *initVal = nullptr;
@@ -410,11 +496,10 @@ namespace core
 				return nullptr;
 			}
 
-			Variable var = { nullptr, type, expr->name->value };
-			auto alloca = createEntryBlockAlloca(func, var);
+			auto alloca = createEntryBlockAlloca(func, type, expr->name->value);
 			builder.CreateStore(initVal, alloca);
 
-			var.value = alloca;
+			Variable var { alloca, findType(type), expr->name->value };
 			variables.insert({expr->name->value, var});
 
 			return initVal;
@@ -446,19 +531,20 @@ namespace core
 			args.reserve(stmt->params.size());
 			for(const auto &arg : stmt->params)
 			{
-				auto type = findType(arg->var->type->value);
-				if(!type)
+				auto t = findType(arg->var->type->value);
+				if(!t)
 				{
 					return nullptr;
 				}
-				args.push_back(type);
+				args.push_back(t->type);
 			}
 
-			auto retType = findType(stmt->returnType->value);
-			if(!retType)
+			auto rt = findType(stmt->returnType->value);
+			if(!rt)
 			{
 				return nullptr;
 			}
+			auto retType = rt->type;
 			llvm::FunctionType *ft = llvm::FunctionType::get(retType, args, false);
 
 			llvm::Function *f = llvm::Function::Create(ft, llvm::Function::ExternalLinkage, stmt->name->value, module);
@@ -488,9 +574,10 @@ namespace core
 			variables.clear();
 			for(auto &arg : func->args())
 			{
-				auto alloca = createEntryBlockAlloca(func, Variable{ nullptr, arg.getType(), arg.getName() });
+				auto alloca = createEntryBlockAlloca(func, arg.getType(), arg.getName());
 				builder.CreateStore(&arg, alloca);
-				variables.insert({ arg.getName(), Variable{ alloca, arg.getType(), arg.getName() } });
+				auto t = findType(arg.getType());
+				variables.insert({ arg.getName(), Variable{ alloca, t, arg.getName() } });
 			}
 
 			if(!stmt->body->accept(this))
@@ -568,11 +655,11 @@ namespace core
 
 		llvm::Constant *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::getSigned(findType(expr->type->value), expr->value);
+			return llvm::ConstantInt::getSigned(findType(expr->type->value)->type, expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
 		{
-			return llvm::ConstantFP::get(findType(expr->type->value), expr->value);
+			return llvm::ConstantFP::get(findType(expr->type->value)->type, expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
@@ -588,20 +675,25 @@ namespace core
 				return codegenError("Unable to cast String literal to ConstantDataArray");
 			}
 
-			auto type = llvm::dyn_cast<llvm::StructType>(findType("string"));
+			auto t = findType("string");
+			if(!t)
+			{
+				return nullptr;
+			}
+			auto type = llvm::dyn_cast<llvm::StructType>(t->type);
 			return llvm::ConstantStruct::get(type,
 			{
-				llvm::ConstantInt::get(findType("int64"), literal->getNumElements()),
+				llvm::ConstantInt::get(findType("int64")->type, literal->getNumElements()),
 				val
 			});
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("char"), expr->value);
+			return llvm::ConstantInt::get(findType("char")->type, expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("bool"), expr->value);
+			return llvm::ConstantInt::get(findType("bool")->type, expr->value);
 		}
 		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
 		{
@@ -710,7 +802,7 @@ namespace core
 			switch(expr->oper.get())
 			{
 			case lexer::TOKEN_OPERATORU_PLUS:
-				return builder.CreateIntCast(operand, findType("int32"), true, "casttmp");
+				return builder.CreateIntCast(operand, findType("int32")->type, true, "casttmp");
 			case lexer::TOKEN_OPERATORU_MINUS:
 				if(operandType->isIntegerTy())
 				{

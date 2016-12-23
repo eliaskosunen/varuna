@@ -105,27 +105,31 @@ TEST_CASE("Test lexer")
 		}
 		SUBCASE("Float literals")
 		{
-			code = "3.1415926535 12.34f 39.99d";
+			code = "3.1415926535 12.34f32 42.0f64 39.99d";
 			Lexer l(code, TEST_FILE);
 			v = l.run();
-			CHECK(v.size() == 4);
+			CHECK(v.size() == 5);
 			REQUIRE(!l.getError());
 
-			for(unsigned int i = 0; i <= 2; ++i)
+			for(unsigned int i = 0; i <= 3; ++i)
 			{
 				REQUIRE(v[i].type == TOKEN_LITERAL_FLOAT);
 			}
 
 			REQUIRE(v[0].value == "3.1415926535");
-			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_FLOAT));
+			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_F32));
 			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
-			REQUIRE(v[0].modifierFloat.isSet(FLOAT_DOUBLE));
+			REQUIRE(v[0].modifierFloat.isSet(FLOAT_FLOAT));
+			REQUIRE(v[0].modifierFloat.isSet(FLOAT_F64));
 
 			REQUIRE(v[1].value == "12.34");
-			REQUIRE(v[1].modifierFloat.isSet(FLOAT_FLOAT));
+			REQUIRE(v[1].modifierFloat.isSet(FLOAT_F32));
 
-			REQUIRE(v[2].value == "39.99");
-			REQUIRE(v[2].modifierFloat.isSet(FLOAT_DECIMAL));
+			REQUIRE(v[2].value == "42.0");
+			REQUIRE(v[2].modifierFloat.isSet(FLOAT_F64));
+
+			REQUIRE(v[3].value == "39.99");
+			REQUIRE(v[3].modifierFloat.isSet(FLOAT_DECIMAL));
 		}
 		SUBCASE("String literals")
 		{

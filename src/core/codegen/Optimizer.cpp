@@ -31,9 +31,10 @@ namespace core
 {
 	namespace codegen
 	{
-		Optimizer::Optimizer(llvm::Module *m, uint8_t opt, uint8_t size)
-			: module(m), fpm(std::make_unique<llvm::legacy::FunctionPassManager>(m)), mpm{std::make_unique<llvm::legacy::PassManager>()},
-			optLevel(opt), sizeLevel(size) {}
+		Optimizer::Optimizer(llvm::Module *m, const CodegenInfo &i)
+			: module(m), info(i),
+			fpm(std::make_unique<llvm::legacy::FunctionPassManager>(m)), mpm{std::make_unique<llvm::legacy::PassManager>()},
+			optLevel(info.optLevel), sizeLevel(info.sizeLevel) {}
 
 		Optimizer::~Optimizer()
 		{

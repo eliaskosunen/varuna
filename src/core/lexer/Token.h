@@ -44,11 +44,12 @@ namespace core
 
 		enum TokenFloatLiteralModifier_t
 		{
-			FLOAT_DOUBLE	= 1,	// No suffix
-			FLOAT_FLOAT		= 2,	// f
+			FLOAT_F64		= 1,	// f64 or none
+			FLOAT_F32		= 2,	// f32
 			FLOAT_DECIMAL	= 4,	// d
 
-			FLOAT_NONE		= FLOAT_DOUBLE
+			FLOAT_NONE		= FLOAT_F64,
+			FLOAT_FLOAT		= FLOAT_F64
 		};
 
 		using TokenIntegerLiteralModifier = util::SafeEnum<TokenIntegerLiteralModifier_t>;

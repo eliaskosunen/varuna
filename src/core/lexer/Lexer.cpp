@@ -184,20 +184,32 @@ namespace core
 				}
 
 				Token t = createToken(TOKEN_LITERAL_FLOAT, buf);
-				while(util::StringUtils::isCharAlpha(currentChar))
+				std::unordered_map<std::string, decltype(FLOAT_FLOAT)> allowedModifiers =
 				{
-					switch(currentChar)
+					{ "f32", FLOAT_F32 },
+					{ "f64", FLOAT_F64 },
+					{ "d", FLOAT_DECIMAL },
+				};
+				auto mod = [&]()
+				{
+					util::string_t modbuf;
+					while(util::StringUtils::isCharAlnum(currentChar))
 					{
-					case 'f':
-						t.modifierFloat |= FLOAT_FLOAT;
-						break;
-					case 'd':
-						t.modifierFloat |= FLOAT_DECIMAL;
-						break;
-					default:
-						lexerError("Invalid float literal suffix: '{}'", currentChar);
+						modbuf.push_back(currentChar);
+						auto modit = allowedModifiers.find(modbuf);
+						if(modit != allowedModifiers.end())
+						{
+							t.modifierFloat |= modit->second;
+							allowedModifiers.erase(modit);
+							modbuf.clear();
+						}
+						currentChar = *advance();
 					}
-					currentChar = *advance();
+					return modbuf;
+				}();
+				if(!mod.empty())
+				{
+					lexerError("Invalid float suffix: '{}'", mod);
 				}
 				if(isHex)
 				{

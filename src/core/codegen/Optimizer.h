@@ -29,6 +29,8 @@ namespace llvm
 	}
 }
 
+#include "core/codegen/CodegenInfo.h"
+
 #include <memory>
 
 namespace core
@@ -38,6 +40,7 @@ namespace core
 		class Optimizer
 		{
 			llvm::Module *module;
+			const CodegenInfo &info;
 			std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
 			std::unique_ptr<llvm::legacy::PassManager> mpm;
 			uint8_t optLevel;
@@ -48,7 +51,7 @@ namespace core
 			void addLinkPasses();
 
 		public:
-			Optimizer(llvm::Module *m, uint8_t opt = 0, uint8_t size = 0);
+			Optimizer(llvm::Module *m, const CodegenInfo &i);
 			~Optimizer();
 
 			Optimizer(const Optimizer&) = delete;

@@ -24,10 +24,10 @@ namespace core
 {
 	namespace codegen
 	{
-		Codegen::Codegen(std::unique_ptr<ast::AST> a)
-			: ast(std::move(a)), context{}, module(std::make_unique<llvm::Module>("Varuna", context)),
-			codegen(std::make_unique<CodegenVisitor>(context, module.get())),
-			optimizer(std::make_unique<Optimizer>(module.get(), 2, 0)) {}
+		Codegen::Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i)
+			: ast(std::move(a)), info(std::move(i)), context{}, module(std::make_unique<llvm::Module>("Varuna", context)),
+			codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
+			optimizer(std::make_unique<Optimizer>(module.get(), i)) {}
 
 		bool Codegen::run()
 		{

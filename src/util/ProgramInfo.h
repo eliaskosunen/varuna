@@ -42,20 +42,30 @@ namespace util
 			constexpr Status status	= DEV;
 			constexpr uint8_t rc	= 0;
 
-			inline std::string toString()
+			inline const std::string &toString()
 			{
-				switch(status)
+				static const std::string str = [&]()
 				{
-				case DEV:
-					return fmt::format("{}.{}.{}-dev", major, minor, patch);
-				case RC:
-					return fmt::format("{}.{}.{}-rc{}", major, minor, patch, rc);
-				case STABLE:
-					return fmt::format("{}.{}.{}", major, minor, patch);
-				}
+					switch(status)
+					{
+					case DEV:
+						return fmt::format("{}.{}.{}-dev", major, minor, patch);
+					case RC:
+						return fmt::format("{}.{}.{}-rc{}", major, minor, patch, rc);
+					case STABLE:
+						return fmt::format("{}.{}.{}", major, minor, patch);
+					}
+				}();
+				return str;
 			}
 		}
 
 		constexpr const char *name = "Varuna";
+
+		inline const std::string &getIdentifier()
+		{
+			static const std::string str = fmt::format("{} (version {})", name, version::toString());
+			return str;
+		}
 	} // namespace programinfo
 } // namespace util

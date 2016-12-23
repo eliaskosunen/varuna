@@ -803,11 +803,11 @@ namespace core
 				std::string type;
 				std::tie(val, type) = [&]()
 				{
-					if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+					if(lit->modifierFloat.isSet(FLOAT_F32))
 					{
-						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "fp32");
+						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "f32");
 					}
-					return std::make_tuple<double, std::string>(std::stod(lit->value), "fp64");
+					return std::make_tuple<double, std::string>(std::stod(lit->value), "f64");
 				}();
 				return std::make_unique<ASTFloatLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 			}
