@@ -41,8 +41,7 @@ namespace fe
 			bool setLoggingLevel(api::Application *app, const std::string &level);
 
 		public:
-			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version::toString()) {}
+			CLI(int argc_, char **argv_);
 
 			int run();
 		};

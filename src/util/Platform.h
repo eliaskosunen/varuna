@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP_STD_11		201103L
 #define CPP_STD_14		201402L
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 
 	#if _MSC_VER >= 1900
 		#define CPP_STD_IS_11 0
@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		#error Error determining C++ Standard version
 	#endif
 
-#endif // defined(_MSC_VER)
+#endif // _MSC_VER
 
 #if CPP_STD_IS11
 	#error C++ Standard version not supported
@@ -49,3 +49,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define VALUE_TO_STRING(x) #x
 #define VALUE(x) VALUE_TO_STRING(x)
+
+#if (defined(DEBUG) || defined(_DEBUG)) && !defined(NDEBUG) && !defined(_NDEBUG)
+	#define VARUNA_DEBUG 1
+#else
+	#define VARUNA_RELEASE 1
+#endif

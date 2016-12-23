@@ -463,8 +463,13 @@ namespace core
 				return nullptr;
 			}
 			llvm::Type *type = t->type;
-			auto init = expr->init.get();
 
+			if(expr->type->value == expr->name->value)
+			{
+				return codegenError("Cannot name variable as '{}': Reserved typename", expr->type->value);
+			}
+
+			auto init = expr->init.get();
 			llvm::Value *initVal = nullptr;
 			if(init->nodeType == ast::ASTNode::EMPTY_EXPR)
 			{

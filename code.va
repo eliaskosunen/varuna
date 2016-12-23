@@ -1,18 +1,13 @@
 // code.va
 module main;
 
-def func(int i): int
+def f(): int
 {
-	if(i == 0)
-	{
-		return 1;
-	}
-	return 0;
+	int int = 0;
+	return int;
 }
 
 def main(): int
 {
-	return func(1);
-	return func(0);
-	return func(2);
+	f();
 }

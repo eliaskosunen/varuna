@@ -18,15 +18,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "fe/cli/CLI.h"
 #include "fe/api/App.h"
 
+#include "llvm/Config/llvm-config.h"
+
 namespace fe
 {
 	namespace cli
 	{
+		static const std::string ver = fmt::format("{} (LLVM version: {}) Build date: {}",
+				util::programinfo::version::toString(), LLVM_VERSION_STRING, util::programinfo::getBuildDate());
+
+		CLI::CLI(int argc_, char **argv_)
+			: argc(argc_), argv(argv_),
+			cmd(util::programinfo::name, ' ', ver) {}
+
 		int CLI::run()
 		{
 			try
 			{
-				TCLAP::ValueArg<std::string> loggingArg("", "logging", "Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).", false, "info", "Logging level");
+				TCLAP::ValueArg<std::string> loggingArg("", "logging",
+						"Logging level to use. Valid values: 'trace', 'debug' and 'info' (default).",
+						false, "info", "Logging level");
 				cmd.add(loggingArg);
 
 				TCLAP::SwitchArg licenseArg("", "license", "Print the license and copyright information", false);
@@ -61,9 +72,17 @@ namespace fe
 					throw TCLAP::ArgException("File to process is required, see --help", fileArg.longID());
 				}
 
-				app->execute(std::move(files));
+				bool result = app->execute(std::move(files));
+				if(!result)
+				{
+					util::logger->info("Compilation failed");
+				}
+				else
+				{
+					util::logger->info("Compilation successful");
+				}
 
-				return 0;
+				return result ? 0 : 1;
 			}
 			catch(TCLAP::ArgException &e)
 			{
@@ -95,10 +114,13 @@ namespace fe
 
 		void CLI::showLicense() const
 		{
+			util::loggerBasic->info("Varuna, {}\n", ver);
+
 			util::loggerBasic->info("Varuna is published under the GNU General Public License version 3 (GNU GPL 3, the License)");
 			util::loggerBasic->info("Varuna - Copyright (C) 2016 Elias Kosunen");
 			util::loggerBasic->info("This program comes with ABSOLUTELY NO WARRANTY; see the License for details.");
-			util::loggerBasic->info("This is free software, and you are welcome to redistribute it under certain conditions; see the License for details.");
+			util::loggerBasic->info("This is free software, and you are welcome to redistribute it \
+under certain conditions; see the License for details.");
 		}
 	} // namespace cli
 } // namespace fe

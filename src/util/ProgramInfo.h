@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "util/Compatibility.h"
+
 #include <array>
 #include <stdexcept>
 #include <string>
@@ -65,6 +67,12 @@ namespace util
 		inline const std::string &getIdentifier()
 		{
 			static const std::string str = fmt::format("{} (version {})", name, version::toString());
+			return str;
+		}
+
+		inline const std::string &getBuildDate()
+		{
+			static const std::string str = __DATE__;
 			return str;
 		}
 	} // namespace programinfo

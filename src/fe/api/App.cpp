@@ -88,6 +88,8 @@ namespace fe
 					return false;
 				}
 				util::logger->debug("Code generation finished\n");
+				
+				util::logger->info("File '{}' compiled successfully", file);
 
 				return true;
 			});
