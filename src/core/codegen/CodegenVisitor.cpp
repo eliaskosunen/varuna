@@ -30,62 +30,27 @@ namespace core
 {
 	namespace codegen
 	{
-		std::array<std::unique_ptr<Type>, 11> CodegenVisitor::_buildTypeArray()
+		std::array<std::unique_ptr<Type>, 12> CodegenVisitor::_buildTypeArray()
 		{
-			auto makeType = [](const std::string &name, llvm::Type *type, llvm::DIType *dtype)
-			{
-				return std::make_unique<Type>(type, dtype, name);
-			};
+			// Forgive me
+			#define CODEGEN_TYPE(T) std::make_unique<T>(context, dbuilder)
 
-			std::array<std::unique_ptr<Type>, 11> arr = {{
-				makeType(
-					"void", llvm::Type::getVoidTy(context), nullptr
-				),
-				makeType(
-					"int", llvm::Type::getInt32Ty(context),
-					dbuilder->createBasicType("int", 32, 32, llvm::dwarf::DW_ATE_signed)
-				),
-				makeType(
-					"int8", llvm::Type::getInt8Ty(context),
-					dbuilder->createBasicType("int8", 8, 8, llvm::dwarf::DW_ATE_signed)
-				),
-				makeType(
-					"int16", llvm::Type::getInt16Ty(context),
-					dbuilder->createBasicType("int16", 16, 16, llvm::dwarf::DW_ATE_signed)
-				),
-				makeType(
-					"int32", llvm::Type::getInt32Ty(context),
-					dbuilder->createBasicType("int32", 32, 32, llvm::dwarf::DW_ATE_signed)
-				),
-				makeType(
-					"int64", llvm::Type::getInt64Ty(context),
-					dbuilder->createBasicType("int64", 64, 64, llvm::dwarf::DW_ATE_signed)
-				),
-				makeType(
-					"bool", llvm::Type::getInt1Ty(context),
-					dbuilder->createBasicType("bool", 1, 1, llvm::dwarf::DW_ATE_boolean)
-				),
-
-				makeType(
-					"float", llvm::Type::getFloatTy(context),
-					dbuilder->createBasicType("float", 32, 32, llvm::dwarf::DW_ATE_float)
-				),
-				makeType(
-					"f32", llvm::Type::getFloatTy(context),
-					dbuilder->createBasicType("f32", 32, 32, llvm::dwarf::DW_ATE_float)
-				),
-				makeType(
-					"f64", llvm::Type::getDoubleTy(context),
-					dbuilder->createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float)
-				),
-
-				makeType(
-					"char", llvm::Type::getInt32Ty(context),
-					dbuilder->createBasicType("char", 32, 32, llvm::dwarf::DW_ATE_unsigned_char)
-				)
+			return {{
+				CODEGEN_TYPE(VoidType),
+				CODEGEN_TYPE(IntType),
+				CODEGEN_TYPE(Int8Type),
+				CODEGEN_TYPE(Int16Type),
+				CODEGEN_TYPE(Int32Type),
+				CODEGEN_TYPE(Int64Type),
+				CODEGEN_TYPE(BoolType),
+				CODEGEN_TYPE(CharType),
+				CODEGEN_TYPE(ByteType),
+				CODEGEN_TYPE(FloatType),
+				CODEGEN_TYPE(F32Type),
+				CODEGEN_TYPE(F64Type)
 			}};
 
-			return arr;
+			#undef CODEGEN_TYPE
 		}
 
 		std::unordered_map<std::string, std::unique_ptr<Type>> CodegenVisitor::_createTypeMap()
@@ -106,10 +71,10 @@ namespace core
 
 		CodegenVisitor::CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m, const CodegenInfo &i)
 			: context{c}, module(m), info{i}, builder(context),
-			dbuilder(std::make_unique<llvm::DIBuilder>(*m)), dcu{nullptr}, dBlocks{},
+			dbuilder(*m), dcu{nullptr}, dBlocks{},
 			variables{}, globalVariables{}, functionProtos{}, types{_createTypeMap()}
 		{
-			dcu = dbuilder->createCompileUnit(
+			dcu = dbuilder.createCompileUnit(
 				llvm::dwarf::DW_LANG_C, info.filename, ".",
 				util::programinfo::getIdentifier(),
 				info.optEnabled(), "", 0
@@ -151,7 +116,7 @@ namespace core
 
 			stripInstructionsAfterTerminators();
 
-			dbuilder->finalize();
+			dbuilder.finalize();
 
 			#if USE_LLVM_MODULE_VERIFY
 			util::logger->trace("Verifying module");
@@ -196,19 +161,19 @@ namespace core
 			}
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTStatement *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIfStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement *stmt)
 		{
-			llvm::Value *cond = stmt->condition->accept(this);
+			auto cond = stmt->condition->accept(this);
 			if(!cond)
 			{
 				return nullptr;
@@ -216,13 +181,21 @@ namespace core
 
 			auto boolcond = [&]() -> llvm::Value*
 			{
-				if(cond->getType()->isIntegerTy())
+				if(!cond->type->isSized())
 				{
-					return builder.CreateICmpNE(cond, llvm::ConstantInt::get(cond->getType(), 0), "ifcond");
+					return codegenError("Unsized type cannot be used in if condition");
 				}
-				if(cond->getType()->isFloatingPointTy())
+				if(cond->type->kind == Type::BOOL)
 				{
-					return builder.CreateFCmpONE(cond, llvm::ConstantFP::get(cond->getType(), 0.0), "ifcond");
+					return cond->value;
+				}
+				if(cond->type->isIntegral())
+				{
+					return builder.CreateICmpNE(cond->value, llvm::ConstantInt::get(cond->type->type, 0), "ifcond");
+				}
+				if(cond->type->isFloatingPoint())
+				{
+					return builder.CreateFCmpONE(cond->value, llvm::ConstantFP::get(cond->type->type, 0.0), "ifcond");
 				}
 				return nullptr;
 			}();
@@ -250,7 +223,7 @@ namespace core
 
 			builder.SetInsertPoint(thenBB);
 
-			llvm::Value *thenV = stmt->ifBlock->accept(this);
+			auto thenV = stmt->ifBlock->accept(this);
 			if(!thenV)
 			{
 				return nullptr;
@@ -264,7 +237,7 @@ namespace core
 				func->getBasicBlockList().push_back(elseBB);
 				builder.SetInsertPoint(elseBB);
 
-				llvm::Value *elseV = stmt->elseBlock->accept(this);
+				auto elseV = stmt->elseBlock->accept(this);
 				if(!elseV)
 				{
 					return nullptr;
@@ -276,13 +249,13 @@ namespace core
 
 			func->getBasicBlockList().push_back(mergeBB);
 			builder.SetInsertPoint(mergeBB);
-			return mergeBB;
+			return createVoidVal(mergeBB);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement *node)
 		{
 			llvm::Function *func = builder.GetInsertBlock()->getParent();
 
-			llvm::Value *init = node->init->accept(this);
+			auto init = node->init->accept(this);
 			if(!init)
 			{
 				return nullptr;
@@ -301,13 +274,13 @@ namespace core
 			builder.CreateBr(loopCondBB);
 			builder.SetInsertPoint(loopCondBB);
 
-			llvm::Value *step = node->rangeInit->accept(this);
+			auto step = node->rangeInit->accept(this);
 			if(!step)
 			{
 				return nullptr;
 			}
 
-			llvm::Value *end = node->rangeDecl->accept(this);
+			auto end = node->rangeDecl->accept(this);
 			if(!end)
 			{
 				return nullptr;
@@ -315,13 +288,21 @@ namespace core
 
 			auto boolcond = [&]() -> llvm::Value*
 			{
-				if(end->getType()->isIntegerTy())
+				if(!end->type->isSized())
 				{
-					return builder.CreateICmpNE(end, llvm::ConstantInt::get(end->getType(), 0), "forendcond");
+					return codegenError("Unsized type cannot be used in for condition");
 				}
-				if(end->getType()->isFloatingPointTy())
+				if(end->type->kind == Type::BOOL)
 				{
-					return builder.CreateFCmpONE(end, llvm::ConstantFP::get(end->getType(), 0.0), "forend");
+					return end->value;
+				}
+				if(end->type->isIntegral())
+				{
+					return builder.CreateICmpNE(end->value, llvm::ConstantInt::get(end->type->type, 0), "forendcond");
+				}
+				if(end->type->isFloatingPoint())
+				{
+					return builder.CreateFCmpONE(end->value, llvm::ConstantFP::get(end->type->type, 0.0), "forend");
 				}
 				return nullptr;
 			}();
@@ -331,42 +312,42 @@ namespace core
 			}
 
 			llvm::BasicBlock *afterBB = llvm::BasicBlock::Create(context, "afterloop", func);
-			builder.CreateCondBr(end, loopBB, afterBB);
+			builder.CreateCondBr(end->value, loopBB, afterBB);
 			builder.SetInsertPoint(afterBB);
 
-			return getDummyValue();
+			return getTypedDummyValue();
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTForeachStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForeachStatement *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTWhileStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTImportStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTImportStatement *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTModuleStatement *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTModuleStatement *node)
 		{
 			module->setModuleIdentifier(node->moduleName->value);
-			return getDummyValue();
+			return getTypedDummyValue();
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyExpression*)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyExpression*)
 		{
-			return getDummyValue();
+			return getTypedDummyValue();
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTIdentifierExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIdentifierExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::LoadInst *CodegenVisitor::visit(ast::ASTVariableRefExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTVariableRefExpression *expr)
 		{
 			auto var = variables.find(expr->value);
 			if(var == variables.end())
@@ -377,9 +358,14 @@ namespace core
 					return codegenError("Undefined variable: '{}'", expr->value);
 				}
 			}
-			return builder.CreateLoad(var->second.type->type, var->second.value, expr->value.c_str());
+			auto load = builder.CreateLoad(var->second.type->type, var->second.value, expr->value.c_str());
+			if(!load)
+			{
+				return nullptr;
+			}
+			return std::make_unique<TypedValue>(var->second.type, load);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCallExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCallExpression *expr)
 		{
 			//auto calleeExpr = expr->callee->accept(this);
 			//auto calleeName = calleeExpr->getName().str();
@@ -398,18 +384,24 @@ namespace core
 			std::vector<llvm::Value*> args;
 			for(auto &arg : expr->params)
 			{
-				args.push_back(arg->accept(this));
+				args.push_back(arg->accept(this)->value);
 				if(!args.back())
 				{
 					return nullptr;
 				}
 			}
 
-			return builder.CreateCall(callee->getFunctionType(), callee, args, "calltmp");
+			auto call = builder.CreateCall(callee->getFunctionType(), callee, args, "calltmp");
+			auto type = findType(callee->getFunctionType());
+			if(!call || !type)
+			{
+				return nullptr;
+			}
+			return std::make_unique<TypedValue>(type, call);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTCastExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression *node)
 		{
-			llvm::Value *castee = node->castee->accept(this);
+			auto castee = node->castee->accept(this);
 			if(!castee)
 			{
 				return nullptr;
@@ -420,40 +412,51 @@ namespace core
 			{
 				return nullptr;
 			}
-			llvm::Type *type = t->type;
 
-			return [&]() -> llvm::Value*
+			bool castError = false, castNeeded = true;
+			llvm::Instruction::CastOps castop = t->defaultCast;
+			std::tie(castError, castNeeded, castop) = castee->type->cast(Type::CAST, *t);
+			if(castError)
 			{
-				if(castee->getType()->isIntegerTy())
+				return nullptr;
+			}
+			if(!castNeeded)
+			{
+				return castee;
+			}
+			auto cast = builder.CreateCast(castop, castee->value, t->type, "casttmp");
+			return std::make_unique<TypedValue>(t, cast);
+			//return builder.CreateCast(t->cast(Type::CAST, ));
+
+			/*if(castee->type-)
+			{
+				if(type->isIntegerTy())
 				{
-					if(type->isIntegerTy())
-					{
-						return builder.CreateIntCast(castee, type, true, "casttmp");
-					}
-					else if(type->isFloatingPointTy())
-					{
-						return builder.CreateSIToFP(castee, type, "casttmp");
-					}
+					return builder.CreateIntCast(castee, type, true, "casttmp");
 				}
-				else if(castee->getType()->isFloatingPointTy())
+				else if(type->isFloatingPointTy())
 				{
-					if(type->isFloatingPointTy())
-					{
-						return builder.CreateFPCast(castee, type, "casttmp");
-					}
-					else if(type->isIntegerTy())
-					{
-						return builder.CreateFPToSI(castee, type, "casttmp");
-					}
+					return builder.CreateSIToFP(castee, type, "casttmp");
 				}
-				else if(castee->getType()->isPointerTy())
+			}
+			else if(castee->getType()->isFloatingPointTy())
+			{
+				if(type->isFloatingPointTy())
 				{
-					return builder.CreatePointerBitCastOrAddrSpaceCast(castee, type, "casttmp");
+					return builder.CreateFPCast(castee, type, "casttmp");
 				}
-				return builder.CreateBitCast(castee, type, "casttmp");
-			}();
+				else if(type->isIntegerTy())
+				{
+					return builder.CreateFPToSI(castee, type, "casttmp");
+				}
+			}
+			else if(castee->getType()->isPointerTy())
+			{
+				return builder.CreatePointerBitCastOrAddrSpaceCast(castee, type, "casttmp");
+			}
+			return builder.CreateBitCast(castee, type, "casttmp");*/
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
 		{
 			llvm::Function *func = builder.GetInsertBlock()->getParent();
 
@@ -464,9 +467,9 @@ namespace core
 			}
 			llvm::Type *type = t->type;
 
-			if(expr->type->value == expr->name->value)
+			if(findType(expr->name->value, false))
 			{
-				return codegenError("Cannot name variable as '{}': Reserved typename", expr->type->value);
+				return codegenError("Cannot name variable as '{}': Reserved typename", expr->name->value);
 			}
 
 			auto init = expr->init.get();
@@ -494,7 +497,18 @@ namespace core
 			}
 			else
 			{
-				initVal = init->accept(this);
+				auto initExpr = init->accept(this);
+				if(!initExpr)
+				{
+					return nullptr;
+				}
+
+				auto cast = initExpr->type->cast(Type::IMPLICIT, *t);
+				if(std::get<0>(cast) || std::get<1>(cast))
+				{
+					return codegenError("Invalid init expression: Cannot assign {} to {}", initExpr->type->name, t->name);
+				}
+				initVal = initExpr->value;
 			}
 			if(!initVal)
 			{
@@ -504,33 +518,34 @@ namespace core
 			auto alloca = createEntryBlockAlloca(func, type, expr->name->value);
 			builder.CreateStore(initVal, alloca);
 
-			Variable var { alloca, findType(type), expr->name->value };
+			auto ty = findType(type);
+			Variable var { alloca, ty, expr->name->value };
 			variables.insert({expr->name->value, var});
 
-			return initVal;
+			return std::make_unique<TypedValue>(ty, initVal);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTSubscriptExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTSubscriptExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTSubscriptRangedExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTSubscriptRangedExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTMemberAccessExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTMemberAccessExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionParameter *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionParameter *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
-		llvm::Function *CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement *stmt)
 		{
 			std::vector<llvm::Type*> args;
 			args.reserve(stmt->params.size());
@@ -560,9 +575,9 @@ namespace core
 				arg.setName(stmt->params[i]->var->name->value);
 			}
 
-			return f;
+			return createVoidVal(f);
 		}
-		llvm::Function *CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement *stmt)
 		{
 			auto name = stmt->proto->name->value;
 			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
@@ -618,9 +633,9 @@ namespace core
 			}
 			#endif
 
-			return func;
+			return createVoidVal(func);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *stmt)
 		{
 			auto name = stmt->proto->name->value;
 			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
@@ -640,33 +655,37 @@ namespace core
 				return nullptr;
 			}
 			#endif
-			return func;
+			return createVoidVal(func);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement *stmt)
 		{
 			if(stmt->returnValue->nodeType == ast::ASTNode::EMPTY_EXPR)
 			{
 				builder.CreateRetVoid();
-				return getDummyValue();
+				return getTypedDummyValue();
 			}
 			auto ret = stmt->returnValue->accept(this);
 			if(!ret)
 			{
 				return nullptr;
 			}
-			builder.CreateRet(ret);
+			builder.CreateRet(ret->value);
 			return ret;
 		}
 
-		llvm::Constant *CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::getSigned(findType(expr->type->value)->type, expr->value);
+			auto t = findType(expr->type->value);
+			auto val = llvm::ConstantInt::getSigned(t->type, expr->value);
+			return std::make_unique<TypedValue>(t, val);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFloatLiteralExpression *expr)
 		{
-			return llvm::ConstantFP::get(findType(expr->type->value)->type, expr->value);
+			auto t = findType(expr->type->value);
+			auto val = llvm::ConstantFP::get(t->type, expr->value);
+			return std::make_unique<TypedValue>(t, val);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
 			auto val = llvm::ConstantDataArray::getString(context, expr->value, false);
 			if(!val)
@@ -686,153 +705,208 @@ namespace core
 				return nullptr;
 			}
 			auto type = llvm::dyn_cast<llvm::StructType>(t->type);
-			return llvm::ConstantStruct::get(type,
+			auto valtype = findType("int64");
+			auto ret = llvm::ConstantStruct::get(type,
 			{
-				llvm::ConstantInt::get(findType("int64")->type, literal->getNumElements()),
+				llvm::ConstantInt::get(valtype->type, literal->getNumElements()),
 				val
 			});
+			return std::make_unique<TypedValue>(valtype, ret);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("char")->type, expr->value);
+			auto t = findType("char");
+			auto val = llvm::ConstantInt::get(t->type, expr->value);
+			return std::make_unique<TypedValue>(t, val);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBoolLiteralExpression *expr)
 		{
-			return llvm::ConstantInt::get(findType("bool")->type, expr->value);
+			auto t = findType("bool");
+			auto val = llvm::ConstantInt::get(t->type, expr->value);
+			return std::make_unique<TypedValue>(t, val);
 		}
-		llvm::Constant *CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTNoneLiteralExpression *node)
 		{
 			codegenWarning("Unimplemented CodegenVisitor::visit({})", node->nodeType.get());
 			return nullptr;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTBinaryOperationExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBinaryOperationExpression *expr)
 		{
-			llvm::Value *lhs = expr->left->accept(this);
-			llvm::Value *rhs = expr->right->accept(this);
+			auto lhs = expr->left->accept(this);
+			auto rhs = expr->right->accept(this);
 			if(!lhs || !rhs)
 			{
 				return nullptr;
 			}
 
-			auto lhsType = lhs->getType();
-			auto rhsType = rhs->getType();
+			auto lhsType = lhs->type;
+			auto rhsType = rhs->type;
+			if(lhsType != rhsType)
+			{
+				return codegenError("Type mismatch: Cannot perform binary operation on {} and {}", lhsType->name, rhsType->name);
+			}
+
+			auto boolType = findType("bool");
 			switch(expr->oper.get())
 			{
-			case lexer::TOKEN_OPERATORB_ADD:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-				{
-					return builder.CreateAdd(lhs, rhs, "addtmp");
-				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-				{
-					return builder.CreateFAdd(lhs, rhs, "addtmp");
-				}
-				return codegenError("Type mismatch: Cannot perform add on Integer and Float");
-			case lexer::TOKEN_OPERATORB_SUB:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-				{
-					return builder.CreateSub(lhs, rhs, "subtmp");
-				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-				{
-					return builder.CreateFSub(lhs, rhs, "subtmp");
-				}
-				return codegenError("Type mismatch: Cannot perform subtract on Integer and Float");
-			case lexer::TOKEN_OPERATORB_MUL:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-				{
-					return builder.CreateMul(lhs, rhs, "multmp");
-				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-				{
-					return builder.CreateFMul(lhs, rhs, "multmp");
-				}
-				return codegenError("Type mismatch: Cannot perform multiply on Integer and Float");
-			case lexer::TOKEN_OPERATORB_DIV:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-				{
-					return builder.CreateSDiv(lhs, rhs, "divtmp");
-				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-				{
-					return builder.CreateFDiv(lhs, rhs, "divtmp");
-				}
-				return codegenError("Type mismatch: Cannot perform divide on Integer and Float");
-			case lexer::TOKEN_OPERATORB_REM:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-				{
-					return builder.CreateSRem(lhs, rhs, "remtmp");
-				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-				{
-					return builder.CreateFRem(lhs, rhs, "remtmp");
-				}
-				return codegenError("Type mismatch: Cannot perform reminder on Integer and Float");
-
 			case lexer::TOKEN_OPERATORB_EQ:
-				if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
+				if(lhsType->isIntegral() && rhsType->isIntegral())
 				{
-					return builder.CreateICmpEQ(lhs, rhs, "eqtmp");
+					return std::make_unique<TypedValue>(boolType, builder.CreateICmpEQ(lhs->value, rhs->value, "eqtmp"));
 				}
-				else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
+				else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
 				{
-					return builder.CreateFCmpOEQ(lhs, rhs, "eqtmp");
+					return std::make_unique<TypedValue>(boolType, builder.CreateFCmpOEQ(lhs->value, rhs->value, "eqtmp"));
 				}
-				return codegenError("Type mismatch: Cannot perform eq on Integer and Float");
+				return codegenError("Type mismatch: Cannot perform eq operation on {} and {}", lhsType->name, rhsType->name);
 			case lexer::TOKEN_OPERATORB_NOTEQ:
-			if(lhsType->isIntegerTy() && rhsType->isIntegerTy())
-			{
-				return builder.CreateICmpNE(lhs, rhs, "noteqtmp");
-			}
-			else if(lhsType->isFloatingPointTy() && rhsType->isFloatingPointTy())
-			{
-				return builder.CreateFCmpONE(lhs, rhs, "noteqtmp");
-			}
-			return codegenError("Type mismatch: Cannot perform noteq on Integer and Float");
-
+				if(lhsType->isIntegral() && rhsType->isIntegral())
+				{
+					return std::make_unique<TypedValue>(boolType, builder.CreateICmpNE(lhs->value, rhs->value, "noteqtmp"));
+				}
+				else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+				{
+					return std::make_unique<TypedValue>(boolType, builder.CreateFCmpONE(lhs->value, rhs->value, "noteqtmp"));
+				}
+				return codegenError("Type mismatch: Cannot perform noteq operation on {} and {}", lhsType->name, rhsType->name);
 			default:
-				return codegenError("Unimplemented binary operator");
+			{
+				auto inst = [&]() -> llvm::Value*
+				{
+					switch(expr->oper.get())
+					{
+					case lexer::TOKEN_OPERATORB_ADD:
+						if(lhsType->isIntegral() && rhsType->isIntegral())
+						{
+							return builder.CreateAdd(lhs->value, rhs->value, "addtmp");
+						}
+						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+						{
+							return builder.CreateFAdd(lhs->value, rhs->value, "addtmp");
+						}
+						return codegenError("Type mismatch: Cannot perform add operation on {} and {}", lhsType->name, rhsType->name);
+					case lexer::TOKEN_OPERATORB_SUB:
+						if(lhsType->isIntegral() && rhsType->isIntegral())
+						{
+							return builder.CreateSub(lhs->value, rhs->value, "subtmp");
+						}
+						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+						{
+							return builder.CreateFSub(lhs->value, rhs->value, "subtmp");
+						}
+						return codegenError("Type mismatch: Cannot perform sub operation on {} and {}", lhsType->name, rhsType->name);
+					case lexer::TOKEN_OPERATORB_MUL:
+						if(lhsType->isIntegral() && rhsType->isIntegral())
+						{
+							return builder.CreateMul(lhs->value, rhs->value, "multmp");
+						}
+						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+						{
+							return builder.CreateFMul(lhs->value, rhs->value, "multmp");
+						}
+						return codegenError("Type mismatch: Cannot perform mul operation on {} and {}", lhsType->name, rhsType->name);
+					case lexer::TOKEN_OPERATORB_DIV:
+						if(lhsType->isIntegral() && rhsType->isIntegral())
+						{
+							return builder.CreateSDiv(lhs->value, rhs->value, "divtmp");
+						}
+						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+						{
+							return builder.CreateFDiv(lhs->value, rhs->value, "divtmp");
+						}
+						return codegenError("Type mismatch: Cannot perform div operation on {} and {}", lhsType->name, rhsType->name);
+					case lexer::TOKEN_OPERATORB_REM:
+						if(lhsType->isIntegral() && rhsType->isIntegral())
+						{
+							return builder.CreateSRem(lhs->value, rhs->value, "remtmp");
+						}
+						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+						{
+							return builder.CreateFRem(lhs->value, rhs->value, "remtmp");
+						}
+						return codegenError("Type mismatch: Cannot perform rem operation on {} and {}", lhsType->name, rhsType->name);
+
+					default:
+						return codegenError("Unimplemented binary operator");
+					}
+				}();
+				if(!inst)
+				{
+					return nullptr;
+				}
+				return std::make_unique<TypedValue>(lhsType, inst);
+			}
 			}
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTUnaryOperationExpression *expr)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTUnaryOperationExpression *expr)
 		{
-			llvm::Value *operand = expr->operand->accept(this);
+			auto operand = expr->operand->accept(this);
 			if(!operand)
 			{
 				return nullptr;
 			}
 
-			auto operandType = operand->getType();
-			switch(expr->oper.get())
+			auto operandType = operand->type;
+
+			if(expr->oper == lexer::TOKEN_OPERATORU_PLUS)
 			{
-			case lexer::TOKEN_OPERATORU_PLUS:
-				return builder.CreateIntCast(operand, findType("int32")->type, true, "casttmp");
-			case lexer::TOKEN_OPERATORU_MINUS:
-				if(operandType->isIntegerTy())
+				bool castError = false, castNeeded = true;
+				llvm::Instruction::CastOps castop = operandType->defaultCast;
+				auto type = findType("int");
+
+				std::tie(castError, castNeeded, castop) = operandType->cast(Type::CAST, *type);
+				if(castError)
 				{
-					return builder.CreateNeg(operand, "negtmp");
+					return nullptr;
 				}
-				else if(operandType->isFloatingPointTy())
+				if(!castNeeded)
 				{
-					return builder.CreateFNeg(operand, "negtmp");
+					return std::make_unique<TypedValue>(operand->type, operand->value);
 				}
-				return codegenError("Type mismatch: Cannot perform neg on this type");
-			case lexer::TOKEN_OPERATORU_NOT:
-				if(operandType->isIntegerTy())
-				{
-					return builder.CreateNot(operand, "nottmp");
-				}
-				else if(operandType->isFloatingPointTy())
-				{
-					return builder.CreateNot(operand, "nottmp");
-				}
-				return codegenError("Type mismatch: Cannot perform not on this type");
-			default:
-				return codegenError("Unimplemented unary operator"); // TODO
+
+				auto cast = builder.CreateCast(castop, operand->value, type->type, "casttmp");
+				return std::make_unique<TypedValue>(type, cast);
 			}
+			auto inst = [&]() -> llvm::Value*
+			{
+				switch(expr->oper.get())
+				{
+				case lexer::TOKEN_OPERATORU_PLUS:
+					// Handled earlier
+					llvm_unreachable("Unary + already handled");
+				case lexer::TOKEN_OPERATORU_MINUS:
+					if(operandType->isIntegral())
+					{
+						return builder.CreateNeg(operand->value, "negtmp");
+					}
+					else if(operandType->isFloatingPoint())
+					{
+						return builder.CreateFNeg(operand->value, "negtmp");
+					}
+					return codegenError("Type mismatch: Cannot perform neg on this type");
+				case lexer::TOKEN_OPERATORU_NOT:
+					if(operandType->isIntegral())
+					{
+						return builder.CreateNot(operand->value, "nottmp");
+					}
+					else if(operandType->isFloatingPoint())
+					{
+						return builder.CreateNot(operand->value, "nottmp");
+					}
+					return codegenError("Type mismatch: Cannot perform not on this type");
+				default:
+					return codegenError("Unimplemented unary operator"); // TODO
+				}
+			}();
+
+			if(!inst)
+			{
+				return nullptr;
+			}
+			return std::make_unique<TypedValue>(operandType, inst);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTAssignmentOperationExpression *node)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTAssignmentOperationExpression *node)
 		{
 			if(node->oper != lexer::TOKEN_OPERATORA_SIMPLE)
 			{
@@ -864,21 +938,21 @@ namespace core
 			{
 				return codegenError("Variable value is null");
 			}
-			builder.CreateStore(val, var);
+			builder.CreateStore(val->value, var);
 			return val;
 		}
 
-		llvm::Value *CodegenVisitor::visit(ast::ASTEmptyStatement*)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyStatement*)
 		{
-			return getDummyValue();
+			return getTypedDummyValue();
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement *stmt)
 		{
 			auto bb = llvm::BasicBlock::Create(context);
 
 			if(stmt->nodes.empty())
 			{
-				return codegenError("Empty block statement");
+				codegenWarning("Empty block statement");
 			}
 
 			for(auto &child : stmt->nodes)
@@ -890,9 +964,9 @@ namespace core
 				}
 			}
 
-			return bb;
+			return createVoidVal(bb);
 		}
-		llvm::Value *CodegenVisitor::visit(ast::ASTWrappedExpressionStatement *stmt)
+		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWrappedExpressionStatement *stmt)
 		{
 			auto val = stmt->expr->accept(this);
 			if(!val)

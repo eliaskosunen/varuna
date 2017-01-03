@@ -72,6 +72,7 @@ namespace core
 	{
 		class CodegenVisitor;
 		class GrammarCheckerVisitor;
+		class TypedValue;
 	} // namespace codegen
 } // namespace core
 

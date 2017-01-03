@@ -38,9 +38,9 @@ namespace core
 				: ASTExpression(INTEGER_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTFloatLiteralExpression : public ASTExpression
@@ -53,9 +53,9 @@ namespace core
 				: ASTExpression(FLOAT_LITERAL_EXPR), value(val), type(std::move(_type)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTStringLiteralExpression : public ASTExpression
@@ -68,9 +68,9 @@ namespace core
 				: ASTExpression(STRING_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("string")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTCharLiteralExpression : public ASTExpression
@@ -83,9 +83,9 @@ namespace core
 				: ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("char")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTBoolLiteralExpression : public ASTExpression
@@ -98,9 +98,9 @@ namespace core
 				: ASTExpression(BOOL_LITERAL_EXPR), value(val), type(std::make_unique<ASTIdentifierExpression>("bool")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTNoneLiteralExpression : public ASTExpression
@@ -112,9 +112,9 @@ namespace core
 				: ASTExpression(NONE_LITERAL_EXPR), type(std::make_unique<ASTIdentifierExpression>("none_t")) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Constant *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

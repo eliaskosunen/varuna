@@ -35,9 +35,9 @@ namespace core
 				: ASTExpression(BINARY_OPERATION_EXPR), left(std::move(l)), right(std::move(r)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTUnaryOperationExpression : public ASTExpression
@@ -50,9 +50,9 @@ namespace core
 				: ASTExpression(UNARY_OPERATION_EXPR), operand(std::move(_operand)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTAssignmentOperationExpression : public ASTExpression
@@ -66,9 +66,9 @@ namespace core
 				: ASTExpression(ASSIGNMENT_OPERATION_EXPR), lval(std::move(l)), rval(std::move(r)), oper(o) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

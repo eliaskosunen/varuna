@@ -35,9 +35,9 @@ namespace core
 
 		public:
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			virtual llvm::Value *accept(codegen::CodegenVisitor *v);
+			virtual std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v);
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 
 			ASTStatement() : ASTNode(STMT) {}
 			ASTStatement(const ASTStatement&) = delete;
@@ -53,9 +53,9 @@ namespace core
 			ASTEmptyStatement() : ASTStatement(EMPTY_STMT) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTBlockStatement : public ASTStatement
@@ -74,9 +74,9 @@ namespace core
 				: ASTStatement(BLOCK_STMT), nodes(std::move(vec)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTWrappedExpressionStatement : public ASTStatement
@@ -88,9 +88,9 @@ namespace core
 				: ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(expression)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

@@ -30,26 +30,26 @@ namespace core
 	{
 		enum TokenIntegerLiteralModifier_t
 		{
-			INTEGER_INT8 	= 1,	// i8
-			INTEGER_INT16	= 2,	// i16
-			INTEGER_INT32	= 4,	// i32 or none
-			INTEGER_INT64	= 8,	// i64
-			INTEGER_BINARY	= 16,	// b
-			INTEGER_OCTAL	= 32,	// o
-			INTEGER_HEX		= 64,	// x
+			INTEGER_INT		= 1,	// none
+			INTEGER_INT8 	= 2,	// i8
+			INTEGER_INT16	= 4,	// i16
+			INTEGER_INT32	= 8,	// i32
+			INTEGER_INT64	= 16,	// i64
+			INTEGER_BINARY	= 32,	// b
+			INTEGER_OCTAL	= 64,	// o
+			INTEGER_HEX		= 128,	// x
 
-			INTEGER_INTEGER	= INTEGER_INT32,
-			INTEGER_NONE	= INTEGER_INT32
+			INTEGER_NONE	= 0
 		};
 
 		enum TokenFloatLiteralModifier_t
 		{
-			FLOAT_F64		= 1,	// f64 or none
-			FLOAT_F32		= 2,	// f32
-			FLOAT_DECIMAL	= 4,	// d
+			FLOAT_FLOAT		= 1,	// none
+			FLOAT_F64		= 2,	// f64
+			FLOAT_F32		= 4,	// f32
+			FLOAT_DECIMAL	= 8,	// d
 
-			FLOAT_NONE		= FLOAT_F64,
-			FLOAT_FLOAT		= FLOAT_F64
+			FLOAT_NONE		= 0
 		};
 
 		using TokenIntegerLiteralModifier = util::SafeEnum<TokenIntegerLiteralModifier_t>;

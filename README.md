@@ -12,6 +12,7 @@ Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lan
 
 Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
+More specifically, this compiler is an LLVM front-end.
 
 WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
 Wait for 0.1 release (coming soon(tm)) or grab the code from the develop branch.
@@ -30,6 +31,9 @@ Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.8.0) a
 on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported.
 Further support is not planned.
 
+This project depends on LLVM. It is developed on version 3.9, but earlier versions may work as well.
+The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
+
 ### Instructions
 
 The application can be built using CMake.
@@ -46,7 +50,7 @@ or not to build documentation, here are the instructions:
 # On the repository root folder
 $ mkdir build
 $ cd build
-$ cmake -G "Unix Makefiles" ..
+$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-3.9/lib/cmake/llvm ..
 $ make
 
 # Run tests:
@@ -68,6 +72,25 @@ You can either use the CMake GUI or the Command Prompt:
 ```
 
 After that the Visual Studio project files can be found in the folder `build`.
+
+## Compiler documentation
+
+### Directory structure
+
+```
+src/ ---------- Source directory
+- core/ --------- Compiler essentials (namespace: core)
+--- ast/ ---------- Abstract syntax tree representation (core::ast)
+--- codegen/ ------ Code generation (core::codegen)
+--- lexer/ -------- Lexical analyzer (core::lexer)
+--- parser/ ------- Parser (core::parser)
+- fe/ ----------- "Front-end", abstraction layers over core for easier development (fe)
+--- api/ ---------- Basic API (fe::api)
+--- cli/ ---------- Command line interface that builds on top of api (fe::cli)
+- tests/ -------- Unit tests
+- util/ --------- Project-wide utilities (util)
+third-party/ -- Third-party libraries
+```
 
 ## License
 

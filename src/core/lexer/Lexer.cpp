@@ -146,7 +146,7 @@ namespace core
 				if(!isFloatingPoint)
 				{
 					Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-					std::unordered_map<std::string, decltype(INTEGER_INTEGER)> allowedModifiers =
+					std::unordered_map<std::string, decltype(INTEGER_INT)> allowedModifiers =
 					{
 						{ "i64", INTEGER_INT64 },
 						{ "i32", INTEGER_INT32 },
@@ -175,6 +175,10 @@ namespace core
 					if(!mod.empty())
 					{
 						lexerError("Invalid integer suffix: '{}'", mod);
+					}
+					if(t.modifierInt == INTEGER_NONE)
+					{
+						t.modifierInt |= INTEGER_INT;
 					}
 					if(isHex)
 					{
@@ -210,6 +214,10 @@ namespace core
 				if(!mod.empty())
 				{
 					lexerError("Invalid float suffix: '{}'", mod);
+				}
+				if(t.modifierFloat == FLOAT_NONE)
+				{
+					t.modifierFloat |= FLOAT_FLOAT;
 				}
 				if(isHex)
 				{

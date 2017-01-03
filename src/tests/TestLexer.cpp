@@ -73,7 +73,7 @@ TEST_CASE("Test lexer")
 			}
 
 			REQUIRE(v[0].value == "123");
-			REQUIRE(v[0].modifierInt.get() == INTEGER_NONE);
+			REQUIRE(v[0].modifierInt.get() == INTEGER_INT);
 
 			REQUIRE(v[1].value == "9999999");
 			REQUIRE(v[1].modifierInt.isSet(INTEGER_INT32));
@@ -118,15 +118,17 @@ TEST_CASE("Test lexer")
 
 			REQUIRE(v[0].value == "3.1415926535");
 			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_F32));
+			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_F64));
 			REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
 			REQUIRE(v[0].modifierFloat.isSet(FLOAT_FLOAT));
-			REQUIRE(v[0].modifierFloat.isSet(FLOAT_F64));
 
 			REQUIRE(v[1].value == "12.34");
 			REQUIRE(v[1].modifierFloat.isSet(FLOAT_F32));
+			REQUIRE(v[1].modifierFloat.isNotSet(FLOAT_F64));
 
 			REQUIRE(v[2].value == "42.0");
 			REQUIRE(v[2].modifierFloat.isSet(FLOAT_F64));
+			REQUIRE(v[2].modifierFloat.isNotSet(FLOAT_FLOAT));
 
 			REQUIRE(v[3].value == "39.99");
 			REQUIRE(v[3].modifierFloat.isSet(FLOAT_DECIMAL));

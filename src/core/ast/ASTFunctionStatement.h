@@ -39,7 +39,7 @@ namespace core
 				: ASTStatement(FUNCTION_PARAMETER), var(std::move(_var)), passType(_passType) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
 		};
 
@@ -53,9 +53,9 @@ namespace core
 				: ASTStatement(FUNCTION_PROTO_STMT), name(std::move(_name)), returnType(std::move(retType)), params(std::move(_params)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Function *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTFunctionDefinitionStatement : public ASTStatement
@@ -68,9 +68,9 @@ namespace core
 				: ASTStatement(FUNCTION_DEF_STMT), proto(std::move(_proto)), body(std::move(_body)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Function *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTFunctionDeclarationStatement : public ASTStatement
@@ -83,9 +83,9 @@ namespace core
 				: ASTStatement(FUNCTION_DECL_STMT), proto(std::move(_proto)), isExtern(_isExtern) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTReturnStatement : public ASTStatement
@@ -97,9 +97,9 @@ namespace core
 				: ASTStatement(RETURN_STMT), returnValue(std::move(retval)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

@@ -34,57 +34,70 @@ namespace core
 			GrammarCheckerVisitor() = default;
 
 			template <typename T>
-			void run(T root)
+			bool run(T root)
 			{
 				auto castedRoot = dynamic_cast<ast::ASTNode*>(root);
 				if(!castedRoot)
 				{
 					throw std::invalid_argument("Invalid root node given to GrammarCheckerVisitor");
 				}
-				root->accept(this);
+				return root->accept(this);
 			}
 
-			void visit(ast::ASTNode *node) = delete;
-			void visit(ast::ASTStatement *node);
-			void visit(ast::ASTExpression *node);
+			template <typename... Args>
+			bool grammarError(const std::string &format, Args... args) const
+			{
+				util::logger->error(format.c_str(), args...);
+				return false;
+			}
 
-			void visit(ast::ASTIfStatement *node);
-			void visit(ast::ASTForStatement *node);
-			void visit(ast::ASTForeachStatement *node);
-			void visit(ast::ASTWhileStatement *node);
-			void visit(ast::ASTImportStatement *node);
-			void visit(ast::ASTModuleStatement *node);
+			template <typename... Args>
+			void grammarWarning(const std::string &format, Args... args) const
+			{
+				util::logger->warn(format.c_str(), args...);
+			}
 
-			void visit(ast::ASTEmptyExpression *node);
-			void visit(ast::ASTIdentifierExpression *node);
-			void visit(ast::ASTVariableRefExpression *node);
-			void visit(ast::ASTCallExpression *node);
-			void visit(ast::ASTCastExpression *node);
-			void visit(ast::ASTVariableDefinitionExpression *node);
-			void visit(ast::ASTSubscriptExpression *node);
-			void visit(ast::ASTSubscriptRangedExpression *node);
-			void visit(ast::ASTMemberAccessExpression *node);
+			bool visit(ast::ASTNode *node) = delete;
+			bool visit(ast::ASTStatement *node);
+			bool visit(ast::ASTExpression *node);
 
-			void visit(ast::ASTFunctionParameter *node) = delete;
-			void visit(ast::ASTFunctionPrototypeStatement *node);
-			void visit(ast::ASTFunctionDefinitionStatement *node);
-			void visit(ast::ASTFunctionDeclarationStatement *node);
-			void visit(ast::ASTReturnStatement *node);
+			bool visit(ast::ASTIfStatement *node);
+			bool visit(ast::ASTForStatement *node);
+			bool visit(ast::ASTForeachStatement *node);
+			bool visit(ast::ASTWhileStatement *node);
+			bool visit(ast::ASTImportStatement *node);
+			bool visit(ast::ASTModuleStatement *node);
 
-			void visit(ast::ASTIntegerLiteralExpression *node);
-			void visit(ast::ASTFloatLiteralExpression *node);
-			void visit(ast::ASTStringLiteralExpression *node);
-			void visit(ast::ASTCharLiteralExpression *node);
-			void visit(ast::ASTBoolLiteralExpression *node);
-			void visit(ast::ASTNoneLiteralExpression *node);
+			bool visit(ast::ASTEmptyExpression *node);
+			bool visit(ast::ASTIdentifierExpression *node);
+			bool visit(ast::ASTVariableRefExpression *node);
+			bool visit(ast::ASTCallExpression *node);
+			bool visit(ast::ASTCastExpression *node);
+			bool visit(ast::ASTVariableDefinitionExpression *node);
+			bool visit(ast::ASTSubscriptExpression *node);
+			bool visit(ast::ASTSubscriptRangedExpression *node);
+			bool visit(ast::ASTMemberAccessExpression *node);
 
-			void visit(ast::ASTBinaryOperationExpression *node);
-			void visit(ast::ASTUnaryOperationExpression *node);
-			void visit(ast::ASTAssignmentOperationExpression *node);
+			bool visit(ast::ASTFunctionParameter *node) = delete;
+			bool visit(ast::ASTFunctionPrototypeStatement *node);
+			bool visit(ast::ASTFunctionDefinitionStatement *node);
+			bool visit(ast::ASTFunctionDeclarationStatement *node);
+			bool visit(ast::ASTReturnStatement *node);
 
-			void visit(ast::ASTEmptyStatement *node);
-			void visit(ast::ASTBlockStatement *node);
-			void visit(ast::ASTWrappedExpressionStatement *node);
+			bool visit(ast::ASTIntegerLiteralExpression *node);
+			bool visit(ast::ASTFloatLiteralExpression *node);
+			bool visit(ast::ASTStringLiteralExpression *node);
+			bool visit(ast::ASTCharLiteralExpression *node);
+			bool visit(ast::ASTBoolLiteralExpression *node);
+			bool visit(ast::ASTNoneLiteralExpression *node);
+
+			bool visit(ast::ASTBinaryOperationExpression *node);
+			bool visit(ast::ASTUnaryOperationExpression *node);
+			bool visit(ast::ASTAssignmentOperationExpression *node);
+
+			bool visit(ast::ASTEmptyStatement *node);
+			bool visit(ast::ASTBlockStatement *node);
+			bool visit(ast::ASTWrappedExpressionStatement *node);
 		};
 	}
 }

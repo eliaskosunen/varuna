@@ -50,7 +50,10 @@ namespace core
 		{
 			{
 				auto ref = std::make_unique<GrammarCheckerVisitor>();
-				ref->run<ast::ASTBlockStatement*>(ast->globalNode.get());
+				if(!ref->run<ast::ASTBlockStatement*>(ast->globalNode.get()))
+				{
+					return false;
+				}
 			}
 
 			if(!llvm::InitializeNativeTarget())

@@ -36,9 +36,9 @@ namespace core
 					condition(std::move(cond)), ifBlock(std::move(ifb)), elseBlock(std::move(elseb)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTForStatement : public ASTStatement
@@ -52,9 +52,9 @@ namespace core
 					init(std::move(_init)), rangeDecl(std::move(_rangeDecl)), rangeInit(std::move(_rangeInit)), block(std::move(stmt)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTForeachStatement : public ASTStatement
@@ -68,9 +68,9 @@ namespace core
 					iteratee(std::move(_iteratee)), iterator(std::move(_iterator)), block(std::move(_block)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTWhileStatement : public ASTStatement
@@ -84,9 +84,9 @@ namespace core
 					condition(std::move(cond)), block(std::move(_block)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTImportStatement : public ASTStatement
@@ -107,9 +107,9 @@ namespace core
 					importee(std::move(toImport)), isPath(_isPath), importType(type) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 
 		class ASTModuleStatement : public ASTStatement
@@ -121,9 +121,9 @@ namespace core
 				: ASTStatement(MODULE_STMT), moduleName(std::move(name)) {}
 
 			void accept(DumpASTVisitor *v, size_t ind = 0) override;
-			llvm::Value *accept(codegen::CodegenVisitor *v) override;
+			std::unique_ptr<codegen::TypedValue> accept(codegen::CodegenVisitor *v) override;
 			void accept(ASTParentSolverVisitor *v, ASTNode *p) override;
-			void accept(codegen::GrammarCheckerVisitor *v) override;
+			bool accept(codegen::GrammarCheckerVisitor *v) override;
 		};
 	} // namespace ast
 } // namespace core

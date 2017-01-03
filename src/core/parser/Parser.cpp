@@ -740,45 +740,47 @@ namespace core
 
 			try
 			{
-				auto size = [&]()
-				{
-					if(lit->modifierInt.isSet(INTEGER_INT64))
-					{
-						return 64u;
-					}
-					if(lit->modifierInt.isSet(INTEGER_INT16))
-					{
-						return 16u;
-					}
-					if(lit->modifierInt.isSet(INTEGER_INT8))
-					{
-						return 8u;
-					}
-					return 32u;
-				}();
-
 				int64_t val = std::stoll(lit->value, nullptr, base);
-				std::string type = "int" + std::to_string(size);
-				if(size == 8)
+				std::string type;
+				if(lit->modifierInt.isSet(INTEGER_INT))
 				{
-					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
-					{
-						throw std::out_of_range(fmt::format("'{}' cannot fit into Int8", lit->value));
-					}
-				}
-				else if(size == 16)
-				{
-					if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
-					{
-						throw std::out_of_range(fmt::format("'{}' cannot fit into Int16", lit->value));
-					}
-				}
-				else if(size == 32)
-				{
+					type = "int";
 					if(val > std::numeric_limits<int32_t>::max() || val < std::numeric_limits<int32_t>::min())
 					{
-						throw std::out_of_range(fmt::format("'{}' cannot fit into Int32", lit->value));
+						throw std::out_of_range(fmt::format("'{}' cannot fit into int", lit->value));
 					}
+				}
+				else if(lit->modifierInt.isSet(INTEGER_INT8))
+				{
+					type = "int8";
+					if(val > std::numeric_limits<int8_t>::max() || val < std::numeric_limits<int8_t>::min())
+					{
+						throw std::out_of_range(fmt::format("'{}' cannot fit into int8", lit->value));
+					}
+				}
+				else if(lit->modifierInt.isSet(INTEGER_INT16))
+				{
+					type = "int16";
+					if(val > std::numeric_limits<int16_t>::max() || val < std::numeric_limits<int16_t>::min())
+					{
+						throw std::out_of_range(fmt::format("'{}' cannot fit into int16", lit->value));
+					}
+				}
+				else if(lit->modifierInt.isSet(INTEGER_INT32))
+				{
+					type = "int32";
+					if(val > std::numeric_limits<int32_t>::max() || val < std::numeric_limits<int32_t>::min())
+					{
+						throw std::out_of_range(fmt::format("'{}' cannot fit into int32", lit->value));
+					}
+				}
+				else if(lit->modifierInt.isSet(INTEGER_INT64))
+				{
+					type = "int64";
+				}
+				else
+				{
+					throw std::invalid_argument(fmt::format("Invalid integer modifier: {}", lit->modifierInt.get()));
 				}
 				return std::make_unique<ASTIntegerLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 
@@ -803,11 +805,22 @@ namespace core
 				std::string type;
 				std::tie(val, type) = [&]()
 				{
-					if(lit->modifierFloat.isSet(FLOAT_F32))
+					if(lit->modifierFloat.isSet(FLOAT_F64))
+					{
+						return std::make_tuple<double, std::string>(std::stod(lit->value), "f64");
+					}
+					else if(lit->modifierFloat.isSet(FLOAT_F32))
 					{
 						return std::make_tuple<double, std::string>(static_cast<double>(std::stof(lit->value)), "f32");
 					}
-					return std::make_tuple<double, std::string>(std::stod(lit->value), "f64");
+					else if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+					{
+						return std::make_tuple<double, std::string>(std::stod(lit->value), "float");
+					}
+					else
+					{
+						throw std::invalid_argument(fmt::format("Invalid float modifier: {}", lit->modifierFloat.get()));
+					}
 				}();
 				return std::make_unique<ASTFloatLiteralExpression>(val, std::make_unique<ASTIdentifierExpression>(type));
 			}
