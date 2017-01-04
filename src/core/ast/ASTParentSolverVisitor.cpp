@@ -45,26 +45,46 @@ namespace core
 		void ASTParentSolverVisitor::visit(ASTIfStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->condition->accept(this, node);
+			node->ifBlock->accept(this, node);
+			node->elseBlock->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTForStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->init->accept(this, node);
+			node->rangeDecl->accept(this, node);
+			node->rangeInit->accept(this, node);
+			node->block->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTForeachStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->iteratee->accept(this, node);
+			node->iterator->accept(this, node);
+			node->block->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTWhileStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->condition->accept(this, node);
+			node->block->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTImportStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->importee->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTModuleStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->moduleName->accept(this, node);
 		}
 
 		void ASTParentSolverVisitor::visit(ASTEmptyExpression *node, ASTNode *parent)
@@ -82,18 +102,36 @@ namespace core
 		void ASTParentSolverVisitor::visit(ASTCallExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->callee->accept(this, node);
+
+			auto &params = node->params;
+			for(auto &p : params)
+			{
+				p->accept(this, node);
+			}
 		}
 		void ASTParentSolverVisitor::visit(ASTCastExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
+			node->castee->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTVariableDefinitionExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
+			node->name->accept(this, node);
+			node->init->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTSubscriptExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->lhs->accept(this, node);
+			node->index->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTSubscriptRangedExpression *node, ASTNode *parent)
 		{
@@ -102,65 +140,106 @@ namespace core
 		void ASTParentSolverVisitor::visit(ASTMemberAccessExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->lhs->accept(this, node);
+			node->rhs->accept(this, node);
 		}
 
 		void ASTParentSolverVisitor::visit(ASTFunctionParameter *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->var->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTFunctionPrototypeStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->name->accept(this, node);
+			node->returnType->accept(this, node);
+
+			auto &params = node->params;
+			for(auto &p : params)
+			{
+				p->accept(this, node);
+			}
 		}
 		void ASTParentSolverVisitor::visit(ASTFunctionDefinitionStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->proto->accept(this, node);
+			node->body->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTFunctionDeclarationStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->proto->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTReturnStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->returnValue->accept(this, node);
 		}
 
 		void ASTParentSolverVisitor::visit(ASTIntegerLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTFloatLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTStringLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTCharLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTBoolLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTNoneLiteralExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->type->accept(this, node);
 		}
 
 		void ASTParentSolverVisitor::visit(ASTBinaryOperationExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->left->accept(this, node);
+			node->right->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTUnaryOperationExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->operand->accept(this, node);
 		}
 		void ASTParentSolverVisitor::visit(ASTAssignmentOperationExpression *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->lval->accept(this, node);
+			node->rval->accept(this, node);
 		}
 
 		void ASTParentSolverVisitor::visit(ASTEmptyStatement *node, ASTNode *parent)
@@ -170,10 +249,18 @@ namespace core
 		void ASTParentSolverVisitor::visit(ASTBlockStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			auto &nodes = node->nodes;
+			for(auto &n : nodes)
+			{
+				n->accept(this, node);
+			}
 		}
 		void ASTParentSolverVisitor::visit(ASTWrappedExpressionStatement *node, ASTNode *parent)
 		{
 			node->parent = parent;
+
+			node->expr->accept(this, node);
 		}
 	} // namespace ast
 } // namespace core

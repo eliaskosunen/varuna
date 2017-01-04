@@ -30,7 +30,7 @@ namespace core
 {
 	namespace codegen
 	{
-		std::array<std::unique_ptr<Type>, 12> CodegenVisitor::_buildTypeArray()
+		std::array<std::unique_ptr<Type>, 13> CodegenVisitor::_buildTypeArray()
 		{
 			// Forgive me
 			#define CODEGEN_TYPE(T) std::make_unique<T>(context, dbuilder)
@@ -47,7 +47,8 @@ namespace core
 				CODEGEN_TYPE(ByteType),
 				CODEGEN_TYPE(FloatType),
 				CODEGEN_TYPE(F32Type),
-				CODEGEN_TYPE(F64Type)
+				CODEGEN_TYPE(F64Type),
+				CODEGEN_TYPE(StringType),
 			}};
 
 			#undef CODEGEN_TYPE
@@ -71,15 +72,14 @@ namespace core
 
 		CodegenVisitor::CodegenVisitor(llvm::LLVMContext &c, llvm::Module *m, const CodegenInfo &i)
 			: context{c}, module(m), info{i}, builder(context),
-			dbuilder(*m), dcu{nullptr}, dBlocks{},
-			variables{}, globalVariables{}, functionProtos{}, types{_createTypeMap()}
+			dbuilder(*m), dcu {
+				dbuilder.createCompileUnit(
+					llvm::dwarf::DW_LANG_C, info.filename, ".",
+					util::programinfo::getIdentifier(),
+					info.optEnabled(), "", 0
+				)
+			}, dBlocks{}, variables{}, globalVariables{}, functionProtos{}, types{_createTypeMap()}
 		{
-			dcu = dbuilder.createCompileUnit(
-				llvm::dwarf::DW_LANG_C, info.filename, ".",
-				util::programinfo::getIdentifier(),
-				info.optEnabled(), "", 0
-			);
-
 			/*types.insert({ "void", {llvm::Type::getVoidTy(context)} });
 			types.insert({ "int", {llvm::Type::getInt32Ty(context)} });
 			types.insert({ "int8", {llvm::Type::getInt8Ty(context)} });
@@ -392,7 +392,8 @@ namespace core
 			}
 
 			auto call = builder.CreateCall(callee->getFunctionType(), callee, args, "calltmp");
-			auto type = findType(callee->getFunctionType());
+			//auto call = builder.CreateCall(callee, args, "calltmp");
+			auto type = findType(callee->getReturnType());
 			if(!call || !type)
 			{
 				return nullptr;
@@ -426,35 +427,6 @@ namespace core
 			}
 			auto cast = builder.CreateCast(castop, castee->value, t->type, "casttmp");
 			return std::make_unique<TypedValue>(t, cast);
-			//return builder.CreateCast(t->cast(Type::CAST, ));
-
-			/*if(castee->type-)
-			{
-				if(type->isIntegerTy())
-				{
-					return builder.CreateIntCast(castee, type, true, "casttmp");
-				}
-				else if(type->isFloatingPointTy())
-				{
-					return builder.CreateSIToFP(castee, type, "casttmp");
-				}
-			}
-			else if(castee->getType()->isFloatingPointTy())
-			{
-				if(type->isFloatingPointTy())
-				{
-					return builder.CreateFPCast(castee, type, "casttmp");
-				}
-				else if(type->isIntegerTy())
-				{
-					return builder.CreateFPToSI(castee, type, "casttmp");
-				}
-			}
-			else if(castee->getType()->isPointerTy())
-			{
-				return builder.CreatePointerBitCastOrAddrSpaceCast(castee, type, "casttmp");
-			}
-			return builder.CreateBitCast(castee, type, "casttmp");*/
 		}
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTVariableDefinitionExpression *expr)
 		{
@@ -466,6 +438,11 @@ namespace core
 				return nullptr;
 			}
 			llvm::Type *type = t->type;
+
+			if(!t->isSized())
+			{
+				return codegenError("Cannot create a variable of unsized type: {}", t->name);
+			}
 
 			if(findType(expr->name->value, false))
 			{
@@ -503,12 +480,13 @@ namespace core
 					return nullptr;
 				}
 
-				auto cast = initExpr->type->cast(Type::IMPLICIT, *t);
-				if(std::get<0>(cast) || std::get<1>(cast))
+				auto tname = initExpr->type->name;
+				auto cast = checkTypedValue(std::move(initExpr), *t);
+				if(!cast)
 				{
-					return codegenError("Invalid init expression: Cannot assign {} to {}", initExpr->type->name, t->name);
+					return codegenError("Invalid init expression: Cannot assign {} to {}", tname, t->name);
 				}
-				initVal = initExpr->value;
+				initVal = cast->value;
 			}
 			if(!initVal)
 			{
@@ -580,7 +558,7 @@ namespace core
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement *stmt)
 		{
 			auto name = stmt->proto->name->value;
-			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
+			functionProtos[stmt->proto->name->value] = stmt->proto.get();
 			auto func = findFunction(name);
 			if(!func)
 			{
@@ -638,7 +616,7 @@ namespace core
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement *stmt)
 		{
 			auto name = stmt->proto->name->value;
-			functionProtos[stmt->proto->name->value] = std::move(stmt->proto);
+			functionProtos[stmt->proto->name->value] = stmt->proto.get();
 			auto func = findFunction(name);
 			if(!func)
 			{
@@ -669,8 +647,15 @@ namespace core
 			{
 				return nullptr;
 			}
-			builder.CreateRet(ret->value);
-			return ret;
+			auto f = getASTNodeFunction(stmt);
+			auto checked = checkTypedValue(std::move(ret), *findType(f->returnType->value));
+			if(!checked)
+			{
+				return nullptr;
+			}
+
+			builder.CreateRet(checked->value);
+			return checked;
 		}
 
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIntegerLiteralExpression *expr)
@@ -734,110 +719,111 @@ namespace core
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBinaryOperationExpression *expr)
 		{
 			auto lhs = expr->left->accept(this);
-			auto rhs = expr->right->accept(this);
-			if(!lhs || !rhs)
+			auto rhs_ = expr->right->accept(this);
+			if(!lhs || !rhs_)
 			{
 				return nullptr;
 			}
 
-			auto lhsType = lhs->type;
-			auto rhsType = rhs->type;
-			if(lhsType != rhsType)
+			auto rhs = checkTypedValue(std::move(rhs_), *lhs->type);
+			if(!rhs)
 			{
-				return codegenError("Type mismatch: Cannot perform binary operation on {} and {}", lhsType->name, rhsType->name);
+				return nullptr;
 			}
 
+			auto type = lhs->type;
+
 			auto boolType = findType("bool");
-			switch(expr->oper.get())
+
+			if(expr->oper == lexer::TOKEN_OPERATORB_EQ)
 			{
-			case lexer::TOKEN_OPERATORB_EQ:
-				if(lhsType->isIntegral() && rhsType->isIntegral())
+				if(type->isIntegral())
 				{
 					return std::make_unique<TypedValue>(boolType, builder.CreateICmpEQ(lhs->value, rhs->value, "eqtmp"));
 				}
-				else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+				else if(type->isFloatingPoint())
 				{
 					return std::make_unique<TypedValue>(boolType, builder.CreateFCmpOEQ(lhs->value, rhs->value, "eqtmp"));
 				}
-				return codegenError("Type mismatch: Cannot perform eq operation on {} and {}", lhsType->name, rhsType->name);
-			case lexer::TOKEN_OPERATORB_NOTEQ:
-				if(lhsType->isIntegral() && rhsType->isIntegral())
+				return codegenError("Cannot perform eq operation on {}", type->name);
+			}
+			else if(expr->oper == lexer::TOKEN_OPERATORB_NOTEQ)
+			{
+				if(type->isIntegral())
 				{
 					return std::make_unique<TypedValue>(boolType, builder.CreateICmpNE(lhs->value, rhs->value, "noteqtmp"));
 				}
-				else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
+				else if(type->isFloatingPoint())
 				{
 					return std::make_unique<TypedValue>(boolType, builder.CreateFCmpONE(lhs->value, rhs->value, "noteqtmp"));
 				}
-				return codegenError("Type mismatch: Cannot perform noteq operation on {} and {}", lhsType->name, rhsType->name);
-			default:
-			{
-				auto inst = [&]() -> llvm::Value*
-				{
-					switch(expr->oper.get())
-					{
-					case lexer::TOKEN_OPERATORB_ADD:
-						if(lhsType->isIntegral() && rhsType->isIntegral())
-						{
-							return builder.CreateAdd(lhs->value, rhs->value, "addtmp");
-						}
-						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
-						{
-							return builder.CreateFAdd(lhs->value, rhs->value, "addtmp");
-						}
-						return codegenError("Type mismatch: Cannot perform add operation on {} and {}", lhsType->name, rhsType->name);
-					case lexer::TOKEN_OPERATORB_SUB:
-						if(lhsType->isIntegral() && rhsType->isIntegral())
-						{
-							return builder.CreateSub(lhs->value, rhs->value, "subtmp");
-						}
-						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
-						{
-							return builder.CreateFSub(lhs->value, rhs->value, "subtmp");
-						}
-						return codegenError("Type mismatch: Cannot perform sub operation on {} and {}", lhsType->name, rhsType->name);
-					case lexer::TOKEN_OPERATORB_MUL:
-						if(lhsType->isIntegral() && rhsType->isIntegral())
-						{
-							return builder.CreateMul(lhs->value, rhs->value, "multmp");
-						}
-						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
-						{
-							return builder.CreateFMul(lhs->value, rhs->value, "multmp");
-						}
-						return codegenError("Type mismatch: Cannot perform mul operation on {} and {}", lhsType->name, rhsType->name);
-					case lexer::TOKEN_OPERATORB_DIV:
-						if(lhsType->isIntegral() && rhsType->isIntegral())
-						{
-							return builder.CreateSDiv(lhs->value, rhs->value, "divtmp");
-						}
-						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
-						{
-							return builder.CreateFDiv(lhs->value, rhs->value, "divtmp");
-						}
-						return codegenError("Type mismatch: Cannot perform div operation on {} and {}", lhsType->name, rhsType->name);
-					case lexer::TOKEN_OPERATORB_REM:
-						if(lhsType->isIntegral() && rhsType->isIntegral())
-						{
-							return builder.CreateSRem(lhs->value, rhs->value, "remtmp");
-						}
-						else if(lhsType->isFloatingPoint() && rhsType->isFloatingPoint())
-						{
-							return builder.CreateFRem(lhs->value, rhs->value, "remtmp");
-						}
-						return codegenError("Type mismatch: Cannot perform rem operation on {} and {}", lhsType->name, rhsType->name);
+				return codegenError("Cannot perform noteq operation on {}", type->name);
+			}
 
-					default:
-						return codegenError("Unimplemented binary operator");
-					}
-				}();
-				if(!inst)
+			auto inst = [&]() -> llvm::Value*
+			{
+				switch(expr->oper.get())
 				{
-					return nullptr;
+				case lexer::TOKEN_OPERATORB_ADD:
+					if(type->isIntegral())
+					{
+						return builder.CreateAdd(lhs->value, rhs->value, "addtmp");
+					}
+					else if(type->isFloatingPoint())
+					{
+						return builder.CreateFAdd(lhs->value, rhs->value, "addtmp");
+					}
+					return codegenError("Cannot perform add operation on {}", type->name);
+				case lexer::TOKEN_OPERATORB_SUB:
+					if(type->isIntegral())
+					{
+						return builder.CreateSub(lhs->value, rhs->value, "subtmp");
+					}
+					else if(type->isFloatingPoint())
+					{
+						return builder.CreateFSub(lhs->value, rhs->value, "subtmp");
+					}
+					return codegenError("Cannot perform sub operation on {}", type->name);
+				case lexer::TOKEN_OPERATORB_MUL:
+					if(type->isIntegral())
+					{
+						return builder.CreateMul(lhs->value, rhs->value, "multmp");
+					}
+					else if(type->isFloatingPoint())
+					{
+						return builder.CreateFMul(lhs->value, rhs->value, "multmp");
+					}
+					return codegenError("Cannot perform mul operation on {}", type->name);
+				case lexer::TOKEN_OPERATORB_DIV:
+					if(type->isIntegral())
+					{
+						return builder.CreateSDiv(lhs->value, rhs->value, "divtmp");
+					}
+					else if(type->isFloatingPoint())
+					{
+						return builder.CreateFDiv(lhs->value, rhs->value, "divtmp");
+					}
+					return codegenError("Cannot perform div operation on {}", type->name);
+				case lexer::TOKEN_OPERATORB_REM:
+					if(type->isIntegral())
+					{
+						return builder.CreateSRem(lhs->value, rhs->value, "remtmp");
+					}
+					else if(type->isFloatingPoint())
+					{
+						return builder.CreateFRem(lhs->value, rhs->value, "remtmp");
+					}
+					return codegenError("Cannot perform rem operation on {}", type->name);
+
+				default:
+					return codegenError("Unimplemented binary operator");
 				}
-				return std::make_unique<TypedValue>(lhsType, inst);
+			}();
+			if(!inst)
+			{
+				return nullptr;
 			}
-			}
+			return std::make_unique<TypedValue>(type, inst);
 		}
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTUnaryOperationExpression *expr)
 		{

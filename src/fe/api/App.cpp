@@ -79,7 +79,7 @@ namespace fe
 				core::ast::DumpASTVisitor::dump<core::ast::ASTBlockStatement>(ast->globalNode.get());
 
 				util::logger->debug("Starting code generation");
-				core::codegen::CodegenInfo cinfo { ast->file, 2, 0 };
+				core::codegen::CodegenInfo cinfo { ast->file, 3, 0 };
 				core::codegen::Codegen codegen(std::move(ast), std::move(cinfo));
 				if(!codegen.run())
 				{
@@ -88,7 +88,7 @@ namespace fe
 					return false;
 				}
 				util::logger->debug("Code generation finished\n");
-				
+
 				util::logger->info("File '{}' compiled successfully", file);
 
 				return true;

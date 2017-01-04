@@ -3,20 +3,6 @@ module main;
 
 def main(): int
 {
-	// Comments
-	// That
-	// is
-	// long
-	// yeees
-	// pfjaofjaofj
-	int i = 0;
-	if(i + 1)
-	{
-		f64 f_ = cast<f64>(3.14f32);
-		int64 i_ = cast<int64>(f_);
-		int i2 = cast<int>(i_);
-		return i2;
-	}
-	int16 i6 = cast<int16>(1);
-	return cast<int>(i6);
+	int v;
+	return 0;
 }

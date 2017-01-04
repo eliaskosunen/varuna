@@ -85,10 +85,10 @@ namespace core
 		}
 		bool GrammarCheckerVisitor::visit(ast::ASTVariableDefinitionExpression *node)
 		{
-			if(node->type->value == "void")
+			/*if(node->type->value == "void")
 			{
 				return grammarError("Variable type cannot be void");
-			}
+			}*/
 
 			if(!node->type->accept(this)) return false;
 			if(!node->name->accept(this)) return false;

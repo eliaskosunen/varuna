@@ -42,16 +42,6 @@ namespace core
 {
 	namespace codegen
 	{
-		/*struct Type
-		{
-			llvm::Type *type;
-			llvm::DIType *dtype;
-			std::string name;
-
-			Type(llvm::Type *t, llvm::DIType *d, const std::string &n)
-				: type(t), dtype(d), name(n) {}
-		};*/
-
 		class TypedValue
 		{
 		public:
@@ -82,10 +72,10 @@ namespace core
 
 			std::unordered_map<std::string, Variable> variables;
 			std::unordered_map<std::string, Variable> globalVariables;
-			std::unordered_map<std::string, std::unique_ptr<ast::ASTFunctionPrototypeStatement>> functionProtos;
+			std::unordered_map<std::string, ast::ASTFunctionPrototypeStatement*> functionProtos;
 			std::unordered_map<std::string, std::unique_ptr<Type>> types;
 
-			std::array<std::unique_ptr<Type>, 12> _buildTypeArray();
+			std::array<std::unique_ptr<Type>, 13> _buildTypeArray();
 			std::unordered_map<std::string, std::unique_ptr<Type>> _createTypeMap();
 
 			void emitDebugLocation(ast::ASTNode *node);
@@ -171,12 +161,40 @@ namespace core
 				return {};
 			}
 
+			std::unique_ptr<TypedValue> checkTypedValue(std::unique_ptr<TypedValue> val, const Type &requiredType) const
+			{
+				auto cast = val->type->cast(Type::IMPLICIT, requiredType);
+				if(std::get<0>(cast) || std::get<1>(cast))
+				{
+					return nullptr;
+				}
+				return val;
+			}
+
 			void stripInstructionsAfterTerminators();
 
 			llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *func, llvm::Type *type, const std::string &name)
 			{
 				llvm::IRBuilder<> tmp(&func->getEntryBlock(), func->getEntryBlock().begin());
 				return tmp.CreateAlloca(type, nullptr, name.c_str());
+			}
+
+			ast::ASTFunctionPrototypeStatement *getASTNodeFunction(ast::ASTNode *node) const
+			{
+				auto f = node->getFunction();
+				if(!f)
+				{
+					return nullptr;
+				}
+
+				if(f->nodeType == ast::ASTNode::FUNCTION_DECL_STMT)
+				{
+					auto casted = dynamic_cast<ast::ASTFunctionDeclarationStatement*>(f);
+					return casted->proto.get();
+				}
+
+				auto casted = dynamic_cast<ast::ASTFunctionDefinitionStatement*>(f);
+				return casted->proto.get();
 			}
 
 		public:

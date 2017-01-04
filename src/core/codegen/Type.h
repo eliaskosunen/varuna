@@ -479,5 +479,40 @@ namespace core
 					"f64"
 				) {}
 		};
+
+		class StringType : public Type
+		{
+		public:
+			StringType(llvm::LLVMContext &c, llvm::DIBuilder&)
+				: Type(
+					STRING, c,
+					llvm::StructType::create(c, {
+						llvm::Type::getInt64Ty(c),
+						llvm::Type::getInt8PtrTy(c)
+					}, "string_t", true),
+					nullptr,
+					"string_t"
+				) {}
+
+			CastTuple cast(CastType c, const Type &to) override
+			{
+				using llvm::Instruction;
+
+				if(c == IMPLICIT)
+				{
+					if(to.kind == kind)
+					{
+						return CastTuple {false, false, defaultCast};
+					}
+
+					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
+				}
+
+				return typeError("Invalid cast: {} cannot be casted", name);
+			}
+
+			bool isIntegral() override { return false; }
+			bool isFloatingPoint() override { return false; }
+		};
 	}
 }

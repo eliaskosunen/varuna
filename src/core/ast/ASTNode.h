@@ -87,8 +87,26 @@ namespace core
 			ASTNode(ASTNode&&) = default;
 			ASTNode &operator = (ASTNode&&) = default;
 			virtual ~ASTNode() = default;
+
+			ASTNode *getFunction()
+			{
+				return _getFunction();
+			}
 		protected:
 			ASTNode(NodeType t) : nodeType(t) {}
+
+			ASTNode *_getFunction()
+			{
+				if(nodeType == FUNCTION_DECL_STMT || nodeType == FUNCTION_DEF_STMT)
+				{
+					return this;
+				}
+				if(!parent)
+				{
+					return nullptr;
+				}
+				return parent->_getFunction();
+			}
 		};
 	} // namespace ast
 } // namespace core
