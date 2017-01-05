@@ -30,7 +30,8 @@ namespace ast
     public:
         ASTParentSolverVisitor() = default;
 
-        template <typename T> void run(T* root)
+        template <typename T>
+        void run(T* root)
         {
             auto castedRoot = dynamic_cast<ASTNode*>(root);
             if(!castedRoot)

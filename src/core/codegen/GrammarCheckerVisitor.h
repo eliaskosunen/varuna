@@ -32,7 +32,8 @@ namespace codegen
     public:
         GrammarCheckerVisitor() = default;
 
-        template <typename T> bool run(T root)
+        template <typename T>
+        bool run(T root)
         {
             auto castedRoot = dynamic_cast<ast::ASTNode*>(root);
             if(!castedRoot)

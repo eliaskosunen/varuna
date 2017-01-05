@@ -73,7 +73,8 @@ namespace ast
             }
         }
 
-        template <typename T> void start(T* root)
+        template <typename T>
+        void start(T* root)
         {
             util::loggerBasic->trace("");
             log("*** AST DUMP ***");
@@ -92,7 +93,8 @@ namespace ast
             astlogger->flush();
         }
 
-        template <typename T> static void dump(T* node)
+        template <typename T>
+        static void dump(T* node)
         {
             auto dumpAST = std::make_unique<DumpASTVisitor>();
             dumpAST->start<T>(node);

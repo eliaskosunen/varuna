@@ -3,11 +3,8 @@ Language: Cpp
 IndentWidth: 4
 UseTab: Never
 BreakBeforeBraces: Allman
-AllowShortIfStatementsOnASingleLine: false
-IndentCaseLabels: false
 AccessModifierOffset: -4
 AllowShortFunctionsOnASingleLine: Empty
-AllowShortLoopsOnASingleLine: false
 AlwaysBreakTemplateDeclarations: false
 NamespaceIndentation: Inner
 PointerAlignment: Left

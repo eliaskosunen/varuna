@@ -73,6 +73,10 @@ You can either use the CMake GUI or the Command Prompt:
 
 After that the Visual Studio project files can be found in the folder `build`.
 
+## Contributing
+
+See CONTRIBUTING.md
+
 ## Compiler documentation
 
 ### Directory structure

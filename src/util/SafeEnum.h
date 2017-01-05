@@ -23,8 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
-template <class Enum_t,
-          class Underlying_t = typename std::underlying_type<Enum_t>::type>
+template <typename Enum_t,
+          typename Underlying_t = typename std::underlying_type<Enum_t>::type>
 class SafeEnum
 {
 protected:
