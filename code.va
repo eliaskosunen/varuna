@@ -3,6 +3,6 @@ module main;
 
 def main(): int
 {
-	int v;
+	string_t s = "";
 	return 0;
 }

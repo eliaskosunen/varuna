@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Elias Kosunen
+Copyright (C) 2016-2017 Elias Kosunen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ namespace fe
 			util::loggerBasic->info("Varuna, {}\n", ver);
 
 			util::loggerBasic->info("Varuna is published under the GNU General Public License version 3 (GNU GPL 3, the License)");
-			util::loggerBasic->info("Varuna - Copyright (C) 2016 Elias Kosunen");
+			util::loggerBasic->info("Varuna - Copyright (C) 2016-2017 Elias Kosunen");
 			util::loggerBasic->info("This program comes with ABSOLUTELY NO WARRANTY; see the License for details.");
 			util::loggerBasic->info("This is free software, and you are welcome to redistribute it \
 under certain conditions; see the License for details.");

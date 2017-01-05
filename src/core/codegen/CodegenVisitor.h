@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Elias Kosunen
+Copyright (C) 2016-2017 Elias Kosunen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -195,6 +195,17 @@ namespace core
 
 				auto casted = dynamic_cast<ast::ASTFunctionDefinitionStatement*>(f);
 				return casted->proto.get();
+			}
+
+			llvm::Constant *createStringConstant(const char *str)
+			{
+				llvm::Constant *strConst = llvm::ConstantDataArray::getString(context, str);
+				llvm::GlobalVariable *gvStr = new llvm::GlobalVariable(*module, strConst->getType(), true, llvm::GlobalValue::InternalLinkage, 0, ".str");
+				gvStr->setAlignment(1);
+				gvStr->setInitializer(strConst);
+
+				llvm::Constant *strVal = llvm::ConstantExpr::getGetElementPtr(strConst->getType(), gvStr, {});
+				return strVal;
 			}
 
 		public:

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Elias Kosunen
+Copyright (C) 2016-2017 Elias Kosunen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -672,7 +672,23 @@ namespace core
 		}
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTStringLiteralExpression *expr)
 		{
-			auto val = llvm::ConstantDataArray::getString(context, expr->value, false);
+			auto str = createStringConstant(expr->value.c_str());
+			return std::make_unique<TypedValue>(findType("string_t"), str);
+
+			/*auto t = findType("string");
+			if(!t)
+			{
+				return nullptr;
+			}
+			auto type = llvm::dyn_cast<llvm::StructType>(t->type);
+			auto valtype = findType("int64");
+			auto ret = llvm::ConstantStruct::get(type,
+			{
+				llvm::ConstantInt::get(valtype->type, str->getNumElements()),
+				str
+			});
+			return std::make_unique<TypedValue>(valtype, ret);*/
+			/*auto val = llvm::ConstantDataArray::getString(context, expr->value, false);
 			if(!val)
 			{
 				return codegenError("Invalid string literal");
@@ -696,7 +712,7 @@ namespace core
 				llvm::ConstantInt::get(valtype->type, literal->getNumElements()),
 				val
 			});
-			return std::make_unique<TypedValue>(valtype, ret);
+			return std::make_unique<TypedValue>(valtype, ret);*/
 		}
 		std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCharLiteralExpression *expr)
 		{

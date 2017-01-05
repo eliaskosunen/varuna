@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2016 Elias Kosunen
+Copyright (C) 2016-2017 Elias Kosunen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -486,10 +486,11 @@ namespace core
 			StringType(llvm::LLVMContext &c, llvm::DIBuilder&)
 				: Type(
 					STRING, c,
-					llvm::StructType::create(c, {
+					/*llvm::StructType::create(c, {
 						llvm::Type::getInt64Ty(c),
 						llvm::Type::getInt8PtrTy(c)
-					}, "string_t", true),
+					}, "string_t", true),*/
+					llvm::Type::getInt8PtrTy(c),
 					nullptr,
 					"string_t"
 				) {}
