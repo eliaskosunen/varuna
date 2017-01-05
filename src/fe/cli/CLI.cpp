@@ -1,19 +1,6 @@
-/*
-Copyright (C) 2016-2017 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #include "fe/cli/CLI.h"
 #include "fe/api/App.h"
@@ -129,16 +116,9 @@ namespace cli
     {
         util::loggerBasic->info("Varuna, {}\n", ver);
 
-        util::loggerBasic->info("Varuna is published under the GNU General "
-                                "Public License version 3 (GNU GPL 3, the "
-                                "License)");
-        util::loggerBasic->info(
-            "Varuna - Copyright (C) 2016-2017 Elias Kosunen");
-        util::loggerBasic->info("This program comes with ABSOLUTELY NO "
-                                "WARRANTY; see the License for details.");
-        util::loggerBasic->info(
-            "This is free software, and you are welcome to redistribute it \
-under certain conditions; see the License for details.");
+        util::loggerBasic->info("Copyright (C) 2016-2017 Elias Kosunen");
+        util::loggerBasic->info("Published under the 3-Clause BSD License (\"New/Modified BSD License\")");
+        util::loggerBasic->info("See the file LICENSE for details");
     }
 } // namespace cli
 } // namespace fe
