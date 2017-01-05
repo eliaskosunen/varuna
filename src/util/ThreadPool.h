@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "ctpl.h"
+#include <ctpl.h>
 
 namespace util
 {
-	using ThreadPool = ctpl::thread_pool;
+using ThreadPool = ctpl::thread_pool;
 }

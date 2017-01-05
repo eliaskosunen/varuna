@@ -21,18 +21,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
-	namespace codegen
-	{
-		struct CodegenInfo
-		{
-			const std::string &filename;
-			uint8_t optLevel {0};
-			uint8_t sizeLevel {0};
+namespace codegen
+{
+    struct CodegenInfo
+    {
+        const std::string& filename;
+        uint8_t optLevel{0};
+        uint8_t sizeLevel{0};
 
-			bool optEnabled() const
-			{
-				return optLevel > 0 || sizeLevel > 0;
-			}
-		};
-	}
+        bool optEnabled() const
+        {
+            return optLevel > 0 || sizeLevel > 0;
+        }
+    };
+}
 }

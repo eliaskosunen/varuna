@@ -17,12 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace util
 {
-	using char_t = char;
-	using string_t = std::basic_string<char_t>;
-	using stringstream_t = std::basic_stringstream<char_t>;
+using char_t = char;
+using string_t = std::basic_string<char_t>;
+using stringstream_t = std::basic_stringstream<char_t>;
 }

@@ -19,40 +19,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/ast/AST.h"
 #include "core/ast/FwdDecl.h"
+#include "core/codegen/CodegenInfo.h"
 #include "core/codegen/CodegenVisitor.h"
 #include "core/codegen/Optimizer.h"
-#include "core/codegen/CodegenInfo.h"
-
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 
 namespace core
 {
-	namespace codegen
-	{
-		class Codegen final
-		{
-			std::unique_ptr<ast::AST> ast;
-			CodegenInfo info;
-			llvm::LLVMContext context;
-			std::unique_ptr<llvm::Module> module;
-			std::unique_ptr<CodegenVisitor> codegen;
-			std::unique_ptr<Optimizer> optimizer;
+namespace codegen
+{
+    class Codegen final
+    {
+        std::unique_ptr<ast::AST> ast;
+        CodegenInfo info;
+        llvm::LLVMContext context;
+        std::unique_ptr<llvm::Module> module;
+        std::unique_ptr<CodegenVisitor> codegen;
+        std::unique_ptr<Optimizer> optimizer;
 
-			bool prepare();
-			bool visit();
-			bool finish();
+        bool prepare();
+        bool visit();
+        bool finish();
 
-		public:
-			Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i);
+    public:
+        Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i);
 
-			Codegen(const Codegen&) = delete;
-			Codegen(Codegen&&) = default;
-			Codegen &operator =(const Codegen&) = delete;
-			Codegen &operator =(Codegen&&) = default;
-			~Codegen() = default;
+        Codegen(const Codegen&) = delete;
+        Codegen(Codegen&&) = default;
+        Codegen& operator=(const Codegen&) = delete;
+        Codegen& operator=(Codegen&&) = default;
+        ~Codegen() = default;
 
-			bool run();
-		};
-	} // namespace codegen
+        bool run();
+    };
+} // namespace codegen
 } // namespace core

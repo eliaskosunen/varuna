@@ -17,51 +17,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "core/codegen/CodegenInfo.h"
+#include <memory>
+
 namespace llvm
 {
-	class Module;
-	class TargetMachine;
+class Module;
+class TargetMachine;
 
-	namespace legacy
-	{
-		class FunctionPassManager;
-		class PassManager;
-	}
+namespace legacy
+{
+    class FunctionPassManager;
+    class PassManager;
 }
-
-#include "core/codegen/CodegenInfo.h"
-
-#include <memory>
+}
 
 namespace core
 {
-	namespace codegen
-	{
-		class Optimizer
-		{
-			llvm::Module *module;
-			const CodegenInfo &info;
-			std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
-			std::unique_ptr<llvm::legacy::PassManager> mpm;
-			uint8_t optLevel;
-			uint8_t sizeLevel;
+namespace codegen
+{
+    class Optimizer
+    {
+        llvm::Module* module;
+        const CodegenInfo& info;
+        std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+        std::unique_ptr<llvm::legacy::PassManager> mpm;
+        uint8_t optLevel;
+        uint8_t sizeLevel;
 
-			void initPasses();
-			void addPasses(llvm::TargetMachine *tm = nullptr);
-			void addLinkPasses();
+        void initPasses();
+        void addPasses(llvm::TargetMachine* tm = nullptr);
+        void addLinkPasses();
 
-		public:
-			Optimizer(llvm::Module *m, const CodegenInfo &i);
-			~Optimizer();
+    public:
+        Optimizer(llvm::Module* m, const CodegenInfo& i);
+        ~Optimizer();
 
-			Optimizer(const Optimizer&) = delete;
-			Optimizer(Optimizer&&) = default;
+        Optimizer(const Optimizer&) = delete;
+        Optimizer(Optimizer&&) = default;
 
-			Optimizer &operator =(const Optimizer&) = delete;
-			Optimizer &operator =(Optimizer&&) = default;
+        Optimizer& operator=(const Optimizer&) = delete;
+        Optimizer& operator=(Optimizer&&) = default;
 
-			void init();
-			void run();
-		};
-	}
+        void init();
+        void run();
+    };
+}
 }

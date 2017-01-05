@@ -15,40 +15,39 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "doctest.h"
-
-#include "core/parser/Parser.h"
 #include "core/lexer/Lexer.h"
+#include "core/parser/Parser.h"
 #include "util/Logger.h"
+#include <doctest.h>
 
-static core::lexer::TokenVector runLexer(const std::string &code)
+static core::lexer::TokenVector runLexer(const std::string& code)
 {
-	using namespace core::lexer;
+    using namespace core::lexer;
 
-	Lexer l(code, TEST_FILE);
-	return l.run();
+    Lexer l(code, TEST_FILE);
+    return l.run();
 }
 
-static core::parser::Parser parse(const std::string &code)
+static core::parser::Parser parse(const std::string& code)
 {
-	using namespace core::parser;
+    using namespace core::parser;
 
-	Parser p(runLexer(code));
-	p.run();
-	return p;
+    Parser p(runLexer(code));
+    p.run();
+    return p;
 }
 
 TEST_CASE("Test parser")
 {
-	using namespace core::parser;
+    using namespace core::parser;
 
-	SUBCASE("General")
-	{
-		auto p = parse("");
-		auto ast = p.retrieveAST();
-		auto root = ast->globalNode.get();
+    SUBCASE("General")
+    {
+        auto p = parse("");
+        auto ast = p.retrieveAST();
+        auto root = ast->globalNode.get();
 
-		CHECK(root->nodes.size() == 0);
-		REQUIRE(!p.getError());
-	}
+        CHECK(root->nodes.size() == 0);
+        REQUIRE(!p.getError());
+    }
 }

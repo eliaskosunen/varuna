@@ -17,33 +17,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "tclap.h"
-
 #include "util/ProgramInfo.h"
+#include <tclap.h>
 
 namespace fe
 {
-	namespace api
-	{
-		class Application;
-	}
+namespace api
+{
+    class Application;
+}
 
-	namespace cli
-	{
-		class CLI
-		{
-			const int argc;
-			char **argv;
-			TCLAP::CmdLine cmd;
+namespace cli
+{
+    class CLI
+    {
+        const int argc;
+        char** argv;
+        TCLAP::CmdLine cmd;
 
-			void showLicense() const;
+        void showLicense() const;
 
-			bool setLoggingLevel(api::Application *app, const std::string &level);
+        bool setLoggingLevel(api::Application* app, const std::string& level);
 
-		public:
-			CLI(int argc_, char **argv_);
+    public:
+        CLI(int argc_, char** argv_);
 
-			int run();
-		};
-	} // namespace cli
+        int run();
+    };
+} // namespace cli
 } // namespace fe

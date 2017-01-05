@@ -16,19 +16,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest.h"
+#include <doctest.h>
 
 #include "util/Logger.h"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-	util::initLogger();
-	//spdlog::set_level(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::debug);
+    util::initLogger();
+    // spdlog::set_level(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::debug);
 
-	doctest::Context context;
-	context.applyCommandLine(argc, argv);
+    doctest::Context context;
+    context.applyCommandLine(argc, argv);
 
-	int res = context.run();
-	return res;
+    int res = context.run();
+    return res;
 }

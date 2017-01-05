@@ -1,0 +1,30 @@
+BasedOnStyle: LLVM
+Language: Cpp
+IndentWidth: 4
+UseTab: Never
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: false
+NamespaceIndentation: Inner
+PointerAlignment: Left
+SpaceBeforeParens: Never
+TabWidth: 4
+IncludeCategories:
+    - Regex:    '^"fe/'
+      Priority: 1
+    - Regex:    '^"core/'
+      Priority: 2
+    - Regex:    '^"util/'
+      Priority: 3
+    - Regex:    '^"(llvm|llvm-c|clang|clang-c)/'
+      Priority: 5
+    - Regex:    '^<(ctpl|doctest|spdlog|tclap|utf8)'
+      Priority: 6
+    - Regex:    '^</'
+      Priority: 7
+    - Regex:    '.\*'
+      Priority: 4

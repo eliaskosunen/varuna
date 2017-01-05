@@ -21,61 +21,61 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
-	namespace ast
-	{
-		class AST;
+namespace ast
+{
+    class AST;
 
-		class ASTNode;
+    class ASTNode;
 
-		class ASTExpression;
-		class ASTAssignmentOperationExpression;
-		class ASTBinaryOperationExpression;
-		class ASTBoolLiteralExpression;
-		class ASTCallExpression;
-		class ASTCastExpression;
-		class ASTCharLiteralExpression;
-		class ASTEmptyExpression;
-		class ASTFloatLiteralExpression;
-		class ASTIdentifierExpression;
-		class ASTVariableRefExpression;
-		class ASTIntegerLiteralExpression;
-		class ASTMemberAccessExpression;
-		class ASTNoneLiteralExpression;
-		class ASTStringLiteralExpression;
-		class ASTSubscriptExpression;
-		class ASTSubscriptRangedExpression;
-		class ASTUnaryOperationExpression;
-		class ASTVariableDefinitionExpression;
+    class ASTExpression;
+    class ASTAssignmentOperationExpression;
+    class ASTBinaryOperationExpression;
+    class ASTBoolLiteralExpression;
+    class ASTCallExpression;
+    class ASTCastExpression;
+    class ASTCharLiteralExpression;
+    class ASTEmptyExpression;
+    class ASTFloatLiteralExpression;
+    class ASTIdentifierExpression;
+    class ASTVariableRefExpression;
+    class ASTIntegerLiteralExpression;
+    class ASTMemberAccessExpression;
+    class ASTNoneLiteralExpression;
+    class ASTStringLiteralExpression;
+    class ASTSubscriptExpression;
+    class ASTSubscriptRangedExpression;
+    class ASTUnaryOperationExpression;
+    class ASTVariableDefinitionExpression;
 
-		class ASTStatement;
-		class ASTBlockStatement;
-		class ASTEmptyStatement;
-		class ASTForeachStatement;
-		class ASTForStatement;
-		class ASTFunctionDeclarationStatement;
-		class ASTFunctionDefinitionStatement;
-		class ASTFunctionParameter;
-		class ASTFunctionPrototypeStatement;
-		class ASTIfStatement;
-		class ASTImportStatement;
-		class ASTModuleStatement;
-		class ASTReturnStatement;
-		class ASTWhileStatement;
-		class ASTWrappedExpressionStatement;
+    class ASTStatement;
+    class ASTBlockStatement;
+    class ASTEmptyStatement;
+    class ASTForeachStatement;
+    class ASTForStatement;
+    class ASTFunctionDeclarationStatement;
+    class ASTFunctionDefinitionStatement;
+    class ASTFunctionParameter;
+    class ASTFunctionPrototypeStatement;
+    class ASTIfStatement;
+    class ASTImportStatement;
+    class ASTModuleStatement;
+    class ASTReturnStatement;
+    class ASTWhileStatement;
+    class ASTWrappedExpressionStatement;
 
-		class Visitor;
-		class DumpASTVisitor;
-		class ASTParentSolverVisitor;
-	} // namespace ast
+    class Visitor;
+    class DumpASTVisitor;
+    class ASTParentSolverVisitor;
+} // namespace ast
 
-	namespace codegen
-	{
-		class CodegenVisitor;
-		class GrammarCheckerVisitor;
-		class TypedValue;
-	} // namespace codegen
+namespace codegen
+{
+    class CodegenVisitor;
+    class GrammarCheckerVisitor;
+    class TypedValue;
+} // namespace codegen
 } // namespace core
 
-#include "llvm/IR/Value.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Constants.h"
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>

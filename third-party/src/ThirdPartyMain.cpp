@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "spdlog.h"
-
 #include "tclap.h"
-
 #include "doctest.h"
+#include "utf8.h"
+#include "ctpl.h"

@@ -21,9 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace util
 {
-	template <class ReverseIterator>
-	inline typename ReverseIterator::iterator_type ritToFwdIt(ReverseIterator rit)
-	{
-		return --(rit.base()); // move result of .base() back by one.
-	}
+template <class ReverseIterator>
+inline typename ReverseIterator::iterator_type ritToFwdIt(ReverseIterator rit)
+{
+    return --(rit.base()); // move result of .base() back by one.
+}
 }

@@ -17,89 +17,95 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <map>
-#include <string>
-
 #include "core/lexer/TokenType.h"
 #include "util/Logger.h"
 #include "util/SafeEnum.h"
+#include <map>
+#include <string>
 
 namespace core
 {
-	namespace lexer
-	{
-		enum TokenIntegerLiteralModifier_t
-		{
-			INTEGER_INT		= 1,	// none
-			INTEGER_INT8 	= 2,	// i8
-			INTEGER_INT16	= 4,	// i16
-			INTEGER_INT32	= 8,	// i32
-			INTEGER_INT64	= 16,	// i64
-			INTEGER_BINARY	= 32,	// b
-			INTEGER_OCTAL	= 64,	// o
-			INTEGER_HEX		= 128,	// x
+namespace lexer
+{
+    enum TokenIntegerLiteralModifier_t
+    {
+        INTEGER_INT = 1,     // none
+        INTEGER_INT8 = 2,    // i8
+        INTEGER_INT16 = 4,   // i16
+        INTEGER_INT32 = 8,   // i32
+        INTEGER_INT64 = 16,  // i64
+        INTEGER_BINARY = 32, // b
+        INTEGER_OCTAL = 64,  // o
+        INTEGER_HEX = 128,   // x
 
-			INTEGER_NONE	= 0
-		};
+        INTEGER_NONE = 0
+    };
 
-		enum TokenFloatLiteralModifier_t
-		{
-			FLOAT_FLOAT		= 1,	// none
-			FLOAT_F64		= 2,	// f64
-			FLOAT_F32		= 4,	// f32
-			FLOAT_DECIMAL	= 8,	// d
+    enum TokenFloatLiteralModifier_t
+    {
+        FLOAT_FLOAT = 1,   // none
+        FLOAT_F64 = 2,     // f64
+        FLOAT_F32 = 4,     // f32
+        FLOAT_DECIMAL = 8, // d
 
-			FLOAT_NONE		= 0
-		};
+        FLOAT_NONE = 0
+    };
 
-		using TokenIntegerLiteralModifier = util::SafeEnum<TokenIntegerLiteralModifier_t>;
-		using TokenFloatLiteralModifier = util::SafeEnum<TokenFloatLiteralModifier_t>;
+    using TokenIntegerLiteralModifier =
+        util::SafeEnum<TokenIntegerLiteralModifier_t>;
+    using TokenFloatLiteralModifier =
+        util::SafeEnum<TokenFloatLiteralModifier_t>;
 
-		class SourceLocation
-		{
-		public:
-			std::string file {"undefined"};
-			uint64_t line {0};
+    class SourceLocation
+    {
+    public:
+        std::string file{"undefined"};
+        uint64_t line{0};
 
-			SourceLocation() = default;
-			SourceLocation(std::string f, uint64_t l)
-				: file(std::move(f)), line(l) {}
+        SourceLocation() = default;
+        SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
+        {
+        }
 
-			std::string toString() const
-			{
-				//return fmt::format("{}:{}:{}", file, line, column);
-				return file + ":" + std::to_string(line);
-			}
-		};
+        std::string toString() const
+        {
+            // return fmt::format("{}:{}:{}", file, line, column);
+            return file + ":" + std::to_string(line);
+        }
+    };
 
-		class Token final
-		{
-		public:
-			SourceLocation loc;
+    class Token final
+    {
+    public:
+        SourceLocation loc;
 
-			TokenType type;
-			std::string value;
+        TokenType type;
+        std::string value;
 
-			TokenIntegerLiteralModifier modifierInt;
-			TokenFloatLiteralModifier modifierFloat;
+        TokenIntegerLiteralModifier modifierInt;
+        TokenFloatLiteralModifier modifierFloat;
 
-			Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
-				: loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
+        Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
+            : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
+              modifierFloat(FLOAT_NONE)
+        {
+        }
 
-			std::string typeToString() const;
+        std::string typeToString() const;
 
-			static std::string typeToString(TokenType t)
-			{
-				Token tok(t, "");
-				return tok.typeToString();
-			}
+        static std::string typeToString(TokenType t)
+        {
+            Token tok(t, "");
+            return tok.typeToString();
+        }
 
-			static Token create(TokenType t, const std::string &val, SourceLocation loc = SourceLocation())
-			{
-				Token tok(t, val);
-				tok.loc = loc;
-				return tok;
-			}
-		};
-	} // namespace lexer
+        static Token create(TokenType t, const std::string& val,
+                            SourceLocation loc = SourceLocation())
+        {
+            Token tok(t, val);
+            tok.loc = loc;
+            return tok;
+        }
+    };
+} // namespace lexer
 } // namespace core

@@ -19,20 +19,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
-	namespace ast
-	{
-		class Visitor
-		{
-		public:
-			Visitor() = default;
+namespace ast
+{
+    class Visitor
+    {
+    public:
+        Visitor() = default;
 
-			Visitor(const Visitor&) = delete;
-			Visitor(Visitor&&) = default;
+        Visitor(const Visitor&) = delete;
+        Visitor(Visitor&&) = default;
 
-			Visitor &operator =(const Visitor&) = delete;
-			Visitor &operator =(Visitor&&) = default;
+        Visitor& operator=(const Visitor&) = delete;
+        Visitor& operator=(Visitor&&) = default;
 
-			virtual ~Visitor() = default;
-		};
-	} // namespace ast
+        virtual ~Visitor() = default;
+    };
+} // namespace ast
 } // namespace core

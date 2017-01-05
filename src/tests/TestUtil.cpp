@@ -15,37 +15,35 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string>
-#include <iostream>
-
-#include "doctest.h"
-
 #include "util/StreamReader.h"
 #include "util/StringUtils.h"
+#include <doctest.h>
+#include <iostream>
+#include <string>
 
 TEST_CASE("StreamReader tests")
 {
-	util::StreamReader sr;
+    util::StreamReader sr;
 
-	SUBCASE("Reading file")
-	{
-		std::string str = sr.readFile("./test.txt");
+    SUBCASE("Reading file")
+    {
+        std::string str = sr.readFile("./test.txt");
 
-		REQUIRE(str == "TEST \n");
-	}
+        REQUIRE(str == "TEST \n");
+    }
 }
 
 TEST_CASE("StringUtils tests")
 {
-	using namespace util;
+    using namespace util;
 
-	REQUIRE(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
-	REQUIRE(StringUtils::ltrimCopy("   foo") == "foo");
-	REQUIRE(StringUtils::rtrimCopy("foo   ") == "foo");
-	REQUIRE(StringUtils::trimCopy("  foo  ") == "foo");
-	REQUIRE(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
-	REQUIRE(StringUtils::cstrToString("foo") == "foo");
-	REQUIRE(StringUtils::charToString('a') == "a");
-	REQUIRE(StringUtils::isCharWhitespace(' ') == true);
-	REQUIRE(StringUtils::isCharWhitespace('a') == false);
+    REQUIRE(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
+    REQUIRE(StringUtils::ltrimCopy("   foo") == "foo");
+    REQUIRE(StringUtils::rtrimCopy("foo   ") == "foo");
+    REQUIRE(StringUtils::trimCopy("  foo  ") == "foo");
+    REQUIRE(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
+    REQUIRE(StringUtils::cstrToString("foo") == "foo");
+    REQUIRE(StringUtils::charToString('a') == "a");
+    REQUIRE(StringUtils::isCharWhitespace(' ') == true);
+    REQUIRE(StringUtils::isCharWhitespace('a') == false);
 }

@@ -19,13 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core
 {
-	namespace parser
-	{
-		class Parser;
-	} // namespace parser
+namespace parser
+{
+    class Parser;
+} // namespace parser
 
-	namespace ast
-	{
-		class AST;
-	} // namespace ast
+namespace ast
+{
+    class AST;
+} // namespace ast
 } // namespace core

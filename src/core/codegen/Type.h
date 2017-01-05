@@ -17,503 +17,554 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/DIBuilder.h"
-
-#include <tuple>
-
 #include "util/Logger.h"
+#include <llvm/IR/DIBuilder.h>
+#include <llvm/IR/IRBuilder.h>
+#include <tuple>
 
 namespace core
 {
-	namespace codegen
-	{
-		class Type;
+namespace codegen
+{
+    class Type
+    {
+    public:
+        llvm::LLVMContext& context;
+        llvm::Type* type;
+        llvm::DIType* dtype;
+        std::string name;
 
-		/*class IntType;
-		class Int8Type;
-		class Int16Type;
-		class Int32Type;
-		class Int64Type;
-		class BoolType;
+        enum Kind
+        {
+            VOID,
+            INT,
+            INT8,
+            INT16,
+            INT32,
+            INT64,
+            BOOL,
+            FLOAT,
+            F32,
+            F64,
+            BYTE,
+            CHAR,
+            STRING
+        };
+        Kind kind;
 
-		class FloatType;
-		class F32Type;
-		class F64Type;
+        Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
+             const std::string& n)
+            : context(c), type(t), dtype(d), name(n), kind(k)
+        {
+        }
 
-		class ByteType;
-		class CharType;
+        virtual ~Type() = default;
 
-		class StringType;*/
+        Type(const Type& t) = default;
+        Type& operator=(const Type& t) = default;
 
-		class Type
-		{
-		public:
-			llvm::LLVMContext &context;
-			llvm::Type *type;
-			llvm::DIType *dtype;
-			std::string name;
+        Type(Type&&) = default;
+        Type& operator=(Type&&) = default;
 
-			enum Kind
-			{
-				VOID,
-				INT, INT8, INT16, INT32, INT64, BOOL,
-				FLOAT, F32, F64,
-				BYTE, CHAR, STRING
-			};
-			Kind kind;
+        /*
+        tuple<bool, bool, CastOps>
+        isError
+        castNeeded
+        castOperation
+         */
+        using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
 
-			Type(Kind k, llvm::LLVMContext &c, llvm::Type *t, llvm::DIType *d, const std::string &n)
-				: context(c), type(t), dtype(d), name(n), kind(k) {}
+        const decltype(llvm::Instruction::BitCast) defaultCast =
+            llvm::Instruction::BitCast;
 
-			virtual ~Type() = default;
+        template <typename... Args>
+        CastTuple typeError(const std::string& format, Args... args) const
+        {
+            util::logger->error(format.c_str(), args...);
+            return CastTuple{true, false, defaultCast};
+        }
 
-			Type(const Type &t) = default;
-			Type &operator =(const Type &t) = default;
+        enum CastType
+        {
+            IMPLICIT,
+            CAST,
+            BITCAST
+        };
 
-			Type(Type&&) = default;
-			Type &operator =(Type&&) = default;
+        virtual CastTuple cast(CastType c, const Type& to) = 0;
 
-			/*
-			tuple<bool, bool, CastOps>
-			isError
-			castNeeded
-			castOperation
-			 */
-			using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
+        virtual bool isSized()
+        {
+            return true;
+        }
+        virtual bool isIntegral() = 0;
+        virtual bool isFloatingPoint() = 0;
 
-			const decltype(llvm::Instruction::BitCast) defaultCast = llvm::Instruction::BitCast;
+        bool operator==(const Type& t) const
+        {
+            return kind == t.kind && name == t.name;
+        }
+        bool operator!=(const Type& t) const
+        {
+            return !(*this == t);
+        }
+    };
 
-			template <typename... Args>
-			CastTuple typeError(const std::string &format, Args... args) const
-			{
-				util::logger->error(format.c_str(), args...);
-				return CastTuple {true, false, defaultCast};
-			}
+    class VoidType : public Type
+    {
+    public:
+        VoidType(llvm::LLVMContext& c, llvm::DIBuilder&)
+            : Type(VOID, c, llvm::Type::getVoidTy(c), nullptr, "void")
+        {
+        }
 
-			enum CastType
-			{
-				IMPLICIT,
-				CAST, BITCAST
-			};
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            if(c == IMPLICIT && to.kind == VOID)
+            {
+                return CastTuple{false, false, defaultCast};
+            }
 
-			virtual CastTuple cast(CastType c, const Type &to) = 0;
+            return typeError("Invalid cast: Cannot cast void");
+        }
 
-			virtual bool isSized() { return true; }
-			virtual bool isIntegral() = 0;
-			virtual bool isFloatingPoint() = 0;
+        bool isSized() override
+        {
+            return false;
+        }
+        bool isIntegral() override
+        {
+            return false;
+        }
+        bool isFloatingPoint() override
+        {
+            return false;
+        }
+    };
 
-			bool operator ==(const Type &t) const
-			{
-				return kind == t.kind && name == t.name;
-			}
-			bool operator !=(const Type &t) const
-			{
-				return !(*this == t);
-			}
-		};
+    class IntegralType : public Type
+    {
+    public:
+        uint32_t width;
 
-		class VoidType : public Type
-		{
-		public:
-			VoidType(llvm::LLVMContext &c, llvm::DIBuilder&)
-				: Type(
-					VOID, c,
-					llvm::Type::getVoidTy(c),
-					nullptr,
-					"void"
-				) {}
+        IntegralType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
+                     llvm::DIType* d, const std::string& n)
+            : Type(k, c, t, d, n), width(w)
+        {
+        }
 
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				if(c == IMPLICIT && to.kind == VOID)
-				{
-					return CastTuple {false, false, defaultCast};
-				}
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            using llvm::Instruction;
 
-				return typeError("Invalid cast: Cannot cast void");
-			}
+            if(c == IMPLICIT)
+            {
+                if(to.kind == kind)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
+                return typeError("Invalid implicit cast: Cannot convert from "
+                                 "{} to {} implicitly",
+                                 name, to.name);
+            }
 
-			bool isSized() override { return false; }
-			bool isIntegral() override { return false; }
-			bool isFloatingPoint() override { return false; }
-		};
+            switch(to.kind)
+            {
+            case INT:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case BOOL:
+            {
+                const auto& castedto = dynamic_cast<const IntegralType&>(to);
+                if(castedto.width == width)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
+                else if(castedto.width > width)
+                {
+                    return CastTuple{false, true, Instruction::SExt};
+                }
+                return CastTuple{false, true, Instruction::Trunc};
+            }
+            case FLOAT:
+            case F32:
+            case F64:
+                return CastTuple{false, true, Instruction::SIToFP};
+            case VOID:
+            case BYTE:
+            case CHAR:
+            case STRING:
+                if(c == BITCAST)
+                {
+                    return CastTuple{false, true, Instruction::BitCast};
+                }
+                return typeError("Invalid cast: Cannot convert from {} to {}",
+                                 name, to.name);
+            }
+        }
 
-		class IntegralType : public Type
-		{
-		public:
-			uint32_t width;
+        bool isIntegral() override
+        {
+            return true;
+        }
+        bool isFloatingPoint() override
+        {
+            return false;
+        }
+    };
 
-			IntegralType(uint32_t w, Kind k, llvm::LLVMContext &c, llvm::Type *t, llvm::DIType *d, const std::string &n)
-				: Type(k, c, t, d, n), width(w) {}
+    class IntType : public IntegralType
+    {
+    public:
+        IntType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(32, INT, c, llvm::Type::getInt32Ty(c),
+                           dbuilder.createBasicType("int", 32, 32,
+                                                    llvm::dwarf::DW_ATE_signed),
+                           "int")
+        {
+        }
+    };
 
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				using llvm::Instruction;
+    class Int8Type : public IntegralType
+    {
+    public:
+        Int8Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(8, INT8, c, llvm::Type::getInt8Ty(c),
+                           dbuilder.createBasicType("int8", 8, 8,
+                                                    llvm::dwarf::DW_ATE_signed),
+                           "int8")
+        {
+        }
+    };
 
-				if(c == IMPLICIT)
-				{
-					if(to.kind == kind)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
-					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
-				}
+    class Int16Type : public IntegralType
+    {
+    public:
+        Int16Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(16, INT16, c, llvm::Type::getInt16Ty(c),
+                           dbuilder.createBasicType("int16", 16, 16,
+                                                    llvm::dwarf::DW_ATE_signed),
+                           "int16")
+        {
+        }
+    };
 
-				switch(to.kind)
-				{
-				case INT:
-				case INT8:
-				case INT16:
-				case INT32:
-				case INT64:
-				case BOOL:
-				{
-					const auto &castedto = dynamic_cast<const IntegralType&>(to);
-					if(castedto.width == width)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
-					else if(castedto.width > width)
-					{
-						return CastTuple {false, true, Instruction::SExt};
-					}
-					return CastTuple {false, true, Instruction::Trunc};
-				}
-				case FLOAT:
-				case F32:
-				case F64:
-					return CastTuple {false, true, Instruction::SIToFP};
-				case VOID:
-				case BYTE:
-				case CHAR:
-				case STRING:
-					if(c == BITCAST)
-					{
-						return CastTuple {false, true, Instruction::BitCast};
-					}
-					return typeError("Invalid cast: Cannot convert from {} to {}", name, to.name);
-				}
-			}
+    class Int32Type : public IntegralType
+    {
+    public:
+        Int32Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(32, INT32, c, llvm::Type::getInt32Ty(c),
+                           dbuilder.createBasicType("int32", 32, 32,
+                                                    llvm::dwarf::DW_ATE_signed),
+                           "int32")
+        {
+        }
+    };
 
-			bool isIntegral() override { return true; }
-			bool isFloatingPoint() override { return false; }
-		};
+    class Int64Type : public IntegralType
+    {
+    public:
+        Int64Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(64, INT64, c, llvm::Type::getInt64Ty(c),
+                           dbuilder.createBasicType("int64", 64, 64,
+                                                    llvm::dwarf::DW_ATE_signed),
+                           "int64")
+        {
+        }
+    };
 
-		class IntType : public IntegralType
-		{
-		public:
-			IntType(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					32, INT, c,
-					llvm::Type::getInt32Ty(c),
-					dbuilder.createBasicType("int", 32, 32, llvm::dwarf::DW_ATE_signed),
-					"int"
-				) {}
-		};
+    class BoolType : public IntegralType
+    {
+    public:
+        BoolType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : IntegralType(1, BOOL, c, llvm::Type::getInt1Ty(c),
+                           dbuilder.createBasicType(
+                               "bool", 1, 1, llvm::dwarf::DW_ATE_boolean),
+                           "bool")
+        {
+        }
+    };
 
-		class Int8Type : public IntegralType
-		{
-		public:
-			Int8Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					8, INT8, c,
-					llvm::Type::getInt8Ty(c),
-					dbuilder.createBasicType("int8", 8, 8, llvm::dwarf::DW_ATE_signed),
-					"int8"
-				) {}
-		};
+    class CharType : public Type
+    {
+    public:
+        CharType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : Type(CHAR, c, llvm::Type::getInt8Ty(c),
+                   dbuilder.createBasicType("char", 8, 8,
+                                            llvm::dwarf::DW_ATE_unsigned_char),
+                   "char")
+        {
+        }
 
-		class Int16Type : public IntegralType
-		{
-		public:
-			Int16Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					16, INT16, c,
-					llvm::Type::getInt16Ty(c),
-					dbuilder.createBasicType("int16", 16, 16, llvm::dwarf::DW_ATE_signed),
-					"int16"
-				) {}
-		};
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            using llvm::Instruction;
 
-		class Int32Type : public IntegralType
-		{
-		public:
-			Int32Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					32, INT32, c,
-					llvm::Type::getInt32Ty(c),
-					dbuilder.createBasicType("int32", 32, 32, llvm::dwarf::DW_ATE_signed),
-					"int32"
-				) {}
-		};
+            if(c == IMPLICIT)
+            {
+                if(to.kind == kind)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
 
-		class Int64Type : public IntegralType
-		{
-		public:
-			Int64Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					64, INT64, c,
-					llvm::Type::getInt64Ty(c),
-					dbuilder.createBasicType("int64", 64, 64, llvm::dwarf::DW_ATE_signed),
-					"int64"
-				) {}
-		};
+                return typeError("Invalid implicit cast: Cannot convert from "
+                                 "{} to {} implicitly",
+                                 name, to.name);
+            }
 
-		class BoolType : public IntegralType
-		{
-		public:
-			BoolType(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: IntegralType(
-					1, BOOL, c,
-					llvm::Type::getInt1Ty(c),
-					dbuilder.createBasicType("bool", 1, 1, llvm::dwarf::DW_ATE_boolean),
-					"bool"
-				) {}
-		};
+            switch(to.kind)
+            {
+            case INT8:
+                return CastTuple{false, false, defaultCast};
+            case BOOL:
+                return CastTuple{false, true, Instruction::ZExt};
+            case INT:
+            case INT16:
+            case INT32:
+            case INT64:
+                return CastTuple{false, true, Instruction::Trunc};
+            case VOID:
+            case FLOAT:
+            case F32:
+            case F64:
+            case BYTE:
+            case STRING:
+            case CHAR:
+                if(c == BITCAST)
+                {
+                    return CastTuple{false, true, Instruction::BitCast};
+                }
+                return typeError("Invalid cast: Cannot convert from {} to {}",
+                                 name, to.name);
+            }
+        }
 
-		class CharType : public Type
-		{
-		public:
-			CharType(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: Type(
-					CHAR, c,
-					llvm::Type::getInt8Ty(c),
-					dbuilder.createBasicType("char", 8, 8, llvm::dwarf::DW_ATE_unsigned_char),
-					"char"
-				) {}
+        bool isIntegral() override
+        {
+            return false;
+        }
+        bool isFloatingPoint() override
+        {
+            return false;
+        }
+    };
 
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				using llvm::Instruction;
+    class ByteType : public Type
+    {
+    public:
+        ByteType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : Type(BYTE, c, llvm::Type::getInt32Ty(c),
+                   dbuilder.createBasicType("byte", 32, 32,
+                                            llvm::dwarf::DW_ATE_unsigned),
+                   "byte")
+        {
+        }
 
-				if(c == IMPLICIT)
-				{
-					if(to.kind == kind)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            using llvm::Instruction;
 
-					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
-				}
+            if(c == IMPLICIT)
+            {
+                if(to.kind == kind)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
 
-				switch(to.kind)
-				{
-				case INT8:
-					return CastTuple {false, false, defaultCast};
-				case BOOL:
-					return CastTuple {false, true, Instruction::ZExt};
-				case INT:
-				case INT16:
-				case INT32:
-				case INT64:
-					return CastTuple {false, true, Instruction::Trunc};
-				case VOID:
-				case FLOAT:
-				case F32:
-				case F64:
-				case BYTE:
-				case STRING:
-				case CHAR:
-					if(c == BITCAST)
-					{
-						return CastTuple {false, true, Instruction::BitCast};
-					}
-					return typeError("Invalid cast: Cannot convert from {} to {}", name, to.name);
-				}
-			}
+                return typeError("Invalid implicit cast: Cannot convert from "
+                                 "{} to {} implicitly",
+                                 name, to.name);
+            }
 
-			bool isIntegral() override { return false; }
-			bool isFloatingPoint() override { return false; }
-		};
+            switch(to.kind)
+            {
+            case INT8:
+            case INT16:
+            case BOOL:
+                return CastTuple{false, true, Instruction::ZExt};
+            case INT:
+            case INT32:
+                return CastTuple{false, false, defaultCast};
+            case INT64:
+                return CastTuple{false, true, Instruction::Trunc};
+            case VOID:
+            case FLOAT:
+            case F32:
+            case F64:
+            case CHAR:
+            case STRING:
+            case BYTE:
+                if(c == BITCAST)
+                {
+                    return CastTuple{false, true, Instruction::BitCast};
+                }
+                return typeError("Invalid cast: Cannot convert from {} to {}",
+                                 name, to.name);
+            }
+        }
 
-		class ByteType : public Type
-		{
-		public:
-			ByteType(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: Type(
-					BYTE, c,
-					llvm::Type::getInt32Ty(c),
-					dbuilder.createBasicType("byte", 32, 32, llvm::dwarf::DW_ATE_unsigned),
-					"byte"
-				) {}
+        bool isIntegral() override
+        {
+            return false;
+        }
+        bool isFloatingPoint() override
+        {
+            return false;
+        }
+    };
 
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				using llvm::Instruction;
+    class FPType : public Type
+    {
+    public:
+        uint32_t width;
 
-				if(c == IMPLICIT)
-				{
-					if(to.kind == kind)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
+        FPType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
+               llvm::DIType* d, const std::string& n)
+            : Type(k, c, t, d, n), width(w)
+        {
+        }
 
-					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
-				}
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            using llvm::Instruction;
 
-				switch(to.kind)
-				{
-				case INT8:
-				case INT16:
-				case BOOL:
-					return CastTuple {false, true, Instruction::ZExt};
-				case INT:
-				case INT32:
-					return CastTuple {false, false, defaultCast};
-				case INT64:
-					return CastTuple {false, true, Instruction::Trunc};
-				case VOID:
-				case FLOAT:
-				case F32:
-				case F64:
-				case CHAR:
-				case STRING:
-				case BYTE:
-					if(c == BITCAST)
-					{
-						return CastTuple {false, true, Instruction::BitCast};
-					}
-					return typeError("Invalid cast: Cannot convert from {} to {}", name, to.name);
-				}
-			}
+            if(c == IMPLICIT)
+            {
+                if(to.kind == kind)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
 
-			bool isIntegral() override { return false; }
-			bool isFloatingPoint() override { return false; }
-		};
+                return typeError("Invalid implicit cast: Cannot convert from "
+                                 "{} to {} implicitly",
+                                 name, to.name);
+            }
 
-		class FPType : public Type
-		{
-		public:
-			uint32_t width;
+            switch(to.kind)
+            {
+            case FLOAT:
+            case F32:
+            case F64:
+            {
+                const auto& castedto = dynamic_cast<const FPType&>(to);
+                if(castedto.width == width)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
+                else if(castedto.width > width)
+                {
+                    return CastTuple{false, true, Instruction::FPExt};
+                }
+                return CastTuple{false, true, Instruction::FPTrunc};
+            }
+            case INT:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case BOOL:
+                return CastTuple{false, true, Instruction::FPToSI};
+            case VOID:
+            case BYTE:
+            case CHAR:
+            case STRING:
+                if(c == BITCAST)
+                {
+                    return CastTuple{false, true, Instruction::BitCast};
+                }
+                return typeError("Invalid cast: Cannot convert from {} to {}",
+                                 name, to.name);
+            }
+        }
 
-			FPType(uint32_t w, Kind k, llvm::LLVMContext &c, llvm::Type *t, llvm::DIType *d, const std::string &n)
-				: Type(k, c, t, d, n), width(w) {}
+        bool isIntegral() override
+        {
+            return false;
+        }
+        bool isFloatingPoint() override
+        {
+            return true;
+        }
+    };
 
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				using llvm::Instruction;
+    class FloatType : public FPType
+    {
+    public:
+        FloatType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : FPType(32, FLOAT, c, llvm::Type::getFloatTy(c),
+                     dbuilder.createBasicType("float", 32, 32,
+                                              llvm::dwarf::DW_ATE_float),
+                     "float")
+        {
+        }
+    };
 
-				if(c == IMPLICIT)
-				{
-					if(to.kind == kind)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
+    class F32Type : public FPType
+    {
+    public:
+        F32Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : FPType(32, F32, c, llvm::Type::getFloatTy(c),
+                     dbuilder.createBasicType("f32", 32, 32,
+                                              llvm::dwarf::DW_ATE_float),
+                     "f32")
+        {
+        }
+    };
 
-					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
-				}
+    class F64Type : public FPType
+    {
+    public:
+        F64Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
+            : FPType(64, F64, c, llvm::Type::getFloatTy(c),
+                     dbuilder.createBasicType("f64", 64, 64,
+                                              llvm::dwarf::DW_ATE_float),
+                     "f64")
+        {
+        }
+    };
 
-				switch(to.kind)
-				{
-				case FLOAT:
-				case F32:
-				case F64:
-				{
-					const auto &castedto = dynamic_cast<const FPType&>(to);
-					if(castedto.width == width)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
-					else if(castedto.width > width)
-					{
-						return CastTuple {false, true, Instruction::FPExt};
-					}
-					return CastTuple {false, true, Instruction::FPTrunc};
-				}
-				case INT:
-				case INT8:
-				case INT16:
-				case INT32:
-				case INT64:
-				case BOOL:
-					return CastTuple {false, true, Instruction::FPToSI};
-				case VOID:
-				case BYTE:
-				case CHAR:
-				case STRING:
-					if(c == BITCAST)
-					{
-						return CastTuple {false, true, Instruction::BitCast};
-					}
-					return typeError("Invalid cast: Cannot convert from {} to {}", name, to.name);
-				}
-			}
+    class StringType : public Type
+    {
+    public:
+        StringType(llvm::LLVMContext& c, llvm::DIBuilder&)
+            : Type(STRING, c,
+                   /*llvm::StructType::create(c, {
+                       llvm::Type::getInt64Ty(c),
+                       llvm::Type::getInt8PtrTy(c)
+                   }, "string_t", true),*/
+                   llvm::Type::getInt8PtrTy(c), nullptr, "string_t")
+        {
+        }
 
-			bool isIntegral() override { return false; }
-			bool isFloatingPoint() override { return true; }
-		};
+        CastTuple cast(CastType c, const Type& to) override
+        {
+            using llvm::Instruction;
 
-		class FloatType : public FPType
-		{
-		public:
-			FloatType(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: FPType(
-					32, FLOAT, c,
-					llvm::Type::getFloatTy(c),
-					dbuilder.createBasicType("float", 32, 32, llvm::dwarf::DW_ATE_float),
-					"float"
-				) {}
-		};
+            if(c == IMPLICIT)
+            {
+                if(to.kind == kind)
+                {
+                    return CastTuple{false, false, defaultCast};
+                }
 
-		class F32Type : public FPType
-		{
-		public:
-			F32Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: FPType(
-					32, F32, c,
-					llvm::Type::getFloatTy(c),
-					dbuilder.createBasicType("f32", 32, 32, llvm::dwarf::DW_ATE_float),
-					"f32"
-				) {}
-		};
+                return typeError("Invalid implicit cast: Cannot convert from "
+                                 "{} to {} implicitly",
+                                 name, to.name);
+            }
 
-		class F64Type : public FPType
-		{
-		public:
-			F64Type(llvm::LLVMContext &c, llvm::DIBuilder &dbuilder)
-				: FPType(
-					64, F64, c,
-					llvm::Type::getFloatTy(c),
-					dbuilder.createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float),
-					"f64"
-				) {}
-		};
+            return typeError("Invalid cast: {} cannot be casted", name);
+        }
 
-		class StringType : public Type
-		{
-		public:
-			StringType(llvm::LLVMContext &c, llvm::DIBuilder&)
-				: Type(
-					STRING, c,
-					/*llvm::StructType::create(c, {
-						llvm::Type::getInt64Ty(c),
-						llvm::Type::getInt8PtrTy(c)
-					}, "string_t", true),*/
-					llvm::Type::getInt8PtrTy(c),
-					nullptr,
-					"string_t"
-				) {}
-
-			CastTuple cast(CastType c, const Type &to) override
-			{
-				using llvm::Instruction;
-
-				if(c == IMPLICIT)
-				{
-					if(to.kind == kind)
-					{
-						return CastTuple {false, false, defaultCast};
-					}
-
-					return typeError("Invalid implicit cast: Cannot convert from {} to {} implicitly", name, to.name);
-				}
-
-				return typeError("Invalid cast: {} cannot be casted", name);
-			}
-
-			bool isIntegral() override { return false; }
-			bool isFloatingPoint() override { return false; }
-		};
-	}
+        bool isIntegral() override
+        {
+            return false;
+        }
+        bool isFloatingPoint() override
+        {
+            return false;
+        }
+    };
+}
 }

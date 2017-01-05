@@ -17,25 +17,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "spdlog.h"
+#include <spdlog.h>
 
 namespace util
 {
-	/**
-	 * Colored and stylized logger.
-	 * @see The spdlog documentation
-	 */
-	extern std::shared_ptr<spdlog::logger> logger;
-	/**
-	 * Unstylized logger.
-	 * @see The spdlog documentation
-	 */
-	extern std::shared_ptr<spdlog::logger> loggerBasic;
+/**
+ * Colored and stylized logger.
+ * @see The spdlog documentation
+ */
+extern std::shared_ptr<spdlog::logger> logger;
+/**
+ * Unstylized logger.
+ * @see The spdlog documentation
+ */
+extern std::shared_ptr<spdlog::logger> loggerBasic;
 
-	/**
-	 * Set logger styles
-	 */
-	void initLogger();
+/**
+ * Set logger styles
+ */
+void initLogger();
 
-	void dropLogger();
+void dropLogger();
 } // namespace util
