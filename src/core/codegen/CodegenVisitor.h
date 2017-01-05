@@ -27,15 +27,14 @@ namespace core
 {
 namespace codegen
 {
-    class TypedValue
+    struct TypedValue
     {
-    public:
-        Type* type;
-        llvm::Value* value;
-
         TypedValue(Type* t, llvm::Value* v) : type(t), value(v)
         {
         }
+
+        Type* type;
+        llvm::Value* value;
     };
 
     struct Variable
@@ -45,8 +44,53 @@ namespace codegen
         const std::string& name;
     };
 
-    class CodegenVisitor : public ast::Visitor
+    class CodegenVisitor final : public ast::Visitor
     {
+    public:
+        CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
+                       const CodegenInfo& i);
+
+        bool codegen(ast::AST* ast);
+
+        void dumpModule() const
+        {
+            module->dump();
+        }
+
+    private:
+        void emitDebugLocation(ast::ASTNode* node);
+
+        std::unique_ptr<TypedValue>
+        createVoidVal(llvm::Value* v = nullptr) const;
+        llvm::Value* getDummyValue() const;
+        std::unique_ptr<TypedValue> getTypedDummyValue() const;
+
+        std::unique_ptr<TypedValue>
+        checkTypedValue(std::unique_ptr<TypedValue> val,
+                        const Type& requiredType) const;
+        std::array<std::unique_ptr<Type>, 13> _buildTypeArray();
+        std::unordered_map<std::string, std::unique_ptr<Type>> _createTypeMap();
+
+        template <typename... Args>
+        std::nullptr_t codegenError(const std::string& format,
+                                    Args... args) const;
+        template <typename... Args>
+        void codegenWarning(const std::string& format, Args... args) const;
+
+        Type* findType(const std::string& name, bool logError = true) const;
+        Type* findType(llvm::Type* type, bool logError = true) const;
+        llvm::Function* findFunction(const std::string& name);
+        ast::ASTFunctionPrototypeStatement*
+        getASTNodeFunction(ast::ASTNode* node) const;
+
+        void stripInstructionsAfterTerminators();
+
+        llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
+                                                 llvm::Type* type,
+                                                 const std::string& name);
+
+        llvm::Constant* createStringConstant(const char* str);
+
         llvm::LLVMContext& context;
         llvm::Module* module;
         const CodegenInfo& info;
@@ -62,164 +106,7 @@ namespace codegen
             functionProtos;
         std::unordered_map<std::string, std::unique_ptr<Type>> types;
 
-        std::array<std::unique_ptr<Type>, 13> _buildTypeArray();
-        std::unordered_map<std::string, std::unique_ptr<Type>> _createTypeMap();
-
-        void emitDebugLocation(ast::ASTNode* node);
-
-        std::unique_ptr<TypedValue>
-        createVoidVal(llvm::Value* v = nullptr) const
-        {
-            return std::make_unique<TypedValue>(findType("void"), v);
-        }
-
-        llvm::Value* getDummyValue() const
-        {
-            static llvm::Value* ret =
-                llvm::Constant::getNullValue(findType("int32")->type);
-            return ret;
-        }
-
-        std::unique_ptr<TypedValue> getTypedDummyValue() const
-        {
-            auto v = getDummyValue();
-            return std::make_unique<TypedValue>(findType("int32"), v);
-        }
-
-        template <typename... Args>
-        std::nullptr_t codegenError(const std::string& format,
-                                    Args... args) const
-        {
-            util::logger->error(format.c_str(), args...);
-            return nullptr;
-        }
-
-        template <typename... Args>
-        void codegenWarning(const std::string& format, Args... args) const
-        {
-            util::logger->warn(format.c_str(), args...);
-        }
-
-        Type* findType(const std::string& name, bool logError = true) const
-        {
-            auto type = types.find(name);
-            if(type == types.end())
-            {
-                return logError ? codegenError("Undefined typename: '{}'", name)
-                                : nullptr;
-            }
-            return type->second.get();
-        }
-
-        Type* findType(llvm::Type* type, bool logError = true) const
-        {
-            for(const auto& t : types)
-            {
-                if(t.second->type == type)
-                {
-                    return t.second.get();
-                }
-            }
-            if(logError)
-            {
-                codegenError("Undefined type:");
-                type->dump();
-            }
-            return nullptr;
-        }
-
-        llvm::Function* findFunction(const std::string& name)
-        {
-            llvm::Function* f = module->getFunction(name);
-            if(f)
-            {
-                return f;
-            }
-
-            auto fit = functionProtos.find(name);
-            if(fit != functionProtos.end())
-            {
-                return llvm::cast<llvm::Function>(
-                    fit->second->accept(this)->value);
-            }
-
-            return codegenError("Undefined function: '{}'", name);
-        }
-
-        std::string createFunctionName(llvm::Value*)
-        {
-            return {};
-        }
-
-        std::unique_ptr<TypedValue>
-        checkTypedValue(std::unique_ptr<TypedValue> val,
-                        const Type& requiredType) const
-        {
-            auto cast = val->type->cast(Type::IMPLICIT, requiredType);
-            if(std::get<0>(cast) || std::get<1>(cast))
-            {
-                return nullptr;
-            }
-            return val;
-        }
-
-        void stripInstructionsAfterTerminators();
-
-        llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
-                                                 llvm::Type* type,
-                                                 const std::string& name)
-        {
-            llvm::IRBuilder<> tmp(&func->getEntryBlock(),
-                                  func->getEntryBlock().begin());
-            return tmp.CreateAlloca(type, nullptr, name.c_str());
-        }
-
-        ast::ASTFunctionPrototypeStatement*
-        getASTNodeFunction(ast::ASTNode* node) const
-        {
-            auto f = node->getFunction();
-            if(!f)
-            {
-                return nullptr;
-            }
-
-            if(f->nodeType == ast::ASTNode::FUNCTION_DECL_STMT)
-            {
-                auto casted =
-                    dynamic_cast<ast::ASTFunctionDeclarationStatement*>(f);
-                return casted->proto.get();
-            }
-
-            auto casted = dynamic_cast<ast::ASTFunctionDefinitionStatement*>(f);
-            return casted->proto.get();
-        }
-
-        llvm::Constant* createStringConstant(const char* str)
-        {
-            llvm::Constant* strConst =
-                llvm::ConstantDataArray::getString(context, str);
-            llvm::GlobalVariable* gvStr = new llvm::GlobalVariable(
-                *module, strConst->getType(), true,
-                llvm::GlobalValue::InternalLinkage, 0, ".str");
-            gvStr->setAlignment(1);
-            gvStr->setInitializer(strConst);
-
-            llvm::Constant* strVal = llvm::ConstantExpr::getGetElementPtr(
-                strConst->getType(), gvStr, {});
-            return strVal;
-        }
-
     public:
-        CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
-                       const CodegenInfo& i);
-
-        bool codegen(ast::AST* ast);
-
-        void dumpModule() const
-        {
-            module->dump();
-        }
-
         std::unique_ptr<TypedValue> visit(ast::ASTNode* node) = delete;
         std::unique_ptr<TypedValue> visit(ast::ASTStatement* stmt);
         std::unique_ptr<TypedValue> visit(ast::ASTExpression* expr);
@@ -273,5 +160,51 @@ namespace codegen
         std::unique_ptr<TypedValue>
         visit(ast::ASTWrappedExpressionStatement* stmt);
     };
+
+    inline std::unique_ptr<TypedValue>
+    CodegenVisitor::createVoidVal(llvm::Value* v) const
+    {
+        return std::make_unique<TypedValue>(findType("void"), v);
+    }
+
+    inline llvm::Value* CodegenVisitor::getDummyValue() const
+    {
+        static llvm::Value* ret =
+            llvm::Constant::getNullValue(findType("int32")->type);
+        return ret;
+    }
+
+    inline std::unique_ptr<TypedValue>
+    CodegenVisitor::getTypedDummyValue() const
+    {
+        auto v = getDummyValue();
+        return std::make_unique<TypedValue>(findType("int32"), v);
+    }
+
+    template <typename... Args>
+    inline std::nullptr_t
+    CodegenVisitor::codegenError(const std::string& format, Args... args) const
+    {
+        util::logger->error(format.c_str(), args...);
+        return nullptr;
+    }
+
+    template <typename... Args>
+    inline void CodegenVisitor::codegenWarning(const std::string& format,
+                                               Args... args) const
+    {
+        util::logger->warn(format.c_str(), args...);
+    }
+
+    std::unique_ptr<TypedValue> inline CodegenVisitor::checkTypedValue(
+        std::unique_ptr<TypedValue> val, const Type& requiredType) const
+    {
+        auto cast = val->type->cast(Type::IMPLICIT, requiredType);
+        if(std::get<0>(cast) || std::get<1>(cast))
+        {
+            return nullptr;
+        }
+        return val;
+    }
 } // namespace codegen
 } // namespace core

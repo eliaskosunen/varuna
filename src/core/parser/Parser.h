@@ -46,13 +46,6 @@ namespace parser
         bool warningsAsErrors;
 
     private:
-        std::unique_ptr<ast::AST> ast;
-        const core::lexer::TokenVector& tokens;
-        core::lexer::TokenVector::const_iterator it;
-        const core::lexer::TokenVector::const_iterator endTokens;
-
-        ErrorLevel error;
-
         template <typename... Args>
         std::nullptr_t parserError(const std::string& format,
                                    const Args&... args)
@@ -175,6 +168,13 @@ namespace parser
         }
 
         void _runParser();
+
+        std::unique_ptr<ast::AST> ast;
+        const core::lexer::TokenVector& tokens;
+        core::lexer::TokenVector::const_iterator it;
+        const core::lexer::TokenVector::const_iterator endTokens;
+
+        ErrorLevel error;
     };
 
     inline bool Parser::getError() const

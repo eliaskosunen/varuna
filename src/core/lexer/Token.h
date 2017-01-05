@@ -43,11 +43,8 @@ namespace lexer
     using TokenFloatLiteralModifier =
         util::SafeEnum<TokenFloatLiteralModifier_t>;
 
-    class SourceLocation
+    struct SourceLocation
     {
-    public:
-        std::string file{"undefined"};
-        uint64_t line{0};
 
         SourceLocation() = default;
         SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
@@ -59,19 +56,13 @@ namespace lexer
             // return fmt::format("{}:{}:{}", file, line, column);
             return file + ":" + std::to_string(line);
         }
+
+        std::string file{"undefined"};
+        uint64_t line{0};
     };
 
-    class Token final
+    struct Token final
     {
-    public:
-        SourceLocation loc;
-
-        TokenType type;
-        std::string value;
-
-        TokenIntegerLiteralModifier modifierInt;
-        TokenFloatLiteralModifier modifierFloat;
-
         Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
             : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
               modifierFloat(FLOAT_NONE)
@@ -93,6 +84,14 @@ namespace lexer
             tok.loc = loc;
             return tok;
         }
+
+        SourceLocation loc;
+
+        TokenType type;
+        std::string value;
+
+        TokenIntegerLiteralModifier modifierInt;
+        TokenFloatLiteralModifier modifierFloat;
     };
 } // namespace lexer
 } // namespace core

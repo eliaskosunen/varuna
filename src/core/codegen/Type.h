@@ -16,11 +16,6 @@ namespace codegen
     class Type
     {
     public:
-        llvm::LLVMContext& context;
-        llvm::Type* type;
-        llvm::DIType* dtype;
-        std::string name;
-
         enum Kind
         {
             VOID,
@@ -37,21 +32,12 @@ namespace codegen
             CHAR,
             STRING
         };
-        Kind kind;
-
-        Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
-             const std::string& n)
-            : context(c), type(t), dtype(d), name(n), kind(k)
+        enum CastType
         {
-        }
-
-        virtual ~Type() = default;
-
-        Type(const Type& t) = default;
-        Type& operator=(const Type& t) = default;
-
-        Type(Type&&) = default;
-        Type& operator=(Type&&) = default;
+            IMPLICIT,
+            CAST,
+            BITCAST
+        };
 
         /*
         tuple<bool, bool, CastOps>
@@ -60,9 +46,19 @@ namespace codegen
         castOperation
          */
         using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
-
         const decltype(llvm::Instruction::BitCast) defaultCast =
             llvm::Instruction::BitCast;
+
+        Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
+             const std::string& n)
+            : context(c), type(t), dtype(d), name(n), kind(k)
+        {
+        }
+        Type(const Type& t) = default;
+        Type& operator=(const Type& t) = default;
+        Type(Type&&) = default;
+        Type& operator=(Type&&) = default;
+        virtual ~Type() = default;
 
         template <typename... Args>
         CastTuple typeError(const std::string& format, Args... args) const
@@ -70,13 +66,6 @@ namespace codegen
             util::logger->error(format.c_str(), args...);
             return CastTuple{true, false, defaultCast};
         }
-
-        enum CastType
-        {
-            IMPLICIT,
-            CAST,
-            BITCAST
-        };
 
         virtual CastTuple cast(CastType c, const Type& to) = 0;
 
@@ -95,6 +84,12 @@ namespace codegen
         {
             return !(*this == t);
         }
+
+        llvm::LLVMContext& context;
+        llvm::Type* type;
+        llvm::DIType* dtype;
+        std::string name;
+        Kind kind;
     };
 
     class VoidType : public Type
@@ -132,8 +127,6 @@ namespace codegen
     class IntegralType : public Type
     {
     public:
-        uint32_t width;
-
         IntegralType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
                      llvm::DIType* d, const std::string& n)
             : Type(k, c, t, d, n), width(w)
@@ -200,6 +193,8 @@ namespace codegen
         {
             return false;
         }
+
+        uint32_t width;
     };
 
     class IntType : public IntegralType
@@ -405,8 +400,6 @@ namespace codegen
     class FPType : public Type
     {
     public:
-        uint32_t width;
-
         FPType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
                llvm::DIType* d, const std::string& n)
             : Type(k, c, t, d, n), width(w)
@@ -474,6 +467,8 @@ namespace codegen
         {
             return true;
         }
+
+        uint32_t width;
     };
 
     class FloatType : public FPType

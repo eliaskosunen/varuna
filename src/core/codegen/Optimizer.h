@@ -25,17 +25,6 @@ namespace codegen
 {
     class Optimizer
     {
-        llvm::Module* module;
-        const CodegenInfo& info;
-        std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
-        std::unique_ptr<llvm::legacy::PassManager> mpm;
-        uint8_t optLevel;
-        uint8_t sizeLevel;
-
-        void initPasses();
-        void addPasses(llvm::TargetMachine* tm = nullptr);
-        void addLinkPasses();
-
     public:
         Optimizer(llvm::Module* m, const CodegenInfo& i);
         ~Optimizer();
@@ -48,6 +37,18 @@ namespace codegen
 
         void init();
         void run();
+
+    private:
+        void initPasses();
+        void addPasses(llvm::TargetMachine* tm = nullptr);
+        void addLinkPasses();
+
+        llvm::Module* module;
+        const CodegenInfo& info;
+        std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+        std::unique_ptr<llvm::legacy::PassManager> mpm;
+        uint8_t optLevel;
+        uint8_t sizeLevel;
     };
 }
 }

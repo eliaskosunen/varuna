@@ -17,13 +17,10 @@ namespace ast
     class ASTIntegerLiteralExpression : public ASTExpression
     {
     public:
-        int64_t value;
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTIntegerLiteralExpression(
-            int64_t val, std::unique_ptr<ASTIdentifierExpression> _type)
+            int64_t val, std::unique_ptr<ASTIdentifierExpression> pType)
             : ASTExpression(INTEGER_LITERAL_EXPR), value(val),
-              type(std::move(_type))
+              type(std::move(pType))
         {
         }
 
@@ -32,18 +29,18 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        int64_t value;
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 
     class ASTFloatLiteralExpression : public ASTExpression
     {
     public:
-        double value;
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTFloatLiteralExpression(
-            double val, std::unique_ptr<ASTIdentifierExpression> _type)
+            double val, std::unique_ptr<ASTIdentifierExpression> pType)
             : ASTExpression(FLOAT_LITERAL_EXPR), value(val),
-              type(std::move(_type))
+              type(std::move(pType))
         {
         }
 
@@ -52,14 +49,14 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        double value;
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 
     class ASTStringLiteralExpression : public ASTExpression
     {
     public:
-        const std::string& value;
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTStringLiteralExpression(const std::string& val)
             : ASTExpression(STRING_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("string"))
@@ -71,14 +68,14 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        const std::string& value;
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 
     class ASTCharLiteralExpression : public ASTExpression
     {
     public:
-        char32_t value;
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTCharLiteralExpression(char32_t val)
             : ASTExpression(CHAR_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("char"))
@@ -90,14 +87,14 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        char32_t value;
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 
     class ASTBoolLiteralExpression : public ASTExpression
     {
     public:
-        bool value;
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTBoolLiteralExpression(bool val)
             : ASTExpression(BOOL_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("bool"))
@@ -109,13 +106,14 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        bool value;
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 
     class ASTNoneLiteralExpression : public ASTExpression
     {
     public:
-        std::unique_ptr<ASTIdentifierExpression> type;
-
         ASTNoneLiteralExpression()
             : ASTExpression(NONE_LITERAL_EXPR),
               type(std::make_unique<ASTIdentifierExpression>("none_t"))
@@ -127,6 +125,8 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTIdentifierExpression> type;
     };
 } // namespace ast
 } // namespace core

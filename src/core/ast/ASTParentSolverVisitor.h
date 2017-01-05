@@ -12,7 +12,7 @@ namespace core
 {
 namespace ast
 {
-    class ASTParentSolverVisitor : public Visitor
+    class ASTParentSolverVisitor final : public Visitor
     {
     public:
         ASTParentSolverVisitor() = default;

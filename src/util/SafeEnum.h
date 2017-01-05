@@ -14,9 +14,6 @@ template <typename Enum_t,
           typename Underlying_t = typename std::underlying_type<Enum_t>::type>
 class SafeEnum
 {
-protected:
-    Underlying_t flags{static_cast<Underlying_t>(0)};
-
 public:
     using EnumType = Enum_t;
     using UnderlyingType = Underlying_t;
@@ -137,5 +134,8 @@ public:
     {
         flags = static_cast<Enum_t>(0);
     }
+
+protected:
+    Underlying_t flags{static_cast<Underlying_t>(0)};
 };
 } // namespace util

@@ -1349,28 +1349,13 @@ namespace parser
                 break;
             }
 
-            auto type = [&]() {
-                if(it->type == TOKEN_KEYWORD_REF)
-                {
-                    ++it;
-                    return ASTFunctionParameter::REF;
-                }
-                if(it->type == TOKEN_KEYWORD_VIEW)
-                {
-                    ++it;
-                    return ASTFunctionParameter::VIEW;
-                }
-                return ASTFunctionParameter::COPY;
-            }();
-
             auto var = parseVariableDefinition();
             if(!var)
             {
                 return nullptr;
             }
 
-            auto param =
-                std::make_unique<ASTFunctionParameter>(std::move(var), type);
+            auto param = std::make_unique<ASTFunctionParameter>(std::move(var));
             params.push_back(std::move(param));
 
             if(it->type == TOKEN_EOF)

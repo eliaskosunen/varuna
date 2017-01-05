@@ -18,17 +18,6 @@ namespace codegen
 {
     class Codegen final
     {
-        std::unique_ptr<ast::AST> ast;
-        CodegenInfo info;
-        llvm::LLVMContext context;
-        std::unique_ptr<llvm::Module> module;
-        std::unique_ptr<CodegenVisitor> codegen;
-        std::unique_ptr<Optimizer> optimizer;
-
-        bool prepare();
-        bool visit();
-        bool finish();
-
     public:
         Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i);
 
@@ -39,6 +28,18 @@ namespace codegen
         ~Codegen() = default;
 
         bool run();
+
+    private:
+        bool prepare();
+        bool visit();
+        bool finish();
+
+        std::unique_ptr<ast::AST> ast;
+        CodegenInfo info;
+        llvm::LLVMContext context;
+        std::unique_ptr<llvm::Module> module;
+        std::unique_ptr<CodegenVisitor> codegen;
+        std::unique_ptr<Optimizer> optimizer;
     };
 } // namespace codegen
 } // namespace core

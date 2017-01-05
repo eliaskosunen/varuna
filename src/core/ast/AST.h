@@ -17,9 +17,6 @@ namespace ast
     class AST final
     {
     public:
-        std::unique_ptr<ASTBlockStatement> globalNode;
-        std::string file;
-
         AST(std::string f)
             : globalNode(std::make_unique<ASTBlockStatement>()),
               file(std::move(f))
@@ -48,6 +45,9 @@ namespace ast
         {
             return globalNode->nodes.size();
         }
+
+        std::unique_ptr<ASTBlockStatement> globalNode;
+        std::string file;
     };
 } // namespace ast
 } // namespace core

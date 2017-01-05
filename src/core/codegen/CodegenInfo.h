@@ -12,14 +12,14 @@ namespace codegen
 {
     struct CodegenInfo
     {
-        const std::string& filename;
-        uint8_t optLevel{0};
-        uint8_t sizeLevel{0};
-
         bool optEnabled() const
         {
             return optLevel > 0 || sizeLevel > 0;
         }
+
+        const std::string& filename;
+        uint8_t optLevel{0};
+        uint8_t sizeLevel{0};
     };
 }
 }

@@ -12,10 +12,8 @@ namespace core
 {
 namespace ast
 {
-    class DumpASTVisitor : public Visitor
+    class DumpASTVisitor final : public Visitor
     {
-        std::shared_ptr<spdlog::logger> astlogger;
-
     public:
         DumpASTVisitor() : astlogger(spdlog::stdout_logger_st("DumpAST"))
         {
@@ -35,50 +33,13 @@ namespace ast
         DumpASTVisitor& operator=(DumpASTVisitor&&) & = default;
 
         template <typename... Args>
-        void log(const std::string& format, Args... args)
-        {
-            astlogger->debug(format.c_str(), args...);
-        }
-
+        void log(const std::string& format, Args... args);
         template <typename... Args>
-        void log(size_t ind, const std::string& format, Args... args)
-        {
-            if(ind == 0)
-            {
-                log(format, args...);
-            }
-            else
-            {
-                std::string prefix("\\");
-                size_t realind = ind * 2;
-                for(size_t i = 1; i < realind; ++i)
-                {
-                    prefix.push_back('-');
-                }
-                prefix.append(format);
-                log(prefix, args...);
-            }
-        }
+        void log(size_t ind, const std::string& format, Args... args);
 
         template <typename T>
-        void start(T* root)
-        {
-            util::loggerBasic->trace("");
-            log("*** AST DUMP ***");
-            auto castedRoot = dynamic_cast<ASTNode*>(root);
-            if(!castedRoot)
-            {
-                throw std::invalid_argument(
-                    "Invalid root node given to DumpASTVisitor");
-            }
-            root->accept(this);
-        }
-
-        void finish()
-        {
-            log("*** FINISHED AST DUMP ***");
-            astlogger->flush();
-        }
+        void start(T* root);
+        void finish();
 
         template <typename T>
         static void dump(T* node)
@@ -88,6 +49,10 @@ namespace ast
             dumpAST->finish();
         }
 
+    private:
+        std::shared_ptr<spdlog::logger> astlogger;
+
+    public:
         void visit(ASTNode* node, size_t ind = 0);
         void visit(ASTStatement* stmt, size_t ind = 0);
         void visit(ASTExpression* expr, size_t ind = 0);
@@ -130,5 +95,52 @@ namespace ast
         void visit(ASTBlockStatement* node, size_t ind = 0);
         void visit(ASTWrappedExpressionStatement* node, size_t ind = 0);
     };
+
+    template <typename... Args>
+    inline void DumpASTVisitor::log(const std::string& format, Args... args)
+    {
+        astlogger->debug(format.c_str(), args...);
+    }
+
+    template <typename... Args>
+    inline void DumpASTVisitor::log(size_t ind, const std::string& format,
+                                    Args... args)
+    {
+        if(ind == 0)
+        {
+            log(format, args...);
+        }
+        else
+        {
+            std::string prefix("\\");
+            size_t realind = ind * 2;
+            for(size_t i = 1; i < realind; ++i)
+            {
+                prefix.push_back('-');
+            }
+            prefix.append(format);
+            log(prefix, args...);
+        }
+    }
+
+    template <typename T>
+    inline void DumpASTVisitor::start(T* root)
+    {
+        util::loggerBasic->trace("");
+        log("*** AST DUMP ***");
+        auto castedRoot = dynamic_cast<ASTNode*>(root);
+        if(!castedRoot)
+        {
+            throw std::invalid_argument(
+                "Invalid root node given to DumpASTVisitor");
+        }
+        root->accept(this);
+    }
+
+    inline void DumpASTVisitor::finish()
+    {
+        log("*** FINISHED AST DUMP ***");
+        astlogger->flush();
+    }
 } // namespace ast
 } // namespace core

@@ -189,11 +189,11 @@ namespace ast
         log(ind + 1, "InitExpression:");
         node->init->accept(this, ind + 2);
 
-        log(ind + 1, "RangeDeclExpression:");
-        node->rangeDecl->accept(this, ind + 2);
+        log(ind + 1, "EndExpression:");
+        node->end->accept(this, ind + 2);
 
-        log(ind + 1, "RangeInitExpression:");
-        node->rangeInit->accept(this, ind + 2);
+        log(ind + 1, "StepExpression:");
+        node->step->accept(this, ind + 2);
 
         log(ind + 1, "Block:");
         node->block->accept(this, ind + 2);
@@ -298,7 +298,6 @@ namespace ast
     {
         log(ind, "ASTFunctionParameter:");
         node->var->accept(this, ind + 1);
-        log(ind + 1, "passType: {}", node->passType);
     }
     void DumpASTVisitor::visit(ASTFunctionPrototypeStatement* node, size_t ind)
     {
@@ -378,9 +377,9 @@ namespace ast
         log(ind + 1, "Operator: {} ({})",
             core::lexer::Token::typeToString(node->oper), node->oper);
         log(ind + 1, "LHS:");
-        node->left->accept(this, ind + 2);
+        node->lhs->accept(this, ind + 2);
         log(ind + 1, "RHS:");
-        node->right->accept(this, ind + 2);
+        node->rhs->accept(this, ind + 2);
     }
     void DumpASTVisitor::visit(ASTUnaryOperationExpression* node, size_t ind)
     {
@@ -397,9 +396,9 @@ namespace ast
         log(ind + 1, "Operator: {} ({})",
             core::lexer::Token::typeToString(node->oper), node->oper);
         log(ind + 1, "LHS:");
-        node->lval->accept(this, ind + 2);
+        node->lhs->accept(this, ind + 2);
         log(ind + 1, "RHS:");
-        node->rval->accept(this, ind + 2);
+        node->rhs->accept(this, ind + 2);
     }
 
     void DumpASTVisitor::visit(ASTEmptyStatement* /*unused*/, size_t ind)

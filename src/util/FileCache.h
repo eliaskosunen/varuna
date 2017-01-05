@@ -21,9 +21,6 @@ public:
     public:
         using Checksum_t = uint64_t;
 
-        std::string filename, content;
-        Checksum_t checksum;
-
         explicit File(std::string filename_)
             : filename(std::move(filename_)), checksum(0)
         {
@@ -57,6 +54,9 @@ public:
             throw std::logic_error(
                 "util::FileCache::File::calculateChecksum() not implemented");
         }
+
+        std::string filename, content;
+        Checksum_t checksum;
     };
 
 private:

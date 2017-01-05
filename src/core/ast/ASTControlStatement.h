@@ -15,14 +15,11 @@ namespace ast
     class ASTIfStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTExpression> condition;
-        std::unique_ptr<ASTStatement> ifBlock, elseBlock;
-
-        ASTIfStatement(std::unique_ptr<ASTExpression> cond,
-                       std::unique_ptr<ASTStatement> ifb,
-                       std::unique_ptr<ASTStatement> elseb = nullptr)
-            : ASTStatement(IF_STMT), condition(std::move(cond)),
-              ifBlock(std::move(ifb)), elseBlock(std::move(elseb))
+        ASTIfStatement(std::unique_ptr<ASTExpression> pCondition,
+                       std::unique_ptr<ASTStatement> pIfBlock,
+                       std::unique_ptr<ASTStatement> pElseBlock)
+            : ASTStatement(IF_STMT), condition(std::move(pCondition)),
+              ifBlock(std::move(pIfBlock)), elseBlock(std::move(pElseBlock))
         {
         }
 
@@ -31,21 +28,21 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> condition;
+        std::unique_ptr<ASTStatement> ifBlock, elseBlock;
     };
 
     class ASTForStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTExpression> init, rangeDecl, rangeInit;
-        std::unique_ptr<ASTStatement> block;
-
-        ASTForStatement(std::unique_ptr<ASTStatement> stmt,
-                        std::unique_ptr<ASTExpression> _init = nullptr,
-                        std::unique_ptr<ASTExpression> _rangeDecl = nullptr,
-                        std::unique_ptr<ASTExpression> _rangeInit = nullptr)
-            : ASTStatement(FOR_STMT), init(std::move(_init)),
-              rangeDecl(std::move(_rangeDecl)),
-              rangeInit(std::move(_rangeInit)), block(std::move(stmt))
+        ASTForStatement(std::unique_ptr<ASTStatement> pBlock,
+                        std::unique_ptr<ASTExpression> pInit,
+                        std::unique_ptr<ASTExpression> pEnd,
+                        std::unique_ptr<ASTExpression> pStep)
+            : ASTStatement(FOR_STMT), init(std::move(pInit)),
+              end(std::move(pEnd)), step(std::move(pStep)),
+              block(std::move(pBlock))
         {
         }
 
@@ -54,19 +51,19 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> init, end, step;
+        std::unique_ptr<ASTStatement> block;
     };
 
     class ASTForeachStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTExpression> iteratee, iterator;
-        std::unique_ptr<ASTBlockStatement> block;
-
-        ASTForeachStatement(std::unique_ptr<ASTExpression> _iteratee,
-                            std::unique_ptr<ASTExpression> _iterator,
-                            std::unique_ptr<ASTBlockStatement> _block)
-            : ASTStatement(FOREACH_STMT), iteratee(std::move(_iteratee)),
-              iterator(std::move(_iterator)), block(std::move(_block))
+        ASTForeachStatement(std::unique_ptr<ASTExpression> pIteratee,
+                            std::unique_ptr<ASTExpression> pIterator,
+                            std::unique_ptr<ASTBlockStatement> pBlock)
+            : ASTStatement(FOREACH_STMT), iteratee(std::move(pIteratee)),
+              iterator(std::move(pIterator)), block(std::move(pBlock))
         {
         }
 
@@ -75,18 +72,18 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> iteratee, iterator;
+        std::unique_ptr<ASTBlockStatement> block;
     };
 
     class ASTWhileStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTExpression> condition;
-        std::unique_ptr<ASTBlockStatement> block;
-
-        ASTWhileStatement(std::unique_ptr<ASTExpression> cond,
-                          std::unique_ptr<ASTBlockStatement> _block)
-            : ASTStatement(WHILE_STMT), condition(std::move(cond)),
-              block(std::move(_block))
+        ASTWhileStatement(std::unique_ptr<ASTExpression> pCondition,
+                          std::unique_ptr<ASTBlockStatement> pBlock)
+            : ASTStatement(WHILE_STMT), condition(std::move(pCondition)),
+              block(std::move(pBlock))
         {
         }
 
@@ -95,26 +92,26 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> condition;
+        std::unique_ptr<ASTBlockStatement> block;
     };
 
     class ASTImportStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTIdentifierExpression> importee;
-        bool isPath;
-
         enum ImportType
         {
             UNSPECIFIED = 0,
             MODULE,
             PACKAGE
-        } importType;
+        };
 
         ASTImportStatement(ImportType type,
-                           std::unique_ptr<ASTIdentifierExpression> toImport,
-                           bool _isPath = false)
-            : ASTStatement(IMPORT_STMT), importee(std::move(toImport)),
-              isPath(_isPath), importType(type)
+                           std::unique_ptr<ASTIdentifierExpression> pImportee,
+                           bool pIsPath = false)
+            : ASTStatement(IMPORT_STMT), importee(std::move(pImportee)),
+              isPath(pIsPath), importType(type)
         {
         }
 
@@ -123,13 +120,15 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTIdentifierExpression> importee;
+        bool isPath;
+        ImportType importType;
     };
 
     class ASTModuleStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTIdentifierExpression> moduleName;
-
         ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
             : ASTStatement(MODULE_STMT), moduleName(std::move(name))
         {
@@ -140,6 +139,8 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTIdentifierExpression> moduleName;
     };
 } // namespace ast
 } // namespace core

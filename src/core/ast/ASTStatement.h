@@ -16,18 +16,7 @@ namespace ast
 {
     class ASTStatement : public ASTNode
     {
-    protected:
-        ASTStatement(NodeType t) : ASTNode(t)
-        {
-        }
-
     public:
-        void accept(DumpASTVisitor* v, size_t ind = 0) override;
-        virtual std::unique_ptr<codegen::TypedValue>
-        accept(codegen::CodegenVisitor* v);
-        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
-        bool accept(codegen::GrammarCheckerVisitor* v) override;
-
         ASTStatement() : ASTNode(STMT)
         {
         }
@@ -36,6 +25,17 @@ namespace ast
         ASTStatement(ASTStatement&&) = default;
         ASTStatement& operator=(ASTStatement&&) = default;
         ~ASTStatement() override = default;
+
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        virtual std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v);
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+    protected:
+        ASTStatement(NodeType t) : ASTNode(t)
+        {
+        }
     };
 
     class ASTEmptyStatement : public ASTStatement
@@ -57,7 +57,6 @@ namespace ast
     public:
         using Statement = std::unique_ptr<ASTStatement>;
         using StatementVector = std::vector<Statement>;
-        StatementVector nodes;
 
         ASTBlockStatement() : ASTStatement(BLOCK_STMT)
         {
@@ -76,15 +75,15 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        StatementVector nodes;
     };
 
     class ASTWrappedExpressionStatement : public ASTStatement
     {
     public:
-        std::unique_ptr<ASTExpression> expr;
-
-        ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression)
-            : ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(expression))
+        ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> pExpr)
+            : ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(pExpr))
         {
         }
 
@@ -93,6 +92,8 @@ namespace ast
         accept(codegen::CodegenVisitor* v) override;
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> expr;
     };
 } // namespace ast
 } // namespace core

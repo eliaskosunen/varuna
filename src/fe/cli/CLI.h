@@ -18,18 +18,19 @@ namespace cli
 {
     class CLI
     {
-        const int argc;
-        char** argv;
-        TCLAP::CmdLine cmd;
-
-        void showLicense() const;
-
-        bool setLoggingLevel(api::Application* app, const std::string& level);
-
     public:
         CLI(int argc_, char** argv_);
 
         int run();
+
+    private:
+        void showLicense() const;
+
+        bool setLoggingLevel(api::Application* app, const std::string& level);
+
+        const int argc;
+        char** argv;
+        TCLAP::CmdLine cmd;
     };
 } // namespace cli
 } // namespace fe

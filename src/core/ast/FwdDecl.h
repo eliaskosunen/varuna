@@ -59,7 +59,7 @@ namespace codegen
 {
     class CodegenVisitor;
     class GrammarCheckerVisitor;
-    class TypedValue;
+    struct TypedValue;
 } // namespace codegen
 } // namespace core
 

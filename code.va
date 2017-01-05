@@ -1,8 +1,17 @@
 // code.va
 module main;
 
+def f(int i): int
+{
+	return i - 1;
+}
+
 def main(): int
 {
-	string_t s = "";
-	return 0;
+	int j = 0;
+	for(int i = 0; i != 10; i = i + 1)
+	{
+		j = f(i);
+	}
+	return j;
 }

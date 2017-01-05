@@ -58,13 +58,6 @@ namespace ast
         };
 
         using NodeType = util::SafeEnum<NodeType_t>;
-        NodeType nodeType{NODE};
-
-        ASTNode* parent{nullptr};
-
-        virtual void accept(DumpASTVisitor* v, size_t ind = 0) = 0;
-        virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
-        virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
 
         ASTNode() = default;
         ASTNode(const ASTNode&) = delete;
@@ -77,6 +70,13 @@ namespace ast
         {
             return _getFunction();
         }
+
+        virtual void accept(DumpASTVisitor* v, size_t ind = 0) = 0;
+        virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
+        virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
+
+        NodeType nodeType{NODE};
+        ASTNode* parent{nullptr};
 
     protected:
         ASTNode(NodeType t) : nodeType(t)

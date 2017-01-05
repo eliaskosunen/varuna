@@ -42,8 +42,8 @@ namespace ast
         node->parent = parent;
 
         node->init->accept(this, node);
-        node->rangeDecl->accept(this, node);
-        node->rangeInit->accept(this, node);
+        node->end->accept(this, node);
+        node->step->accept(this, node);
         node->block->accept(this, node);
     }
     void ASTParentSolverVisitor::visit(ASTForeachStatement* node,
@@ -234,8 +234,8 @@ namespace ast
     {
         node->parent = parent;
 
-        node->left->accept(this, node);
-        node->right->accept(this, node);
+        node->lhs->accept(this, node);
+        node->rhs->accept(this, node);
     }
     void ASTParentSolverVisitor::visit(ASTUnaryOperationExpression* node,
                                        ASTNode* parent)
@@ -249,8 +249,8 @@ namespace ast
     {
         node->parent = parent;
 
-        node->lval->accept(this, node);
-        node->rval->accept(this, node);
+        node->lhs->accept(this, node);
+        node->rhs->accept(this, node);
     }
 
     void ASTParentSolverVisitor::visit(ASTEmptyStatement* node, ASTNode* parent)

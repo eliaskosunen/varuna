@@ -16,9 +16,6 @@ namespace api
 {
     class Application final
     {
-        std::unique_ptr<util::ThreadPool> pool;
-        std::unique_ptr<util::FileCache> fileCache;
-
     public:
         enum LoggingLevel
         {
@@ -48,6 +45,10 @@ namespace api
         bool runAll();
 
         bool execute(std::vector<std::string> files);
+
+    private:
+        std::unique_ptr<util::ThreadPool> pool;
+        std::unique_ptr<util::FileCache> fileCache;
     };
 }
 }
