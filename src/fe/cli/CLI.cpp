@@ -117,7 +117,8 @@ namespace cli
         util::loggerBasic->info("Varuna, {}\n", ver);
 
         util::loggerBasic->info("Copyright (C) 2016-2017 Elias Kosunen");
-        util::loggerBasic->info("Published under the 3-Clause BSD License (\"New/Modified BSD License\")");
+        util::loggerBasic->info("Published under the 3-Clause BSD License "
+                                "(\"New/Modified BSD License\")");
         util::loggerBasic->info("See the file LICENSE for details");
     }
 } // namespace cli
