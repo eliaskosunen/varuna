@@ -45,7 +45,7 @@ namespace programinfo
             }();
             return str;
         }
-    }
+    } // namespace version
 
     constexpr const char* name = "Varuna";
 

@@ -252,7 +252,7 @@ namespace codegen
         // auto calleeExpr = expr->callee->accept(this);
         // auto calleeName = calleeExpr->getName().str();
         auto calleeName =
-            static_cast<ast::ASTIdentifierExpression*>(expr->callee.get())
+            dynamic_cast<ast::ASTIdentifierExpression*>(expr->callee.get())
                 ->value;
         llvm::Function* callee = findFunction(calleeName);
         if(!callee)
@@ -642,7 +642,8 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTBoolLiteralExpression* expr)
     {
         auto t = findType("bool");
-        auto val = llvm::ConstantInt::get(t->type, expr->value);
+        auto val =
+            llvm::ConstantInt::get(t->type, static_cast<uint64_t>(expr->value));
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>
@@ -681,7 +682,7 @@ namespace codegen
                     boolType,
                     builder.CreateICmpEQ(lhs->value, rhs->value, "eqtmp"));
             }
-            else if(type->isFloatingPoint())
+            if(type->isFloatingPoint())
             {
                 return std::make_unique<TypedValue>(
                     boolType,
@@ -690,7 +691,7 @@ namespace codegen
             return codegenError("Cannot perform eq operation on {}",
                                 type->name);
         }
-        else if(expr->oper == lexer::TOKEN_OPERATORB_NOTEQ)
+        if(expr->oper == lexer::TOKEN_OPERATORB_NOTEQ)
         {
             if(type->isIntegral())
             {
@@ -698,7 +699,7 @@ namespace codegen
                     boolType,
                     builder.CreateICmpNE(lhs->value, rhs->value, "noteqtmp"));
             }
-            else if(type->isFloatingPoint())
+            if(type->isFloatingPoint())
             {
                 return std::make_unique<TypedValue>(
                     boolType,
@@ -926,5 +927,5 @@ namespace codegen
         }
         return val;
     }
-}
-}
+} // namespace codegen
+} // namespace core

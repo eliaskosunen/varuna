@@ -63,7 +63,7 @@ namespace lexer
 
     struct Token final
     {
-        Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
+        explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
             : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
               modifierFloat(FLOAT_NONE)
         {

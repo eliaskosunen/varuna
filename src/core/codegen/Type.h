@@ -50,15 +50,15 @@ namespace codegen
             llvm::Instruction::BitCast;
 
         Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
-             const std::string& n)
-            : context(c), type(t), dtype(d), name(n), kind(k)
+             std::string n)
+            : context(c), type(t), dtype(d), name(std::move(n)), kind(k)
         {
         }
         Type(const Type& t) = default;
         Type& operator=(const Type& t) = default;
-        Type(Type&&) = default;
-        Type& operator=(Type&&) = default;
-        virtual ~Type() = default;
+        Type(Type&&) noexcept = default;
+        Type& operator=(Type&&) noexcept = default;
+        virtual ~Type() noexcept = default;
 
         template <typename... Args>
         CastTuple typeError(const std::string& format, Args... args) const
@@ -162,7 +162,7 @@ namespace codegen
                 {
                     return CastTuple{false, false, defaultCast};
                 }
-                else if(castedto.width > width)
+                if(castedto.width > width)
                 {
                     return CastTuple{false, true, Instruction::SExt};
                 }
@@ -433,7 +433,7 @@ namespace codegen
                 {
                     return CastTuple{false, false, defaultCast};
                 }
-                else if(castedto.width > width)
+                if(castedto.width > width)
                 {
                     return CastTuple{false, true, Instruction::FPExt};
                 }
@@ -548,5 +548,5 @@ namespace codegen
             return false;
         }
     };
-}
-}
+} // namespace codegen
+} // namespace core

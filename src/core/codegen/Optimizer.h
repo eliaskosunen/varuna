@@ -16,8 +16,8 @@ namespace legacy
 {
     class FunctionPassManager;
     class PassManager;
-}
-}
+} // namespace legacy
+} // namespace llvm
 
 namespace core
 {
@@ -30,10 +30,10 @@ namespace codegen
         ~Optimizer();
 
         Optimizer(const Optimizer&) = delete;
-        Optimizer(Optimizer&&) = default;
+        Optimizer(Optimizer&&) noexcept = default;
 
         Optimizer& operator=(const Optimizer&) = delete;
-        Optimizer& operator=(Optimizer&&) = default;
+        Optimizer& operator=(Optimizer&&) noexcept = default;
 
         void init();
         void run();
@@ -50,5 +50,5 @@ namespace codegen
         uint8_t optLevel;
         uint8_t sizeLevel;
     };
-}
-}
+} // namespace codegen
+} // namespace core

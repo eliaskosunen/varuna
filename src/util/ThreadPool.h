@@ -9,4 +9,4 @@
 namespace util
 {
 using ThreadPool = ctpl::thread_pool;
-}
+} // namespace util

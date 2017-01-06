@@ -198,9 +198,9 @@ namespace codegen
     {
         llvm::Constant* strConst =
             llvm::ConstantDataArray::getString(context, str);
-        llvm::GlobalVariable* gvStr = new llvm::GlobalVariable(
+        auto gvStr = new llvm::GlobalVariable(
             *module, strConst->getType(), true,
-            llvm::GlobalValue::InternalLinkage, 0, ".str");
+            llvm::GlobalValue::InternalLinkage, nullptr, ".str");
         gvStr->setAlignment(1);
         gvStr->setInitializer(strConst);
 

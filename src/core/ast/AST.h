@@ -17,17 +17,17 @@ namespace ast
     class AST final
     {
     public:
-        AST(std::string f)
+        explicit AST(std::string f)
             : globalNode(std::make_unique<ASTBlockStatement>()),
               file(std::move(f))
         {
         }
 
         AST(const AST&) = delete;
-        AST(AST&&) = default;
+        AST(AST&&) noexcept = default;
         AST& operator=(const AST&) = delete;
-        AST& operator=(AST&&) = default;
-        ~AST() = default;
+        AST& operator=(AST&&) noexcept = default;
+        ~AST() noexcept = default;
 
         void pushStatement(std::unique_ptr<ASTStatement> stmt)
         {

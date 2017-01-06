@@ -12,7 +12,7 @@ namespace fe
 namespace api
 {
     class Application;
-}
+} // namespace api
 
 namespace cli
 {

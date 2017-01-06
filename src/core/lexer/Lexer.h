@@ -30,7 +30,8 @@ namespace lexer
     public:
         using ContentIterator = std::string::const_iterator;
 
-        Lexer(util::string_t cont, const util::string_t& file = "(undefined)")
+        explicit Lexer(util::string_t cont,
+                       const util::string_t& file = "(undefined)")
             : warningsAsErrors(false), content(std::move(cont)),
               it(content.begin()), end(content.end()), currentLocation(file, 1),
               error(ERROR_NONE)
@@ -38,10 +39,10 @@ namespace lexer
         }
 
         Lexer(const Lexer&) = delete;
-        Lexer(Lexer&&) = default;
+        Lexer(Lexer&&) noexcept = default;
         Lexer& operator=(const Lexer&) = delete;
-        Lexer& operator=(Lexer&&) = default;
-        ~Lexer() = default;
+        Lexer& operator=(Lexer&&) noexcept = default;
+        ~Lexer() noexcept = default;
 
         TokenVector run();
 

@@ -28,9 +28,8 @@ namespace parser
 
     Parser::Parser(const core::lexer::TokenVector& tok)
         : warningsAsErrors(false),
-          ast(std::make_unique<ast::AST>(std::move(tok.front().loc.file))),
-          tokens(tok), it(tokens.begin()), endTokens(tokens.end()),
-          error(ERROR_NONE)
+          ast(std::make_unique<ast::AST>(tok.front().loc.file)), tokens(tok),
+          it(tokens.begin()), endTokens(tokens.end()), error(ERROR_NONE)
     {
     }
 
@@ -358,7 +357,7 @@ namespace parser
 
         ++it; // Skip 'for'
 
-        // TODO: Optimize
+        // TODO(elias): Optimize
         // Not utilizing constructors
         // Not sure if possible in C++14
         std::unique_ptr<ASTExpression> init, end, step;
@@ -470,7 +469,7 @@ namespace parser
                 return parserError("Invalid variable definition: init "
                                    "expression is required when using 'var'");
             }
-            // TODO: Determine type of var
+            // TODO(elias): Determine type of var
             return parserError("Unimplemented");
         }
 
@@ -872,28 +871,24 @@ namespace parser
         {
             double val;
             std::string type;
-            std::tie(val, type) = [&]() {
+            std::tie(val, type) = [&]() -> std::tuple<double, std::string> {
                 if(lit->modifierFloat.isSet(FLOAT_F64))
                 {
                     return std::make_tuple<double, std::string>(
                         std::stod(lit->value), "f64");
                 }
-                else if(lit->modifierFloat.isSet(FLOAT_F32))
+                if(lit->modifierFloat.isSet(FLOAT_F32))
                 {
                     return std::make_tuple<double, std::string>(
                         static_cast<double>(std::stof(lit->value)), "f32");
                 }
-                else if(lit->modifierFloat.isSet(FLOAT_FLOAT))
+                if(lit->modifierFloat.isSet(FLOAT_FLOAT))
                 {
                     return std::make_tuple<double, std::string>(
                         std::stod(lit->value), "float");
                 }
-                else
-                {
-                    throw std::invalid_argument(
-                        fmt::format("Invalid float modifier: {}",
-                                    lit->modifierFloat.get()));
-                }
+                throw std::invalid_argument(fmt::format(
+                    "Invalid float modifier: {}", lit->modifierFloat.get()));
             }();
             return std::make_unique<ASTFloatLiteralExpression>(
                 val, std::make_unique<ASTIdentifierExpression>(type));

@@ -57,7 +57,7 @@ namespace ast
     class ASTStringLiteralExpression : public ASTExpression
     {
     public:
-        ASTStringLiteralExpression(const std::string& val)
+        explicit ASTStringLiteralExpression(const std::string& val)
             : ASTExpression(STRING_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("string"))
         {
@@ -76,7 +76,7 @@ namespace ast
     class ASTCharLiteralExpression : public ASTExpression
     {
     public:
-        ASTCharLiteralExpression(char32_t val)
+        explicit ASTCharLiteralExpression(char32_t val)
             : ASTExpression(CHAR_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("char"))
         {
@@ -95,7 +95,7 @@ namespace ast
     class ASTBoolLiteralExpression : public ASTExpression
     {
     public:
-        ASTBoolLiteralExpression(bool val)
+        explicit ASTBoolLiteralExpression(bool val)
             : ASTExpression(BOOL_LITERAL_EXPR), value(val),
               type(std::make_unique<ASTIdentifierExpression>("bool"))
         {

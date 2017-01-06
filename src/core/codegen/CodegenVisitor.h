@@ -108,10 +108,10 @@ namespace codegen
 
     public:
         std::unique_ptr<TypedValue> visit(ast::ASTNode* node) = delete;
-        std::unique_ptr<TypedValue> visit(ast::ASTStatement* stmt);
-        std::unique_ptr<TypedValue> visit(ast::ASTExpression* expr);
+        std::unique_ptr<TypedValue> visit(ast::ASTStatement* node);
+        std::unique_ptr<TypedValue> visit(ast::ASTExpression* node);
 
-        std::unique_ptr<TypedValue> visit(ast::ASTIfStatement* node);
+        std::unique_ptr<TypedValue> visit(ast::ASTIfStatement* stmt);
         std::unique_ptr<TypedValue> visit(ast::ASTForStatement* node);
         std::unique_ptr<TypedValue> visit(ast::ASTForeachStatement* node);
         std::unique_ptr<TypedValue> visit(ast::ASTWhileStatement* node);
@@ -136,7 +136,7 @@ namespace codegen
         std::unique_ptr<TypedValue>
         visit(ast::ASTFunctionDefinitionStatement* stmt);
         std::unique_ptr<TypedValue>
-        visit(ast::ASTFunctionDeclarationStatement* node);
+        visit(ast::ASTFunctionDeclarationStatement* stmt);
         std::unique_ptr<TypedValue> visit(ast::ASTReturnStatement* stmt);
 
         std::unique_ptr<TypedValue>

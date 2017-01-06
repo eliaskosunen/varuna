@@ -119,5 +119,5 @@ namespace codegen
 
         builder.populateLTOPassManager(*mpm);
     }
-}
-}
+} // namespace codegen
+} // namespace core

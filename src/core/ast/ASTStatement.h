@@ -22,8 +22,8 @@ namespace ast
         }
         ASTStatement(const ASTStatement&) = delete;
         ASTStatement& operator=(const ASTStatement&) = delete;
-        ASTStatement(ASTStatement&&) = default;
-        ASTStatement& operator=(ASTStatement&&) = default;
+        ASTStatement(ASTStatement&&) noexcept = default;
+        ASTStatement& operator=(ASTStatement&&) noexcept = default;
         ~ASTStatement() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
@@ -33,7 +33,7 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
     protected:
-        ASTStatement(NodeType t) : ASTNode(t)
+        explicit ASTStatement(NodeType t) : ASTNode(t)
         {
         }
     };
@@ -61,11 +61,11 @@ namespace ast
         ASTBlockStatement() : ASTStatement(BLOCK_STMT)
         {
         }
-        ASTBlockStatement(Statement first) : ASTStatement(BLOCK_STMT)
+        explicit ASTBlockStatement(Statement first) : ASTStatement(BLOCK_STMT)
         {
             nodes.push_back(std::move(first));
         }
-        ASTBlockStatement(StatementVector vec)
+        explicit ASTBlockStatement(StatementVector vec)
             : ASTStatement(BLOCK_STMT), nodes(std::move(vec))
         {
         }
@@ -82,7 +82,8 @@ namespace ast
     class ASTWrappedExpressionStatement : public ASTStatement
     {
     public:
-        ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> pExpr)
+        explicit ASTWrappedExpressionStatement(
+            std::unique_ptr<ASTExpression> pExpr)
             : ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(pExpr))
         {
         }

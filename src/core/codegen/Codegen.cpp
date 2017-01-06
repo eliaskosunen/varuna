@@ -11,7 +11,7 @@ namespace core
 namespace codegen
 {
     Codegen::Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i)
-        : ast(std::move(a)), info(std::move(i)), context{},
+        : ast(std::move(a)), info(i), context{},
           module(std::make_unique<llvm::Module>("Varuna", context)),
           codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
           optimizer(std::make_unique<Optimizer>(module.get(), i))

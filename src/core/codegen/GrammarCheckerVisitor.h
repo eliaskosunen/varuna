@@ -86,5 +86,5 @@ namespace codegen
         bool visit(ast::ASTBlockStatement* node);
         bool visit(ast::ASTWrappedExpressionStatement* node);
     };
-}
-}
+} // namespace codegen
+} // namespace core

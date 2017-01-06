@@ -69,7 +69,7 @@ namespace api
 
             util::logger->debug("Starting code generation");
             core::codegen::CodegenInfo cinfo{ast->file, 3, 0};
-            core::codegen::Codegen codegen(std::move(ast), std::move(cinfo));
+            core::codegen::Codegen codegen(std::move(ast), cinfo);
             if(!codegen.run())
             {
                 util::logger->debug("Code generation failed");
@@ -120,5 +120,5 @@ namespace api
 
         return runFiles(std::move(files));
     }
-}
-}
+} // namespace api
+} // namespace fe

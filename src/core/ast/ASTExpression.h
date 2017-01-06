@@ -21,8 +21,8 @@ namespace ast
         }
         ASTExpression(const ASTExpression&) = delete;
         ASTExpression& operator=(const ASTExpression&) = delete;
-        ASTExpression(ASTExpression&&) = default;
-        ASTExpression& operator=(ASTExpression&&) = default;
+        ASTExpression(ASTExpression&&) noexcept = default;
+        ASTExpression& operator=(ASTExpression&&) noexcept = default;
         ~ASTExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
@@ -32,7 +32,7 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
     protected:
-        ASTExpression(NodeType t) : ASTNode(t)
+        explicit ASTExpression(NodeType t) : ASTNode(t)
         {
         }
     };
@@ -54,15 +54,16 @@ namespace ast
     class ASTIdentifierExpression : public ASTExpression
     {
     public:
-        ASTIdentifierExpression(std::string val)
+        explicit ASTIdentifierExpression(std::string val)
             : ASTExpression(IDENTIFIER_EXPR), value(std::move(val))
         {
         }
         ASTIdentifierExpression(const ASTIdentifierExpression&) = delete;
         ASTIdentifierExpression&
         operator=(const ASTIdentifierExpression&) = delete;
-        ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
-        ASTIdentifierExpression& operator=(ASTIdentifierExpression&&) = default;
+        ASTIdentifierExpression(ASTIdentifierExpression&&) noexcept = default;
+        ASTIdentifierExpression&
+        operator=(ASTIdentifierExpression&&) noexcept = default;
         ~ASTIdentifierExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
@@ -83,7 +84,7 @@ namespace ast
     class ASTVariableRefExpression : public ASTIdentifierExpression
     {
     public:
-        ASTVariableRefExpression(std::string val)
+        explicit ASTVariableRefExpression(std::string val)
             : ASTIdentifierExpression(VARIABLE_REF_EXPR, val)
         {
         }
@@ -176,11 +177,12 @@ namespace ast
         }
 
         ASTSubscriptExpression(const ASTSubscriptExpression&) = delete;
-        ASTSubscriptExpression(ASTSubscriptExpression&&) = default;
+        ASTSubscriptExpression(ASTSubscriptExpression&&) noexcept = default;
         ASTSubscriptExpression&
         operator=(const ASTSubscriptExpression&) = delete;
-        ASTSubscriptExpression& operator=(ASTSubscriptExpression&&) = default;
-        virtual ~ASTSubscriptExpression() = default;
+        ASTSubscriptExpression&
+        operator=(ASTSubscriptExpression&&) noexcept = default;
+        ~ASTSubscriptExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
         std::unique_ptr<codegen::TypedValue>

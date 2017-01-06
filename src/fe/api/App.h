@@ -31,10 +31,10 @@ namespace api
         {
         }
         Application(const Application&) = delete;
-        Application(Application&&) = delete;
+        Application(Application&&) noexcept = delete;
         Application& operator=(const Application&) = delete;
-        Application& operator=(Application&&) = delete;
-        ~Application() = default;
+        Application& operator=(Application&&) noexcept = delete;
+        ~Application() noexcept = default;
 
         void setLoggingLevel(LoggingLevel l);
 
@@ -50,5 +50,5 @@ namespace api
         std::unique_ptr<util::ThreadPool> pool;
         std::unique_ptr<util::FileCache> fileCache;
     };
-}
-}
+} // namespace api
+} // namespace fe

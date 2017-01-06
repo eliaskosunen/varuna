@@ -27,10 +27,10 @@ namespace ast
         }
 
         DumpASTVisitor(const DumpASTVisitor&) = delete;
-        DumpASTVisitor(DumpASTVisitor&&) = default;
+        DumpASTVisitor(DumpASTVisitor&&) noexcept = default;
 
-        DumpASTVisitor& operator=(const DumpASTVisitor&) & = delete;
-        DumpASTVisitor& operator=(DumpASTVisitor&&) & = default;
+        DumpASTVisitor& operator=(const DumpASTVisitor&) = delete;
+        DumpASTVisitor& operator=(DumpASTVisitor&&) noexcept = default;
 
         template <typename... Args>
         void log(const std::string& format, Args... args);

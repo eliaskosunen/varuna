@@ -281,7 +281,7 @@ namespace ast
         log(ind + 1, "Index:");
         node->index->accept(this, ind + 2);
     }
-    void DumpASTVisitor::visit(ASTSubscriptRangedExpression*, size_t ind)
+    void DumpASTVisitor::visit(ASTSubscriptRangedExpression* node, size_t ind)
     {
         log(ind, "ASTSubscriptRangedExpression");
     }

@@ -19,17 +19,19 @@ public:
     using UnderlyingType = Underlying_t;
 
     SafeEnum() = default;
-    SafeEnum(Enum_t flag) : flags(flag)
+    /*implicit*/ SafeEnum(Enum_t flag) : flags(flag)
     {
     }
 
     SafeEnum(const SafeEnum&) = default;
-    SafeEnum(SafeEnum&&) = default;
+    SafeEnum(SafeEnum&&) noexcept(
+        std::is_nothrow_move_constructible<Underlying_t>::value) = default;
 
     SafeEnum& operator=(const SafeEnum&) = default;
-    SafeEnum& operator=(SafeEnum&&) = default;
+    SafeEnum& operator=(SafeEnum&&) noexcept(
+        std::is_nothrow_move_assignable<Underlying_t>::value) = default;
 
-    ~SafeEnum() = default;
+    ~SafeEnum() noexcept = default;
 
     Underlying_t get() const
     {

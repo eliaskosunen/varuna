@@ -13,4 +13,4 @@ inline typename ReverseIterator::iterator_type ritToFwdIt(ReverseIterator rit)
 {
     return --(rit.base()); // move result of .base() back by one.
 }
-}
+} // namespace util

@@ -21,5 +21,5 @@ namespace codegen
         uint8_t optLevel{0};
         uint8_t sizeLevel{0};
     };
-}
-}
+} // namespace codegen
+} // namespace core

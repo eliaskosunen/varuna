@@ -14,7 +14,7 @@ namespace ast
     class ASTFunctionParameter : public ASTStatement
     {
     public:
-        ASTFunctionParameter(
+        explicit ASTFunctionParameter(
             std::unique_ptr<ASTVariableDefinitionExpression> pVar)
             : ASTStatement(FUNCTION_PARAMETER), var(std::move(pVar))
         {
@@ -74,7 +74,7 @@ namespace ast
     class ASTFunctionDeclarationStatement : public ASTStatement
     {
     public:
-        ASTFunctionDeclarationStatement(
+        explicit ASTFunctionDeclarationStatement(
             std::unique_ptr<ASTFunctionPrototypeStatement> pProto,
             bool pIsExtern = false)
             : ASTStatement(FUNCTION_DECL_STMT), proto(std::move(pProto)),
@@ -95,7 +95,7 @@ namespace ast
     class ASTReturnStatement : public ASTStatement
     {
     public:
-        ASTReturnStatement(std::unique_ptr<ASTExpression> retval)
+        explicit ASTReturnStatement(std::unique_ptr<ASTExpression> retval)
             : ASTStatement(RETURN_STMT), returnValue(std::move(retval))
         {
         }

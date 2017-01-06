@@ -22,10 +22,10 @@ namespace codegen
         Codegen(std::unique_ptr<ast::AST> a, CodegenInfo i);
 
         Codegen(const Codegen&) = delete;
-        Codegen(Codegen&&) = default;
+        Codegen(Codegen&&) noexcept = default;
         Codegen& operator=(const Codegen&) = delete;
-        Codegen& operator=(Codegen&&) = default;
-        ~Codegen() = default;
+        Codegen& operator=(Codegen&&) noexcept = default;
+        ~Codegen() noexcept = default;
 
         bool run();
 

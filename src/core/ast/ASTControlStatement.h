@@ -129,7 +129,8 @@ namespace ast
     class ASTModuleStatement : public ASTStatement
     {
     public:
-        ASTModuleStatement(std::unique_ptr<ASTIdentifierExpression> name)
+        explicit ASTModuleStatement(
+            std::unique_ptr<ASTIdentifierExpression> name)
             : ASTStatement(MODULE_STMT), moduleName(std::move(name))
         {
         }

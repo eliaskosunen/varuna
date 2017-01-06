@@ -14,12 +14,12 @@ namespace ast
         Visitor() = default;
 
         Visitor(const Visitor&) = delete;
-        Visitor(Visitor&&) = default;
+        Visitor(Visitor&&) noexcept = default;
 
         Visitor& operator=(const Visitor&) = delete;
-        Visitor& operator=(Visitor&&) = default;
+        Visitor& operator=(Visitor&&) noexcept = default;
 
-        virtual ~Visitor() = default;
+        virtual ~Visitor() noexcept = default;
     };
 } // namespace ast
 } // namespace core

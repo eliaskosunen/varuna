@@ -79,11 +79,17 @@ namespace codegen
         }*/
 
         if(!node->type->accept(this))
+        {
             return false;
+        }
         if(!node->name->accept(this))
+        {
             return false;
+        }
         if(!node->init->accept(this))
+        {
             return false;
+        }
         return true;
     }
     bool GrammarCheckerVisitor::visit(ast::ASTSubscriptExpression*)
@@ -106,7 +112,9 @@ namespace codegen
     bool GrammarCheckerVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     {
         if(!node->proto->accept(this))
+        {
             return false;
+        }
         return node->body->accept(this);
     }
     bool GrammarCheckerVisitor::visit(ast::ASTFunctionDeclarationStatement*)
@@ -176,5 +184,5 @@ namespace codegen
     {
         return node->expr->accept(this);
     }
-}
-}
+} // namespace codegen
+} // namespace core
