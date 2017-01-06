@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "util/File.h"
 #include "util/Logger.h"
 #include "util/StreamReader.h"
 #include <utf8.h>
@@ -16,65 +17,8 @@ namespace util
 class FileCache
 {
 public:
-    class File
-    {
-    public:
-        using Checksum_t = uint64_t;
-
-        explicit File(std::string filename_)
-            : filename(std::move(filename_)), checksum(0)
-        {
-        }
-
-        bool readFile()
-        {
-            if(!content.empty())
-            {
-                return true;
-            }
-            try
-            {
-                content = StreamReader::readFile(filename);
-            }
-            catch(const std::exception& e)
-            {
-                util::logger->error(e.what());
-                return false;
-            }
-            return true;
-        }
-
-        bool checkUtf8()
-        {
-            return utf8::is_valid(content.begin(), content.end());
-        }
-
-        [[noreturn]] void calculateChecksum()
-        {
-            throw std::logic_error(
-                "util::FileCache::File::calculateChecksum() not implemented");
-        }
-
-        std::string filename, content;
-        Checksum_t checksum;
-    };
-
-private:
-    std::unordered_map<std::string, std::unique_ptr<File>> cache;
-
-public:
     FileCache()
     {
-    }
-
-    File* getFile(const std::string& name)
-    {
-        auto fileit = cache.find(name);
-        if(fileit == cache.end())
-        {
-            return nullptr;
-        }
-        return fileit->second.get();
     }
 
     const auto& viewCache() const
@@ -82,48 +26,65 @@ public:
         return cache;
     }
 
-    auto getCache() -> decltype(cache)
+    auto getCache()
     {
         return std::move(cache);
     }
 
-    std::vector<std::string> getFileList() const
-    {
-        std::vector<std::string> files;
-        files.reserve(cache.size());
-        for(const auto& file : cache)
-        {
-            files.push_back(file.first);
-        }
-        return files;
-    }
+    File* getFile(const std::string& name);
+    std::vector<std::string> getFileList() const;
 
-    bool addFile(std::unique_ptr<File> file, bool read = true)
-    {
-        if(!file)
-        {
-            throw std::invalid_argument(
-                "Invalid file given to FileCache::addFile");
-        }
-        if(read)
-        {
-            if(!file->readFile())
-            {
-                return false;
-            }
-            if(!file->checkUtf8())
-            {
-                throw std::runtime_error("Invalid file encoding");
-            }
-        }
-        decltype(cache)::value_type elem{file->filename, std::move(file)};
-        cache.insert(std::move(elem));
-        return true;
-    }
-    bool addFile(const std::string& name, bool read = true)
-    {
-        auto file = std::make_unique<File>(name);
-        return addFile(std::move(file), read);
-    }
+    bool addFile(std::unique_ptr<File> file, bool read = true);
+    bool addFile(const std::string& name, bool read = true);
+
+    std::unordered_map<std::string, std::unique_ptr<File>> cache;
 };
+
+inline File* FileCache::getFile(const std::string& name)
+{
+    auto fileit = cache.find(name);
+    if(fileit == cache.end())
+    {
+        return nullptr;
+    }
+    return fileit->second.get();
+}
+
+inline std::vector<std::string> FileCache::getFileList() const
+{
+    std::vector<std::string> files;
+    files.reserve(cache.size());
+    for(const auto& file : cache)
+    {
+        files.push_back(file.first);
+    }
+    return files;
+}
+
+inline bool FileCache::addFile(std::unique_ptr<File> file, bool read)
+{
+    if(!file)
+    {
+        throw std::invalid_argument("Invalid file given to FileCache::addFile");
+    }
+    if(read)
+    {
+        if(!file->readFile())
+        {
+            return false;
+        }
+        if(!file->checkUtf8())
+        {
+            throw std::runtime_error("Invalid file encoding");
+        }
+    }
+    decltype(cache)::value_type elem{file->filename, std::move(file)};
+    cache.insert(std::move(elem));
+    return true;
+}
+inline bool FileCache::addFile(const std::string& name, bool read)
+{
+    auto file = std::make_unique<File>(name);
+    return addFile(std::move(file), read);
+}
 } // namespace util
