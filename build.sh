@@ -19,4 +19,3 @@ cd ..
 # or don't want to use it
 valgrind bin/tests
 #bin/tests
-./build-docs.sh
