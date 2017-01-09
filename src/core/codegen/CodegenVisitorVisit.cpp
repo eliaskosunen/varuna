@@ -12,6 +12,8 @@
 #include "core/ast/FwdDecl.h"
 #include "core/codegen/CodegenVisitor.h"
 
+#define USE_LLVM_FUNCTION_VERIFY 0
+
 namespace core
 {
 namespace codegen
@@ -229,22 +231,18 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableRefExpression* expr)
     {
-        auto var = variables.find(expr->value);
-        if(var == variables.end())
+        auto var = symbols.findSymbol(expr->value);
+        if(!var)
         {
-            var = globalVariables.find(expr->value);
-            if(var == globalVariables.end())
-            {
-                return codegenError("Undefined variable: '{}'", expr->value);
-            }
+            return codegenError("Undefined variable: '{}'", expr->value);
         }
-        auto load = builder.CreateLoad(var->second.type->type,
-                                       var->second.value, expr->value.c_str());
+        auto load = builder.CreateLoad(var->getType()->type, var->value->value,
+                                       expr->value.c_str());
         if(!load)
         {
             return nullptr;
         }
-        return std::make_unique<TypedValue>(var->second.type, load);
+        return std::make_unique<TypedValue>(var->getType(), load);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCallExpression* expr)
@@ -254,16 +252,17 @@ namespace codegen
         auto calleeName =
             dynamic_cast<ast::ASTIdentifierExpression*>(expr->callee.get())
                 ->value;
-        llvm::Function* callee = findFunction(calleeName);
+        auto callee = findFunction(calleeName);
         if(!callee)
         {
             return nullptr;
         }
+        auto calleeval = llvm::cast<llvm::Function>(callee->value->value);
 
-        if(callee->arg_size() != expr->params.size())
+        if(calleeval->arg_size() != expr->params.size())
         {
             return codegenError("{} expects {} arguments, {} provided",
-                                calleeName, callee->arg_size(),
+                                calleeName, calleeval->arg_size(),
                                 expr->params.size());
         }
 
@@ -277,10 +276,10 @@ namespace codegen
             }
         }
 
-        auto call = builder.CreateCall(callee->getFunctionType(), callee, args,
-                                       "calltmp");
-        // auto call = builder.CreateCall(callee, args, "calltmp");
-        auto type = findType(callee->getReturnType());
+        // auto call = builder.CreateCall(calleeval->getFunctionType(), callee,
+        //                               args, "calltmp");
+        auto call = builder.CreateCall(calleeval, args, "calltmp");
+        auto type = findType(calleeval->getReturnType());
         if(!call || !type)
         {
             return nullptr;
@@ -394,8 +393,10 @@ namespace codegen
         builder.CreateStore(initVal, alloca);
 
         auto ty = findType(type);
-        Variable var{alloca, ty, expr->name->value};
-        variables.insert({expr->name->value, var});
+        auto var = std::make_unique<Variable>(
+            std::make_unique<TypedValue>(ty, alloca), expr->name->value);
+        symbols.getTop().insert(
+            std::make_pair(expr->name->value, std::move(var)));
 
         return std::make_unique<TypedValue>(ty, initVal);
     }
@@ -424,9 +425,68 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     {
-        codegenWarning("Unimplemented CodegenVisitor::visit({})",
-                       node->nodeType.get());
-        return nullptr;
+        llvm::Function* func = builder.GetInsertBlock()->getParent();
+        const auto var = node->var.get();
+
+        auto type = findType(var->type->value);
+        if(!type)
+        {
+            return nullptr;
+        }
+        llvm::Type* llvmtype = type->type;
+
+        if(!type->isSized())
+        {
+            return codegenError(
+                "Function parameter cannot be of unsized type: {}", type->name);
+        }
+
+        if(findType(var->name->value, false))
+        {
+            return codegenError(
+                "Cannot name function parameter as '{}': Reserved typename",
+                var->name->value);
+        }
+
+        bool store = false;
+        llvm::Value* initVal = nullptr;
+        if(var->init->nodeType != ast::ASTNode::EMPTY_EXPR)
+        {
+            auto initExpr = var->init->accept(this);
+            if(!initExpr)
+            {
+                return nullptr;
+            }
+
+            auto typeName = initExpr->type->name;
+            auto cast = checkTypedValue(std::move(initExpr), *type);
+            if(!cast)
+            {
+                return codegenError(
+                    "Invalid init expression: Cannot assign {} to {}", typeName,
+                    type->name);
+            }
+            initVal = cast->value;
+        }
+
+        auto alloca = createEntryBlockAlloca(func, llvmtype, var->name->value);
+        if(store)
+        {
+            builder.CreateStore(initVal, alloca);
+        }
+
+        auto variable = std::make_unique<Variable>(
+            std::make_unique<TypedValue>(type, alloca), var->name->value);
+        symbols.getTop().insert(
+            std::make_pair(var->name->value, std::move(variable)));
+
+        return std::make_unique<TypedValue>(type, alloca);
+        /*auto alloca =
+            createEntryBlockAlloca(func, arg.getType(), arg.getName());
+        builder.CreateStore(&arg, alloca);
+        auto t = findType(arg.getType());
+        variables.insert(std::make_pair(
+            arg.getName(), Variable(t, alloca, arg.getName())));*/
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* stmt)
@@ -465,32 +525,79 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* stmt)
     {
-        auto name = stmt->proto->name->value;
-        functionProtos[stmt->proto->name->value] = stmt->proto.get();
-        auto func = findFunction(name);
-        if(!func)
+        // Check for function type
+        // If absent create one
+        const auto proto = stmt->proto.get();
+        const auto& name = proto->name->value;
+        auto returnType = findType(proto->returnType->value);
+        if(!returnType)
         {
-            codegenWarning("Invalid function");
             return nullptr;
         }
+        std::vector<Type*> paramTypes;
+        for(const auto& p : proto->params)
+        {
+            auto t = findType(p->var->type->value);
+            if(!t)
+            {
+                return nullptr;
+            }
+            paramTypes.push_back(t);
+        }
 
-        auto entry = llvm::BasicBlock::Create(context, "entry", func);
+        auto functionTypeBase = findType(
+            FunctionType::functionTypeToString(returnType, paramTypes), false);
+        if(!functionTypeBase)
+        {
+            auto ft = std::make_unique<FunctionType>(
+                context, dbuilder, returnType, paramTypes, proto);
+            functionTypeBase = ft.get();
+            types.insert(std::make_pair(ft->name, std::move(ft)));
+        }
+        auto functionType = static_cast<FunctionType*>(functionTypeBase);
+
+        // Check for declaration
+        // If absent declare
+        auto func = declareFunction(functionType, name);
+        if(!func)
+        {
+            return nullptr;
+        }
+        auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
+
+        auto entry = llvm::BasicBlock::Create(context, "entry", llvmfunc);
         builder.SetInsertPoint(entry);
 
-        variables.clear();
-        for(auto& arg : func->args())
+        symbols.addBlock();
+
+        std::unordered_map<std::string, std::unique_ptr<TypedValue>> args;
+        for(auto& arg : stmt->proto->params)
         {
-            auto alloca =
+            auto vardef = arg->accept(this);
+            if(!vardef)
+            {
+                return nullptr;
+            }
+            args.insert(
+                std::make_pair(arg->var->name->value, std::move(vardef)));
+            /*auto alloca =
                 createEntryBlockAlloca(func, arg.getType(), arg.getName());
             builder.CreateStore(&arg, alloca);
             auto t = findType(arg.getType());
-            variables.insert(
-                {arg.getName(), Variable{alloca, t, arg.getName()}});
+            variables.insert(std::make_pair(
+                arg.getName(), Variable(t, alloca, arg.getName())));*/
+        }
+        for(auto& arg : llvmfunc->args())
+        {
+            auto a = args.find(arg.getName());
+            assert(a != args.end());
+            auto alloca = a->second->value;
+            builder.CreateStore(&arg, alloca);
         }
 
         if(!stmt->body->accept(this))
         {
-            func->eraseFromParent();
+            llvmfunc->eraseFromParent();
             codegenWarning("Invalid function body");
             return nullptr;
         }
@@ -503,47 +610,79 @@ namespace codegen
             }
             return nodes.back()->nodeType;
         };
-        if(func->getReturnType()->isVoidTy() &&
+        if(llvmfunc->getReturnType()->isVoidTy() &&
            backNodeType() != ast::ASTNode::RETURN_STMT)
         {
             builder.CreateRetVoid();
         }
 
 #if USE_LLVM_FUNCTION_VERIFY
-        if(!llvm::verifyFunction(*func))
+        if(!llvm::verifyFunction(*llvmfunc))
         {
             codegenError("Function verification failed");
             util::logger->trace("Invalid function dump:");
-            func->dump();
-            func->eraseFromParent();
+            llvmfunc->dump();
+            llvmfunc->eraseFromParent();
             return nullptr;
         }
 #endif
 
-        return createVoidVal(func);
+        symbols.removeTopBlock();
+        return std::make_unique<TypedValue>(functionType, llvmfunc);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement* stmt)
     {
-        auto name = stmt->proto->name->value;
-        functionProtos[stmt->proto->name->value] = stmt->proto.get();
-        auto func = findFunction(name);
-        if(!func)
+        // Check for function type
+        // If absent create one
+        const auto proto = stmt->proto.get();
+        const auto& name = proto->name->value;
+        auto returnType = findType(proto->returnType->value);
+        if(!returnType)
         {
-            codegenWarning("Invalid function");
             return nullptr;
         }
+        std::vector<Type*> paramTypes;
+        for(const auto& p : proto->params)
+        {
+            auto t = findType(p->var->type->value);
+            if(!t)
+            {
+                return nullptr;
+            }
+            paramTypes.push_back(t);
+        }
+
+        auto functionTypeBase = findType(
+            FunctionType::functionTypeToString(returnType, paramTypes));
+        if(!functionTypeBase)
+        {
+            auto ft = std::make_unique<FunctionType>(
+                context, dbuilder, returnType, paramTypes, proto);
+            functionTypeBase = ft.get();
+            types.insert(std::make_pair(ft->name, std::move(ft)));
+        }
+        auto functionType = static_cast<FunctionType*>(functionTypeBase);
+
+        // Check for declaration
+        // If absent declare
+        auto func = declareFunction(functionType, name);
+        if(!func)
+        {
+            return nullptr;
+        }
+        auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
 #if USE_LLVM_FUNCTION_VERIFY
-        if(!llvm::verifyFunction(*func))
+        if(!llvm::verifyFunction(*llvmfunc))
         {
             codegenError("Function verification failed");
             util::logger->trace("Invalid function dump:");
-            func->dump();
-            func->eraseFromParent();
+            llvmfunc->dump();
+            llvmfunc->eraseFromParent();
             return nullptr;
         }
 #endif
-        return createVoidVal(func);
+        return std::make_unique<TypedValue>(functionType, llvmfunc);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTReturnStatement* stmt)
@@ -875,13 +1014,13 @@ namespace codegen
             return nullptr;
         }
 
-        auto varit = variables.find(lhs->value);
-        if(varit == variables.end())
+        auto varit = symbols.findSymbol(lhs->value);
+        if(!varit)
         {
             return codegenError("Undefined variable '{}'", lhs->value);
         }
 
-        llvm::Value* var = varit->second.value;
+        auto var = varit->value->value;
         if(!var)
         {
             return codegenError("Variable value is null");
@@ -897,12 +1036,7 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTBlockStatement* stmt)
     {
-        auto bb = llvm::BasicBlock::Create(context);
-
-        if(stmt->nodes.empty())
-        {
-            codegenWarning("Empty block statement");
-        }
+        symbols.addBlock();
 
         for(auto& child : stmt->nodes)
         {
@@ -910,11 +1044,16 @@ namespace codegen
             {
                 codegenWarning("Block child codegen failed: {}",
                                child->nodeType);
+
+                // Not necessary,
+                // execution will be stopped
+                // symbols.removeTopBlock();
                 return nullptr;
             }
         }
 
-        return createVoidVal(bb);
+        symbols.removeTopBlock();
+        return getTypedDummyValue();
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTWrappedExpressionStatement* stmt)

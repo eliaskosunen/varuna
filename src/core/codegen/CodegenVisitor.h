@@ -11,6 +11,7 @@
 #include "core/ast/Visitor.h"
 #include "core/codegen/CodegenInfo.h"
 #include "core/codegen/Type.h"
+#include "core/codegen/TypedValue.h"
 #include "util/Logger.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
@@ -20,28 +21,29 @@
 #include <llvm/IR/Verifier.h>
 #include <utility>
 
-#define USE_LLVM_FUNCTION_VERIFY 0
-#define USE_LLVM_MODULE_VERIFY 0
-
 namespace core
 {
 namespace codegen
 {
-    struct TypedValue
+    struct Variable
     {
-        TypedValue(Type* t, llvm::Value* v) : type(t), value(v)
+        Variable(std::unique_ptr<TypedValue> pValue, std::string pName)
+            : value(std::move(pValue)), name(std::move(pName))
+        {
+        }
+        Variable(Type* t, llvm::Value* v, std::string pName)
+            : value(std::make_unique<TypedValue>(t, v)), name(std::move(pName))
         {
         }
 
-        Type* type;
-        llvm::Value* value;
-    };
+        Type* getType() const
+        {
+            assert(value && "No value given for Variable");
+            return value->type;
+        }
 
-    struct Variable
-    {
-        llvm::Value* value;
-        Type* type;
-        const std::string& name;
+        std::unique_ptr<TypedValue> value;
+        const std::string name;
     };
 
     class CodegenVisitor final : public ast::Visitor
@@ -58,6 +60,56 @@ namespace codegen
         }
 
     private:
+        class SymbolTable
+        {
+        public:
+            SymbolTable() = default;
+
+            Variable* findSymbol(const std::string& name, Type::Kind type,
+                                 bool logError = true);
+            Variable* findSymbol(const std::string& name, Type* type = nullptr,
+                                 bool logError = true);
+            const Variable* findSymbol(const std::string& name, Type::Kind type,
+                                       bool logError = true) const;
+            const Variable* findSymbol(const std::string& name,
+                                       Type* type = nullptr,
+                                       bool logError = true) const;
+
+            bool isDefined(const std::string& name, Type::Kind kind) const;
+            bool isDefined(const std::string& name, Type* type = nullptr) const;
+
+            void addBlock();
+            void removeTopBlock();
+            void clear();
+
+            auto& getTop()
+            {
+                assert(!list.empty() &&
+                       "Cannot get the top of a empty symbol list");
+                return list.back();
+            }
+            const auto& getTop() const
+            {
+                assert(!list.empty() &&
+                       "Cannot get the top of a empty symbol list");
+                return list.back();
+            }
+
+            auto& getList()
+            {
+                return list;
+            }
+            const auto& getList() const
+            {
+                return list;
+            }
+
+        private:
+            std::vector<
+                std::unordered_map<std::string, std::unique_ptr<Variable>>>
+                list;
+        };
+
         void emitDebugLocation(ast::ASTNode* node);
 
         std::unique_ptr<TypedValue>
@@ -79,9 +131,10 @@ namespace codegen
 
         Type* findType(const std::string& name, bool logError = true) const;
         Type* findType(llvm::Type* type, bool logError = true) const;
-        llvm::Function* findFunction(const std::string& name);
+        Variable* findFunction(const std::string& name, bool logError = true);
         ast::ASTFunctionPrototypeStatement*
         getASTNodeFunction(ast::ASTNode* node) const;
+        Variable* declareFunction(FunctionType* type, const std::string& name);
 
         void stripInstructionsAfterTerminators();
 
@@ -100,10 +153,7 @@ namespace codegen
         llvm::DICompileUnit* dcu;
         std::vector<llvm::DIScope*> dBlocks;
 
-        std::unordered_map<std::string, Variable> variables;
-        std::unordered_map<std::string, Variable> globalVariables;
-        std::unordered_map<std::string, ast::ASTFunctionPrototypeStatement*>
-            functionProtos;
+        SymbolTable symbols;
         std::unordered_map<std::string, std::unique_ptr<Type>> types;
 
     public:
@@ -196,15 +246,43 @@ namespace codegen
         util::logger->warn(format.c_str(), args...);
     }
 
-    std::unique_ptr<TypedValue> inline CodegenVisitor::checkTypedValue(
-        std::unique_ptr<TypedValue> val, const Type& requiredType) const
+    inline std::unique_ptr<TypedValue>
+    CodegenVisitor::checkTypedValue(std::unique_ptr<TypedValue> val,
+                                    const Type& requiredType) const
     {
-        auto cast = val->type->cast(Type::IMPLICIT, requiredType);
+        /*auto cast = val->type->cast(Type::IMPLICIT, requiredType);
         if(std::get<0>(cast) || std::get<1>(cast))
         {
             return nullptr;
         }
-        return val;
+        return val;*/
+        return *val->type == requiredType ? std::move(val) : nullptr;
+    }
+
+    inline bool CodegenVisitor::SymbolTable::isDefined(const std::string& name,
+                                                       Type::Kind kind) const
+    {
+        return findSymbol(name, kind);
+    }
+    inline bool CodegenVisitor::SymbolTable::isDefined(const std::string& name,
+                                                       Type* type) const
+    {
+        return findSymbol(name, type);
+    }
+
+    inline void CodegenVisitor::SymbolTable::addBlock()
+    {
+        list.push_back({});
+    }
+    inline void CodegenVisitor::SymbolTable::removeTopBlock()
+    {
+        getTop().clear();
+        list.pop_back();
+    }
+
+    inline void CodegenVisitor::SymbolTable::clear()
+    {
+        list.clear();
     }
 } // namespace codegen
 } // namespace core
