@@ -231,7 +231,7 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableRefExpression* expr)
     {
-        auto var = symbols.findSymbol(expr->value);
+        auto var = symbols.find(expr->value);
         if(!var)
         {
             return codegenError("Undefined variable: '{}'", expr->value);
@@ -276,15 +276,25 @@ namespace codegen
             }
         }
 
-        // auto call = builder.CreateCall(calleeval->getFunctionType(), callee,
-        //                               args, "calltmp");
-        auto call = builder.CreateCall(calleeval, args, "calltmp");
-        auto type = findType(calleeval->getReturnType());
-        if(!call || !type)
+        auto type = static_cast<FunctionType*>(callee->getType());
+        auto call = [&]() {
+            if(type->returnType->kind == Type::VOID)
+            {
+                auto c = llvm::CallInst::Create(calleeval->getFunctionType(),
+                                                calleeval, args, "calltmp");
+                builder.Insert(c);
+                return c;
+            }
+            return builder.CreateCall(calleeval->getFunctionType(), calleeval,
+                                      args, "calltmp");
+        }();
+
+        auto llvmtype = findType(calleeval->getReturnType());
+        if(!call || !llvmtype)
         {
             return nullptr;
         }
-        return std::make_unique<TypedValue>(type, call);
+        return std::make_unique<TypedValue>(llvmtype, call);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCastExpression* node)
@@ -393,7 +403,7 @@ namespace codegen
         builder.CreateStore(initVal, alloca);
 
         auto ty = findType(type);
-        auto var = std::make_unique<Variable>(
+        auto var = std::make_unique<Symbol>(
             std::make_unique<TypedValue>(ty, alloca), expr->name->value);
         symbols.getTop().insert(
             std::make_pair(expr->name->value, std::move(var)));
@@ -475,18 +485,12 @@ namespace codegen
             builder.CreateStore(initVal, alloca);
         }
 
-        auto variable = std::make_unique<Variable>(
+        auto variable = std::make_unique<Symbol>(
             std::make_unique<TypedValue>(type, alloca), var->name->value);
         symbols.getTop().insert(
             std::make_pair(var->name->value, std::move(variable)));
 
         return std::make_unique<TypedValue>(type, alloca);
-        /*auto alloca =
-            createEntryBlockAlloca(func, arg.getType(), arg.getName());
-        builder.CreateStore(&arg, alloca);
-        auto t = findType(arg.getType());
-        variables.insert(std::make_pair(
-            arg.getName(), Variable(t, alloca, arg.getName())));*/
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* stmt)
@@ -528,7 +532,7 @@ namespace codegen
         // Check for function type
         // If absent create one
         const auto proto = stmt->proto.get();
-        const auto& name = proto->name->value;
+        const auto name = proto->name->value;
         auto returnType = findType(proto->returnType->value);
         if(!returnType)
         {
@@ -549,8 +553,8 @@ namespace codegen
             FunctionType::functionTypeToString(returnType, paramTypes), false);
         if(!functionTypeBase)
         {
-            auto ft = std::make_unique<FunctionType>(
-                context, dbuilder, returnType, paramTypes, proto);
+            auto ft = std::make_unique<FunctionType>(context, dbuilder,
+                                                     returnType, paramTypes);
             functionTypeBase = ft.get();
             types.insert(std::make_pair(ft->name, std::move(ft)));
         }
@@ -558,7 +562,7 @@ namespace codegen
 
         // Check for declaration
         // If absent declare
-        auto func = declareFunction(functionType, name);
+        auto func = declareFunction(functionType, name, proto);
         if(!func)
         {
             return nullptr;
@@ -570,29 +574,27 @@ namespace codegen
 
         symbols.addBlock();
 
-        std::unordered_map<std::string, std::unique_ptr<TypedValue>> args;
-        for(auto& arg : stmt->proto->params)
         {
-            auto vardef = arg->accept(this);
-            if(!vardef)
+            auto llvmargs = llvmfunc->args();
+            assert(stmt->proto->params.size() == llvmfunc->arg_size());
+            auto argit = stmt->proto->params.begin();
+            for(auto llvmargit = llvmargs.begin();
+                argit != stmt->proto->params.end() &&
+                llvmargit != llvmargs.end();
+                ++argit, ++llvmargit)
             {
-                return nullptr;
+                auto& arg = *argit;
+
+                auto vardef = arg->accept(this);
+                if(!vardef)
+                {
+                    return nullptr;
+                }
+
+                auto& llvmarg = *llvmargit;
+                auto alloca = vardef->value;
+                builder.CreateStore(&llvmarg, alloca);
             }
-            args.insert(
-                std::make_pair(arg->var->name->value, std::move(vardef)));
-            /*auto alloca =
-                createEntryBlockAlloca(func, arg.getType(), arg.getName());
-            builder.CreateStore(&arg, alloca);
-            auto t = findType(arg.getType());
-            variables.insert(std::make_pair(
-                arg.getName(), Variable(t, alloca, arg.getName())));*/
-        }
-        for(auto& arg : llvmfunc->args())
-        {
-            auto a = args.find(arg.getName());
-            assert(a != args.end());
-            auto alloca = a->second->value;
-            builder.CreateStore(&arg, alloca);
         }
 
         if(!stmt->body->accept(this))
@@ -636,7 +638,7 @@ namespace codegen
         // Check for function type
         // If absent create one
         const auto proto = stmt->proto.get();
-        const auto& name = proto->name->value;
+        const auto name = proto->name->value;
         auto returnType = findType(proto->returnType->value);
         if(!returnType)
         {
@@ -654,11 +656,11 @@ namespace codegen
         }
 
         auto functionTypeBase = findType(
-            FunctionType::functionTypeToString(returnType, paramTypes));
+            FunctionType::functionTypeToString(returnType, paramTypes), false);
         if(!functionTypeBase)
         {
-            auto ft = std::make_unique<FunctionType>(
-                context, dbuilder, returnType, paramTypes, proto);
+            auto ft = std::make_unique<FunctionType>(context, dbuilder,
+                                                     returnType, paramTypes);
             functionTypeBase = ft.get();
             types.insert(std::make_pair(ft->name, std::move(ft)));
         }
@@ -666,7 +668,7 @@ namespace codegen
 
         // Check for declaration
         // If absent declare
-        auto func = declareFunction(functionType, name);
+        auto func = declareFunction(functionType, name, proto);
         if(!func)
         {
             return nullptr;
@@ -1014,7 +1016,7 @@ namespace codegen
             return nullptr;
         }
 
-        auto varit = symbols.findSymbol(lhs->value);
+        auto varit = symbols.find(lhs->value);
         if(!varit)
         {
             return codegenError("Undefined variable '{}'", lhs->value);

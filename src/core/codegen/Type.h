@@ -5,6 +5,7 @@
 #pragma once
 
 #include "core/ast/ASTFunctionStatement.h"
+#include "core/lexer/Token.h"
 #include "util/Logger.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
@@ -61,13 +62,6 @@ namespace codegen
         const decltype(llvm::Instruction::BitCast) defaultCast =
             llvm::Instruction::BitCast;
 
-        /**
-         * tuple<bool, std::unique_ptr<TypedValue>>
-         * isError
-         * newValue
-         */
-        using OperatorTuple = std::tuple<bool, std::unique_ptr<TypedValue>>;
-
         Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
              std::string n)
             : context(c), type(t), dtype(d), name(std::move(n)), kind(k)
@@ -80,24 +74,43 @@ namespace codegen
         virtual ~Type() noexcept = default;
 
         template <typename... Args>
-        CastTuple typeError(const std::string& format, Args... args) const
+        CastTuple castError(const std::string& format, Args&&... args) const
         {
-            util::logger->error(format.c_str(), args...);
+            util::logger->error(format.c_str(), std::forward<Args>(args)...);
             return CastTuple{true, false, defaultCast};
         }
 
-        virtual CastTuple cast(CastType c, const Type& to) = 0;
+        virtual CastTuple cast(CastType c, const Type& to) const = 0;
 
-        virtual bool isSized()
+        bool isSameOrImplicitlyCastable(const Type& to) const
+        {
+            bool isError, castNeeded;
+            std::tie(isError, castNeeded, std::ignore) = cast(IMPLICIT, to);
+            if(isError || castNeeded)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        template <typename... Args>
+        std::nullptr_t operationError(const std::string& format,
+                                      Args&&... args) const
+        {
+            util::logger->error(format.c_str(), std::forward<Args>(args)...);
+            return nullptr;
+        }
+
+        virtual std::unique_ptr<TypedValue>
+        operation(OperatorType kind, core::lexer::TokenType op,
+                  std::vector<std::unique_ptr<TypedValue>> operands) const = 0;
+
+        virtual bool isSized() const
         {
             return true;
         }
-        virtual bool isCallable()
-        {
-            return false;
-        }
-        virtual bool isIntegral() = 0;
-        virtual bool isFloatingPoint() = 0;
+        virtual bool isIntegral() const = 0;
+        virtual bool isFloatingPoint() const = 0;
 
         bool operator==(const Type& t) const
         {
@@ -120,11 +133,15 @@ namespace codegen
     public:
         VoidType(llvm::LLVMContext& c, llvm::DIBuilder&);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isSized() override;
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isSized() const override;
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
     };
 
     class IntegralType : public Type
@@ -133,10 +150,14 @@ namespace codegen
         IntegralType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
                      llvm::DIType* d, const std::string& n);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
 
         uint32_t width;
     };
@@ -218,10 +239,14 @@ namespace codegen
     public:
         CharType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
     };
 
     class ByteType : public Type
@@ -229,10 +254,14 @@ namespace codegen
     public:
         ByteType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
     };
 
     class FPType : public Type
@@ -241,10 +270,14 @@ namespace codegen
         FPType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
                llvm::DIType* d, const std::string& n);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
 
         uint32_t width;
     };
@@ -290,18 +323,21 @@ namespace codegen
     public:
         StringType(llvm::LLVMContext& c, llvm::DIBuilder&);
 
-        CastTuple cast(CastType c, const Type& to) override;
+        CastTuple cast(CastType c, const Type& to) const override;
 
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
     };
 
-    class FunctionType : public Type
+    class CallableType : public Type
     {
     public:
-        FunctionType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-                     Type* pReturnType, std::vector<Type*> pParams,
-                     ast::ASTFunctionPrototypeStatement* pProto);
+        CallableType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
+                     Type* pReturnType, std::vector<Type*> pParams);
 
         static llvm::FunctionType*
         getLLVMFunctionType(Type* returnType, const std::vector<Type*>& params);
@@ -311,14 +347,24 @@ namespace codegen
         functionTypeToString(Type* returnType,
                              const std::vector<Type*>& params);
 
-        CastTuple cast(CastType c, const Type& to) override;
-
-        bool isIntegral() override;
-        bool isFloatingPoint() override;
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
 
         Type* returnType;
         std::vector<Type*> params;
-        ast::ASTFunctionPrototypeStatement* proto;
+    };
+
+    class FunctionType : public CallableType
+    {
+    public:
+        FunctionType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
+                     Type* pReturnType, std::vector<Type*> pParams);
+
+        CastTuple cast(CastType c, const Type& to) const override;
+
+        std::unique_ptr<TypedValue> operation(
+            OperatorType kind, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
     };
 } // namespace codegen
 } // namespace core

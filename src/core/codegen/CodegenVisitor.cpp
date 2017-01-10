@@ -93,10 +93,18 @@ namespace codegen
         module->setSourceFileName(ast->file);
 
         auto root = ast->globalNode.get();
-        if(!root->accept(this))
+        symbols.addBlock();
+        for(auto& child : root->nodes)
         {
-            return false;
+            if(!child->accept(this))
+            {
+                codegenWarning("Block child codegen failed: {}",
+                               child->nodeType);
+                return false;
+            }
         }
+        symbols.dump();
+        symbols.removeTopBlock();
 
         stripInstructionsAfterTerminators();
 
@@ -145,23 +153,14 @@ namespace codegen
         }
     }
 
-    Variable* CodegenVisitor::findFunction(const std::string& name,
-                                           bool logError)
+    FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
+                                                 bool logError)
     {
-        auto func = symbols.findSymbol(name, Type::FUNCTION, logError);
-        if(func)
+        auto f = symbols.find(name, Type::FUNCTION, logError);
+        if(f)
         {
-            if(func->value->value)
-            {
-                return func;
-            }
-            auto type = static_cast<FunctionType*>(func->getType());
-            auto accept = type->proto->accept(this);
-            if(!accept)
-            {
-                return nullptr;
-            }
-            func->value->value = module->getFunction(name);
+            auto func = static_cast<FunctionSymbol*>(f);
+            assert(func->value->value);
             return func;
         }
 
@@ -172,8 +171,9 @@ namespace codegen
         return nullptr;
     }
 
-    Variable* CodegenVisitor::declareFunction(FunctionType* type,
-                                              const std::string& name)
+    FunctionSymbol*
+    CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
+                                    ast::ASTFunctionPrototypeStatement* proto)
     {
         // Check if function with the same name is already declared
         auto func = findFunction(name, false);
@@ -194,14 +194,15 @@ namespace codegen
         }
 
         // Codegen prototype
-        auto accept = type->proto->accept(this);
+        auto accept = proto->accept(this);
         if(!accept)
         {
             return nullptr;
         }
 
         // Add symbol to current scope
-        auto var = std::make_unique<Variable>(type, accept->value, name);
+        auto var =
+            std::make_unique<FunctionSymbol>(type, accept->value, name, proto);
         auto varptr = var.get();
         symbols.getTop().insert(std::make_pair(name, std::move(var)));
         return varptr;
@@ -248,140 +249,6 @@ namespace codegen
         llvm::Constant* strVal = llvm::ConstantExpr::getGetElementPtr(
             strConst->getType(), gvStr, {});
         return strVal;
-    }
-
-    Variable* CodegenVisitor::SymbolTable::findSymbol(const std::string& name,
-                                                      Type::Kind type,
-                                                      bool logError)
-    {
-        Variable* var = nullptr;
-        std::all_of(list.rbegin(), list.rend(), [&](auto& block) {
-            auto it = block.find(name);
-            if(it != block.end())
-            {
-                if(type != it->second->value->type->kind)
-                {
-                    return true; // continue
-                }
-                var = it->second.get();
-                return false; // break
-            }
-            return true; // continue
-        });
-        if(!var)
-        {
-            if(logError)
-            {
-                util::logger->error("Symbol '{}' with the kind of {} not found",
-                                    name, type);
-            }
-        }
-        return var;
-    }
-
-    Variable* CodegenVisitor::SymbolTable::findSymbol(const std::string& name,
-                                                      Type* type, bool logError)
-    {
-        Variable* var = nullptr;
-        std::all_of(list.rbegin(), list.rend(), [&](auto& block) {
-            auto it = block.find(name);
-            if(it != block.end())
-            {
-                if(type)
-                {
-                    if(type != it->second->getType())
-                    {
-                        return true; // continue
-                    }
-                }
-                var = it->second.get();
-                return false; // break
-            }
-            return true; // continue
-        });
-        if(!var)
-        {
-            if(logError)
-            {
-                if(type)
-                {
-                    util::logger->error("Symbol '{}' with type '{}' not found",
-                                        name, type->name);
-                }
-                else
-                {
-                    util::logger->error("Symbol '{}' not found", name);
-                }
-            }
-        }
-        return var;
-    }
-
-    const Variable* CodegenVisitor::SymbolTable::findSymbol(
-        const std::string& name, Type::Kind type, bool logError) const
-    {
-        const Variable* var = nullptr;
-        std::all_of(list.rbegin(), list.rend(), [&](auto& block) {
-            auto it = block.find(name);
-            if(it != block.end())
-            {
-                if(type != it->second->value->type->kind)
-                {
-                    return true; // continue
-                }
-                var = it->second.get();
-                return false; // break
-            }
-            return true; // continue
-        });
-        if(!var)
-        {
-            if(logError)
-            {
-                util::logger->error("Symbol '{}' with the kind of {} not found",
-                                    name, type);
-            }
-        }
-        return var;
-    }
-
-    const Variable*
-    CodegenVisitor::SymbolTable::findSymbol(const std::string& name, Type* type,
-                                            bool logError) const
-    {
-        const Variable* var = nullptr;
-        std::all_of(list.rbegin(), list.rend(), [&](auto& block) {
-            auto it = block.find(name);
-            if(it != block.end())
-            {
-                if(type)
-                {
-                    if(type != it->second->getType())
-                    {
-                        return true; // continue
-                    }
-                }
-                var = it->second.get();
-                return false; // break
-            }
-            return true; // continue
-        });
-        if(!var)
-        {
-            if(logError)
-            {
-                if(type)
-                {
-                    util::logger->error("Symbol '{}' with type '{}' not found",
-                                        name, type->name);
-                }
-                else
-                {
-                    util::logger->error("Symbol '{}' not found", name);
-                }
-            }
-        }
-        return var;
     }
 } // namespace codegen
 } // namespace core

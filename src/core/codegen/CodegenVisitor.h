@@ -10,6 +10,8 @@
 #include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
 #include "core/codegen/CodegenInfo.h"
+#include "core/codegen/Symbol.h"
+#include "core/codegen/SymbolTable.h"
 #include "core/codegen/Type.h"
 #include "core/codegen/TypedValue.h"
 #include "util/Logger.h"
@@ -25,7 +27,7 @@ namespace core
 {
 namespace codegen
 {
-    struct Variable
+    /*struct Variable
     {
         Variable(std::unique_ptr<TypedValue> pValue, std::string pName)
             : value(std::move(pValue)), name(std::move(pName))
@@ -44,7 +46,7 @@ namespace codegen
 
         std::unique_ptr<TypedValue> value;
         const std::string name;
-    };
+    };*/
 
     class CodegenVisitor final : public ast::Visitor
     {
@@ -60,56 +62,6 @@ namespace codegen
         }
 
     private:
-        class SymbolTable
-        {
-        public:
-            SymbolTable() = default;
-
-            Variable* findSymbol(const std::string& name, Type::Kind type,
-                                 bool logError = true);
-            Variable* findSymbol(const std::string& name, Type* type = nullptr,
-                                 bool logError = true);
-            const Variable* findSymbol(const std::string& name, Type::Kind type,
-                                       bool logError = true) const;
-            const Variable* findSymbol(const std::string& name,
-                                       Type* type = nullptr,
-                                       bool logError = true) const;
-
-            bool isDefined(const std::string& name, Type::Kind kind) const;
-            bool isDefined(const std::string& name, Type* type = nullptr) const;
-
-            void addBlock();
-            void removeTopBlock();
-            void clear();
-
-            auto& getTop()
-            {
-                assert(!list.empty() &&
-                       "Cannot get the top of a empty symbol list");
-                return list.back();
-            }
-            const auto& getTop() const
-            {
-                assert(!list.empty() &&
-                       "Cannot get the top of a empty symbol list");
-                return list.back();
-            }
-
-            auto& getList()
-            {
-                return list;
-            }
-            const auto& getList() const
-            {
-                return list;
-            }
-
-        private:
-            std::vector<
-                std::unordered_map<std::string, std::unique_ptr<Variable>>>
-                list;
-        };
-
         void emitDebugLocation(ast::ASTNode* node);
 
         std::unique_ptr<TypedValue>
@@ -131,10 +83,13 @@ namespace codegen
 
         Type* findType(const std::string& name, bool logError = true) const;
         Type* findType(llvm::Type* type, bool logError = true) const;
-        Variable* findFunction(const std::string& name, bool logError = true);
+        FunctionSymbol* findFunction(const std::string& name,
+                                     bool logError = true);
         ast::ASTFunctionPrototypeStatement*
         getASTNodeFunction(ast::ASTNode* node) const;
-        Variable* declareFunction(FunctionType* type, const std::string& name);
+        FunctionSymbol*
+        declareFunction(FunctionType* type, const std::string& name,
+                        ast::ASTFunctionPrototypeStatement* proto);
 
         void stripInstructionsAfterTerminators();
 
@@ -257,32 +212,6 @@ namespace codegen
         }
         return val;*/
         return *val->type == requiredType ? std::move(val) : nullptr;
-    }
-
-    inline bool CodegenVisitor::SymbolTable::isDefined(const std::string& name,
-                                                       Type::Kind kind) const
-    {
-        return findSymbol(name, kind);
-    }
-    inline bool CodegenVisitor::SymbolTable::isDefined(const std::string& name,
-                                                       Type* type) const
-    {
-        return findSymbol(name, type);
-    }
-
-    inline void CodegenVisitor::SymbolTable::addBlock()
-    {
-        list.push_back({});
-    }
-    inline void CodegenVisitor::SymbolTable::removeTopBlock()
-    {
-        getTop().clear();
-        list.pop_back();
-    }
-
-    inline void CodegenVisitor::SymbolTable::clear()
-    {
-        list.clear();
     }
 } // namespace codegen
 } // namespace core
