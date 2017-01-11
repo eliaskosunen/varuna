@@ -1,12 +1,10 @@
 // code.va
 module main;
 
-def f(int p1, int p2): int
-{
-	return p1 - p2;
-}
 
 def main(): int
 {
-	return f(1, 1);
+	var i = 1;
+	i = 2;
+	return i - 2;
 }

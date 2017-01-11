@@ -247,8 +247,6 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCallExpression* expr)
     {
-        // auto calleeExpr = expr->callee->accept(this);
-        // auto calleeName = calleeExpr->getName().str();
         auto calleeName =
             dynamic_cast<ast::ASTIdentifierExpression*>(expr->callee.get())
                 ->value;
@@ -267,9 +265,32 @@ namespace codegen
         }
 
         std::vector<llvm::Value*> args;
-        for(auto& arg : expr->params)
+        for(size_t i = 0; i < expr->params.size(); ++i)
         {
-            args.push_back(arg->accept(this)->value);
+            auto arg = expr->params[0].get();
+
+            auto a = arg->accept(this);
+            if(!a)
+            {
+                return nullptr;
+            }
+
+            {
+                auto p = callee->proto->params[i].get();
+                assert(p);
+                auto t = findType(p->var->type->value);
+                assert(t);
+                if(!a->type->isSameOrImplicitlyCastable(*t))
+                {
+                    return codegenError("Invalid function call: Cannot convert "
+                                        "parameter {} from {} to {} when "
+                                        "calling {}",
+                                        i + 1, a->type->name, t->name,
+                                        calleeName);
+                }
+            }
+
+            args.push_back(a->value);
             if(!args.back())
             {
                 return nullptr;
@@ -330,6 +351,80 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* expr)
     {
+        // Initializer
+        std::unique_ptr<TypedValue> init = nullptr;
+        if(expr->init->nodeType != ast::ASTNode::EMPTY_EXPR)
+        {
+            init = expr->init->accept(this);
+            if(!init)
+            {
+                return nullptr;
+            }
+        }
+
+        // Deduce type
+        Type* type = nullptr;
+        if(expr->typeDeduced)
+        {
+            type = findType(expr->type->value);
+            if(!type)
+            {
+                return nullptr;
+            }
+        }
+        else
+        {
+            type = init->type;
+        }
+
+        // Type checks
+        if(!type->isSized())
+        {
+            return codegenError("Cannot create a variable of unsized type: {}",
+                                type->name);
+        }
+        if(findType(expr->name->value, false))
+        {
+            return codegenError(
+                "Cannot name variable as '{}': Reserved typename",
+                expr->name->value);
+        }
+
+        // No initializer:
+        // Init as undefined
+        if(!init)
+        {
+            codegenWarning("Uninitialized variable: {}", expr->name->value);
+            init = std::make_unique<TypedValue>(
+                type, llvm::UndefValue::get(type->type));
+            if(!init)
+            {
+                return nullptr;
+            }
+        }
+
+        // Check init type
+        if(!type->isSameOrImplicitlyCastable(*init->type))
+        {
+            return codegenError(
+                "Invalid init expression: Cannot assign {} to {}",
+                init->type->name, type->name);
+        }
+
+        // Codegen
+        llvm::Function* func = builder.GetInsertBlock()->getParent();
+        auto alloca =
+            createEntryBlockAlloca(func, type->type, expr->name->value);
+        builder.CreateStore(init->value, alloca);
+
+        auto var = std::make_unique<Symbol>(
+            std::make_unique<TypedValue>(type, alloca), expr->name->value);
+        symbols.getTop().insert(
+            std::make_pair(expr->name->value, std::move(var)));
+
+        return std::make_unique<TypedValue>(type, init->value);
+
+#if 0
         llvm::Function* func = builder.GetInsertBlock()->getParent();
 
         auto t = findType(expr->type->value);
@@ -409,6 +504,7 @@ namespace codegen
             std::make_pair(expr->name->value, std::move(var)));
 
         return std::make_unique<TypedValue>(ty, initVal);
+#endif
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTSubscriptExpression* node)
@@ -694,21 +790,22 @@ namespace codegen
             builder.CreateRetVoid();
             return getTypedDummyValue();
         }
+
         auto ret = stmt->returnValue->accept(this);
         if(!ret)
         {
             return nullptr;
         }
+
         auto f = getASTNodeFunction(stmt);
-        auto checked =
-            checkTypedValue(std::move(ret), *findType(f->returnType->value));
-        if(!checked)
+        if(!ret->type->isSameOrImplicitlyCastable(
+               *findType(f->returnType->value)))
         {
             return nullptr;
         }
 
-        builder.CreateRet(checked->value);
-        return checked;
+        builder.CreateRet(ret->value);
+        return ret;
     }
 
     std::unique_ptr<TypedValue>

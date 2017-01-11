@@ -254,11 +254,11 @@ namespace parser
             -> std::tuple<std::unique_ptr<ASTExpression>,
                           std::unique_ptr<ASTExpression>,
                           std::unique_ptr<ASTExpression>> {
-                return std::make_tuple<std::unique_ptr<ASTExpression>,
-                                       std::unique_ptr<ASTExpression>,
-                                       std::unique_ptr<ASTExpression>>(
-                    std::move(i), std::move(e), std::move(s));
-            };
+            return std::make_tuple<std::unique_ptr<ASTExpression>,
+                                   std::unique_ptr<ASTExpression>,
+                                   std::unique_ptr<ASTExpression>>(
+                std::move(i), std::move(e), std::move(s));
+        };
         auto errorToTuple = [&](std::nullptr_t e) -> auto
         {
             return makeTuple(e, e, e);
@@ -461,7 +461,9 @@ namespace parser
             return nullptr;
         }
 
-        // Determine the type of the variable
+        auto name_ = std::make_unique<ASTIdentifierExpression>(name);
+
+        // Type will be inferred by the code generator
         if(!typeDetermined)
         {
             if(!init)
@@ -469,12 +471,11 @@ namespace parser
                 return parserError("Invalid variable definition: init "
                                    "expression is required when using 'var'");
             }
-            // TODO(elias): Determine type of var
-            return parserError("Unimplemented");
+            return std::make_unique<ASTVariableDefinitionExpression>(
+                std::move(name_), std::move(init));
         }
 
         auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
-        auto name_ = std::make_unique<ASTIdentifierExpression>(name);
         return std::make_unique<ASTVariableDefinitionExpression>(
             std::move(typename_), std::move(name_), std::move(init), arraySize);
     }

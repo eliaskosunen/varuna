@@ -228,8 +228,7 @@ namespace codegen
         stlogger->trace("SymbolTable");
         for(size_t i = 0; i < list.size(); ++i)
         {
-            const std::string prefix = [i]()
-            {
+            const std::string prefix = [i]() {
                 using namespace std::string_literals;
 
                 if(i == 0)

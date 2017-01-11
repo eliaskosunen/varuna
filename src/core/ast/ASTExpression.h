@@ -144,7 +144,17 @@ namespace ast
             std::unique_ptr<ASTIdentifierExpression> pName,
             std::unique_ptr<ASTExpression> pInit, uint32_t arrSize = 0)
             : ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(pType)),
-              name(std::move(pName)), init(std::move(pInit)), arraySize(arrSize)
+              name(std::move(pName)), init(std::move(pInit)),
+              arraySize(arrSize), typeDeduced{true}
+        {
+        }
+        ASTVariableDefinitionExpression(
+            std::unique_ptr<ASTIdentifierExpression> pName,
+            std::unique_ptr<ASTExpression> pInit)
+            : ASTExpression(VARIABLE_DEFINITION_EXPR),
+              type(std::make_unique<ASTIdentifierExpression>("")),
+              name(std::move(pName)), init(std::move(pInit)), arraySize(0),
+              typeDeduced{false}
         {
         }
 
@@ -157,6 +167,7 @@ namespace ast
         std::unique_ptr<ASTIdentifierExpression> type, name;
         std::unique_ptr<ASTExpression> init;
         uint32_t arraySize;
+        bool typeDeduced;
     };
 
     class ASTSubscriptExpression : public ASTExpression
