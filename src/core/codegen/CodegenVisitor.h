@@ -13,6 +13,7 @@
 #include "core/codegen/Symbol.h"
 #include "core/codegen/SymbolTable.h"
 #include "core/codegen/Type.h"
+#include "core/codegen/TypeTable.h"
 #include "core/codegen/TypedValue.h"
 #include "util/Logger.h"
 #include <llvm/IR/DIBuilder.h>
@@ -27,27 +28,6 @@ namespace core
 {
 namespace codegen
 {
-    /*struct Variable
-    {
-        Variable(std::unique_ptr<TypedValue> pValue, std::string pName)
-            : value(std::move(pValue)), name(std::move(pName))
-        {
-        }
-        Variable(Type* t, llvm::Value* v, std::string pName)
-            : value(std::make_unique<TypedValue>(t, v)), name(std::move(pName))
-        {
-        }
-
-        Type* getType() const
-        {
-            assert(value && "No value given for Variable");
-            return value->type;
-        }
-
-        std::unique_ptr<TypedValue> value;
-        const std::string name;
-    };*/
-
     class CodegenVisitor final : public ast::Visitor
     {
     public:
@@ -64,16 +44,13 @@ namespace codegen
     private:
         void emitDebugLocation(ast::ASTNode* node);
 
-        std::unique_ptr<TypedValue>
-        createVoidVal(llvm::Value* v = nullptr) const;
-        llvm::Value* getDummyValue() const;
-        std::unique_ptr<TypedValue> getTypedDummyValue() const;
+        std::unique_ptr<TypedValue> createVoidVal(llvm::Value* v = nullptr);
+        llvm::Value* getDummyValue();
+        std::unique_ptr<TypedValue> getTypedDummyValue();
 
         std::unique_ptr<TypedValue>
         checkTypedValue(std::unique_ptr<TypedValue> val,
                         const Type& requiredType) const;
-        std::array<std::unique_ptr<Type>, 13> _buildTypeArray();
-        std::unordered_map<std::string, std::unique_ptr<Type>> _createTypeMap();
 
         template <typename... Args>
         std::nullptr_t codegenError(const std::string& format,
@@ -81,8 +58,6 @@ namespace codegen
         template <typename... Args>
         void codegenWarning(const std::string& format, Args... args) const;
 
-        Type* findType(const std::string& name, bool logError = true) const;
-        Type* findType(llvm::Type* type, bool logError = true) const;
         FunctionSymbol* findFunction(const std::string& name,
                                      bool logError = true);
         ast::ASTFunctionPrototypeStatement*
@@ -109,7 +84,7 @@ namespace codegen
         std::vector<llvm::DIScope*> dBlocks;
 
         SymbolTable symbols;
-        std::unordered_map<std::string, std::unique_ptr<Type>> types;
+        TypeTable types;
 
     public:
         std::unique_ptr<TypedValue> visit(ast::ASTNode* node) = delete;
@@ -126,7 +101,6 @@ namespace codegen
         std::unique_ptr<TypedValue> visit(ast::ASTEmptyExpression* node);
         std::unique_ptr<TypedValue> visit(ast::ASTIdentifierExpression* node);
         std::unique_ptr<TypedValue> visit(ast::ASTVariableRefExpression* expr);
-        std::unique_ptr<TypedValue> visit(ast::ASTCallExpression* expr);
         std::unique_ptr<TypedValue> visit(ast::ASTCastExpression* node);
         std::unique_ptr<TypedValue>
         visit(ast::ASTVariableDefinitionExpression* expr);
@@ -140,8 +114,6 @@ namespace codegen
         visit(ast::ASTFunctionPrototypeStatement* stmt);
         std::unique_ptr<TypedValue>
         visit(ast::ASTFunctionDefinitionStatement* stmt);
-        std::unique_ptr<TypedValue>
-        visit(ast::ASTFunctionDeclarationStatement* stmt);
         std::unique_ptr<TypedValue> visit(ast::ASTReturnStatement* stmt);
 
         std::unique_ptr<TypedValue>
@@ -159,6 +131,8 @@ namespace codegen
         visit(ast::ASTUnaryOperationExpression* expr);
         std::unique_ptr<TypedValue>
         visit(ast::ASTAssignmentOperationExpression* node);
+        std::unique_ptr<TypedValue>
+        visit(ast::ASTArbitraryOperationExpression* node);
 
         std::unique_ptr<TypedValue> visit(ast::ASTEmptyStatement* node);
         std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* stmt);
@@ -167,23 +141,23 @@ namespace codegen
     };
 
     inline std::unique_ptr<TypedValue>
-    CodegenVisitor::createVoidVal(llvm::Value* v) const
+    CodegenVisitor::createVoidVal(llvm::Value* v)
     {
-        return std::make_unique<TypedValue>(findType("void"), v);
+        static auto t = types.findDecorated("void");
+        return std::make_unique<TypedValue>(t, v);
     }
 
-    inline llvm::Value* CodegenVisitor::getDummyValue() const
+    inline llvm::Value* CodegenVisitor::getDummyValue()
     {
-        static llvm::Value* ret =
-            llvm::Constant::getNullValue(findType("int32")->type);
-        return ret;
+        return getTypedDummyValue()->value;
     }
 
-    inline std::unique_ptr<TypedValue>
-    CodegenVisitor::getTypedDummyValue() const
+    inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
     {
-        auto v = getDummyValue();
-        return std::make_unique<TypedValue>(findType("int32"), v);
+        static auto t = types.findDecorated("int32");
+        static auto v = llvm::Constant::getNullValue(t->type);
+        static auto ret = std::make_unique<TypedValue>(t, v);
+        return std::move(ret);
     }
 
     template <typename... Args>

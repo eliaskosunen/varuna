@@ -6,16 +6,12 @@
 #include "core/codegen/Codegen.h"
 #include "core/lexer/Lexer.h"
 #include "core/parser/Parser.h"
+#include "util/ProgramOptions.h"
 
 namespace fe
 {
 namespace api
 {
-    void Application::setLoggingLevel(fe::api::Application::LoggingLevel l)
-    {
-        spdlog::set_level(static_cast<spdlog::level::level_enum>(l));
-    }
-
     bool Application::addFile(const std::string& file)
     {
         if(!fileCache->addFile(file))
@@ -68,7 +64,9 @@ namespace api
                 ast->globalNode.get());
 
             util::logger->debug("Starting code generation");
-            core::codegen::CodegenInfo cinfo{ast->file, 3, 0};
+            const auto& opt = util::getProgramOptions().getOptLevel();
+            core::codegen::CodegenInfo cinfo{ast->file, std::get<0>(opt),
+                                             std::get<1>(opt)};
             core::codegen::Codegen codegen(std::move(ast), cinfo);
             if(!codegen.run())
             {
@@ -108,8 +106,9 @@ namespace api
         return runFiles(fileCache->getFileList());
     }
 
-    bool Application::execute(std::vector<std::string> files)
+    bool Application::execute()
     {
+        const auto& files = util::getProgramOptions().inputFilenames;
         for(const auto& file : files)
         {
             if(!addFile(file))

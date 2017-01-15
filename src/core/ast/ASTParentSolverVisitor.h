@@ -43,7 +43,6 @@ namespace ast
         void visit(ASTEmptyExpression* node, ASTNode* parent);
         void visit(ASTIdentifierExpression* node, ASTNode* parent);
         void visit(ASTVariableRefExpression* node, ASTNode* parent);
-        void visit(ASTCallExpression* node, ASTNode* parent);
         void visit(ASTCastExpression* node, ASTNode* parent);
         void visit(ASTVariableDefinitionExpression* node, ASTNode* parent);
         void visit(ASTSubscriptExpression* node, ASTNode* parent);
@@ -53,7 +52,6 @@ namespace ast
         void visit(ASTFunctionParameter* node, ASTNode* parent);
         void visit(ASTFunctionPrototypeStatement* node, ASTNode* parent);
         void visit(ASTFunctionDefinitionStatement* node, ASTNode* parent);
-        void visit(ASTFunctionDeclarationStatement* node, ASTNode* parent);
         void visit(ASTReturnStatement* node, ASTNode* parent);
 
         void visit(ASTIntegerLiteralExpression* node, ASTNode* parent);
@@ -66,6 +64,7 @@ namespace ast
         void visit(ASTBinaryOperationExpression* node, ASTNode* parent);
         void visit(ASTUnaryOperationExpression* node, ASTNode* parent);
         void visit(ASTAssignmentOperationExpression* node, ASTNode* parent);
+        void visit(ASTArbitraryOperationExpression* node, ASTNode* parent);
 
         void visit(ASTEmptyStatement* node, ASTNode* parent);
         void visit(ASTBlockStatement* node, ASTNode* parent);

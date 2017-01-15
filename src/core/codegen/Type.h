@@ -16,6 +16,9 @@ namespace core
 namespace codegen
 {
     struct TypedValue;
+    class TypeOperationBase;
+    class Type;
+    class TypeTable;
 
     class Type
     {
@@ -43,14 +46,6 @@ namespace codegen
             CAST,
             BITCAST
         };
-        enum OperatorType
-        {
-            ARBITRARY = 0,
-            UNARY,  // = 1
-            BINARY, // = 2
-            TERNARY // = 3
-            // It matches :D
-        };
 
         /*
         tuple<bool, bool, CastOps>
@@ -62,16 +57,14 @@ namespace codegen
         const decltype(llvm::Instruction::BitCast) defaultCast =
             llvm::Instruction::BitCast;
 
-        Type(Kind k, llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
-             std::string n)
-            : context(c), type(t), dtype(d), name(std::move(n)), kind(k)
-        {
-        }
+        Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
+             llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
+             std::string n, bool mut = false);
         Type(const Type& t) = default;
         Type& operator=(const Type& t) = default;
         Type(Type&&) noexcept = default;
         Type& operator=(Type&&) noexcept = default;
-        virtual ~Type() noexcept = default;
+        virtual ~Type() noexcept;
 
         template <typename... Args>
         CastTuple castError(const std::string& format, Args&&... args) const
@@ -84,6 +77,11 @@ namespace codegen
 
         bool isSameOrImplicitlyCastable(const Type& to) const
         {
+            if(*this == to)
+            {
+                return true;
+            }
+
             bool isError, castNeeded;
             std::tie(isError, castNeeded, std::ignore) = cast(IMPLICIT, to);
             if(isError || castNeeded)
@@ -92,18 +90,6 @@ namespace codegen
             }
             return true;
         }
-
-        template <typename... Args>
-        std::nullptr_t operationError(const std::string& format,
-                                      Args&&... args) const
-        {
-            util::logger->error(format.c_str(), std::forward<Args>(args)...);
-            return nullptr;
-        }
-
-        virtual std::unique_ptr<TypedValue>
-        operation(OperatorType kind, core::lexer::TokenType op,
-                  std::vector<std::unique_ptr<TypedValue>> operands) const = 0;
 
         virtual bool isSized() const
         {
@@ -114,30 +100,52 @@ namespace codegen
 
         bool operator==(const Type& t) const
         {
-            return kind == t.kind && name == t.name;
+            return kind == t.kind && getDecoratedName() == t.getDecoratedName();
         }
         bool operator!=(const Type& t) const
         {
             return !(*this == t);
         }
 
+        TypeTable* typeTable;
         llvm::LLVMContext& context;
         llvm::Type* type;
         llvm::DIType* dtype;
-        std::string name;
         Kind kind;
+        bool isMutable{false};
+
+        const std::string& getName() const
+        {
+            return name;
+        }
+        const std::string& getDecoratedName() const
+        {
+            if(isMutable)
+            {
+                static std::string n = fmt::format("{} mut", name);
+                return n;
+            }
+            return name;
+        }
+
+        TypeOperationBase* getOperations() const;
+
+    protected:
+        CastTuple implicitCast(const Type& to) const;
+
+    private:
+        std::string name;
+
+        std::unique_ptr<TypeOperationBase> operations;
     };
 
     class VoidType : public Type
     {
     public:
-        VoidType(llvm::LLVMContext& c, llvm::DIBuilder&);
+        VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
+                 bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isSized() const override;
         bool isIntegral() const override;
@@ -147,14 +155,11 @@ namespace codegen
     class IntegralType : public Type
     {
     public:
-        IntegralType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
-                     llvm::DIType* d, const std::string& n);
+        IntegralType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+                     llvm::Type* t, llvm::DIType* d, const std::string& n,
+                     bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -165,85 +170,52 @@ namespace codegen
     class IntType : public IntegralType
     {
     public:
-        IntType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(32, INT, c, llvm::Type::getInt32Ty(c),
-                           dbuilder.createBasicType("int", 32, 32,
-                                                    llvm::dwarf::DW_ATE_signed),
-                           "int")
-        {
-        }
+        IntType(TypeTable* list, llvm::LLVMContext& c,
+                llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class Int8Type : public IntegralType
     {
     public:
-        Int8Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(8, INT8, c, llvm::Type::getInt8Ty(c),
-                           dbuilder.createBasicType("int8", 8, 8,
-                                                    llvm::dwarf::DW_ATE_signed),
-                           "int8")
-        {
-        }
+        Int8Type(TypeTable* list, llvm::LLVMContext& c,
+                 llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class Int16Type : public IntegralType
     {
     public:
-        Int16Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(16, INT16, c, llvm::Type::getInt16Ty(c),
-                           dbuilder.createBasicType("int16", 16, 16,
-                                                    llvm::dwarf::DW_ATE_signed),
-                           "int16")
-        {
-        }
+        Int16Type(TypeTable* list, llvm::LLVMContext& c,
+                  llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class Int32Type : public IntegralType
     {
     public:
-        Int32Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(32, INT32, c, llvm::Type::getInt32Ty(c),
-                           dbuilder.createBasicType("int32", 32, 32,
-                                                    llvm::dwarf::DW_ATE_signed),
-                           "int32")
-        {
-        }
+        Int32Type(TypeTable* list, llvm::LLVMContext& c,
+                  llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class Int64Type : public IntegralType
     {
     public:
-        Int64Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(64, INT64, c, llvm::Type::getInt64Ty(c),
-                           dbuilder.createBasicType("int64", 64, 64,
-                                                    llvm::dwarf::DW_ATE_signed),
-                           "int64")
-        {
-        }
+        Int64Type(TypeTable* list, llvm::LLVMContext& c,
+                  llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class BoolType : public IntegralType
     {
     public:
-        BoolType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : IntegralType(1, BOOL, c, llvm::Type::getInt1Ty(c),
-                           dbuilder.createBasicType(
-                               "bool", 1, 1, llvm::dwarf::DW_ATE_boolean),
-                           "bool")
-        {
-        }
+        BoolType(TypeTable* list, llvm::LLVMContext& c,
+                 llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class CharType : public Type
     {
     public:
-        CharType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+        CharType(TypeTable* list, llvm::LLVMContext& c,
+                 llvm::DIBuilder& dbuilder, bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -252,13 +224,10 @@ namespace codegen
     class ByteType : public Type
     {
     public:
-        ByteType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+        ByteType(TypeTable* list, llvm::LLVMContext& c,
+                 llvm::DIBuilder& dbuilder, bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -267,14 +236,11 @@ namespace codegen
     class FPType : public Type
     {
     public:
-        FPType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
-               llvm::DIType* d, const std::string& n);
+        FPType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+               llvm::Type* t, llvm::DIType* d, const std::string& n,
+               bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -285,59 +251,42 @@ namespace codegen
     class FloatType : public FPType
     {
     public:
-        FloatType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : FPType(32, FLOAT, c, llvm::Type::getFloatTy(c),
-                     dbuilder.createBasicType("float", 32, 32,
-                                              llvm::dwarf::DW_ATE_float),
-                     "float")
-        {
-        }
+        FloatType(TypeTable* list, llvm::LLVMContext& c,
+                  llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class F32Type : public FPType
     {
     public:
-        F32Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : FPType(32, F32, c, llvm::Type::getFloatTy(c),
-                     dbuilder.createBasicType("f32", 32, 32,
-                                              llvm::dwarf::DW_ATE_float),
-                     "f32")
-        {
-        }
+        F32Type(TypeTable* list, llvm::LLVMContext& c,
+                llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class F64Type : public FPType
     {
     public:
-        F64Type(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-            : FPType(64, F64, c, llvm::Type::getFloatTy(c),
-                     dbuilder.createBasicType("f64", 64, 64,
-                                              llvm::dwarf::DW_ATE_float),
-                     "f64")
-        {
-        }
+        F64Type(TypeTable* list, llvm::LLVMContext& c,
+                llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class StringType : public Type
     {
     public:
-        StringType(llvm::LLVMContext& c, llvm::DIBuilder&);
+        StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
+                   bool mut = false);
 
         CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
     };
 
-    class CallableType : public Type
+    class FunctionType : public Type
     {
     public:
-        CallableType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-                     Type* pReturnType, std::vector<Type*> pParams);
+        FunctionType(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, Type* pReturnType,
+                     std::vector<Type*> pParams);
 
         static llvm::FunctionType*
         getLLVMFunctionType(Type* returnType, const std::vector<Type*>& params);
@@ -347,24 +296,13 @@ namespace codegen
         functionTypeToString(Type* returnType,
                              const std::vector<Type*>& params);
 
+        CastTuple cast(CastType c, const Type& to) const override;
+
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
 
         Type* returnType;
         std::vector<Type*> params;
-    };
-
-    class FunctionType : public CallableType
-    {
-    public:
-        FunctionType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-                     Type* pReturnType, std::vector<Type*> pParams);
-
-        CastTuple cast(CastType c, const Type& to) const override;
-
-        std::unique_ptr<TypedValue> operation(
-            OperatorType kind, core::lexer::TokenType op,
-            std::vector<std::unique_ptr<TypedValue>> operands) const override;
     };
 } // namespace codegen
 } // namespace core

@@ -17,14 +17,6 @@ namespace api
     class Application final
     {
     public:
-        enum LoggingLevel
-        {
-            LOG_TRACE = spdlog::level::trace,
-            LOG_DEBUG = spdlog::level::debug,
-            LOG_INFO = spdlog::level::info,
-            LOG_SILENT = spdlog::level::critical
-        };
-
         explicit Application(size_t threads = 1)
             : pool(std::make_unique<util::ThreadPool>(threads)),
               fileCache(std::make_unique<util::FileCache>())
@@ -36,15 +28,13 @@ namespace api
         Application& operator=(Application&&) noexcept = delete;
         ~Application() noexcept = default;
 
-        void setLoggingLevel(LoggingLevel l);
-
         bool addFile(const std::string& file);
         std::future<bool> runFile(const std::string& file);
 
         bool runFiles(std::vector<std::string> files);
         bool runAll();
 
-        bool execute(std::vector<std::string> files);
+        bool execute();
 
     private:
         std::unique_ptr<util::ThreadPool> pool;

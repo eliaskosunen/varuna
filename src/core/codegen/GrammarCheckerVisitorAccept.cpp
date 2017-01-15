@@ -65,11 +65,6 @@ bool core::ast::ASTVariableRefExpression::accept(
 {
     return v->visit(this);
 }
-bool core::ast::ASTCallExpression::accept(
-    core::codegen::GrammarCheckerVisitor* v)
-{
-    return v->visit(this);
-}
 bool core::ast::ASTCastExpression::accept(
     core::codegen::GrammarCheckerVisitor* v)
 {
@@ -102,11 +97,6 @@ bool core::ast::ASTFunctionPrototypeStatement::accept(
     return v->visit(this);
 }
 bool core::ast::ASTFunctionDefinitionStatement::accept(
-    core::codegen::GrammarCheckerVisitor* v)
-{
-    return v->visit(this);
-}
-bool core::ast::ASTFunctionDeclarationStatement::accept(
     core::codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
@@ -159,6 +149,11 @@ bool core::ast::ASTUnaryOperationExpression::accept(
     return v->visit(this);
 }
 bool core::ast::ASTAssignmentOperationExpression::accept(
+    core::codegen::GrammarCheckerVisitor* v)
+{
+    return v->visit(this);
+}
+bool core::ast::ASTArbitraryOperationExpression::accept(
     core::codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);

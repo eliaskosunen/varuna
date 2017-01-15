@@ -5,7 +5,7 @@
 #pragma once
 
 #include "util/ProgramInfo.h"
-#include <tclap.h>
+#include "util/ProgramOptions.h"
 
 namespace fe
 {
@@ -16,21 +16,19 @@ namespace api
 
 namespace cli
 {
-    class CLI
+    class CLI final
     {
     public:
-        CLI(int argc_, char** argv_);
+        CLI(int pArgc, char** pArgv);
 
         int run();
 
     private:
         void showLicense() const;
-
-        bool setLoggingLevel(api::Application* app, const std::string& level);
+        static void showVersion();
 
         const int argc;
         char** argv;
-        TCLAP::CmdLine cmd;
     };
 } // namespace cli
 } // namespace fe

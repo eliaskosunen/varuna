@@ -96,26 +96,6 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
     };
 
-    class ASTCallExpression : public ASTExpression
-    {
-    public:
-        ASTCallExpression(std::unique_ptr<ASTExpression> pCallee,
-                          std::vector<std::unique_ptr<ASTExpression>> pParams)
-            : ASTExpression(CALL_EXPR), callee(std::move(pCallee)),
-              params(std::move(pParams))
-        {
-        }
-
-        void accept(DumpASTVisitor* v, size_t ind = 0) override;
-        std::unique_ptr<codegen::TypedValue>
-        accept(codegen::CodegenVisitor* v) override;
-        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
-        bool accept(codegen::GrammarCheckerVisitor* v) override;
-
-        std::unique_ptr<ASTExpression> callee;
-        std::vector<std::unique_ptr<ASTExpression>> params;
-    };
-
     class ASTCastExpression : public ASTExpression
     {
     public:
@@ -145,7 +125,7 @@ namespace ast
             std::unique_ptr<ASTExpression> pInit, uint32_t arrSize = 0)
             : ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(pType)),
               name(std::move(pName)), init(std::move(pInit)),
-              arraySize(arrSize), typeDeduced{true}
+              arraySize(arrSize), typeInferred{false}
         {
         }
         ASTVariableDefinitionExpression(
@@ -154,7 +134,7 @@ namespace ast
             : ASTExpression(VARIABLE_DEFINITION_EXPR),
               type(std::make_unique<ASTIdentifierExpression>("")),
               name(std::move(pName)), init(std::move(pInit)), arraySize(0),
-              typeDeduced{false}
+              typeInferred{true}
         {
         }
 
@@ -167,7 +147,8 @@ namespace ast
         std::unique_ptr<ASTIdentifierExpression> type, name;
         std::unique_ptr<ASTExpression> init;
         uint32_t arraySize;
-        bool typeDeduced;
+        bool typeInferred;
+        bool isMutable{false};
     };
 
     class ASTSubscriptExpression : public ASTExpression

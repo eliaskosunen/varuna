@@ -92,18 +92,6 @@ namespace ast
     {
         node->parent = parent;
     }
-    void ASTParentSolverVisitor::visit(ASTCallExpression* node, ASTNode* parent)
-    {
-        node->parent = parent;
-
-        node->callee->accept(this, node);
-
-        auto& params = node->params;
-        for(auto& p : params)
-        {
-            p->accept(this, node);
-        }
-    }
     void ASTParentSolverVisitor::visit(ASTCastExpression* node, ASTNode* parent)
     {
         node->parent = parent;
@@ -170,13 +158,6 @@ namespace ast
 
         node->proto->accept(this, node);
         node->body->accept(this, node);
-    }
-    void ASTParentSolverVisitor::visit(ASTFunctionDeclarationStatement* node,
-                                       ASTNode* parent)
-    {
-        node->parent = parent;
-
-        node->proto->accept(this, node);
     }
     void ASTParentSolverVisitor::visit(ASTReturnStatement* node,
                                        ASTNode* parent)
@@ -251,6 +232,16 @@ namespace ast
 
         node->lhs->accept(this, node);
         node->rhs->accept(this, node);
+    }
+    void ASTParentSolverVisitor::visit(ASTArbitraryOperationExpression* node,
+                                       ASTNode* parent)
+    {
+        node->parent = parent;
+
+        for(auto& o : node->operands)
+        {
+            o->accept(this, node);
+        }
     }
 
     void ASTParentSolverVisitor::visit(ASTEmptyStatement* node, ASTNode* parent)
@@ -334,11 +325,6 @@ void core::ast::ASTVariableRefExpression::accept(
 {
     return v->visit(this, p);
 }
-void core::ast::ASTCallExpression::accept(core::ast::ASTParentSolverVisitor* v,
-                                          core::ast::ASTNode* p)
-{
-    return v->visit(this, p);
-}
 void core::ast::ASTCastExpression::accept(core::ast::ASTParentSolverVisitor* v,
                                           core::ast::ASTNode* p)
 {
@@ -376,11 +362,6 @@ void core::ast::ASTFunctionPrototypeStatement::accept(
     return v->visit(this, p);
 }
 void core::ast::ASTFunctionDefinitionStatement::accept(
-    core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
-{
-    return v->visit(this, p);
-}
-void core::ast::ASTFunctionDeclarationStatement::accept(
     core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
 {
     return v->visit(this, p);
@@ -433,6 +414,11 @@ void core::ast::ASTUnaryOperationExpression::accept(
     return v->visit(this, p);
 }
 void core::ast::ASTAssignmentOperationExpression::accept(
+    core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
+{
+    return v->visit(this, p);
+}
+void core::ast::ASTArbitraryOperationExpression::accept(
     core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
 {
     return v->visit(this, p);

@@ -9,10 +9,9 @@
 
 namespace util
 {
-std::shared_ptr<spdlog::logger> logger =
-    spdlog::stdout_color_mt("console_color");
+std::shared_ptr<spdlog::logger> logger = createLogger(true, "console_color");
 std::shared_ptr<spdlog::logger> loggerBasic =
-    spdlog::stdout_logger_mt("console_nocolor");
+    createLogger(false, "console_nocolor");
 
 void initLogger()
 {
@@ -21,15 +20,11 @@ void initLogger()
     {
         return;
     }
-#if 0
-		spdlog::set_pattern("[%Y-%m-%d %T.%f] [%l] [%n] %v");
-		logger->set_pattern("[%Y-%m-%d %T.%f] [%l] %v");
-		loggerBasic->set_pattern("%v");
-#endif
+    
     spdlog::set_pattern(std::string(programinfo::name) +
-                        " [thread %t] [%n] [%l]: %v");
+                        " [%n] [%l]: %v");
     logger->set_pattern(std::string(programinfo::name) +
-                        " [thread %t] [%l]: %v");
+                        " [%l]: %v");
     loggerBasic->set_pattern("%v");
 
     logger->flush_on(spdlog::level::err);

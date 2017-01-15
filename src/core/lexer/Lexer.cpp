@@ -491,10 +491,6 @@ namespace lexer
         {
             return TOKEN_KEYWORD_DEFINE;
         }
-        if(buf == "decl")
-        {
-            return TOKEN_KEYWORD_DECLARE;
-        }
         if(buf == "class")
         {
             return TOKEN_KEYWORD_CLASS;
@@ -606,6 +602,10 @@ namespace lexer
         if(buf == "let")
         {
             return TOKEN_KEYWORD_LET;
+        }
+        if(buf == "mut")
+        {
+            return TOKEN_KEYWORD_MUT;
         }
         if(buf == "cast")
         {

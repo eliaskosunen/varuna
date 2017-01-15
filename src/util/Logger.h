@@ -19,6 +19,16 @@ extern std::shared_ptr<spdlog::logger> logger;
  */
 extern std::shared_ptr<spdlog::logger> loggerBasic;
 
+inline auto createLogger(bool isColor, const std::string& name = "Logger")
+{
+    if(isColor)
+    {
+        // std::rand() is baaaaaaaaad
+        return spdlog::stdout_color_mt(fmt::format("{}-{}", name, std::rand()));
+    }
+    return spdlog::stdout_logger_mt(fmt::format("{}-{}", name, std::rand()));
+}
+
 /**
  * Set logger styles
  */

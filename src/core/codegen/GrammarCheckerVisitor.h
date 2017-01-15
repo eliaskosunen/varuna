@@ -58,7 +58,6 @@ namespace codegen
         bool visit(ast::ASTEmptyExpression* node);
         bool visit(ast::ASTIdentifierExpression* node);
         bool visit(ast::ASTVariableRefExpression* node);
-        bool visit(ast::ASTCallExpression* node);
         bool visit(ast::ASTCastExpression* node);
         bool visit(ast::ASTVariableDefinitionExpression* node);
         bool visit(ast::ASTSubscriptExpression* node);
@@ -68,7 +67,6 @@ namespace codegen
         bool visit(ast::ASTFunctionParameter* node) = delete;
         bool visit(ast::ASTFunctionPrototypeStatement* node);
         bool visit(ast::ASTFunctionDefinitionStatement* node);
-        bool visit(ast::ASTFunctionDeclarationStatement* node);
         bool visit(ast::ASTReturnStatement* node);
 
         bool visit(ast::ASTIntegerLiteralExpression* node);
@@ -81,6 +79,7 @@ namespace codegen
         bool visit(ast::ASTBinaryOperationExpression* node);
         bool visit(ast::ASTUnaryOperationExpression* node);
         bool visit(ast::ASTAssignmentOperationExpression* node);
+        bool visit(ast::ASTArbitraryOperationExpression* node);
 
         bool visit(ast::ASTEmptyStatement* node);
         bool visit(ast::ASTBlockStatement* node);

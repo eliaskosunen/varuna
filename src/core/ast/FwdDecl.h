@@ -15,10 +15,10 @@ namespace ast
     class ASTNode;
 
     class ASTExpression;
+    class ASTArbitraryOperationExpression;
     class ASTAssignmentOperationExpression;
     class ASTBinaryOperationExpression;
     class ASTBoolLiteralExpression;
-    class ASTCallExpression;
     class ASTCastExpression;
     class ASTCharLiteralExpression;
     class ASTEmptyExpression;
@@ -39,7 +39,6 @@ namespace ast
     class ASTEmptyStatement;
     class ASTForeachStatement;
     class ASTForStatement;
-    class ASTFunctionDeclarationStatement;
     class ASTFunctionDefinitionStatement;
     class ASTFunctionParameter;
     class ASTFunctionPrototypeStatement;

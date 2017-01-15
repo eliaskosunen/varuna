@@ -142,7 +142,7 @@ namespace codegen
                 if(type)
                 {
                     util::logger->error("Symbol '{}' with type '{}' not found",
-                                        name, type->name);
+                                        name, type->getDecoratedName());
                 }
                 else
                 {
@@ -208,7 +208,7 @@ namespace codegen
                 if(type)
                 {
                     util::logger->error("Symbol '{}' with type '{}' not found",
-                                        name, type->name);
+                                        name, type->getDecoratedName());
                 }
                 else
                 {
@@ -221,7 +221,7 @@ namespace codegen
 
     inline void SymbolTable::dump() const
     {
-        auto stlogger = spdlog::stdout_logger_st("SymbolTableDump");
+        auto stlogger = util::createLogger(false, "dumpsymboltable_logger");
         stlogger->set_pattern("DumpSymbolTable: %v");
 
         stlogger->trace("*** SYMBOLTABLE DUMP ***");
@@ -248,7 +248,8 @@ namespace codegen
             {
                 stlogger->trace("Symbol:");
                 stlogger->trace(" * Name: {}", s.second->name);
-                stlogger->trace(" * Type: {}", s.second->getType()->name);
+                stlogger->trace(" * Type: {}",
+                                s.second->getType()->getDecoratedName());
             }
         }
         stlogger->set_pattern("DumpSymbolTable: %v");

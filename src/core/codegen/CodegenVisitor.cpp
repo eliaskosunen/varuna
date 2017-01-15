@@ -19,73 +19,26 @@ namespace core
 {
 namespace codegen
 {
-    Type* CodegenVisitor::findType(const std::string& name, bool logError) const
-    {
-        auto type = types.find(name);
-        if(type == types.end())
-        {
-            return logError ? codegenError("Undefined typename: '{}'", name)
-                            : nullptr;
-        }
-        return type->second.get();
-    }
-
-    Type* CodegenVisitor::findType(llvm::Type* type, bool logError) const
-    {
-        for(const auto& t : types)
-        {
-            if(t.second->type == type)
-            {
-                return t.second.get();
-            }
-        }
-        if(logError)
-        {
-            codegenError("Undefined type:");
-            type->dump();
-        }
-        return nullptr;
-    }
-
-    std::array<std::unique_ptr<Type>, 13> CodegenVisitor::_buildTypeArray()
-    {
-// Forgive me
-#define CODEGEN_TYPE(T) std::make_unique<T>(context, dbuilder)
-
-        return {{
-            CODEGEN_TYPE(VoidType), CODEGEN_TYPE(IntType),
-            CODEGEN_TYPE(Int8Type), CODEGEN_TYPE(Int16Type),
-            CODEGEN_TYPE(Int32Type), CODEGEN_TYPE(Int64Type),
-            CODEGEN_TYPE(BoolType), CODEGEN_TYPE(CharType),
-            CODEGEN_TYPE(ByteType), CODEGEN_TYPE(FloatType),
-            CODEGEN_TYPE(F32Type), CODEGEN_TYPE(F64Type),
-            CODEGEN_TYPE(StringType),
-        }};
-
-#undef CODEGEN_TYPE
-    }
-
-    std::unordered_map<std::string, std::unique_ptr<Type>>
-    CodegenVisitor::_createTypeMap()
-    {
-        auto arr = _buildTypeArray();
-        std::unordered_map<std::string, std::unique_ptr<Type>> ret;
-
-        for(auto& i : arr)
-        {
-            ret.insert(std::make_pair(i->name, std::move(i)));
-        }
-        return ret;
-    }
-
     CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                    const CodegenInfo& i)
         : context{c}, module(m), info{i}, builder(context), dbuilder(*m),
           dcu{dbuilder.createCompileUnit(
               llvm::dwarf::DW_LANG_C, info.filename, ".",
-              util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
-          types{_createTypeMap()}
+              util::programinfo::getIdentifier(), info.optEnabled(), "", 0)}
     {
+        types.insertTypeWithVariants<VoidType>(context, dbuilder, false);
+        types.insertTypeWithVariants<IntType>(context, dbuilder);
+        types.insertTypeWithVariants<Int8Type>(context, dbuilder);
+        types.insertTypeWithVariants<Int16Type>(context, dbuilder);
+        types.insertTypeWithVariants<Int32Type>(context, dbuilder);
+        types.insertTypeWithVariants<Int64Type>(context, dbuilder);
+        types.insertTypeWithVariants<FloatType>(context, dbuilder);
+        types.insertTypeWithVariants<F32Type>(context, dbuilder);
+        types.insertTypeWithVariants<F64Type>(context, dbuilder);
+        types.insertTypeWithVariants<BoolType>(context, dbuilder);
+        types.insertTypeWithVariants<CharType>(context, dbuilder);
+        types.insertTypeWithVariants<ByteType>(context, dbuilder);
+        types.insertTypeWithVariants<StringType>(context, dbuilder);
     }
 
     bool CodegenVisitor::codegen(ast::AST* ast)
@@ -189,7 +142,8 @@ namespace codegen
                 return codegenError("Function declaration failed: Mismatching "
                                     "prototypes for similarly named functions: "
                                     "'{}' and '{}'",
-                                    func->value->type->name, type->name);
+                                    func->value->type->getDecoratedName(),
+                                    type->getDecoratedName());
             }
         }
 
@@ -223,13 +177,6 @@ namespace codegen
         if(!f)
         {
             return nullptr;
-        }
-
-        if(f->nodeType == ast::ASTNode::FUNCTION_DECL_STMT)
-        {
-            auto casted =
-                dynamic_cast<ast::ASTFunctionDeclarationStatement*>(f);
-            return casted->proto.get();
         }
 
         auto casted = dynamic_cast<ast::ASTFunctionDefinitionStatement*>(f);

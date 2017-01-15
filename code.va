@@ -1,10 +1,8 @@
 // code.va
-module main;
-
 
 def main(): int
 {
-	var i = 1;
-	i = 2;
-	return i - 2;
+    let i = 0;
+    i = 1; // Error!
+    return i;
 }

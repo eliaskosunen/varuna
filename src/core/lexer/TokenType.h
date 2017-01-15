@@ -17,7 +17,6 @@ namespace lexer
 
         TOKEN_KEYWORD_IMPORT = 1,
         TOKEN_KEYWORD_DEFINE,
-        TOKEN_KEYWORD_DECLARE,
         TOKEN_KEYWORD_CLASS,
         TOKEN_KEYWORD_OVERRIDE,
         TOKEN_KEYWORD_FINAL,
@@ -46,6 +45,7 @@ namespace lexer
         TOKEN_KEYWORD_REF,
         TOKEN_KEYWORD_VAR,
         TOKEN_KEYWORD_LET,
+        TOKEN_KEYWORD_MUT,
         TOKEN_KEYWORD_CAST,
 
         TOKEN_IDENTIFIER = 200,
@@ -103,6 +103,8 @@ namespace lexer
         TOKEN_OPERATORU_SIZEOF, // sizeof a
         TOKEN_OPERATORU_TYPEOF, // typeof a
         TOKEN_OPERATORU_ADDROF, // addressof a
+
+        TOKEN_OPERATORC_CALL, // ()
 
         TOKEN_PUNCT_PAREN_OPEN = 700, // (
         TOKEN_PUNCT_PAREN_CLOSE,      // )

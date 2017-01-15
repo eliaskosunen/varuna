@@ -56,9 +56,9 @@ namespace ast
     class ASTAssignmentOperationExpression : public ASTExpression
     {
     public:
-        ASTAssignmentOperationExpression(
-            std::unique_ptr<ASTIdentifierExpression> l,
-            std::unique_ptr<ASTExpression> r, core::lexer::TokenType o)
+        ASTAssignmentOperationExpression(std::unique_ptr<ASTExpression> l,
+                                         std::unique_ptr<ASTExpression> r,
+                                         core::lexer::TokenType o)
             : ASTExpression(ASSIGNMENT_OPERATION_EXPR), lhs(std::move(l)),
               rhs(std::move(r)), oper(o)
         {
@@ -70,8 +70,29 @@ namespace ast
         void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-        std::unique_ptr<ASTIdentifierExpression> lhs;
+        std::unique_ptr<ASTExpression> lhs;
         std::unique_ptr<ASTExpression> rhs;
+        core::lexer::TokenType oper;
+    };
+
+    class ASTArbitraryOperationExpression : public ASTExpression
+    {
+    public:
+        ASTArbitraryOperationExpression(
+            std::vector<std::unique_ptr<ASTExpression>> pOperands,
+            core::lexer::TokenType o)
+            : ASTExpression(ARBITRARY_OPERATION_EXPR),
+              operands(std::move(pOperands)), oper(o)
+        {
+        }
+
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::vector<std::unique_ptr<ASTExpression>> operands;
         core::lexer::TokenType oper;
     };
 } // namespace ast

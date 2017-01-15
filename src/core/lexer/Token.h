@@ -45,7 +45,6 @@ namespace lexer
 
     struct SourceLocation
     {
-
         SourceLocation() = default;
         SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
         {

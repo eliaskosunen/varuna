@@ -3,33 +3,55 @@
 // See LICENSE for details
 
 #include "core/codegen/Type.h"
+#include "core/codegen/TypeOperation.h"
+#include "core/codegen/TypeTable.h"
 #include "core/codegen/TypedValue.h"
 
 namespace core
 {
 namespace codegen
 {
-    VoidType::VoidType(llvm::LLVMContext& c, llvm::DIBuilder&)
-        : Type(VOID, c, llvm::Type::getVoidTy(c), nullptr, "void")
+    Type::Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op,
+               Type::Kind k, llvm::LLVMContext& c, llvm::Type* t,
+               llvm::DIType* d, std::string n, bool mut)
+        : typeTable(list), context(c), type(t), dtype(d), kind(k),
+          isMutable(mut), name(std::move(n)), operations(std::move(op))
+    {
+    }
+
+    Type::~Type() noexcept = default;
+
+    TypeOperationBase* Type::getOperations() const
+    {
+        return operations.get();
+    }
+
+    Type::CastTuple Type::implicitCast(const Type& to) const
+    {
+        if(to.kind == kind)
+        {
+            return CastTuple{false, false, defaultCast};
+        }
+        return castError("Invalid implicit cast: Cannot convert from "
+                         "{} to {} implicitly",
+                         getDecoratedName(), to.getDecoratedName());
+    }
+
+    VoidType::VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
+                       bool mut)
+        : Type(list, std::make_unique<VoidTypeOperation>(this), VOID, c,
+               llvm::Type::getVoidTy(c), nullptr, "void", mut)
     {
     }
 
     Type::CastTuple VoidType::cast(Type::CastType c, const Type& to) const
     {
-        if(c == IMPLICIT && to.kind == VOID)
+        if(c == IMPLICIT)
         {
-            return CastTuple{false, false, defaultCast};
+            return implicitCast(to);
         }
 
         return castError("Invalid cast: Cannot cast void");
-    }
-
-    std::unique_ptr<TypedValue>
-    VoidType::operation(Type::OperatorType kind, core::lexer::TokenType op,
-                        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on void");
     }
 
     bool VoidType::isSized() const
@@ -45,10 +67,12 @@ namespace codegen
         return false;
     }
 
-    IntegralType::IntegralType(uint32_t w, Kind k, llvm::LLVMContext& c,
-                               llvm::Type* t, llvm::DIType* d,
-                               const std::string& n)
-        : Type(k, c, t, d, n), width(w)
+    IntegralType::IntegralType(TypeTable* list, uint32_t w, Kind k,
+                               llvm::LLVMContext& c, llvm::Type* t,
+                               llvm::DIType* d, const std::string& n, bool mut)
+        : Type(list, std::make_unique<IntegralTypeOperation>(this), k, c, t, d,
+               n, mut),
+          width(w)
     {
     }
 
@@ -58,13 +82,7 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
         switch(to.kind)
@@ -100,19 +118,11 @@ namespace codegen
             {
                 return CastTuple{false, true, Instruction::BitCast};
             }
-            return castError("Invalid cast: Cannot convert from {} to {}", name,
-                             to.name);
+            return castError("Invalid cast: Cannot convert from {} to {}",
+                             getDecoratedName(), to.getDecoratedName());
         }
 
         llvm_unreachable("Logic error in IntegralType::cast");
-    }
-
-    std::unique_ptr<TypedValue> IntegralType::operation(
-        Type::OperatorType kind, core::lexer::TokenType op,
-        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
     }
 
     bool IntegralType::isIntegral() const
@@ -124,11 +134,67 @@ namespace codegen
         return false;
     }
 
-    CharType::CharType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-        : Type(CHAR, c, llvm::Type::getInt8Ty(c),
+    IntType::IntType(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 32, INT, c, llvm::Type::getInt32Ty(c),
+                       dbuilder.createBasicType("int", 32, 32,
+                                                llvm::dwarf::DW_ATE_signed),
+                       "int", mut)
+    {
+    }
+
+    Int8Type::Int8Type(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 8, INT8, c, llvm::Type::getInt8Ty(c),
+                       dbuilder.createBasicType("int8", 8, 8,
+                                                llvm::dwarf::DW_ATE_signed),
+                       "int8", mut)
+    {
+    }
+
+    Int16Type::Int16Type(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 16, INT16, c, llvm::Type::getInt16Ty(c),
+                       dbuilder.createBasicType("int16", 16, 16,
+                                                llvm::dwarf::DW_ATE_signed),
+                       "int16", mut)
+    {
+    }
+
+    Int32Type::Int32Type(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 32, INT32, c, llvm::Type::getInt32Ty(c),
+                       dbuilder.createBasicType("int32", 32, 32,
+                                                llvm::dwarf::DW_ATE_signed),
+                       "int32", mut)
+    {
+    }
+
+    Int64Type::Int64Type(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 64, INT64, c, llvm::Type::getInt64Ty(c),
+                       dbuilder.createBasicType("int64", 64, 64,
+                                                llvm::dwarf::DW_ATE_signed),
+                       "int64", mut)
+    {
+    }
+
+    BoolType::BoolType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder, bool mut)
+        : IntegralType(list, 1, BOOL, c, llvm::Type::getInt1Ty(c),
+                       dbuilder.createBasicType("bool", 1, 1,
+                                                llvm::dwarf::DW_ATE_boolean),
+                       "bool", mut)
+    {
+    }
+
+    CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder, bool mut)
+        : Type(list, std::make_unique<CharTypeOperation>(this), CHAR, c,
+               llvm::Type::getInt8Ty(c),
                dbuilder.createBasicType("char", 8, 8,
                                         llvm::dwarf::DW_ATE_unsigned_char),
-               "char")
+               "char", mut)
     {
     }
 
@@ -138,14 +204,7 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
         switch(to.kind)
@@ -171,19 +230,11 @@ namespace codegen
             {
                 return CastTuple{false, true, Instruction::BitCast};
             }
-            return castError("Invalid cast: Cannot convert from {} to {}", name,
-                             to.name);
+            return castError("Invalid cast: Cannot convert from {} to {}",
+                             getDecoratedName(), to.getDecoratedName());
         }
 
         llvm_unreachable("Logic error in CharType::cast");
-    }
-
-    std::unique_ptr<TypedValue>
-    CharType::operation(Type::OperatorType kind, core::lexer::TokenType op,
-                        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
     }
 
     bool CharType::isIntegral() const
@@ -195,11 +246,13 @@ namespace codegen
         return false;
     }
 
-    ByteType::ByteType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder)
-        : Type(BYTE, c, llvm::Type::getInt32Ty(c),
+    ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder, bool mut)
+        : Type(list, std::make_unique<ByteTypeOperation>(this), BYTE, c,
+               llvm::Type::getInt32Ty(c),
                dbuilder.createBasicType("byte", 32, 32,
                                         llvm::dwarf::DW_ATE_unsigned),
-               "byte")
+               "byte", mut)
     {
     }
 
@@ -209,14 +262,7 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
         switch(to.kind)
@@ -242,19 +288,11 @@ namespace codegen
             {
                 return CastTuple{false, true, Instruction::BitCast};
             }
-            return castError("Invalid cast: Cannot convert from {} to {}", name,
-                             to.name);
+            return castError("Invalid cast: Cannot convert from {} to {}",
+                             getDecoratedName(), to.getDecoratedName());
         }
 
         llvm_unreachable("Logic error in ByteType::cast");
-    }
-
-    std::unique_ptr<TypedValue>
-    ByteType::operation(Type::OperatorType kind, core::lexer::TokenType op,
-                        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
     }
 
     bool ByteType::isIntegral() const
@@ -266,9 +304,12 @@ namespace codegen
         return false;
     }
 
-    FPType::FPType(uint32_t w, Kind k, llvm::LLVMContext& c, llvm::Type* t,
-                   llvm::DIType* d, const std::string& n)
-        : Type(k, c, t, d, n), width(w)
+    FPType::FPType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+                   llvm::Type* t, llvm::DIType* d, const std::string& n,
+                   bool mut)
+        : Type(list, std::make_unique<FPTypeOperation>(this), k, c, t, d, n,
+               mut),
+          width(w)
     {
     }
 
@@ -278,14 +319,7 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
         switch(to.kind)
@@ -321,19 +355,11 @@ namespace codegen
             {
                 return CastTuple{false, true, Instruction::BitCast};
             }
-            return castError("Invalid cast: Cannot convert from {} to {}", name,
-                             to.name);
+            return castError("Invalid cast: Cannot convert from {} to {}",
+                             getDecoratedName(), to.getDecoratedName());
         }
 
         llvm_unreachable("Logic error in FPType::cast");
-    }
-
-    std::unique_ptr<TypedValue>
-    FPType::operation(Type::OperatorType kind, core::lexer::TokenType op,
-                      std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
     }
 
     bool FPType::isIntegral() const
@@ -345,13 +371,41 @@ namespace codegen
         return true;
     }
 
-    StringType::StringType(llvm::LLVMContext& c, llvm::DIBuilder&)
-        : Type(STRING, c,
+    FloatType::FloatType(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder, bool mut)
+        : FPType(list, 32, FLOAT, c, llvm::Type::getFloatTy(c),
+                 dbuilder.createBasicType("float", 32, 32,
+                                          llvm::dwarf::DW_ATE_float),
+                 "float", mut)
+    {
+    }
+
+    F32Type::F32Type(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, bool mut)
+        : FPType(list, 32, F32, c, llvm::Type::getFloatTy(c),
+                 dbuilder.createBasicType("f32", 32, 32,
+                                          llvm::dwarf::DW_ATE_float),
+                 "f32", mut)
+    {
+    }
+
+    F64Type::F64Type(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, bool mut)
+        : FPType(list, 64, F64, c, llvm::Type::getFloatTy(c),
+                 dbuilder.createBasicType("f64", 64, 64,
+                                          llvm::dwarf::DW_ATE_float),
+                 "f64", mut)
+    {
+    }
+
+    StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
+                           llvm::DIBuilder&, bool mut)
+        : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
                /*llvm::StructType::create(c, {
                    llvm::Type::getInt64Ty(c),
                    llvm::Type::getInt8PtrTy(c)
                }, "string_t", true),*/
-               llvm::Type::getInt8PtrTy(c), nullptr, "string_t")
+               llvm::Type::getInt8PtrTy(c), nullptr, "string_t", mut)
     {
     }
 
@@ -361,25 +415,10 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
-        return castError("Invalid cast: {} cannot be casted", name);
-    }
-
-    std::unique_ptr<TypedValue> StringType::operation(
-        Type::OperatorType kind, core::lexer::TokenType op,
-        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
+        return castError("Invalid cast: {} cannot be casted", getName());
     }
 
     bool StringType::isIntegral() const
@@ -391,31 +430,34 @@ namespace codegen
         return false;
     }
 
-    CallableType::CallableType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-                               Type* pReturnType, std::vector<Type*> pParams)
-        : Type(FUNCTION, c, getLLVMFunctionType(pReturnType, pParams), nullptr,
+    FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
+                               llvm::DIBuilder& dbuilder, Type* pReturnType,
+                               std::vector<Type*> pParams)
+        : Type(list, std::make_unique<FunctionTypeOperation>(this), FUNCTION, c,
+               getLLVMFunctionType(pReturnType, pParams), nullptr,
                functionTypeToString(pReturnType, pParams)),
           returnType(pReturnType), params(std::move(pParams))
     {
     }
 
-    bool CallableType::isIntegral() const
+    bool FunctionType::isIntegral() const
     {
         return false;
     }
-    bool CallableType::isFloatingPoint() const
+    bool FunctionType::isFloatingPoint() const
     {
         return false;
     }
 
     llvm::FunctionType*
-    CallableType::getLLVMFunctionType(Type* returnType,
+    FunctionType::getLLVMFunctionType(Type* returnType,
                                       const std::vector<Type*>& params)
     {
         if(!llvm::FunctionType::isValidReturnType(returnType->type))
         {
-            throw std::invalid_argument(fmt::format(
-                "Invalid return type for a function: {}", returnType->name));
+            throw std::invalid_argument(
+                fmt::format("Invalid return type for a function: {}",
+                            returnType->getName()));
         }
         if(params.empty())
         {
@@ -428,7 +470,7 @@ namespace codegen
             if(!llvm::FunctionType::isValidArgumentType(p->type))
             {
                 throw std::invalid_argument(fmt::format(
-                    "Invalid argument type for a function: {}", p->name));
+                    "Invalid argument type for a function: {}", p->getName()));
             }
             paramList.push_back(p->type);
         }
@@ -437,7 +479,7 @@ namespace codegen
     }
 
     std::string
-    CallableType::paramVectorToString(const std::vector<Type*>& params,
+    FunctionType::paramVectorToString(const std::vector<Type*>& params,
                                       bool addBeginningComma)
     {
         std::string ret;
@@ -447,31 +489,17 @@ namespace codegen
             {
                 ret.push_back(',');
             }
-            ret.append(p->name);
+            ret.append(p->getDecoratedName());
         }
         return ret;
     }
 
     std::string
-    CallableType::functionTypeToString(Type* returnType,
+    FunctionType::functionTypeToString(Type* returnType,
                                        const std::vector<Type*>& params)
     {
-        return fmt::format("{}({})", returnType->name,
+        return fmt::format("{}({})", returnType->getDecoratedName(),
                            paramVectorToString(params, false));
-    }
-
-    FunctionType::FunctionType(llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-                               Type* pReturnType, std::vector<Type*> pParams)
-        : CallableType(c, dbuilder, pReturnType, std::move(pParams))
-    {
-    }
-
-    std::unique_ptr<TypedValue> FunctionType::operation(
-        Type::OperatorType kind, core::lexer::TokenType op,
-        std::vector<std::unique_ptr<TypedValue>> operands) const
-    {
-        return operationError(
-            "Invalid operation: Cannot make any operations on {}", name);
     }
 
     Type::CastTuple FunctionType::cast(Type::CastType c, const Type& to) const
@@ -480,17 +508,10 @@ namespace codegen
 
         if(c == IMPLICIT)
         {
-            if(to.kind == kind)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-
-            return castError("Invalid implicit cast: Cannot convert from "
-                             "{} to {} implicitly",
-                             name, to.name);
+            return implicitCast(to);
         }
 
-        return castError("Invalid cast: {} cannot be casted", name);
+        return castError("Invalid cast: {} cannot be casted", getName());
     }
 } // namespace codegen
 } // namespace core

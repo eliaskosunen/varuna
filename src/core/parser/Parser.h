@@ -135,7 +135,7 @@ namespace parser
         parseNoneLiteralExpression();
 
         std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-        std::unique_ptr<ast::ASTCallExpression>
+        std::unique_ptr<ast::ASTArbitraryOperationExpression>
         parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
         std::unique_ptr<ast::ASTSubscriptExpression>
         parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
@@ -147,7 +147,6 @@ namespace parser
         void handleImport();
         void handleModule();
         void handleDef();
-        void handleDecl();
         void handleEmptyStatement();
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
@@ -156,14 +155,13 @@ namespace parser
         parseFunctionPrototype();
         std::unique_ptr<ast::ASTFunctionDefinitionStatement>
         parseFunctionDefinitionStatement();
-        std::unique_ptr<ast::ASTFunctionDeclarationStatement>
-        parseFunctionDeclarationStatement();
 
         std::unique_ptr<ast::ASTWrappedExpressionStatement>
         wrapExpression(std::unique_ptr<ast::ASTExpression> expr);
-        std::unique_ptr<ast::ASTEmptyStatement> emptyStatement()
+        std::unique_ptr<ast::ASTEmptyStatement> emptyStatement(bool skip = true)
         {
-            ++it;
+            if(skip)
+                ++it;
             return std::make_unique<ast::ASTEmptyStatement>();
         }
 

@@ -71,27 +71,6 @@ namespace ast
         std::unique_ptr<ASTBlockStatement> body;
     };
 
-    class ASTFunctionDeclarationStatement : public ASTStatement
-    {
-    public:
-        explicit ASTFunctionDeclarationStatement(
-            std::unique_ptr<ASTFunctionPrototypeStatement> pProto,
-            bool pIsExtern = false)
-            : ASTStatement(FUNCTION_DECL_STMT), proto(std::move(pProto)),
-              isExtern(pIsExtern)
-        {
-        }
-
-        void accept(DumpASTVisitor* v, size_t ind = 0) override;
-        std::unique_ptr<codegen::TypedValue>
-        accept(codegen::CodegenVisitor* v) override;
-        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
-        bool accept(codegen::GrammarCheckerVisitor* v) override;
-
-        std::unique_ptr<ASTFunctionPrototypeStatement> proto;
-        bool isExtern;
-    };
-
     class ASTReturnStatement : public ASTStatement
     {
     public:

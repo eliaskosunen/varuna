@@ -15,7 +15,8 @@ namespace ast
     class DumpASTVisitor final : public Visitor
     {
     public:
-        DumpASTVisitor() : astlogger(spdlog::stdout_logger_st("DumpAST"))
+        DumpASTVisitor()
+            : astlogger(util::createLogger(false, "dumpast_logger"))
         {
             astlogger->set_pattern("DumpAST: %v");
             astlogger->flush_on(spdlog::level::warn);
@@ -67,7 +68,6 @@ namespace ast
         void visit(ASTEmptyExpression* node, size_t ind = 0);
         void visit(ASTIdentifierExpression* node, size_t ind = 0);
         void visit(ASTVariableRefExpression* node, size_t ind = 0);
-        void visit(ASTCallExpression* node, size_t ind = 0);
         void visit(ASTCastExpression* node, size_t ind = 0);
         void visit(ASTVariableDefinitionExpression* node, size_t ind = 0);
         void visit(ASTSubscriptExpression* node, size_t ind = 0);
@@ -77,7 +77,6 @@ namespace ast
         void visit(ASTFunctionParameter* node, size_t ind = 0);
         void visit(ASTFunctionPrototypeStatement* node, size_t ind = 0);
         void visit(ASTFunctionDefinitionStatement* node, size_t ind = 0);
-        void visit(ASTFunctionDeclarationStatement* node, size_t ind = 0);
         void visit(ASTReturnStatement* node, size_t ind = 0);
 
         void visit(ASTIntegerLiteralExpression* node, size_t ind = 0);
@@ -90,6 +89,7 @@ namespace ast
         void visit(ASTBinaryOperationExpression* node, size_t ind = 0);
         void visit(ASTUnaryOperationExpression* node, size_t ind = 0);
         void visit(ASTAssignmentOperationExpression* node, size_t ind = 0);
+        void visit(ASTArbitraryOperationExpression* node, size_t ind = 0);
 
         void visit(ASTEmptyStatement* node, size_t ind = 0);
         void visit(ASTBlockStatement* node, size_t ind = 0);

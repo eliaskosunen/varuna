@@ -65,10 +65,6 @@ namespace ast
     {
         v->visit(this, ind);
     }
-    void ASTCallExpression::accept(DumpASTVisitor* v, size_t ind)
-    {
-        v->visit(this, ind);
-    }
     void ASTCastExpression::accept(DumpASTVisitor* v, size_t ind)
     {
         v->visit(this, ind);
@@ -99,10 +95,6 @@ namespace ast
         v->visit(this, ind);
     }
     void ASTFunctionDefinitionStatement::accept(DumpASTVisitor* v, size_t ind)
-    {
-        v->visit(this, ind);
-    }
-    void ASTFunctionDeclarationStatement::accept(DumpASTVisitor* v, size_t ind)
     {
         v->visit(this, ind);
     }
@@ -145,6 +137,10 @@ namespace ast
         v->visit(this, ind);
     }
     void ASTAssignmentOperationExpression::accept(DumpASTVisitor* v, size_t ind)
+    {
+        v->visit(this, ind);
+    }
+    void ASTArbitraryOperationExpression::accept(DumpASTVisitor* v, size_t ind)
     {
         v->visit(this, ind);
     }
@@ -241,18 +237,6 @@ namespace ast
     {
         log(ind, "ASTVariableRefExpression: {}", node->value);
     }
-    void DumpASTVisitor::visit(ASTCallExpression* node, size_t ind)
-    {
-        log(ind, "ASTCallExpression:");
-        log(ind + 1, "Callee:");
-        node->callee->accept(this, ind + 2);
-        log(ind + 1, "CallParameterList:");
-        auto& params = node->params;
-        for(auto&& param : params)
-        {
-            param->accept(this, ind + 2);
-        }
-    }
     void DumpASTVisitor::visit(ASTCastExpression* node, size_t ind)
     {
         log(ind, "ASTCastExpression:");
@@ -265,10 +249,19 @@ namespace ast
                                size_t ind)
     {
         log(ind, "ASTVariableDefinitionExpression:");
-        log(ind + 1, "Type:");
-        node->type->accept(this, ind + 2);
+        log(ind + 1, "InferredType: {}", node->typeInferred);
+        if(node->typeInferred)
+        {
+            log(ind + 1, "Type: (will be inferred)");
+        }
+        else
+        {
+            log(ind + 1, "Type:");
+            node->type->accept(this, ind + 2);
+        }
         log(ind + 1, "Name:");
         node->name->accept(this, ind + 2);
+        log(ind + 1, "Mutable: {}", node->isMutable);
         log(ind + 1, "ArraySize: {}", node->arraySize);
         log(ind + 1, "InitExpression:");
         node->init->accept(this, ind + 2);
@@ -320,14 +313,6 @@ namespace ast
         node->proto->accept(this, ind + 2);
         log(ind + 1, "FunctionBody:");
         node->body->accept(this, ind + 2);
-    }
-    void DumpASTVisitor::visit(ASTFunctionDeclarationStatement* node,
-                               size_t ind)
-    {
-        log(ind, "ASTFunctionDeclarationStatement:");
-        log(ind + 1, "FunctionPrototype:");
-        node->proto->accept(this, ind + 2);
-        log(ind + 1, "isExtern: {}", node->isExtern);
     }
     void DumpASTVisitor::visit(ASTReturnStatement* node, size_t ind)
     {
@@ -399,6 +384,18 @@ namespace ast
         node->lhs->accept(this, ind + 2);
         log(ind + 1, "RHS:");
         node->rhs->accept(this, ind + 2);
+    }
+    void DumpASTVisitor::visit(ASTArbitraryOperationExpression* node,
+                               size_t ind)
+    {
+        log(ind, "ASTArbitraryOperationExpression:");
+        log(ind + 1, "Operator: {}, ({})",
+            lexer::Token::typeToString(node->oper), node->oper);
+        log(ind + 1, "Operands:");
+        for(auto& o : node->operands)
+        {
+            o->accept(this, ind + 2);
+        }
     }
 
     void DumpASTVisitor::visit(ASTEmptyStatement* /*unused*/, size_t ind)

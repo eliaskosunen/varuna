@@ -17,8 +17,6 @@
 #include <limits>
 #include <stack>
 
-// TODO: Needs cleanups and refactoring
-
 namespace core
 {
 namespace parser
@@ -78,10 +76,6 @@ namespace parser
             // Function definition
             case TOKEN_KEYWORD_DEFINE:
                 handleDef();
-                break;
-            // Function declaration
-            case TOKEN_KEYWORD_DECLARE:
-                handleDecl();
                 break;
 
             // Unsupported top-level token
@@ -357,7 +351,7 @@ namespace parser
 
         ++it; // Skip 'for'
 
-        // TODO(elias): Optimize
+        // TODO: Optimize
         // Not utilizing constructors
         // Not sure if possible in C++14
         std::unique_ptr<ASTExpression> init, end, step;
@@ -378,72 +372,129 @@ namespace parser
     Parser::parseVariableDefinition()
     {
         // Variable definition syntax:
-        // var/identifier name [ = init-expression ] ;
+        // let [ mut ] name [ : type ] [ = init-expression ] ;
+        // type <-> [ mut ] name [ = init-expression ] ;
+        // var name [ : type ] [ = init-expression ] ;
 
-        // Parse typename
-        if(it->type != TOKEN_IDENTIFIER && it->type != TOKEN_KEYWORD_VAR)
+        std::string typen = "";
+        std::string name = "";
+        bool mut = false;
+        bool typeDetermined = false;
+        // mut type name
+        if(it->type == TOKEN_KEYWORD_MUT)
         {
-            return parserError("Invalid variable definition: expected typename "
-                               "or 'var', got '{}' instead",
-                               it->value);
-        }
-        std::string typen = it->value;
-        // Whether or not the type will have to
-        // be determined by the type of the init expression
-        bool typeDetermined = it->type == TOKEN_IDENTIFIER;
-        ++it; // Skip typename/'var'
+            mut = true;
+            ++it; // Skip 'mut'
 
-        // Check if it's an array
-        uint32_t arraySize = 0;
-        if(it->type == TOKEN_PUNCT_SQR_OPEN) // It's an array
-        {
-            ++it; // Skip '['
-            // Array size is required
-            auto size = parseIntegerLiteralExpression();
-            if(!size)
+            if(it->type != TOKEN_IDENTIFIER)
             {
-                return parserError("Invalid array size");
+                return parserError("Invalid variable definition: expected "
+                                   "typename after 'mut', got '{}' instead",
+                                   it->value);
             }
+            typen = it->value;
+            typeDetermined = true;
+            ++it; // Skip type
 
-            util::logger->trace("It's an array: {}", size->value);
-            if(size->value < 0)
+            if(it->type != TOKEN_IDENTIFIER)
             {
                 return parserError(
-                    "Invalid array size: Array size cannot be negative, got {}",
-                    size->value);
-            }
-            if(size->value == 0)
-            {
-                return parserError(
-                    "Invalid array size: Array size cannot be 0");
-            }
-            if(size->value > std::numeric_limits<int32_t>::max())
-            {
-                return parserError(
-                    "Invalid array size: Array size cannot exceed {}, got {}",
-                    std::numeric_limits<int32_t>::max(), size->value);
-            }
-            arraySize = static_cast<uint32_t>(size->value);
-
-            // ']' required
-            if(it->type != TOKEN_PUNCT_SQR_CLOSE)
-            {
-                return parserError(
-                    "Invalid array definition: Expected ']', got '{}' instead",
+                    "Invalid variable definition: expected "
+                    "identifier after typename, got '{}' instead",
                     it->value);
             }
-            ++it; // Skip ']'
+            name = it->value;
+            ++it; // Skip name
         }
-
-        // Parse variable name
-        if(it->type != TOKEN_IDENTIFIER)
+        // let [ mut ] name [ : type ]
+        else if(it->type == TOKEN_KEYWORD_LET)
         {
-            return parserError("Invalid variable definition: expected "
-                               "identifier, got '{}' instead",
-                               it->value);
+            ++it; // Skip 'let'
+
+            if(it->type == TOKEN_KEYWORD_MUT)
+            {
+                mut = true;
+                ++it; // Skip 'mut'
+            }
+
+            if(it->type != TOKEN_IDENTIFIER)
+            {
+                return parserError(
+                    "Invalid variable definition: expected "
+                    "identifier after 'let' or 'mut', got '{}' instead",
+                    it->value);
+            }
+            name = it->value;
+            ++it; // Skip name
+
+            if(it->type == TOKEN_PUNCT_COLON)
+            {
+                ++it; // Skip ':'
+
+                if(it->type != TOKEN_IDENTIFIER)
+                {
+                    return parserError("Invalid variable definition: expected "
+                                       "identifier after ':', got '{}' instead",
+                                       it->value);
+                }
+                typen = it->value;
+                typeDetermined = true;
+                ++it; // Skip type
+            }
         }
-        std::string name = it->value;
-        ++it; // Skip variable name
+        // var name [ : type ]
+        else if(it->type == TOKEN_KEYWORD_VAR)
+        {
+            mut = true;
+            ++it; // Skip 'var'
+
+            if(it->type != TOKEN_IDENTIFIER)
+            {
+                return parserError("Invalid variable definition: expected "
+                                   "identifier after 'var', got '{}' instead",
+                                   it->value);
+            }
+            name = it->value;
+            ++it; // Skip name
+
+            if(it->type == TOKEN_PUNCT_COLON)
+            {
+                ++it; // Skip ':'
+
+                if(it->type != TOKEN_IDENTIFIER)
+                {
+                    return parserError("Invalid variable definition: expected "
+                                       "identifier after ':', got '{}' instead",
+                                       it->value);
+                }
+                typen = it->value;
+                typeDetermined = true;
+                ++it; // Skip type
+            }
+        }
+        // type [ mut ] name
+        else if(it->type == TOKEN_IDENTIFIER)
+        {
+            typen = it->value;
+            typeDetermined = true;
+            ++it; // Skip type
+
+            if(it->type == TOKEN_KEYWORD_MUT)
+            {
+                mut = true;
+                ++it; // Skip 'mut'
+            }
+
+            if(it->type != TOKEN_IDENTIFIER)
+            {
+                return parserError(
+                    "Invalid variable definition: expected "
+                    "identifier after 'let' or 'mut', got '{}' instead",
+                    it->value);
+            }
+            name = it->value;
+            ++it; // Skip name
+        }
 
         // Parse possible init expression
         auto init = [&]() -> std::unique_ptr<ASTExpression> {
@@ -466,18 +517,23 @@ namespace parser
         // Type will be inferred by the code generator
         if(!typeDetermined)
         {
-            if(!init)
+            if(!init || init->nodeType == ASTNode::EMPTY_EXPR)
             {
-                return parserError("Invalid variable definition: init "
-                                   "expression is required when using 'var'");
+                return parserError(
+                    "Invalid variable definition: init "
+                    "expression is required when using 'var' or 'let'");
             }
-            return std::make_unique<ASTVariableDefinitionExpression>(
+            auto def = std::make_unique<ASTVariableDefinitionExpression>(
                 std::move(name_), std::move(init));
+            def->isMutable = mut;
+            return def;
         }
 
         auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
-        return std::make_unique<ASTVariableDefinitionExpression>(
-            std::move(typename_), std::move(name_), std::move(init), arraySize);
+        auto def = std::make_unique<ASTVariableDefinitionExpression>(
+            std::move(typename_), std::move(name_), std::move(init));
+        def->isMutable = mut;
+        return def;
     }
 
     std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
@@ -571,10 +627,10 @@ namespace parser
         std::string idName = it->value;
         ++it; // Skip identifier
 
-        // If there is an identifier or a '[' (meaning array) after the initial
+        // If there is an identifier or 'mut' after the
         // identifier,
         // it's a variable definition
-        if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_PUNCT_SQR_OPEN)
+        if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_MUT)
         {
             --it; // Roll back to the previous identifier, which is the typename
             return parseVariableDefinition();
@@ -628,11 +684,12 @@ namespace parser
         return std::move(assignment);
     }
 
-    std::unique_ptr<ast::ASTCallExpression>
+    std::unique_ptr<ast::ASTArbitraryOperationExpression>
     Parser::parseFunctionCallExpression(std::unique_ptr<ASTExpression> lhs)
     {
         ++it; // Skip '('
-        std::vector<std::unique_ptr<ASTExpression>> args;
+        std::vector<std::unique_ptr<ASTExpression>> operands;
+        operands.push_back(std::move(lhs));
         if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
         {
             // Parse argument list
@@ -640,7 +697,7 @@ namespace parser
             {
                 if(auto arg = parseExpression())
                 {
-                    args.push_back(std::move(arg));
+                    operands.push_back(std::move(arg));
                 }
                 else
                 {
@@ -663,8 +720,8 @@ namespace parser
         }
 
         ++it; // Skip ')'
-        return std::make_unique<ASTCallExpression>(std::move(lhs),
-                                                   std::move(args));
+        return std::make_unique<ASTArbitraryOperationExpression>(
+            std::move(operands), lexer::TOKEN_OPERATORC_CALL);
     }
 
     std::unique_ptr<ASTSubscriptExpression>
@@ -1223,23 +1280,6 @@ namespace parser
         }
     }
 
-    void Parser::handleDecl()
-    {
-        if(auto decl = parseFunctionDeclarationStatement())
-        {
-            util::logger->trace("Parsed function declaration:  name: '{}', "
-                                "return: '{}', params.size: '{}'",
-                                decl->proto->name->value,
-                                decl->proto->returnType->value,
-                                decl->proto->params.size());
-            getAST()->pushStatement(std::move(decl));
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
     void Parser::handleEmptyStatement()
     {
         if(auto stmt = emptyStatement())
@@ -1266,6 +1306,8 @@ namespace parser
             return parseReturnStatement();
 
         case TOKEN_KEYWORD_VAR:
+        case TOKEN_KEYWORD_LET:
+        case TOKEN_KEYWORD_MUT:
         case TOKEN_IDENTIFIER:
         {
             auto expr = parseIdentifierExpression();
@@ -1409,6 +1451,15 @@ namespace parser
             return nullptr;
         }
 
+        // Just a declaration
+        if(it->type == TOKEN_PUNCT_SEMICOLON)
+        {
+            ++it; // Skip ';'
+            auto body = std::make_unique<ASTBlockStatement>();
+            return std::make_unique<ASTFunctionDefinitionStatement>(
+                std::move(proto), std::move(body));
+        }
+
         if(it->type != TOKEN_PUNCT_BRACE_OPEN)
         {
             return parserError("Invalid function definition: expected '{' to "
@@ -1421,27 +1472,6 @@ namespace parser
                 std::move(proto), std::move(body));
         }
         return nullptr;
-    }
-
-    std::unique_ptr<ASTFunctionDeclarationStatement>
-    Parser::parseFunctionDeclarationStatement()
-    {
-        ++it; // Skip 'decl'
-        auto proto = parseFunctionPrototype();
-        if(!proto)
-        {
-            return nullptr;
-        }
-
-        if(it->type != TOKEN_PUNCT_SEMICOLON)
-        {
-            return parserError(
-                "Invalid function declaration: expected ';', got '{}' instead",
-                it->value);
-        }
-        ++it; // Skip ';'
-        return std::make_unique<ASTFunctionDeclarationStatement>(
-            std::move(proto));
     }
 
     std::unique_ptr<ASTWrappedExpressionStatement>

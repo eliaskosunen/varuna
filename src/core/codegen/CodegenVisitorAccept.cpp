@@ -70,11 +70,6 @@ core::ast::ASTVariableRefExpression::accept(core::codegen::CodegenVisitor* v)
     return v->visit(this);
 }
 std::unique_ptr<core::codegen::TypedValue>
-core::ast::ASTCallExpression::accept(core::codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<core::codegen::TypedValue>
 core::ast::ASTCastExpression::accept(core::codegen::CodegenVisitor* v)
 {
     return v->visit(this);
@@ -115,12 +110,6 @@ core::ast::ASTFunctionPrototypeStatement::accept(
 }
 std::unique_ptr<core::codegen::TypedValue>
 core::ast::ASTFunctionDefinitionStatement::accept(
-    core::codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<core::codegen::TypedValue>
-core::ast::ASTFunctionDeclarationStatement::accept(
     core::codegen::CodegenVisitor* v)
 {
     return v->visit(this);
@@ -175,6 +164,12 @@ core::ast::ASTUnaryOperationExpression::accept(core::codegen::CodegenVisitor* v)
 }
 std::unique_ptr<core::codegen::TypedValue>
 core::ast::ASTAssignmentOperationExpression::accept(
+    core::codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<core::codegen::TypedValue>
+core::ast::ASTArbitraryOperationExpression::accept(
     core::codegen::CodegenVisitor* v)
 {
     return v->visit(this);

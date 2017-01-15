@@ -11,6 +11,7 @@
 #include "core/ast/ASTStatement.h"
 #include "core/ast/FwdDecl.h"
 #include "core/codegen/CodegenVisitor.h"
+#include "core/codegen/TypeOperation.h"
 
 #define USE_LLVM_FUNCTION_VERIFY 0
 
@@ -32,6 +33,8 @@ namespace codegen
     }
     std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* stmt)
     {
+        symbols.addBlock();
+
         auto cond = stmt->condition->accept(this);
         if(!cond)
         {
@@ -111,6 +114,8 @@ namespace codegen
             elseBB = builder.GetInsertBlock();
         }
 
+        symbols.removeTopBlock();
+
         func->getBasicBlockList().push_back(mergeBB);
         builder.SetInsertPoint(mergeBB);
         return createVoidVal(mergeBB);
@@ -119,6 +124,8 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTForStatement* node)
     {
         llvm::Function* func = builder.GetInsertBlock()->getParent();
+
+        symbols.addBlock();
 
         auto init = node->init->accept(this);
         if(!init)
@@ -187,6 +194,8 @@ namespace codegen
         builder.CreateCondBr(end->value, loopBB, afterBB);
         builder.SetInsertPoint(afterBB);
 
+        symbols.removeTopBlock();
+
         return getTypedDummyValue();
     }
     std::unique_ptr<TypedValue>
@@ -224,9 +233,9 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
     {
-        codegenWarning("Unimplemented CodegenVisitor::visit({})",
-                       node->nodeType.get());
-        return nullptr;
+        auto symbol = symbols.find(node->value);
+        return std::make_unique<TypedValue>(symbol->getType(),
+                                            symbol->value->value);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableRefExpression* expr)
@@ -245,79 +254,6 @@ namespace codegen
         return std::make_unique<TypedValue>(var->getType(), load);
     }
     std::unique_ptr<TypedValue>
-    CodegenVisitor::visit(ast::ASTCallExpression* expr)
-    {
-        auto calleeName =
-            dynamic_cast<ast::ASTIdentifierExpression*>(expr->callee.get())
-                ->value;
-        auto callee = findFunction(calleeName);
-        if(!callee)
-        {
-            return nullptr;
-        }
-        auto calleeval = llvm::cast<llvm::Function>(callee->value->value);
-
-        if(calleeval->arg_size() != expr->params.size())
-        {
-            return codegenError("{} expects {} arguments, {} provided",
-                                calleeName, calleeval->arg_size(),
-                                expr->params.size());
-        }
-
-        std::vector<llvm::Value*> args;
-        for(size_t i = 0; i < expr->params.size(); ++i)
-        {
-            auto arg = expr->params[0].get();
-
-            auto a = arg->accept(this);
-            if(!a)
-            {
-                return nullptr;
-            }
-
-            {
-                auto p = callee->proto->params[i].get();
-                assert(p);
-                auto t = findType(p->var->type->value);
-                assert(t);
-                if(!a->type->isSameOrImplicitlyCastable(*t))
-                {
-                    return codegenError("Invalid function call: Cannot convert "
-                                        "parameter {} from {} to {} when "
-                                        "calling {}",
-                                        i + 1, a->type->name, t->name,
-                                        calleeName);
-                }
-            }
-
-            args.push_back(a->value);
-            if(!args.back())
-            {
-                return nullptr;
-            }
-        }
-
-        auto type = static_cast<FunctionType*>(callee->getType());
-        auto call = [&]() {
-            if(type->returnType->kind == Type::VOID)
-            {
-                auto c = llvm::CallInst::Create(calleeval->getFunctionType(),
-                                                calleeval, args, "calltmp");
-                builder.Insert(c);
-                return c;
-            }
-            return builder.CreateCall(calleeval->getFunctionType(), calleeval,
-                                      args, "calltmp");
-        }();
-
-        auto llvmtype = findType(calleeval->getReturnType());
-        if(!call || !llvmtype)
-        {
-            return nullptr;
-        }
-        return std::make_unique<TypedValue>(llvmtype, call);
-    }
-    std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCastExpression* node)
     {
         auto castee = node->castee->accept(this);
@@ -326,7 +262,7 @@ namespace codegen
             return nullptr;
         }
 
-        auto t = findType(node->type->value);
+        auto t = types.findDecorated(node->type->value);
         if(!t)
         {
             return nullptr;
@@ -362,28 +298,28 @@ namespace codegen
             }
         }
 
-        // Deduce type
+        // Infer type
         Type* type = nullptr;
-        if(expr->typeDeduced)
+        if(expr->typeInferred)
         {
-            type = findType(expr->type->value);
+            type = init->type;
+        }
+        else
+        {
+            type = types.findDecorated(expr->type->value);
             if(!type)
             {
                 return nullptr;
             }
-        }
-        else
-        {
-            type = init->type;
         }
 
         // Type checks
         if(!type->isSized())
         {
             return codegenError("Cannot create a variable of unsized type: {}",
-                                type->name);
+                                type->getDecoratedName());
         }
-        if(findType(expr->name->value, false))
+        if(types.isDefinedUndecorated(expr->name->value) != 0)
         {
             return codegenError(
                 "Cannot name variable as '{}': Reserved typename",
@@ -394,7 +330,16 @@ namespace codegen
         // Init as undefined
         if(!init)
         {
-            codegenWarning("Uninitialized variable: {}", expr->name->value);
+            if(expr->isMutable)
+            {
+                codegenWarning("Uninitialized variable: {}", expr->name->value);
+            }
+            else
+            {
+                codegenWarning(
+                    "Useless variable: Uninitialized immutable variable: {}",
+                    expr->name->value);
+            }
             init = std::make_unique<TypedValue>(
                 type, llvm::UndefValue::get(type->type));
             if(!init)
@@ -408,7 +353,7 @@ namespace codegen
         {
             return codegenError(
                 "Invalid init expression: Cannot assign {} to {}",
-                init->type->name, type->name);
+                init->type->getDecoratedName(), type->getDecoratedName());
         }
 
         // Codegen
@@ -423,88 +368,6 @@ namespace codegen
             std::make_pair(expr->name->value, std::move(var)));
 
         return std::make_unique<TypedValue>(type, init->value);
-
-#if 0
-        llvm::Function* func = builder.GetInsertBlock()->getParent();
-
-        auto t = findType(expr->type->value);
-        if(!t)
-        {
-            return nullptr;
-        }
-        llvm::Type* type = t->type;
-
-        if(!t->isSized())
-        {
-            return codegenError("Cannot create a variable of unsized type: {}",
-                                t->name);
-        }
-
-        if(findType(expr->name->value, false))
-        {
-            return codegenError(
-                "Cannot name variable as '{}': Reserved typename",
-                expr->name->value);
-        }
-
-        auto init = expr->init.get();
-        llvm::Value* initVal = nullptr;
-        if(init->nodeType == ast::ASTNode::EMPTY_EXPR)
-        {
-            codegenWarning("Uninitialized variable: {}", expr->name->value);
-            initVal = llvm::UndefValue::get(type);
-            /*initVal = [type]() -> llvm::Value*
-            {
-                if(type->isIntegerTy())
-                {
-                    return llvm::ConstantInt::get(type, 0, false);
-                }
-                else if(type->isFloatingPointTy())
-                {
-                    return llvm::ConstantFP::get(type, 0.0);
-                }
-                else if(type->isPointerTy())
-                {
-                    return
-            llvm::ConstantPointerNull::get(llvm::cast<llvm::PointerType>(type));
-                }
-                return llvm::UndefValue::get(type);
-            }();*/
-        }
-        else
-        {
-            auto initExpr = init->accept(this);
-            if(!initExpr)
-            {
-                return nullptr;
-            }
-
-            auto tname = initExpr->type->name;
-            auto cast = checkTypedValue(std::move(initExpr), *t);
-            if(!cast)
-            {
-                return codegenError(
-                    "Invalid init expression: Cannot assign {} to {}", tname,
-                    t->name);
-            }
-            initVal = cast->value;
-        }
-        if(!initVal)
-        {
-            return nullptr;
-        }
-
-        auto alloca = createEntryBlockAlloca(func, type, expr->name->value);
-        builder.CreateStore(initVal, alloca);
-
-        auto ty = findType(type);
-        auto var = std::make_unique<Symbol>(
-            std::make_unique<TypedValue>(ty, alloca), expr->name->value);
-        symbols.getTop().insert(
-            std::make_pair(expr->name->value, std::move(var)));
-
-        return std::make_unique<TypedValue>(ty, initVal);
-#endif
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTSubscriptExpression* node)
@@ -534,7 +397,7 @@ namespace codegen
         llvm::Function* func = builder.GetInsertBlock()->getParent();
         const auto var = node->var.get();
 
-        auto type = findType(var->type->value);
+        auto type = types.findDecorated(var->type->value);
         if(!type)
         {
             return nullptr;
@@ -544,10 +407,11 @@ namespace codegen
         if(!type->isSized())
         {
             return codegenError(
-                "Function parameter cannot be of unsized type: {}", type->name);
+                "Function parameter cannot be of unsized type: {}",
+                type->getName());
         }
 
-        if(findType(var->name->value, false))
+        if(types.isDefinedUndecorated(var->name->value) != 0)
         {
             return codegenError(
                 "Cannot name function parameter as '{}': Reserved typename",
@@ -564,15 +428,14 @@ namespace codegen
                 return nullptr;
             }
 
-            auto typeName = initExpr->type->name;
-            auto cast = checkTypedValue(std::move(initExpr), *type);
-            if(!cast)
+            auto typeName = initExpr->type->getDecoratedName();
+            if(!initExpr->type->isSameOrImplicitlyCastable(*type))
             {
                 return codegenError(
                     "Invalid init expression: Cannot assign {} to {}", typeName,
-                    type->name);
+                    type->getDecoratedName());
             }
-            initVal = cast->value;
+            initVal = initExpr->value;
         }
 
         auto alloca = createEntryBlockAlloca(func, llvmtype, var->name->value);
@@ -595,7 +458,7 @@ namespace codegen
         args.reserve(stmt->params.size());
         for(const auto& arg : stmt->params)
         {
-            auto t = findType(arg->var->type->value);
+            auto t = types.findDecorated(arg->var->type->value);
             if(!t)
             {
                 return nullptr;
@@ -603,7 +466,7 @@ namespace codegen
             args.push_back(t->type);
         }
 
-        auto rt = findType(stmt->returnType->value);
+        auto rt = types.findDecorated(stmt->returnType->value);
         if(!rt)
         {
             return nullptr;
@@ -629,7 +492,7 @@ namespace codegen
         // If absent create one
         const auto proto = stmt->proto.get();
         const auto name = proto->name->value;
-        auto returnType = findType(proto->returnType->value);
+        auto returnType = types.findDecorated(proto->returnType->value);
         if(!returnType)
         {
             return nullptr;
@@ -637,7 +500,7 @@ namespace codegen
         std::vector<Type*> paramTypes;
         for(const auto& p : proto->params)
         {
-            auto t = findType(p->var->type->value);
+            auto t = types.findDecorated(p->var->type->value);
             if(!t)
             {
                 return nullptr;
@@ -645,14 +508,14 @@ namespace codegen
             paramTypes.push_back(t);
         }
 
-        auto functionTypeBase = findType(
+        auto functionTypeBase = types.findDecorated(
             FunctionType::functionTypeToString(returnType, paramTypes), false);
         if(!functionTypeBase)
         {
-            auto ft = std::make_unique<FunctionType>(context, dbuilder,
+            auto ft = std::make_unique<FunctionType>(&types, context, dbuilder,
                                                      returnType, paramTypes);
             functionTypeBase = ft.get();
-            types.insert(std::make_pair(ft->name, std::move(ft)));
+            types.insertType(std::move(ft));
         }
         auto functionType = static_cast<FunctionType*>(functionTypeBase);
 
@@ -665,6 +528,11 @@ namespace codegen
         }
         auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
 
+        // Empty block statement, declaration
+        if(stmt->body->nodes.empty())
+        {
+            return std::make_unique<TypedValue>(functionType, llvmfunc);
+        }
         auto entry = llvm::BasicBlock::Create(context, "entry", llvmfunc);
         builder.SetInsertPoint(entry);
 
@@ -729,60 +597,6 @@ namespace codegen
         return std::make_unique<TypedValue>(functionType, llvmfunc);
     }
     std::unique_ptr<TypedValue>
-    CodegenVisitor::visit(ast::ASTFunctionDeclarationStatement* stmt)
-    {
-        // Check for function type
-        // If absent create one
-        const auto proto = stmt->proto.get();
-        const auto name = proto->name->value;
-        auto returnType = findType(proto->returnType->value);
-        if(!returnType)
-        {
-            return nullptr;
-        }
-        std::vector<Type*> paramTypes;
-        for(const auto& p : proto->params)
-        {
-            auto t = findType(p->var->type->value);
-            if(!t)
-            {
-                return nullptr;
-            }
-            paramTypes.push_back(t);
-        }
-
-        auto functionTypeBase = findType(
-            FunctionType::functionTypeToString(returnType, paramTypes), false);
-        if(!functionTypeBase)
-        {
-            auto ft = std::make_unique<FunctionType>(context, dbuilder,
-                                                     returnType, paramTypes);
-            functionTypeBase = ft.get();
-            types.insert(std::make_pair(ft->name, std::move(ft)));
-        }
-        auto functionType = static_cast<FunctionType*>(functionTypeBase);
-
-        // Check for declaration
-        // If absent declare
-        auto func = declareFunction(functionType, name, proto);
-        if(!func)
-        {
-            return nullptr;
-        }
-        auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
-#if USE_LLVM_FUNCTION_VERIFY
-        if(!llvm::verifyFunction(*llvmfunc))
-        {
-            codegenError("Function verification failed");
-            util::logger->trace("Invalid function dump:");
-            llvmfunc->dump();
-            llvmfunc->eraseFromParent();
-            return nullptr;
-        }
-#endif
-        return std::make_unique<TypedValue>(functionType, llvmfunc);
-    }
-    std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTReturnStatement* stmt)
     {
         if(stmt->returnValue->nodeType == ast::ASTNode::EMPTY_EXPR)
@@ -799,7 +613,7 @@ namespace codegen
 
         auto f = getASTNodeFunction(stmt);
         if(!ret->type->isSameOrImplicitlyCastable(
-               *findType(f->returnType->value)))
+               *types.findDecorated(f->returnType->value)))
         {
             return nullptr;
         }
@@ -811,14 +625,14 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* expr)
     {
-        auto t = findType(expr->type->value);
+        auto t = types.findDecorated(expr->type->value);
         auto val = llvm::ConstantInt::getSigned(t->type, expr->value);
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTFloatLiteralExpression* expr)
     {
-        auto t = findType(expr->type->value);
+        auto t = types.findDecorated(expr->type->value);
         auto val = llvm::ConstantFP::get(t->type, expr->value);
         return std::make_unique<TypedValue>(t, val);
     }
@@ -826,7 +640,8 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTStringLiteralExpression* expr)
     {
         auto str = createStringConstant(expr->value.c_str());
-        return std::make_unique<TypedValue>(findType("string_t"), str);
+        return std::make_unique<TypedValue>(types.findDecorated("string_t"),
+                                            str);
 
         /*auto t = findType("string");
         if(!t)
@@ -872,14 +687,14 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCharLiteralExpression* expr)
     {
-        auto t = findType("char");
+        auto t = types.findDecorated("char");
         auto val = llvm::ConstantInt::get(t->type, expr->value);
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTBoolLiteralExpression* expr)
     {
-        auto t = findType("bool");
+        auto t = types.findDecorated("bool");
         auto val =
             llvm::ConstantInt::get(t->type, static_cast<uint64_t>(expr->value));
         return std::make_unique<TypedValue>(t, val);
@@ -896,236 +711,76 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTBinaryOperationExpression* expr)
     {
         auto lhs = expr->lhs->accept(this);
-        auto rhs_ = expr->rhs->accept(this);
-        if(!lhs || !rhs_)
+        if(!lhs)
         {
             return nullptr;
         }
 
-        auto rhs = checkTypedValue(std::move(rhs_), *lhs->type);
+        auto rhs = expr->rhs->accept(this);
         if(!rhs)
         {
             return nullptr;
         }
 
-        auto type = lhs->type;
-
-        auto boolType = findType("bool");
-
-        if(expr->oper == lexer::TOKEN_OPERATORB_EQ)
-        {
-            if(type->isIntegral())
-            {
-                return std::make_unique<TypedValue>(
-                    boolType,
-                    builder.CreateICmpEQ(lhs->value, rhs->value, "eqtmp"));
-            }
-            if(type->isFloatingPoint())
-            {
-                return std::make_unique<TypedValue>(
-                    boolType,
-                    builder.CreateFCmpOEQ(lhs->value, rhs->value, "eqtmp"));
-            }
-            return codegenError("Cannot perform eq operation on {}",
-                                type->name);
-        }
-        if(expr->oper == lexer::TOKEN_OPERATORB_NOTEQ)
-        {
-            if(type->isIntegral())
-            {
-                return std::make_unique<TypedValue>(
-                    boolType,
-                    builder.CreateICmpNE(lhs->value, rhs->value, "noteqtmp"));
-            }
-            if(type->isFloatingPoint())
-            {
-                return std::make_unique<TypedValue>(
-                    boolType,
-                    builder.CreateFCmpONE(lhs->value, rhs->value, "noteqtmp"));
-            }
-            return codegenError("Cannot perform noteq operation on {}",
-                                type->name);
-        }
-
-        auto inst = [&]() -> llvm::Value* {
-            switch(expr->oper.get())
-            {
-            case lexer::TOKEN_OPERATORB_ADD:
-                if(type->isIntegral())
-                {
-                    return builder.CreateAdd(lhs->value, rhs->value, "addtmp");
-                }
-                else if(type->isFloatingPoint())
-                {
-                    return builder.CreateFAdd(lhs->value, rhs->value, "addtmp");
-                }
-                return codegenError("Cannot perform add operation on {}",
-                                    type->name);
-            case lexer::TOKEN_OPERATORB_SUB:
-                if(type->isIntegral())
-                {
-                    return builder.CreateSub(lhs->value, rhs->value, "subtmp");
-                }
-                else if(type->isFloatingPoint())
-                {
-                    return builder.CreateFSub(lhs->value, rhs->value, "subtmp");
-                }
-                return codegenError("Cannot perform sub operation on {}",
-                                    type->name);
-            case lexer::TOKEN_OPERATORB_MUL:
-                if(type->isIntegral())
-                {
-                    return builder.CreateMul(lhs->value, rhs->value, "multmp");
-                }
-                else if(type->isFloatingPoint())
-                {
-                    return builder.CreateFMul(lhs->value, rhs->value, "multmp");
-                }
-                return codegenError("Cannot perform mul operation on {}",
-                                    type->name);
-            case lexer::TOKEN_OPERATORB_DIV:
-                if(type->isIntegral())
-                {
-                    return builder.CreateSDiv(lhs->value, rhs->value, "divtmp");
-                }
-                else if(type->isFloatingPoint())
-                {
-                    return builder.CreateFDiv(lhs->value, rhs->value, "divtmp");
-                }
-                return codegenError("Cannot perform div operation on {}",
-                                    type->name);
-            case lexer::TOKEN_OPERATORB_REM:
-                if(type->isIntegral())
-                {
-                    return builder.CreateSRem(lhs->value, rhs->value, "remtmp");
-                }
-                else if(type->isFloatingPoint())
-                {
-                    return builder.CreateFRem(lhs->value, rhs->value, "remtmp");
-                }
-                return codegenError("Cannot perform rem operation on {}",
-                                    type->name);
-
-            default:
-                return codegenError("Unimplemented binary operator");
-            }
-        }();
-        if(!inst)
-        {
-            return nullptr;
-        }
-        return std::make_unique<TypedValue>(type, inst);
+        std::vector<std::unique_ptr<TypedValue>> operands;
+        operands.push_back(std::move(lhs));
+        operands.push_back(std::move(rhs));
+        return operands.front()->type->getOperations()->binaryOperation(
+            builder, expr->oper, std::move(operands));
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTUnaryOperationExpression* expr)
     {
+
         auto operand = expr->operand->accept(this);
         if(!operand)
         {
             return nullptr;
         }
 
-        auto operandType = operand->type;
-
-        if(expr->oper == lexer::TOKEN_OPERATORU_PLUS)
-        {
-            bool castError = false, castNeeded = true;
-            llvm::Instruction::CastOps castop = operandType->defaultCast;
-            auto type = findType("int");
-
-            std::tie(castError, castNeeded, castop) =
-                operandType->cast(Type::CAST, *type);
-            if(castError)
-            {
-                return nullptr;
-            }
-            if(!castNeeded)
-            {
-                return std::make_unique<TypedValue>(operand->type,
-                                                    operand->value);
-            }
-
-            auto cast = builder.CreateCast(castop, operand->value, type->type,
-                                           "casttmp");
-            return std::make_unique<TypedValue>(type, cast);
-        }
-        auto inst = [&]() -> llvm::Value* {
-            switch(expr->oper.get())
-            {
-            case lexer::TOKEN_OPERATORU_PLUS:
-                // Handled earlier
-                llvm_unreachable("Unary + already handled");
-            case lexer::TOKEN_OPERATORU_MINUS:
-                if(operandType->isIntegral())
-                {
-                    return builder.CreateNeg(operand->value, "negtmp");
-                }
-                else if(operandType->isFloatingPoint())
-                {
-                    return builder.CreateFNeg(operand->value, "negtmp");
-                }
-                return codegenError(
-                    "Type mismatch: Cannot perform neg on this type");
-            case lexer::TOKEN_OPERATORU_NOT:
-                if(operandType->isIntegral())
-                {
-                    return builder.CreateNot(operand->value, "nottmp");
-                }
-                else if(operandType->isFloatingPoint())
-                {
-                    return builder.CreateNot(operand->value, "nottmp");
-                }
-                return codegenError(
-                    "Type mismatch: Cannot perform not on this type");
-            default:
-                return codegenError("Unimplemented unary operator"); // TODO
-            }
-        }();
-
-        if(!inst)
-        {
-            return nullptr;
-        }
-        return std::make_unique<TypedValue>(operandType, inst);
+        std::vector<std::unique_ptr<TypedValue>> operands;
+        operands.push_back(std::move(operand));
+        return operands.front()->type->getOperations()->unaryOperation(
+            builder, expr->oper, std::move(operands));
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTAssignmentOperationExpression* node)
     {
-        if(node->oper != lexer::TOKEN_OPERATORA_SIMPLE)
-        {
-            codegenWarning(
-                "Unimplemented CodegenVisitor::visit({}) for this operator",
-                node->nodeType.get());
-            return nullptr;
-        }
-
-        auto lhs =
-            dynamic_cast<ast::ASTVariableRefExpression*>(node->lhs.get());
+        auto lhs = node->lhs->accept(this);
         if(!lhs)
         {
-            return codegenError("'=' requires lhs to be a variable");
-        }
-
-        auto val = node->rhs->accept(this);
-        if(!val)
-        {
-            codegenWarning("Assignment operator rhs codegen failed");
             return nullptr;
         }
 
-        auto varit = symbols.find(lhs->value);
-        if(!varit)
+        auto rhs = node->rhs->accept(this);
+        if(!rhs)
         {
-            return codegenError("Undefined variable '{}'", lhs->value);
+            return nullptr;
         }
 
-        auto var = varit->value->value;
-        if(!var)
+        std::vector<std::unique_ptr<TypedValue>> operands;
+        operands.push_back(std::move(lhs));
+        operands.push_back(std::move(rhs));
+        return operands.front()->type->getOperations()->assignmentOperation(
+            builder, node->oper, std::move(operands));
+    }
+    std::unique_ptr<TypedValue>
+    CodegenVisitor::visit(ast::ASTArbitraryOperationExpression* node)
+    {
+        std::vector<std::unique_ptr<TypedValue>> operands;
+
+        for(auto& o : node->operands)
         {
-            return codegenError("Variable value is null");
+            auto v = o->accept(this);
+            if(!v)
+            {
+                return nullptr;
+            }
+            operands.push_back(std::move(v));
         }
-        builder.CreateStore(val->value, var);
-        return val;
+
+        return operands.front()->type->getOperations()->arbitraryOperation(
+            builder, node->oper, std::move(operands));
     }
 
     std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyStatement*)

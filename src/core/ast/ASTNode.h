@@ -21,10 +21,10 @@ namespace ast
             NODE = -1,
 
             EXPR = 0,
+            ARBITRARY_OPERATION_EXPR,
             ASSIGNMENT_OPERATION_EXPR,
             BINARY_OPERATION_EXPR,
             BOOL_LITERAL_EXPR,
-            CALL_EXPR,
             CAST_EXPR = 5,
             CHAR_LITERAL_EXPR,
             EMPTY_EXPR,
@@ -45,13 +45,12 @@ namespace ast
             EMPTY_STMT,
             FOREACH_STMT,
             FOR_STMT,
-            FUNCTION_DECL_STMT = 105,
-            FUNCTION_DEF_STMT,
+            FUNCTION_DEF_STMT = 105,
             FUNCTION_PARAMETER,
             FUNCTION_PROTO_STMT,
             IF_STMT,
-            IMPORT_STMT = 110,
-            MODULE_STMT,
+            IMPORT_STMT,
+            MODULE_STMT = 110,
             RETURN_STMT,
             WHILE_STMT,
             WRAPPED_EXPR_STMT
@@ -85,7 +84,7 @@ namespace ast
 
         ASTNode* _getFunction()
         {
-            if(nodeType == FUNCTION_DECL_STMT || nodeType == FUNCTION_DEF_STMT)
+            if(nodeType == FUNCTION_DEF_STMT)
             {
                 return this;
             }

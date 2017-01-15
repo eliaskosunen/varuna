@@ -62,10 +62,6 @@ namespace codegen
     {
         return true;
     }
-    bool GrammarCheckerVisitor::visit(ast::ASTCallExpression*)
-    {
-        return true;
-    }
     bool GrammarCheckerVisitor::visit(ast::ASTCastExpression*)
     {
         return true;
@@ -117,10 +113,6 @@ namespace codegen
         }
         return node->body->accept(this);
     }
-    bool GrammarCheckerVisitor::visit(ast::ASTFunctionDeclarationStatement*)
-    {
-        return true;
-    }
     bool GrammarCheckerVisitor::visit(ast::ASTReturnStatement*)
     {
         return true;
@@ -160,6 +152,10 @@ namespace codegen
         return true;
     }
     bool GrammarCheckerVisitor::visit(ast::ASTAssignmentOperationExpression*)
+    {
+        return true;
+    }
+    bool GrammarCheckerVisitor::visit(ast::ASTArbitraryOperationExpression*)
     {
         return true;
     }
