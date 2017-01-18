@@ -2,7 +2,7 @@
 
 ./bin/tests
 
-./format.sh
+./scripts/format.sh
 
 git status
 

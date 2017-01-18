@@ -2,7 +2,7 @@
 
 def main(): int
 {
-    let i = 0;
-    i = 1; // Error!
-    return i;
+    let mut a = 1;
+    a = 0;
+    return a;
 }

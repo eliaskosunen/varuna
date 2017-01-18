@@ -41,34 +41,15 @@ namespace codegen
             return nullptr;
         }
 
-        auto boolcond = [&]() -> llvm::Value* {
-            if(!cond->type->isSized())
-            {
-                return codegenError(
-                    "Unsized type cannot be used in if condition");
-            }
-            if(cond->type->kind == Type::BOOL)
-            {
-                return cond->value;
-            }
-            if(cond->type->isIntegral())
-            {
-                return builder.CreateICmpNE(
-                    cond->value, llvm::ConstantInt::get(cond->type->type, 0),
-                    "ifcond");
-            }
-            if(cond->type->isFloatingPoint())
-            {
-                return builder.CreateFCmpONE(
-                    cond->value, llvm::ConstantFP::get(cond->type->type, 0.0),
-                    "ifcond");
-            }
-            return nullptr;
-        }();
+        auto boolt = types.find("bool");
+        assert(boolt);
+        auto boolcond =
+            cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
         if(!boolcond)
         {
-            return codegenError("Unable to compare if condition with 0");
+            return nullptr;
         }
+        auto boolcondllvm = boolcond->value;
 
         llvm::Function* func = builder.GetInsertBlock()->getParent();
 
@@ -81,11 +62,11 @@ namespace codegen
 
         if(elseExists)
         {
-            builder.CreateCondBr(boolcond, thenBB, elseBB);
+            builder.CreateCondBr(boolcondllvm, thenBB, elseBB);
         }
         else
         {
-            builder.CreateCondBr(boolcond, thenBB, mergeBB);
+            builder.CreateCondBr(boolcondllvm, thenBB, mergeBB);
         }
 
         builder.SetInsertPoint(thenBB);
@@ -268,21 +249,7 @@ namespace codegen
             return nullptr;
         }
 
-        bool castError = false, castNeeded = true;
-        llvm::Instruction::CastOps castop = t->defaultCast;
-        std::tie(castError, castNeeded, castop) =
-            castee->type->cast(Type::CAST, *t);
-        if(castError)
-        {
-            return nullptr;
-        }
-        if(!castNeeded)
-        {
-            return castee;
-        }
-        auto cast =
-            builder.CreateCast(castop, castee->value, t->type, "casttmp");
-        return std::make_unique<TypedValue>(t, cast);
+        return castee->type->cast(builder, Type::CAST, castee->value, t);
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* expr)
@@ -302,15 +269,19 @@ namespace codegen
         Type* type = nullptr;
         if(expr->typeInferred)
         {
-            type = init->type;
+            type = types.find(init->type->getName(),
+                              expr->isMutable ? TypeTable::FIND_MUTABLE
+                                              : TypeTable::FIND_DEFAULT);
         }
         else
         {
-            type = types.findDecorated(expr->type->value);
-            if(!type)
-            {
-                return nullptr;
-            }
+            type = types.find(expr->type->value, expr->isMutable
+                                                     ? TypeTable::FIND_MUTABLE
+                                                     : TypeTable::FIND_DEFAULT);
+        }
+        if(!type)
+        {
+            return nullptr;
         }
 
         // Type checks
@@ -349,7 +320,7 @@ namespace codegen
         }
 
         // Check init type
-        if(!type->isSameOrImplicitlyCastable(*init->type))
+        if(!type->isSameOrImplicitlyCastable(builder, init->value, init->type))
         {
             return codegenError(
                 "Invalid init expression: Cannot assign {} to {}",
@@ -429,7 +400,8 @@ namespace codegen
             }
 
             auto typeName = initExpr->type->getDecoratedName();
-            if(!initExpr->type->isSameOrImplicitlyCastable(*type))
+            if(!initExpr->type->isSameOrImplicitlyCastable(
+                   builder, initExpr->value, type))
             {
                 return codegenError(
                     "Invalid init expression: Cannot assign {} to {}", typeName,
@@ -564,7 +536,7 @@ namespace codegen
         if(!stmt->body->accept(this))
         {
             llvmfunc->eraseFromParent();
-            codegenWarning("Invalid function body");
+            codegenWarning("Function body code generation failed");
             return nullptr;
         }
 
@@ -612,8 +584,9 @@ namespace codegen
         }
 
         auto f = getASTNodeFunction(stmt);
-        if(!ret->type->isSameOrImplicitlyCastable(
-               *types.findDecorated(f->returnType->value)))
+        auto retType = types.findDecorated(f->returnType->value);
+        assert(retType);
+        if(!ret->type->isSameOrImplicitlyCastable(builder, ret->value, retType))
         {
             return nullptr;
         }
@@ -695,8 +668,8 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTBoolLiteralExpression* expr)
     {
         auto t = types.findDecorated("bool");
-        auto val =
-            llvm::ConstantInt::get(t->type, static_cast<uint64_t>(expr->value));
+        auto val = expr->value ? llvm::ConstantInt::getTrue(context)
+                               : llvm::ConstantInt::getFalse(context);
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>

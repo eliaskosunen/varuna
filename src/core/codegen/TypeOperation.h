@@ -91,6 +91,27 @@ namespace codegen
             std::vector<std::unique_ptr<TypedValue>> operands) const override;
     };
 
+    class BoolTypeOperation : public TypeOperationBase
+    {
+    public:
+        BoolTypeOperation(BoolType* pType) : TypeOperationBase(pType)
+        {
+        }
+
+        std::unique_ptr<TypedValue> assignmentOperation(
+            llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+        std::unique_ptr<TypedValue> unaryOperation(
+            llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+        std::unique_ptr<TypedValue> binaryOperation(
+            llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+        std::unique_ptr<TypedValue> arbitraryOperation(
+            llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+            std::vector<std::unique_ptr<TypedValue>> operands) const override;
+    };
+
     class FPTypeOperation : public TypeOperationBase
     {
     public:

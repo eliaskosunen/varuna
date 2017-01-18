@@ -53,7 +53,8 @@ namespace codegen
         castNeeded
         castOperation
          */
-        using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
+        // using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
+        using CastTuple = std::tuple<bool, std::unique_ptr<TypedValue>>;
         const decltype(llvm::Instruction::BitCast) defaultCast =
             llvm::Instruction::BitCast;
 
@@ -67,29 +68,20 @@ namespace codegen
         virtual ~Type() noexcept;
 
         template <typename... Args>
-        CastTuple castError(const std::string& format, Args&&... args) const
+        std::nullptr_t castError(const std::string& format,
+                                 Args&&... args) const
         {
             util::logger->error(format.c_str(), std::forward<Args>(args)...);
-            return CastTuple{true, false, defaultCast};
+            return nullptr;
         }
 
-        virtual CastTuple cast(CastType c, const Type& to) const = 0;
+        virtual std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder,
+                                                 CastType c, llvm::Value* val,
+                                                 Type* to) const = 0;
+        // virtual CastTuple cast(CastType c, Type* to) const = 0;
 
-        bool isSameOrImplicitlyCastable(const Type& to) const
-        {
-            if(*this == to)
-            {
-                return true;
-            }
-
-            bool isError, castNeeded;
-            std::tie(isError, castNeeded, std::ignore) = cast(IMPLICIT, to);
-            if(isError || castNeeded)
-            {
-                return false;
-            }
-            return true;
-        }
+        bool isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
+                                        llvm::Value* val, Type* to) const;
 
         virtual bool isSized() const
         {
@@ -98,13 +90,48 @@ namespace codegen
         virtual bool isIntegral() const = 0;
         virtual bool isFloatingPoint() const = 0;
 
-        bool operator==(const Type& t) const
+        bool equal(const Type& t) const
         {
             return kind == t.kind && getDecoratedName() == t.getDecoratedName();
         }
+        bool inequal(const Type& t) const
+        {
+            return equal(t);
+        }
+        bool equal(Type* t) const
+        {
+            return kind == t->kind &&
+                   getDecoratedName() == t->getDecoratedName();
+        }
+        bool inequal(Type* t) const
+        {
+            return equal(t);
+        }
+
+        bool operator==(const Type& t) const
+        {
+            return equal(t);
+        }
         bool operator!=(const Type& t) const
         {
-            return !(*this == t);
+            return inequal(t);
+        }
+
+        bool basicEqual(const Type& t) const
+        {
+            return kind == t.kind && getName() == t.getName();
+        }
+        bool basicInequal(const Type& t) const
+        {
+            return !basicEqual(t);
+        }
+        bool basicEqual(Type* t) const
+        {
+            return kind == t->kind && getName() == t->getName();
+        }
+        bool basicInequal(Type* t) const
+        {
+            return !basicEqual(t);
         }
 
         TypeTable* typeTable;
@@ -131,7 +158,9 @@ namespace codegen
         TypeOperationBase* getOperations() const;
 
     protected:
-        CastTuple implicitCast(const Type& to) const;
+        std::unique_ptr<TypedValue> implicitCast(llvm::IRBuilder<>& builder,
+                                                 llvm::Value* val,
+                                                 Type* to) const;
 
     private:
         std::string name;
@@ -145,7 +174,9 @@ namespace codegen
         VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
                  bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isSized() const override;
         bool isIntegral() const override;
@@ -159,7 +190,9 @@ namespace codegen
                      llvm::Type* t, llvm::DIType* d, const std::string& n,
                      bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -202,11 +235,18 @@ namespace codegen
                   llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
-    class BoolType : public IntegralType
+    class BoolType : public Type
     {
     public:
         BoolType(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder, bool mut = false);
+
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
+
+        bool isIntegral() const override;
+        bool isFloatingPoint() const override;
     };
 
     class CharType : public Type
@@ -215,7 +255,9 @@ namespace codegen
         CharType(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder, bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -227,7 +269,9 @@ namespace codegen
         ByteType(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder, bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -240,7 +284,9 @@ namespace codegen
                llvm::Type* t, llvm::DIType* d, const std::string& n,
                bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -275,7 +321,9 @@ namespace codegen
         StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
                    bool mut = false);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -296,7 +344,9 @@ namespace codegen
         functionTypeToString(Type* returnType,
                              const std::vector<Type*>& params);
 
-        CastTuple cast(CastType c, const Type& to) const override;
+        std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+                                         llvm::Value* val,
+                                         Type* to) const override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;

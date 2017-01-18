@@ -6,6 +6,7 @@
 
 #include "core/codegen/Type.h"
 #include "util/Logger.h"
+#include "util/SafeEnum.h"
 
 namespace core
 {
@@ -16,11 +17,23 @@ namespace codegen
     public:
         TypeTable() = default;
 
+        enum FindFlags_t : uint32_t
+        {
+            FIND_DEFAULT = 0,
+            FIND_MUTABLE = 1 << 0
+        };
+        using FindFlags = util::SafeEnum<FindFlags_t, uint32_t>;
+
+        Type* find(const std::string& name, FindFlags flags = FIND_DEFAULT,
+                   bool logError = true);
         std::vector<Type*> findUndecorated(const std::string& name,
                                            bool logError = true);
         Type* findDecorated(const std::string& name, bool logError = true);
         std::vector<Type*> findLLVM(llvm::Type* type, bool logError = true);
 
+        const Type* find(const std::string& name,
+                         FindFlags flags = FIND_DEFAULT,
+                         bool logError = true) const;
         const std::vector<Type*> findUndecorated(const std::string& name,
                                                  bool logError = true) const;
         const Type* findDecorated(const std::string& name,
@@ -28,6 +41,8 @@ namespace codegen
         const std::vector<Type*> findLLVM(llvm::Type* type,
                                           bool logError = true) const;
 
+        size_t isDefined(const std::string& name,
+                         FindFlags = FIND_DEFAULT) const;
         size_t isDefinedUndecorated(const std::string& name) const;
         size_t isDefinedDecorated(const std::string& name) const;
         size_t isDefinedLLVM(llvm::Type* type) const;
@@ -35,7 +50,8 @@ namespace codegen
         template <typename T>
         void insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder);
         template <typename T>
-        void insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder, bool mut);
+        void insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder,
+                        bool mut);
 
         void insertType(std::unique_ptr<Type> type);
 
@@ -58,7 +74,8 @@ namespace codegen
     };
 
     template <typename T>
-    inline void TypeTable::insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder)
+    inline void TypeTable::insertType(llvm::LLVMContext& context,
+                                      llvm::DIBuilder& dbuilder)
     {
         list.push_back(std::make_unique<T>(this, context, dbuilder));
     }
@@ -84,6 +101,11 @@ namespace codegen
         }
     }
 
+    inline size_t TypeTable::isDefined(const std::string& name,
+                                       TypeTable::FindFlags flags) const
+    {
+        return (find(name, flags, false) != nullptr);
+    }
     inline size_t TypeTable::isDefinedUndecorated(const std::string& name) const
     {
         return findUndecorated(name, false).size();
@@ -97,6 +119,39 @@ namespace codegen
         return findLLVM(type, false).size();
     }
 
+    inline Type* TypeTable::find(const std::string& name,
+                                 TypeTable::FindFlags flags, bool logError)
+    {
+        auto p = [&](const std::unique_ptr<Type>& t) {
+            if(t->getName() != name)
+            {
+                return false;
+            }
+            if(flags.isSet(FIND_MUTABLE))
+            {
+                if(t->isMutable)
+                {
+                    return true;
+                }
+                return false;
+            }
+            if(t->isMutable)
+            {
+                return false;
+            }
+            return true;
+        };
+        auto it = std::find_if(list.begin(), list.end(), p);
+        if(it == list.end())
+        {
+            if(logError)
+            {
+                util::logger->error("Undefined type: '{}'", name);
+            }
+            return nullptr;
+        }
+        return (*it).get();
+    }
     inline std::vector<Type*>
     TypeTable::findUndecorated(const std::string& name, bool logError)
     {
@@ -106,7 +161,7 @@ namespace codegen
         while(it != end)
         {
             it = std::find_if(it, end, [&](const std::unique_ptr<Type>& t) {
-                return t.get()->getName() == name;
+                return t->getName() == name;
             });
             if(it != end)
             {
@@ -145,7 +200,7 @@ namespace codegen
         while(true)
         {
             it = std::find_if(it, end, [&](const std::unique_ptr<Type>& t) {
-                return t.get()->type == type;
+                return t->type == type;
             });
 
             if(it == end)
@@ -162,6 +217,40 @@ namespace codegen
         return ret;
     }
 
+    inline const Type* TypeTable::find(const std::string& name,
+                                       TypeTable::FindFlags flags,
+                                       bool logError) const
+    {
+        auto p = [&](const std::unique_ptr<Type>& t) {
+            if(t->getName() != name)
+            {
+                return false;
+            }
+            if(flags.isSet(FIND_MUTABLE))
+            {
+                if(t->isMutable)
+                {
+                    return true;
+                }
+                return false;
+            }
+            if(t->isMutable)
+            {
+                return false;
+            }
+            return true;
+        };
+        auto it = std::find_if(list.begin(), list.end(), p);
+        if(it == list.end())
+        {
+            if(logError)
+            {
+                util::logger->error("Undefined type: '{}'", name);
+            }
+            return nullptr;
+        }
+        return (*it).get();
+    }
     inline const std::vector<Type*>
     TypeTable::findUndecorated(const std::string& name, bool logError) const
     {
@@ -170,7 +259,7 @@ namespace codegen
         while(it != end)
         {
             it = std::find_if(it, end, [&](const std::unique_ptr<Type>& t) {
-                return t.get()->getName() == name;
+                return t->getName() == name;
             });
             if(it != end)
             {
@@ -188,7 +277,7 @@ namespace codegen
     {
         auto it = std::find_if(list.begin(), list.end(),
                                [&](const std::unique_ptr<Type>& t) {
-                                   return t.get()->getDecoratedName() == name;
+                                   return t->getDecoratedName() == name;
                                });
         if(it == list.end())
         {
@@ -208,7 +297,7 @@ namespace codegen
         while(it != end)
         {
             it = std::find_if(it, end, [&](const std::unique_ptr<Type>& t) {
-                return t.get()->type == type;
+                return t->type == type;
             });
             if(it != end)
             {

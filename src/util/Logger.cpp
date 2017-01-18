@@ -20,11 +20,9 @@ void initLogger()
     {
         return;
     }
-    
-    spdlog::set_pattern(std::string(programinfo::name) +
-                        " [%n] [%l]: %v");
-    logger->set_pattern(std::string(programinfo::name) +
-                        " [%l]: %v");
+
+    spdlog::set_pattern(std::string(programinfo::name) + " [%n] [%l]: %v");
+    logger->set_pattern(std::string(programinfo::name) + " [%l]: %v");
     loggerBasic->set_pattern("%v");
 
     logger->flush_on(spdlog::level::err);

@@ -21,20 +21,21 @@ namespace codegen
 
     Type::~Type() noexcept = default;
 
+    bool Type::isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
+                                          llvm::Value* val, Type* to) const
+    {
+        if(basicEqual(to))
+        {
+            return true;
+        }
+
+        auto result = cast(builder, IMPLICIT, val, to);
+        return result != nullptr;
+    }
+
     TypeOperationBase* Type::getOperations() const
     {
         return operations.get();
-    }
-
-    Type::CastTuple Type::implicitCast(const Type& to) const
-    {
-        if(to.kind == kind)
-        {
-            return CastTuple{false, false, defaultCast};
-        }
-        return castError("Invalid implicit cast: Cannot convert from "
-                         "{} to {} implicitly",
-                         getDecoratedName(), to.getDecoratedName());
     }
 
     VoidType::VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
@@ -42,16 +43,6 @@ namespace codegen
         : Type(list, std::make_unique<VoidTypeOperation>(this), VOID, c,
                llvm::Type::getVoidTy(c), nullptr, "void", mut)
     {
-    }
-
-    Type::CastTuple VoidType::cast(Type::CastType c, const Type& to) const
-    {
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        return castError("Invalid cast: Cannot cast void");
     }
 
     bool VoidType::isSized() const
@@ -74,55 +65,6 @@ namespace codegen
                n, mut),
           width(w)
     {
-    }
-
-    Type::CastTuple IntegralType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        switch(to.kind)
-        {
-        case INT:
-        case INT8:
-        case INT16:
-        case INT32:
-        case INT64:
-        case BOOL:
-        {
-            const auto& castedto = dynamic_cast<const IntegralType&>(to);
-            if(castedto.width == width)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-            if(castedto.width > width)
-            {
-                return CastTuple{false, true, Instruction::SExt};
-            }
-            return CastTuple{false, true, Instruction::Trunc};
-        }
-        case FLOAT:
-        case F32:
-        case F64:
-            return CastTuple{false, true, Instruction::SIToFP};
-        case VOID:
-        case BYTE:
-        case CHAR:
-        case STRING:
-        case FUNCTION:
-            if(c == BITCAST)
-            {
-                return CastTuple{false, true, Instruction::BitCast};
-            }
-            return castError("Invalid cast: Cannot convert from {} to {}",
-                             getDecoratedName(), to.getDecoratedName());
-        }
-
-        llvm_unreachable("Logic error in IntegralType::cast");
     }
 
     bool IntegralType::isIntegral() const
@@ -181,11 +123,21 @@ namespace codegen
 
     BoolType::BoolType(TypeTable* list, llvm::LLVMContext& c,
                        llvm::DIBuilder& dbuilder, bool mut)
-        : IntegralType(list, 1, BOOL, c, llvm::Type::getInt1Ty(c),
-                       dbuilder.createBasicType("bool", 1, 1,
-                                                llvm::dwarf::DW_ATE_boolean),
-                       "bool", mut)
+        : Type(list, std::make_unique<BoolTypeOperation>(this), BOOL, c,
+               llvm::Type::getInt1Ty(c),
+               dbuilder.createBasicType("bool", 1, 1,
+                                        llvm::dwarf::DW_ATE_boolean),
+               "bool", mut)
     {
+    }
+
+    bool BoolType::isIntegral() const
+    {
+        return false;
+    }
+    bool BoolType::isFloatingPoint() const
+    {
+        return false;
     }
 
     CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
@@ -196,45 +148,6 @@ namespace codegen
                                         llvm::dwarf::DW_ATE_unsigned_char),
                "char", mut)
     {
-    }
-
-    Type::CastTuple CharType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        switch(to.kind)
-        {
-        case INT8:
-            return CastTuple{false, false, defaultCast};
-        case BOOL:
-            return CastTuple{false, true, Instruction::ZExt};
-        case INT:
-        case INT16:
-        case INT32:
-        case INT64:
-            return CastTuple{false, true, Instruction::Trunc};
-        case VOID:
-        case FLOAT:
-        case F32:
-        case F64:
-        case BYTE:
-        case STRING:
-        case CHAR:
-        case FUNCTION:
-            if(c == BITCAST)
-            {
-                return CastTuple{false, true, Instruction::BitCast};
-            }
-            return castError("Invalid cast: Cannot convert from {} to {}",
-                             getDecoratedName(), to.getDecoratedName());
-        }
-
-        llvm_unreachable("Logic error in CharType::cast");
     }
 
     bool CharType::isIntegral() const
@@ -249,50 +162,11 @@ namespace codegen
     ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,
                        llvm::DIBuilder& dbuilder, bool mut)
         : Type(list, std::make_unique<ByteTypeOperation>(this), BYTE, c,
-               llvm::Type::getInt32Ty(c),
-               dbuilder.createBasicType("byte", 32, 32,
+               llvm::Type::getInt8Ty(c),
+               dbuilder.createBasicType("byte", 8, 8,
                                         llvm::dwarf::DW_ATE_unsigned),
                "byte", mut)
     {
-    }
-
-    Type::CastTuple ByteType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        switch(to.kind)
-        {
-        case INT8:
-        case INT16:
-        case BOOL:
-            return CastTuple{false, true, Instruction::ZExt};
-        case INT:
-        case INT32:
-            return CastTuple{false, false, defaultCast};
-        case INT64:
-            return CastTuple{false, true, Instruction::Trunc};
-        case VOID:
-        case FLOAT:
-        case F32:
-        case F64:
-        case CHAR:
-        case STRING:
-        case BYTE:
-        case FUNCTION:
-            if(c == BITCAST)
-            {
-                return CastTuple{false, true, Instruction::BitCast};
-            }
-            return castError("Invalid cast: Cannot convert from {} to {}",
-                             getDecoratedName(), to.getDecoratedName());
-        }
-
-        llvm_unreachable("Logic error in ByteType::cast");
     }
 
     bool ByteType::isIntegral() const
@@ -311,55 +185,6 @@ namespace codegen
                mut),
           width(w)
     {
-    }
-
-    Type::CastTuple FPType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        switch(to.kind)
-        {
-        case FLOAT:
-        case F32:
-        case F64:
-        {
-            const auto& castedto = dynamic_cast<const FPType&>(to);
-            if(castedto.width == width)
-            {
-                return CastTuple{false, false, defaultCast};
-            }
-            if(castedto.width > width)
-            {
-                return CastTuple{false, true, Instruction::FPExt};
-            }
-            return CastTuple{false, true, Instruction::FPTrunc};
-        }
-        case INT:
-        case INT8:
-        case INT16:
-        case INT32:
-        case INT64:
-        case BOOL:
-            return CastTuple{false, true, Instruction::FPToSI};
-        case VOID:
-        case BYTE:
-        case CHAR:
-        case STRING:
-        case FUNCTION:
-            if(c == BITCAST)
-            {
-                return CastTuple{false, true, Instruction::BitCast};
-            }
-            return castError("Invalid cast: Cannot convert from {} to {}",
-                             getDecoratedName(), to.getDecoratedName());
-        }
-
-        llvm_unreachable("Logic error in FPType::cast");
     }
 
     bool FPType::isIntegral() const
@@ -407,18 +232,6 @@ namespace codegen
                }, "string_t", true),*/
                llvm::Type::getInt8PtrTy(c), nullptr, "string_t", mut)
     {
-    }
-
-    Type::CastTuple StringType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        return castError("Invalid cast: {} cannot be casted", getName());
     }
 
     bool StringType::isIntegral() const
@@ -502,16 +315,5 @@ namespace codegen
                            paramVectorToString(params, false));
     }
 
-    Type::CastTuple FunctionType::cast(Type::CastType c, const Type& to) const
-    {
-        using llvm::Instruction;
-
-        if(c == IMPLICIT)
-        {
-            return implicitCast(to);
-        }
-
-        return castError("Invalid cast: {} cannot be casted", getName());
-    }
 } // namespace codegen
 } // namespace core

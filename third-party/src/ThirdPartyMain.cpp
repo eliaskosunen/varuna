@@ -3,7 +3,6 @@
 // See LICENSE for details
 
 #include "spdlog.h"
-#include "tclap.h"
 #include "doctest.h"
 #include "utf8.h"
 #include "ctpl.h"

@@ -144,6 +144,7 @@ namespace codegen
     CodegenVisitor::createVoidVal(llvm::Value* v)
     {
         static auto t = types.findDecorated("void");
+        assert(t);
         return std::make_unique<TypedValue>(t, v);
     }
 
@@ -155,9 +156,10 @@ namespace codegen
     inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
     {
         static auto t = types.findDecorated("int32");
+        assert(t);
         static auto v = llvm::Constant::getNullValue(t->type);
-        static auto ret = std::make_unique<TypedValue>(t, v);
-        return std::move(ret);
+        auto ret = std::make_unique<TypedValue>(t, v);
+        return ret;
     }
 
     template <typename... Args>

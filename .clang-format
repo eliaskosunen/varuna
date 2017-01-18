@@ -19,7 +19,7 @@ IncludeCategories:
       Priority: 3
     - Regex:    '^"(llvm|llvm-c|clang|clang-c)/'
       Priority: 5
-    - Regex:    '^<(ctpl|doctest|spdlog|tclap|utf8)'
+    - Regex:    '^<(ctpl|doctest|spdlog|utf8)'
       Priority: 6
     - Regex:    '^</'
       Priority: 7
