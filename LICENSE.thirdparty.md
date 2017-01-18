@@ -21,13 +21,6 @@ Copyright (C) 2016 Viktor Kirilov
 
 View the full license at third-party/info/doctest/LICENSE.txt
 
-# TCLAP
-
-The MIT License (MIT)
-Copyright (C) 2003 Michael E. Smoot
-
-View the full license at third-party/info/tclap/COPYING
-
 # CTPL
 
 The Apache License (Version 2.0)
