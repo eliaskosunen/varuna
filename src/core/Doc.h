@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace app
 {
-
 }
 
 /**
@@ -25,21 +24,19 @@ namespace app
  */
 namespace core
 {
-	/**
-	 * Lexer
-	 */
-	namespace lexer
-	{
+/**
+ * Lexer
+ */
+namespace lexer
+{
+}
 
-	}
-
-	/**
-	 * Preprocessor
-	 */
-	namespace preprocessor
-	{
-
-	}
+/**
+ * Preprocessor
+ */
+namespace preprocessor
+{
+}
 }
 
 /**
@@ -47,5 +44,4 @@ namespace core
  */
 namespace util
 {
-
 }

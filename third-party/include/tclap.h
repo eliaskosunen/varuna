@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef _MSC_VER
 
 #pragma warning(push, 3)
-#pragma warning(disable: 4514 4711)
+#pragma warning(disable : 4514 4711)
 
 #endif
 
