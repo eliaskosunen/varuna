@@ -2,7 +2,9 @@
 
 def main(): int
 {
-    let mut a = 1;
-    a = 0;
-    return a;
+    let i = 1;
+    if false {
+        return 0;
+    }
+    return i;
 }

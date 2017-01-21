@@ -4,6 +4,7 @@
 
 #include "core/lexer/Lexer.h"
 #include "core/parser/Parser.h"
+#include "util/File.h"
 #include "util/Logger.h"
 #include <doctest.h>
 
@@ -11,7 +12,9 @@ static core::lexer::TokenVector runLexer(const std::string& code)
 {
     using namespace core::lexer;
 
-    Lexer l(code, TEST_FILE);
+    util::File f(TEST_FILE);
+    f.content = code;
+    Lexer l(&f);
     return l.run();
 }
 

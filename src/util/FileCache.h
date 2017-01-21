@@ -21,36 +21,41 @@ public:
     {
     }
 
-    const auto& viewCache() const
+    auto& getCache()
+    {
+        return cache;
+    }
+    const auto& getCache() const
     {
         return cache;
     }
 
-    auto getCache()
-    {
-        return std::move(cache);
-    }
+    std::shared_ptr<File> getFile(const std::string& name) const;
+    std::vector<std::string> getFilenameList() const;
 
-    File* getFile(const std::string& name);
-    std::vector<std::string> getFileList() const;
+    std::vector<std::shared_ptr<File>> getFiles() const;
 
-    bool addFile(std::unique_ptr<File> file, bool read = true);
+    std::vector<std::shared_ptr<File>>
+    getFilesByNames(const std::vector<std::string>& names) const;
+
+    bool addFile(std::shared_ptr<File> file, bool read = true);
     bool addFile(const std::string& name, bool read = true);
 
-    std::unordered_map<std::string, std::unique_ptr<File>> cache;
+private:
+    std::unordered_map<std::string, std::shared_ptr<File>> cache;
 };
 
-inline File* FileCache::getFile(const std::string& name)
+inline std::shared_ptr<File> FileCache::getFile(const std::string& name) const
 {
     auto fileit = cache.find(name);
     if(fileit == cache.end())
     {
         return nullptr;
     }
-    return fileit->second.get();
+    return fileit->second;
 }
 
-inline std::vector<std::string> FileCache::getFileList() const
+inline std::vector<std::string> FileCache::getFilenameList() const
 {
     std::vector<std::string> files;
     files.reserve(cache.size());
@@ -61,7 +66,36 @@ inline std::vector<std::string> FileCache::getFileList() const
     return files;
 }
 
-inline bool FileCache::addFile(std::unique_ptr<File> file, bool read)
+inline std::vector<std::shared_ptr<File>> FileCache::getFiles() const
+{
+    std::vector<std::shared_ptr<File>> files;
+    files.reserve(cache.size());
+    for(const auto& f : cache)
+    {
+        files.push_back(f.second);
+    }
+    return files;
+}
+
+inline std::vector<std::shared_ptr<File>>
+FileCache::getFilesByNames(const std::vector<std::string>& names) const
+{
+    std::vector<std::shared_ptr<File>> files;
+    files.reserve(names.size());
+    for(const auto& fname : names)
+    {
+        auto f = getFile(fname);
+        if(!f)
+        {
+            throw std::invalid_argument(
+                fmt::format("File '{}' not found from cache", fname));
+        }
+        files.push_back(f);
+    }
+    return files;
+}
+
+inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
 {
     if(!file)
     {
@@ -78,13 +112,12 @@ inline bool FileCache::addFile(std::unique_ptr<File> file, bool read)
             throw std::runtime_error("Invalid file encoding");
         }
     }
-    decltype(cache)::value_type elem{file->filename, std::move(file)};
-    cache.insert(std::move(elem));
+    cache.insert({file->filename, file});
     return true;
 }
 inline bool FileCache::addFile(const std::string& name, bool read)
 {
-    auto file = std::make_unique<File>(name);
+    auto file = std::make_shared<File>(name);
     return addFile(std::move(file), read);
 }
 } // namespace util

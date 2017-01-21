@@ -181,16 +181,15 @@ namespace parser
         ++it; // Skip 'if'
 
         // Parse condition
-        if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+        if(it->type == TOKEN_PUNCT_PAREN_OPEN)
         {
-            return parserError(
-                "Invalid if statement: Expected '(', got '{}' instead",
-                it->value);
+            ++it; // Skip '('
         }
-        ++it; // Skip '('
         auto cond = [&]() -> std::unique_ptr<ASTExpression> {
             // No condition set
-            if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+            if(it->type == TOKEN_PUNCT_PAREN_CLOSE ||
+               it->type == TOKEN_PUNCT_SEMICOLON ||
+               it->type == TOKEN_PUNCT_BRACE_OPEN)
             {
                 return parserError("No if condition given");
             }
@@ -200,13 +199,10 @@ namespace parser
         {
             return nullptr;
         }
-        if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+        if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
         {
-            return parserError(
-                "Invalid if statement: Expected ')', got '{}' instead",
-                it->value);
+            ++it; // Skip ')'
         }
-        ++it; // Skip ')'
 
         // Parse then statement
         auto then = parseStatement();
@@ -233,6 +229,47 @@ namespace parser
 
         return std::make_unique<ASTIfStatement>(
             std::move(cond), std::move(then), std::move(elsestmt));
+    }
+
+    std::unique_ptr<ASTWhileStatement> Parser::parseWhileStatement()
+    {
+        // While statement syntax:
+        // "while" ( [expression] ) statement
+
+        ++it; // Skip 'while'
+
+        // Parse condition
+        if(it->type == TOKEN_PUNCT_PAREN_OPEN)
+        {
+            ++it; // Skip '('
+        }
+        auto cond = [&]() -> std::unique_ptr<ASTExpression> {
+            // No condition set
+            if(it->type == TOKEN_PUNCT_PAREN_CLOSE ||
+               it->type == TOKEN_PUNCT_SEMICOLON ||
+               it->type == TOKEN_PUNCT_BRACE_OPEN)
+            {
+                return parserError("No while condition given");
+            }
+            return parseExpression();
+        }();
+        if(!cond)
+        {
+            return nullptr;
+        }
+        if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+        {
+            ++it; // Skip ')'
+        }
+
+        auto body = parseStatement();
+        if(!body)
+        {
+            return nullptr;
+        }
+
+        return std::make_unique<ASTWhileStatement>(std::move(cond),
+                                                   std::move(body));
     }
 
     std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>,
@@ -1163,7 +1200,9 @@ namespace parser
                 operands.push(std::move(expr));
                 continue;
             }
-            else if(it->type == TOKEN_PUNCT_SEMICOLON)
+            else if(it->type == TOKEN_PUNCT_SEMICOLON ||
+                    it->type == TOKEN_PUNCT_BRACE_OPEN ||
+                    it->type == TOKEN_PUNCT_SQR_OPEN)
             {
                 break;
             }
@@ -1301,6 +1340,8 @@ namespace parser
             return parseIfStatement();
         case TOKEN_KEYWORD_FOR:
             return parseForStatement();
+        case TOKEN_KEYWORD_WHILE:
+            return parseWhileStatement();
 
         case TOKEN_KEYWORD_RETURN:
             return parseReturnStatement();

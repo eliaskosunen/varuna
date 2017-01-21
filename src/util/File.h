@@ -16,6 +16,14 @@ public:
 
     explicit File(std::string pFilename);
 
+    File(const File&) = delete;
+    File& operator=(const File&) = delete;
+
+    File(File&&) noexcept = default;
+    File& operator=(File&&) noexcept = default;
+
+    ~File() noexcept = default;
+
     bool readFile();
     bool checkUtf8();
     [[noreturn]] void calculateChecksum();

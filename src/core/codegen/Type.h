@@ -141,16 +141,15 @@ namespace codegen
         Kind kind;
         bool isMutable{false};
 
-        const std::string& getName() const
+        std::string getName() const
         {
             return name;
         }
-        const std::string& getDecoratedName() const
+        std::string getDecoratedName() const
         {
             if(isMutable)
             {
-                static std::string n = fmt::format("{} mut", name);
-                return n;
+                return fmt::format("{} mut", name);
             }
             return name;
         }

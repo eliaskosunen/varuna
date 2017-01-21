@@ -114,6 +114,7 @@ namespace parser
         std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
         std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
         std::unique_ptr<ast::ASTForStatement> parseForStatement();
+        std::unique_ptr<ast::ASTWhileStatement> parseWhileStatement();
         std::unique_ptr<ast::ASTVariableDefinitionExpression>
         parseVariableDefinition();
         std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();

@@ -52,8 +52,8 @@ namespace codegen
             return operationError("Cannot assign to immutable lhs");
         }
 
-#if 1
         auto lhs = operands[0].get();
+        assert(lhs);
         auto rhs = [&]() -> std::unique_ptr<TypedValue> {
             if(op != lexer::TOKEN_OPERATORA_SIMPLE)
             {
@@ -76,7 +76,7 @@ namespace codegen
                                            std::move(operands));
                 default:
                     return operationError(
-                        "Unimplemented assignment operator for '{}': {}",
+                        "Unsupported assignment operator for '{}': {}",
                         lhs->type->getDecoratedName(), op.get());
                 }
             }
@@ -91,18 +91,24 @@ namespace codegen
         {
             return nullptr;
         }
-#else
-        auto lhs = operands[0].get();
-        auto rhs = operands[1].get();
-#endif
 
-        auto lhsval = lhs->value;
+        if(rhs->type->basicInequal(lhs->type))
+        {
+            return operationError("Cannot assign '{}' to '{}'",
+                                  rhs->type->getDecoratedName(),
+                                  lhs->type->getDecoratedName());
+        }
+
+        assert(lhs->value);
+        assert(rhs->value);
+
+        auto lhsload = llvm::dyn_cast<llvm::LoadInst>(lhs->value);
+        assert(lhsload);
+        auto lhsval = lhsload->getPointerOperand();
+        assert(lhsval);
+
         auto rhsval = rhs->value;
 
-        lhsval->dump();
-        rhsval->dump();
-        // auto store = new llvm::StoreInst(rhs->value, lhs->value);
-        // builder.Insert(store);
         builder.CreateStore(rhsval, lhsval);
         return std::make_unique<TypedValue>(*lhs);
     }
@@ -130,7 +136,7 @@ namespace codegen
         case lexer::TOKEN_OPERATORU_NOT:
             return ret(builder.CreateNot(operands[0]->value, "nottmp"));
         default:
-            return operationError("Unimplemented unary operator for '{}': '{}'",
+            return operationError("Unsupported unary operator for '{}': '{}'",
                                   operands[0]->type->getDecoratedName(),
                                   op.get());
         }
@@ -193,12 +199,6 @@ namespace codegen
         case lexer::TOKEN_OPERATORB_LESSEQ:
             return comp(builder.CreateICmpSLE(operands[0]->value,
                                               operands[1]->value, "letmp"));
-        case lexer::TOKEN_OPERATORB_AND:
-            return comp(builder.CreateAnd(operands[0]->value,
-                                          operands[1]->value, "andtmp"));
-        case lexer::TOKEN_OPERATORB_OR:
-            return comp(builder.CreateOr(operands[0]->value, operands[1]->value,
-                                         "ortmp"));
         default:
             return operationError("Unsupported binary operator for '{}': {}",
                                   operands[0]->type->getDecoratedName(),
@@ -220,8 +220,42 @@ namespace codegen
         std::vector<std::unique_ptr<TypedValue>> operands) const
     {
         assert(operands.size() == 2);
-        return operationError("No assignment operations for '{}' are supported",
-                              operands[0]->type->getDecoratedName());
+
+        if(!operands[0]->type->isMutable)
+        {
+            return operationError("Cannot assign to immutable lhs");
+        }
+
+        auto lhs = operands[0].get();
+        auto rhs = operands[1].get();
+        assert(lhs);
+        assert(rhs);
+
+        if(op != lexer::TOKEN_OPERATORA_SIMPLE)
+        {
+            return operationError(
+                "Unsupported assignment operator for '{}': {}",
+                lhs->type->getDecoratedName(), op.get());
+        }
+        if(rhs->type->basicInequal(lhs->type))
+        {
+            return operationError("Cannot assign '{}' to '{}'",
+                                  rhs->type->getDecoratedName(),
+                                  lhs->type->getDecoratedName());
+        }
+
+        assert(lhs->value);
+        assert(rhs->value);
+
+        auto lhsload = llvm::dyn_cast<llvm::LoadInst>(lhs->value);
+        assert(lhsload);
+        auto lhsval = lhsload->getPointerOperand();
+        assert(lhsval);
+
+        auto rhsval = rhs->value;
+
+        builder.CreateStore(rhsval, lhsval);
+        return std::make_unique<TypedValue>(*lhs);
     }
     std::unique_ptr<TypedValue> CharTypeOperation::unaryOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
@@ -236,8 +270,37 @@ namespace codegen
         std::vector<std::unique_ptr<TypedValue>> operands) const
     {
         assert(operands.size() == 2);
-        return operationError("No binary operations for '{}' are supported",
-                              operands[0]->type->getDecoratedName());
+
+        if(operands[0]->type->basicInequal(*operands[1]->type))
+        {
+            return operationError("CharType binary operation operand types "
+                                  "don't match: '{}' and '{}'",
+                                  operands[0]->type->getDecoratedName(),
+                                  operands[1]->type->getDecoratedName());
+        }
+
+        auto t = operands[0]->type;
+        auto ret = [&](llvm::Value* v) {
+            return std::make_unique<TypedValue>(t, v);
+        };
+        auto comp = [&](llvm::Value* v) {
+            auto boolt = type->typeTable->findDecorated("bool");
+            assert(boolt);
+            return std::make_unique<TypedValue>(boolt, v);
+        };
+
+        if(op == lexer::TOKEN_OPERATORB_EQ)
+        {
+            return comp(builder.CreateICmpEQ(operands[0]->value,
+                                             operands[1]->value, "eqtmp"));
+        }
+        else if(op == lexer::TOKEN_OPERATORB_NOTEQ)
+        {
+            return comp(builder.CreateICmpNE(operands[0]->value,
+                                             operands[1]->value, "eqtmp"));
+        }
+        return operationError("Unsupported binary operator for '{}': {}",
+                              operands[0]->type->getDecoratedName(), op.get());
     }
     std::unique_ptr<TypedValue> CharTypeOperation::arbitraryOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
@@ -254,16 +317,65 @@ namespace codegen
         std::vector<std::unique_ptr<TypedValue>> operands) const
     {
         assert(operands.size() == 2);
-        return operationError("No assignment operations for '{}' are supported",
-                              operands[0]->type->getDecoratedName());
+
+        if(!operands[0]->type->isMutable)
+        {
+            return operationError("Cannot assign to immutable lhs");
+        }
+
+        auto lhs = operands[0].get();
+        assert(lhs);
+        auto rhs = [&]() -> std::unique_ptr<TypedValue> {
+            if(op != lexer::TOKEN_OPERATORA_SIMPLE)
+            {
+                return operationError(
+                    "Unsupported assignment operator for '{}': {}",
+                    lhs->type->getDecoratedName(), op);
+            }
+            else
+            {
+                return std::move(operands[1]);
+            }
+        }();
+
+        assert(lhs);
+        if(!rhs)
+        {
+            return nullptr;
+        }
+
+        assert(lhs->value);
+        assert(rhs->value);
+
+        auto lhsload = llvm::dyn_cast<llvm::LoadInst>(lhs->value);
+        assert(lhsload);
+        auto lhsval = lhsload->getPointerOperand();
+        assert(lhsval);
+
+        auto rhsval = rhs->value;
+
+        builder.CreateStore(rhsval, lhsval);
+        return std::make_unique<TypedValue>(*lhs);
     }
     std::unique_ptr<TypedValue> BoolTypeOperation::unaryOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
         std::vector<std::unique_ptr<TypedValue>> operands) const
     {
         assert(operands.size() == 1);
-        return operationError("No unary operations for '{}' are supported",
-                              operands[0]->type->getDecoratedName());
+
+        auto ret = [&](llvm::Value* v) {
+            return std::make_unique<TypedValue>(operands[0]->type, v);
+        };
+
+        switch(op.get())
+        {
+        case lexer::TOKEN_OPERATORU_NOT:
+            return ret(builder.CreateNot(operands[0]->value, "nottmp"));
+        default:
+            return operationError("Unsupported unary operator for '{}': '{}'",
+                                  operands[0]->type->getDecoratedName(),
+                                  op.get());
+        }
     }
     std::unique_ptr<TypedValue> BoolTypeOperation::binaryOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
@@ -271,7 +383,13 @@ namespace codegen
     {
         assert(operands.size() == 2);
 
-        assert(operands[0]->type->basicEqual(*operands[1]->type));
+        if(operands[0]->type->basicInequal(*operands[1]->type))
+        {
+            return operationError("BoolType binary operation operand types "
+                                  "don't match: '{}' and '{}'",
+                                  operands[0]->type->getDecoratedName(),
+                                  operands[1]->type->getDecoratedName());
+        }
 
         auto comp = [&](llvm::Value* v) {
             auto boolt = type->typeTable->findDecorated("bool");
@@ -286,18 +404,6 @@ namespace codegen
         case lexer::TOKEN_OPERATORB_NOTEQ:
             return comp(builder.CreateICmpNE(operands[0]->value,
                                              operands[1]->value, "neqtmp"));
-        case lexer::TOKEN_OPERATORB_GREATER:
-            return comp(builder.CreateICmpSGT(operands[0]->value,
-                                              operands[1]->value, "gttmp"));
-        case lexer::TOKEN_OPERATORB_GREATEQ:
-            return comp(builder.CreateICmpSGE(operands[0]->value,
-                                              operands[1]->value, "getmp"));
-        case lexer::TOKEN_OPERATORB_LESS:
-            return comp(builder.CreateICmpSLT(operands[0]->value,
-                                              operands[1]->value, "lttmp"));
-        case lexer::TOKEN_OPERATORB_LESSEQ:
-            return comp(builder.CreateICmpSLE(operands[0]->value,
-                                              operands[1]->value, "letmp"));
         case lexer::TOKEN_OPERATORB_AND:
             return comp(builder.CreateAnd(operands[0]->value,
                                           operands[1]->value, "andtmp"));
@@ -365,48 +471,50 @@ namespace codegen
             return operationError("Cannot assign to immutable lhs");
         }
 
-        std::unique_ptr<TypedValue> rhs = nullptr;
-        auto& lhs = operands[0];
-        if(op != lexer::TOKEN_OPERATORA_SIMPLE)
-        {
-            switch(op.get())
+        auto lhs = operands[0].get();
+        auto rhs = [&]() -> std::unique_ptr<TypedValue> {
+            if(op != lexer::TOKEN_OPERATORA_SIMPLE)
             {
-            case lexer::TOKEN_OPERATORA_ADD:
-                rhs = binaryOperation(builder, lexer::TOKEN_OPERATORB_ADD,
-                                      std::move(operands));
-                break;
-            case lexer::TOKEN_OPERATORA_SUB:
-                rhs = binaryOperation(builder, lexer::TOKEN_OPERATORB_SUB,
-                                      std::move(operands));
-                break;
-            case lexer::TOKEN_OPERATORA_MUL:
-                rhs = binaryOperation(builder, lexer::TOKEN_OPERATORB_MUL,
-                                      std::move(operands));
-                break;
-            case lexer::TOKEN_OPERATORA_DIV:
-                rhs = binaryOperation(builder, lexer::TOKEN_OPERATORB_DIV,
-                                      std::move(operands));
-                break;
-            case lexer::TOKEN_OPERATORA_MOD:
-                rhs = binaryOperation(builder, lexer::TOKEN_OPERATORB_MOD,
-                                      std::move(operands));
-                break;
-            default:
-                return operationError(
-                    "Unimplemented assignment operator for '{}': {}",
-                    lhs->type->getDecoratedName(), op.get());
+                switch(op.get())
+                {
+                case lexer::TOKEN_OPERATORA_ADD:
+                    return binaryOperation(builder, lexer::TOKEN_OPERATORB_ADD,
+                                           std::move(operands));
+                case lexer::TOKEN_OPERATORA_SUB:
+                    return binaryOperation(builder, lexer::TOKEN_OPERATORB_SUB,
+                                           std::move(operands));
+                case lexer::TOKEN_OPERATORA_MUL:
+                    return binaryOperation(builder, lexer::TOKEN_OPERATORB_MUL,
+                                           std::move(operands));
+                case lexer::TOKEN_OPERATORA_DIV:
+                    return binaryOperation(builder, lexer::TOKEN_OPERATORB_DIV,
+                                           std::move(operands));
+                case lexer::TOKEN_OPERATORA_MOD:
+                    return binaryOperation(builder, lexer::TOKEN_OPERATORB_MOD,
+                                           std::move(operands));
+                default:
+                    return operationError(
+                        "Unsupported assignment operator for '{}': {}",
+                        lhs->type->getDecoratedName(), op.get());
+                }
             }
-            if(!rhs)
+            else
             {
-                return nullptr;
+                return std::move(operands[1]);
             }
-        }
-        else
+        }();
+
+        assert(lhs);
+        if(!rhs)
         {
-            rhs = std::move(operands[1]);
+            return nullptr;
         }
 
-        builder.CreateStore(rhs->value, lhs->value);
+        auto lhsload = llvm::cast<llvm::LoadInst>(lhs->value);
+        auto lhsval = lhsload->getPointerOperand();
+        auto rhsval = rhs->value;
+
+        builder.CreateStore(rhsval, lhsval);
         return std::make_unique<TypedValue>(*lhs);
     }
     std::unique_ptr<TypedValue> FPTypeOperation::unaryOperation(
@@ -431,7 +539,7 @@ namespace codegen
         case lexer::TOKEN_OPERATORU_MINUS:
             return ret(builder.CreateFNeg(operands[0]->value, "negtmp"));
         default:
-            return operationError("Unimplemented unary operator for '{}': '{}'",
+            return operationError("Unsupported unary operator for '{}': '{}'",
                                   operands[0]->type->getDecoratedName(),
                                   op.get());
         }
@@ -577,7 +685,7 @@ namespace codegen
         if(op != lexer::TOKEN_OPERATORC_CALL)
         {
             return operationError(
-                "Unimplemented arbitrary-operand operator for '{}': '{}'",
+                "Unsupported arbitrary-operand operator for '{}': '{}'",
                 operands[0]->type->getDecoratedName(), op.get());
         }
 

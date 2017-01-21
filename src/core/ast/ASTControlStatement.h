@@ -61,7 +61,7 @@ namespace ast
     public:
         ASTForeachStatement(std::unique_ptr<ASTExpression> pIteratee,
                             std::unique_ptr<ASTExpression> pIterator,
-                            std::unique_ptr<ASTBlockStatement> pBlock)
+                            std::unique_ptr<ASTStatement> pBlock)
             : ASTStatement(FOREACH_STMT), iteratee(std::move(pIteratee)),
               iterator(std::move(pIterator)), block(std::move(pBlock))
         {
@@ -74,14 +74,14 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
         std::unique_ptr<ASTExpression> iteratee, iterator;
-        std::unique_ptr<ASTBlockStatement> block;
+        std::unique_ptr<ASTStatement> block;
     };
 
     class ASTWhileStatement : public ASTStatement
     {
     public:
         ASTWhileStatement(std::unique_ptr<ASTExpression> pCondition,
-                          std::unique_ptr<ASTBlockStatement> pBlock)
+                          std::unique_ptr<ASTStatement> pBlock)
             : ASTStatement(WHILE_STMT), condition(std::move(pCondition)),
               block(std::move(pBlock))
         {
@@ -94,7 +94,7 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
         std::unique_ptr<ASTExpression> condition;
-        std::unique_ptr<ASTBlockStatement> block;
+        std::unique_ptr<ASTStatement> block;
     };
 
     class ASTImportStatement : public ASTStatement

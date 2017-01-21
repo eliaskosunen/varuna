@@ -102,6 +102,11 @@ namespace codegen
                         ++inst;
                     }
                 }
+                if(!termFound)
+                {
+                    builder.SetInsertPoint(&bb);
+                    builder.CreateUnreachable();
+                }
             }
         }
     }

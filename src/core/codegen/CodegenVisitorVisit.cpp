@@ -108,32 +108,45 @@ namespace codegen
 
         symbols.addBlock();
 
+        auto loopInitBB = llvm::BasicBlock::Create(context, "loopinit", func);
+        builder.CreateBr(loopInitBB);
+        builder.SetInsertPoint(loopInitBB);
+
         auto init = node->init->accept(this);
         if(!init)
         {
             return nullptr;
         }
 
-        llvm::BasicBlock* loopBB =
-            llvm::BasicBlock::Create(context, "loop", func);
-        builder.CreateBr(loopBB);
-        builder.SetInsertPoint(loopBB);
-
-        if(!node->block->accept(this))
-        {
-            return nullptr;
-        }
-
-        llvm::BasicBlock* loopCondBB =
-            llvm::BasicBlock::Create(context, "loopcond", func);
-        builder.CreateBr(loopCondBB);
+        auto loopCondBB = llvm::BasicBlock::Create(context, "loopcond", func);
         builder.SetInsertPoint(loopCondBB);
 
-        auto end = node->end->accept(this);
-        if(!end)
+        auto cond = node->end->accept(this);
+        if(!cond)
         {
             return nullptr;
         }
+
+        auto boolt = types.find("bool");
+        assert(boolt);
+        auto boolcond =
+            cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
+        if(!boolcond)
+        {
+            return nullptr;
+        }
+
+        auto loopBodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+        builder.SetInsertPoint(loopBodyBB);
+
+        auto body = node->block->accept(this);
+        if(!body)
+        {
+            return nullptr;
+        }
+
+        auto loopStepBB = llvm::BasicBlock::Create(context, "loopstep", func);
+        builder.SetInsertPoint(loopStepBB);
 
         auto step = node->step->accept(this);
         if(!step)
@@ -141,41 +154,21 @@ namespace codegen
             return nullptr;
         }
 
-        auto boolcond = [&]() -> llvm::Value* {
-            if(!end->type->isSized())
-            {
-                return codegenError(
-                    "Unsized type cannot be used in for condition");
-            }
-            if(end->type->kind == Type::BOOL)
-            {
-                return end->value;
-            }
-            if(end->type->isIntegral())
-            {
-                return builder.CreateICmpNE(
-                    end->value, llvm::ConstantInt::get(end->type->type, 0),
-                    "forendcond");
-            }
-            if(end->type->isFloatingPoint())
-            {
-                return builder.CreateFCmpONE(
-                    end->value, llvm::ConstantFP::get(end->type->type, 0.0),
-                    "forend");
-            }
-            return nullptr;
-        }();
-        if(!boolcond)
-        {
-            return codegenError("Unable to compare for end condition with 0");
-        }
+        auto loopEndBB = llvm::BasicBlock::Create(context, "loopend", func);
 
-        llvm::BasicBlock* afterBB =
-            llvm::BasicBlock::Create(context, "afterloop", func);
-        builder.CreateCondBr(end->value, loopBB, afterBB);
-        builder.SetInsertPoint(afterBB);
+        builder.SetInsertPoint(loopInitBB);
+        builder.CreateBr(loopCondBB);
 
-        symbols.removeTopBlock();
+        builder.SetInsertPoint(loopCondBB);
+        builder.CreateCondBr(boolcond->value, loopBodyBB, loopEndBB);
+
+        builder.SetInsertPoint(loopBodyBB);
+        builder.CreateBr(loopStepBB);
+
+        builder.SetInsertPoint(loopStepBB);
+        builder.CreateBr(loopCondBB);
+
+        builder.SetInsertPoint(loopEndBB);
 
         return getTypedDummyValue();
     }
@@ -189,9 +182,51 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTWhileStatement* node)
     {
-        codegenWarning("Unimplemented CodegenVisitor::visit({})",
-                       node->nodeType.get());
-        return nullptr;
+        llvm::Function* func = builder.GetInsertBlock()->getParent();
+
+        symbols.addBlock();
+
+        auto condBB = llvm::BasicBlock::Create(context, "loopcond", func);
+        builder.CreateBr(condBB);
+        builder.SetInsertPoint(condBB);
+
+        auto cond = node->condition->accept(this);
+        if(!cond)
+        {
+            return nullptr;
+        }
+
+        auto boolt = types.find("bool");
+        assert(boolt);
+        auto boolcond =
+            cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
+        if(!boolcond)
+        {
+            return nullptr;
+        }
+
+        auto bodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+        builder.SetInsertPoint(bodyBB);
+
+        auto body = node->block->accept(this);
+        if(!body)
+        {
+            return nullptr;
+        }
+
+        auto endBB = llvm::BasicBlock::Create(context, "loopend", func);
+
+        builder.SetInsertPoint(condBB);
+        builder.CreateCondBr(boolcond->value, bodyBB, endBB);
+
+        builder.SetInsertPoint(bodyBB);
+        builder.CreateBr(condBB);
+
+        builder.SetInsertPoint(endBB);
+
+        symbols.removeTopBlock();
+
+        return getTypedDummyValue();
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTImportStatement* node)
@@ -320,7 +355,7 @@ namespace codegen
         }
 
         // Check init type
-        if(!type->isSameOrImplicitlyCastable(builder, init->value, init->type))
+        if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
         {
             return codegenError(
                 "Invalid init expression: Cannot assign {} to {}",

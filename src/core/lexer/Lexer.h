@@ -5,6 +5,7 @@
 #pragma once
 
 #include "core/lexer/Token.h"
+#include "util/File.h"
 #include "util/IteratorUtils.h"
 #include "util/Logger.h"
 #include "util/String.h"
@@ -30,11 +31,10 @@ namespace lexer
     public:
         using ContentIterator = std::string::const_iterator;
 
-        explicit Lexer(util::string_t cont,
-                       const util::string_t& file = "(undefined)")
-            : warningsAsErrors(false), content(std::move(cont)),
-              it(content.begin()), end(content.end()), currentLocation(file, 1),
-              error(ERROR_NONE)
+        explicit Lexer(util::File* file)
+            : warningsAsErrors(false), content(std::move(file->content)),
+              it(content.begin()), end(content.end()),
+              currentLocation(file->filename, 1), error(ERROR_NONE)
         {
         }
 

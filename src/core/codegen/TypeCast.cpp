@@ -218,9 +218,9 @@ namespace codegen
         case INT16:
         case INT32:
         case INT64:
-            return ret(builder.CreateSIToFP(val, to->type, "casttmp"));
+            return ret(builder.CreateFPToSI(val, to->type, "casttmp"));
         case BYTE:
-            return ret(builder.CreateUIToFP(val, to->type, "casttmp"));
+            return ret(builder.CreateFPToUI(val, to->type, "casttmp"));
         default:
             if(c == BITCAST)
             {

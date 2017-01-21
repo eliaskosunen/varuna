@@ -12,37 +12,38 @@ namespace fe
 {
 namespace api
 {
-    bool Application::addFile(const std::string& file)
+    bool Application::addFile(const std::string& filename)
     {
-        if(!fileCache->addFile(file))
+        if(!fileCache->addFile(filename))
         {
-            util::logger->error("Failed to add file '{}'", file);
+            util::logger->error("Failed to add file '{}'", filename);
             return false;
         }
-        util::logger->trace("Added file to cache: '{}'", file);
+        util::logger->trace("Added file to cache: '{}'", filename);
         return true;
     }
 
-    std::future<bool> Application::runFile(const std::string& file)
+    std::future<bool> Application::runFile(std::shared_ptr<util::File> f)
     {
-        return pool->push([&](int) {
-            util::logger->info("Running file: '{}'", file);
+        assert(f.get());
 
-            auto f = fileCache->getFile(file);
-            if(!f)
-            {
-                util::logger->error("No file '{}' found from cache", file);
-                return false;
-            }
+        // Get copy to prevent lifetime problems
+        // f is shared_ptr, cheap to copy
+        auto file = f;
+
+        return pool->push([file](int) {
+            assert(file.get());
+
+            util::logger->info("Running file: '{}'", file->filename);
 
             util::logger->debug("Starting lexer");
-            core::lexer::Lexer l(std::move(f->content), file);
+            core::lexer::Lexer l(file.get());
             auto tokens = l.run();
             if(l.getError())
             {
                 util::logger->debug("Lexing failed");
                 util::logger->info("Lexing of file '{}' failed, terminating\n",
-                                   file);
+                                   file->filename);
                 return false;
             }
             util::logger->debug("Lexing finished\n");
@@ -72,18 +73,20 @@ namespace api
             {
                 util::logger->debug("Code generation failed");
                 util::logger->info(
-                    "Code generation of file '{}' failed, terminating\n", file);
+                    "Code generation of file '{}' failed, terminating\n",
+                    file->filename);
                 return false;
             }
             util::logger->debug("Code generation finished\n");
 
-            util::logger->info("File '{}' compiled successfully", file);
+            util::logger->info("File '{}' compiled successfully",
+                               file->filename);
 
             return true;
         });
     }
 
-    bool Application::runFiles(std::vector<std::string> files)
+    bool Application::runFiles(std::vector<std::shared_ptr<util::File>> files)
     {
         std::vector<std::future<bool>> results;
         for(const auto& file : files)
@@ -103,21 +106,23 @@ namespace api
 
     bool Application::runAll()
     {
-        return runFiles(fileCache->getFileList());
+        return runFiles(fileCache->getFiles());
     }
 
     bool Application::execute()
     {
         const auto& files = util::getProgramOptions().inputFilenames;
+
         for(const auto& file : files)
         {
             if(!addFile(file))
             {
                 return false;
             }
-        }
+        };
 
-        return runFiles(std::move(files));
+        auto filelist = fileCache->getFilesByNames(files);
+        return runFiles(std::move(filelist));
     }
 } // namespace api
 } // namespace fe

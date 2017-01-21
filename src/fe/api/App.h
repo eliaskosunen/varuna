@@ -28,10 +28,10 @@ namespace api
         Application& operator=(Application&&) noexcept = delete;
         ~Application() noexcept = default;
 
-        bool addFile(const std::string& file);
-        std::future<bool> runFile(const std::string& file);
+        bool addFile(const std::string& filename);
+        std::future<bool> runFile(std::shared_ptr<util::File> file);
 
-        bool runFiles(std::vector<std::string> files);
+        bool runFiles(std::vector<std::shared_ptr<util::File>> files);
         bool runAll();
 
         bool execute();
