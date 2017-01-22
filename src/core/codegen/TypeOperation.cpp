@@ -179,6 +179,7 @@ namespace codegen
             return ret(builder.CreateSDiv(operands[0]->value,
                                           operands[1]->value, "divtmp"));
         case lexer::TOKEN_OPERATORB_REM:
+        case lexer::TOKEN_OPERATORB_MOD:
             return ret(builder.CreateSRem(operands[0]->value,
                                           operands[1]->value, "remtmp"));
         case lexer::TOKEN_OPERATORB_EQ:
@@ -582,6 +583,7 @@ namespace codegen
             return ret(builder.CreateFDiv(operands[0]->value,
                                           operands[1]->value, "divtmp"));
         case lexer::TOKEN_OPERATORB_REM:
+        case lexer::TOKEN_OPERATORB_MOD:
             return ret(builder.CreateFRem(operands[0]->value,
                                           operands[1]->value, "remtmp"));
         case lexer::TOKEN_OPERATORB_EQ:

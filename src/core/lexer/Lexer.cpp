@@ -112,11 +112,32 @@ namespace lexer
             util::string_t buf;
             buf.reserve(8);
             bool isFloatingPoint = (currentChar == '.');
-            bool isHex = false;
-            if(currentChar == '0' && *(it + 1) == 'x')
+            enum IntegerLiteralBase_t
             {
-                currentChar = *(it += 2);
-                isHex = true;
+                BASE_DEC = 10,
+                BASE_BIN = 2,
+                BASE_OCT = 8,
+                BASE_HEX = 16
+            };
+            using IntegerLiteralBase = util::SafeEnum<IntegerLiteralBase_t>;
+            IntegerLiteralBase base = BASE_DEC;
+            if(currentChar == '0')
+            {
+                if(*(it + 1) == 'x')
+                {
+                    currentChar = *(it += 2);
+                    base = BASE_HEX;
+                }
+                else if(*(it + 1) == 'o')
+                {
+                    currentChar = *(it += 2);
+                    base = BASE_OCT;
+                }
+                else if(*(it + 1) == 'b')
+                {
+                    currentChar = *(it += 2);
+                    base = BASE_BIN;
+                }
             }
             bool cont = true;
             do
@@ -127,18 +148,32 @@ namespace lexer
                 {
                     isFloatingPoint = true;
                 }
-                cont = (isHex ? util::StringUtils::isCharHexDigit(currentChar)
-                              : util::StringUtils::isCharDigit(currentChar));
+                cont = [base, currentChar]() {
+                    switch(base.get())
+                    {
+                    case BASE_DEC:
+                        return util::StringUtils::isCharDigit(currentChar);
+                    case BASE_BIN:
+                        return util::StringUtils::isCharBinDigit(currentChar);
+                    case BASE_OCT:
+                        return util::StringUtils::isCharOctDigit(currentChar);
+                    case BASE_HEX:
+                        return util::StringUtils::isCharHexDigit(currentChar);
+                    }
+                    throw std::logic_error(
+                        fmt::format("Unknown integer case: {}", base.get()));
+                }();
             } while(cont || currentChar == '.');
 
             if(!isFloatingPoint)
             {
                 Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
                 std::unordered_map<std::string, decltype(INTEGER_INT)>
-                    allowedModifiers = {
-                        {"i64", INTEGER_INT64}, {"i32", INTEGER_INT32},
-                        {"i16", INTEGER_INT16}, {"i8", INTEGER_INT8},
-                        {"b", INTEGER_BINARY},  {"o", INTEGER_OCTAL}};
+                    allowedModifiers = {{"i64", INTEGER_INT64},
+                                        {"i32", INTEGER_INT32},
+                                        {"i16", INTEGER_INT16},
+                                        {"i8", INTEGER_INT8},
+                                        {"b", INTEGER_BYTE}};
                 auto mod = [&]() {
                     util::string_t modbuf;
                     while(util::StringUtils::isCharAlnum(currentChar))
@@ -163,7 +198,16 @@ namespace lexer
                 {
                     t.modifierInt |= INTEGER_INT;
                 }
-                if(isHex)
+
+                if(base == BASE_BIN)
+                {
+                    t.modifierInt |= INTEGER_BIN;
+                }
+                else if(base == BASE_OCT)
+                {
+                    t.modifierInt |= INTEGER_OCT;
+                }
+                else if(base == BASE_HEX)
                 {
                     t.modifierInt |= INTEGER_HEX;
                 }
@@ -201,9 +245,9 @@ namespace lexer
             {
                 t.modifierFloat |= FLOAT_FLOAT;
             }
-            if(isHex)
+            if(base != BASE_DEC)
             {
-                lexerError("Floating-point number cannot be in hexadecimal");
+                lexerError("Floating-point number can only be in decimal case");
             }
             return t;
         }

@@ -277,7 +277,7 @@ namespace parser
     Parser::parseForCondition()
     {
         // Parse the condition of a for statement
-        // ( [init] ; [end] ; [step] )
+        // [ ( ] [init] , [end] , [step] [ ) ]
 
         auto makeTuple = [](std::unique_ptr<ASTExpression> i,
                             std::unique_ptr<ASTExpression> e,
@@ -285,35 +285,31 @@ namespace parser
             -> std::tuple<std::unique_ptr<ASTExpression>,
                           std::unique_ptr<ASTExpression>,
                           std::unique_ptr<ASTExpression>> {
-            return std::make_tuple<std::unique_ptr<ASTExpression>,
-                                   std::unique_ptr<ASTExpression>,
-                                   std::unique_ptr<ASTExpression>>(
-                std::move(i), std::move(e), std::move(s));
+            return {std::move(i), std::move(e), std::move(s)};
         };
         auto errorToTuple = [&](std::nullptr_t e) -> auto
         {
             return makeTuple(e, e, e);
         };
 
-        if(it->type != TOKEN_PUNCT_PAREN_OPEN)
+        if(it->type == TOKEN_PUNCT_PAREN_OPEN)
         {
-            return errorToTuple(parserError(
-                "Invalid for statement: expected '(' after 'for', got '{}'",
-                it->value));
+            ++it; // Skip '('
         }
-        ++it; // Skip '('
 
         // Empty for condition
-        if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+        if(it->type == TOKEN_PUNCT_PAREN_CLOSE ||
+           it->type == TOKEN_PUNCT_BRACE_OPEN ||
+           it->type == TOKEN_PUNCT_SEMICOLON)
         {
-            ++it; // Skip ')'
+            ++it; // Skip ')' / '{' / ';'
             return errorToTuple(parserError("Empty for condition"));
         }
 
         // Parse init expression
         // Must be either a variable definition or empty
         auto init = [&]() -> std::unique_ptr<ASTExpression> {
-            if(it->type == TOKEN_PUNCT_SEMICOLON)
+            if(it->type == TOKEN_PUNCT_COMMA)
             {
                 return std::make_unique<ASTEmptyExpression>();
             }
@@ -324,18 +320,18 @@ namespace parser
         {
             return errorToTuple(parserError("Invalid for init expression"));
         }
-        if(it->type != TOKEN_PUNCT_SEMICOLON)
+        if(it->type != TOKEN_PUNCT_COMMA)
         {
             return errorToTuple(parserError("Invalid for statement: expected "
-                                            "';' after 'for init', got '{}'",
+                                            "',' after 'for init', got '{}'",
                                             it->value));
         }
-        ++it; // Skip ';'
+        ++it; // Skip ','
 
         // Parse end expression
         // Must be either an expression or empty
         auto end = [&]() -> std::unique_ptr<ASTExpression> {
-            if(it->type == TOKEN_PUNCT_SEMICOLON)
+            if(it->type == TOKEN_PUNCT_COMMA)
             {
                 // "true" by default
                 return std::make_unique<ASTBoolLiteralExpression>(true);
@@ -347,13 +343,13 @@ namespace parser
         {
             return errorToTuple(parserError("Invalid for end expression"));
         }
-        if(it->type != TOKEN_PUNCT_SEMICOLON)
+        if(it->type != TOKEN_PUNCT_COMMA)
         {
             return errorToTuple(parserError(
-                "Invalid for statement: expected ';' after 'for end', got '{}'",
+                "Invalid for statement: expected ',' after 'for end', got '{}'",
                 it->value));
         }
-        ++it; // Skip ';'
+        ++it; // Skip ','
 
         // Parse step expression
         // Must be either an expression or empty
@@ -369,13 +365,10 @@ namespace parser
         {
             return errorToTuple(parserError("Invalid for step expression"));
         }
-        if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
+        if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
         {
-            return errorToTuple(parserError("Invalid for statement: expected "
-                                            "')' after 'for step', got '{}'",
-                                            it->value));
+            ++it; // Skip ')'
         }
-        ++it; // Skip ')'
 
         return makeTuple(std::move(init), std::move(end), std::move(step));
     }
@@ -409,128 +402,50 @@ namespace parser
     Parser::parseVariableDefinition()
     {
         // Variable definition syntax:
-        // let [ mut ] name [ : type ] [ = init-expression ] ;
-        // type <-> [ mut ] name [ = init-expression ] ;
-        // var name [ : type ] [ = init-expression ] ;
+        // let [ qualifiers ] name [ : type ] [ = init-expression ] ;
+        // var [ qualifiers ] name [ : type ] [ = init-expression ] ;
 
-        std::string typen = "";
-        std::string name = "";
         bool mut = false;
-        bool typeDetermined = false;
-        // mut type name
+        if(it->type == TOKEN_KEYWORD_VAR)
+        {
+            mut = true;
+        }
+        ++it; // Skip 'let' / 'var'
+
         if(it->type == TOKEN_KEYWORD_MUT)
         {
+            if(mut)
+            {
+                return parserError(
+                    "Unexpected 'mut' after 'var' in variable definition");
+            }
             mut = true;
             ++it; // Skip 'mut'
+        }
+
+        if(it->type != TOKEN_IDENTIFIER)
+        {
+            return parserError("Invalid variable definition: expected "
+                               "identifier, got '{}' instead",
+                               it->value);
+        }
+        std::string name = it->value;
+        ++it; // Skip name
+
+        std::string typen = "";
+        if(it->type == TOKEN_PUNCT_COLON)
+        {
+            ++it; // Skip ':'
 
             if(it->type != TOKEN_IDENTIFIER)
             {
                 return parserError("Invalid variable definition: expected "
-                                   "typename after 'mut', got '{}' instead",
+                                   "identifier after ':', got '{}' instead",
                                    it->value);
             }
+
             typen = it->value;
-            typeDetermined = true;
             ++it; // Skip type
-
-            if(it->type != TOKEN_IDENTIFIER)
-            {
-                return parserError(
-                    "Invalid variable definition: expected "
-                    "identifier after typename, got '{}' instead",
-                    it->value);
-            }
-            name = it->value;
-            ++it; // Skip name
-        }
-        // let [ mut ] name [ : type ]
-        else if(it->type == TOKEN_KEYWORD_LET)
-        {
-            ++it; // Skip 'let'
-
-            if(it->type == TOKEN_KEYWORD_MUT)
-            {
-                mut = true;
-                ++it; // Skip 'mut'
-            }
-
-            if(it->type != TOKEN_IDENTIFIER)
-            {
-                return parserError(
-                    "Invalid variable definition: expected "
-                    "identifier after 'let' or 'mut', got '{}' instead",
-                    it->value);
-            }
-            name = it->value;
-            ++it; // Skip name
-
-            if(it->type == TOKEN_PUNCT_COLON)
-            {
-                ++it; // Skip ':'
-
-                if(it->type != TOKEN_IDENTIFIER)
-                {
-                    return parserError("Invalid variable definition: expected "
-                                       "identifier after ':', got '{}' instead",
-                                       it->value);
-                }
-                typen = it->value;
-                typeDetermined = true;
-                ++it; // Skip type
-            }
-        }
-        // var name [ : type ]
-        else if(it->type == TOKEN_KEYWORD_VAR)
-        {
-            mut = true;
-            ++it; // Skip 'var'
-
-            if(it->type != TOKEN_IDENTIFIER)
-            {
-                return parserError("Invalid variable definition: expected "
-                                   "identifier after 'var', got '{}' instead",
-                                   it->value);
-            }
-            name = it->value;
-            ++it; // Skip name
-
-            if(it->type == TOKEN_PUNCT_COLON)
-            {
-                ++it; // Skip ':'
-
-                if(it->type != TOKEN_IDENTIFIER)
-                {
-                    return parserError("Invalid variable definition: expected "
-                                       "identifier after ':', got '{}' instead",
-                                       it->value);
-                }
-                typen = it->value;
-                typeDetermined = true;
-                ++it; // Skip type
-            }
-        }
-        // type [ mut ] name
-        else if(it->type == TOKEN_IDENTIFIER)
-        {
-            typen = it->value;
-            typeDetermined = true;
-            ++it; // Skip type
-
-            if(it->type == TOKEN_KEYWORD_MUT)
-            {
-                mut = true;
-                ++it; // Skip 'mut'
-            }
-
-            if(it->type != TOKEN_IDENTIFIER)
-            {
-                return parserError(
-                    "Invalid variable definition: expected "
-                    "identifier after 'let' or 'mut', got '{}' instead",
-                    it->value);
-            }
-            name = it->value;
-            ++it; // Skip name
         }
 
         // Parse possible init expression
@@ -552,13 +467,13 @@ namespace parser
         auto name_ = std::make_unique<ASTIdentifierExpression>(name);
 
         // Type will be inferred by the code generator
-        if(!typeDetermined)
+        if(typen.empty())
         {
             if(!init || init->nodeType == ASTNode::EMPTY_EXPR)
             {
-                return parserError(
-                    "Invalid variable definition: init "
-                    "expression is required when using 'var' or 'let'");
+                return parserError("Invalid variable definition: init "
+                                   "expression is required when type is not "
+                                   "stated explicitly");
             }
             auto def = std::make_unique<ASTVariableDefinitionExpression>(
                 std::move(name_), std::move(init));
@@ -877,9 +792,13 @@ namespace parser
             {
                 return 16;
             }
-            if(it->modifierInt.isSet(INTEGER_OCTAL))
+            if(it->modifierInt.isSet(INTEGER_OCT))
             {
                 return 8;
+            }
+            if(it->modifierInt.isSet(INTEGER_BIN))
+            {
+                return 2;
             }
             return 10;
         }();
@@ -1202,7 +1121,8 @@ namespace parser
             }
             else if(it->type == TOKEN_PUNCT_SEMICOLON ||
                     it->type == TOKEN_PUNCT_BRACE_OPEN ||
-                    it->type == TOKEN_PUNCT_SQR_OPEN)
+                    it->type == TOKEN_PUNCT_SQR_OPEN ||
+                    it->type == TOKEN_PUNCT_COMMA)
             {
                 break;
             }
@@ -1219,8 +1139,8 @@ namespace parser
                     {
                         break;
                     }
-                    return parserError("Invalid token in expression: {}",
-                                       it->value);
+                    return parserError("Invalid token in expression: {} ({})",
+                                       it->value, it->typeToString());
                 }
                 operands.push(std::move(primary));
                 continue;

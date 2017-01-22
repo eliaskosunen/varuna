@@ -241,6 +241,11 @@ namespace StringUtils
         return (c >= '0' && c <= '7');
     }
 
+    inline bool isCharBinDigit(char_t c)
+    {
+        return (c == '0' || c == '1');
+    }
+
     inline bool isCharPunctuation(char_t c)
     {
         return std::ispunct(c) != 0;

@@ -16,14 +16,15 @@ namespace lexer
 {
     enum TokenIntegerLiteralModifier_t
     {
-        INTEGER_INT = 1,     // none
-        INTEGER_INT8 = 2,    // i8
-        INTEGER_INT16 = 4,   // i16
-        INTEGER_INT32 = 8,   // i32
-        INTEGER_INT64 = 16,  // i64
-        INTEGER_BINARY = 32, // b
-        INTEGER_OCTAL = 64,  // o
-        INTEGER_HEX = 128,   // x
+        INTEGER_INT = 1,    // none
+        INTEGER_INT8 = 2,   // i8
+        INTEGER_INT16 = 4,  // i16
+        INTEGER_INT32 = 8,  // i32
+        INTEGER_INT64 = 16, // i64
+        INTEGER_BYTE = 32,  // b
+        INTEGER_BIN = 64,   // 0b...
+        INTEGER_OCT = 128,  // 0o...
+        INTEGER_HEX = 256,  // 0x...
 
         INTEGER_NONE = 0
     };

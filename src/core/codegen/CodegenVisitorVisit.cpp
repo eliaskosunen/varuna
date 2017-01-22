@@ -53,10 +53,9 @@ namespace codegen
 
         llvm::Function* func = builder.GetInsertBlock()->getParent();
 
-        llvm::BasicBlock* thenBB =
-            llvm::BasicBlock::Create(context, "then", func);
-        llvm::BasicBlock* elseBB = llvm::BasicBlock::Create(context, "else");
-        llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(context, "ifcont");
+        auto thenBB = llvm::BasicBlock::Create(context, "then", func);
+        auto elseBB = llvm::BasicBlock::Create(context, "else");
+        auto mergeBB = llvm::BasicBlock::Create(context, "ifcont");
 
         bool elseExists = stmt->elseBlock->nodeType != ast::ASTNode::EMPTY_STMT;
 
@@ -145,6 +144,9 @@ namespace codegen
             return nullptr;
         }
 
+        auto bodyInsertBlock = builder.GetInsertBlock();
+        auto bodyInsertPoint = builder.GetInsertPoint();
+
         auto loopStepBB = llvm::BasicBlock::Create(context, "loopstep", func);
         builder.SetInsertPoint(loopStepBB);
 
@@ -162,7 +164,7 @@ namespace codegen
         builder.SetInsertPoint(loopCondBB);
         builder.CreateCondBr(boolcond->value, loopBodyBB, loopEndBB);
 
-        builder.SetInsertPoint(loopBodyBB);
+        builder.SetInsertPoint(bodyInsertBlock, bodyInsertPoint);
         builder.CreateBr(loopStepBB);
 
         builder.SetInsertPoint(loopStepBB);
@@ -214,12 +216,15 @@ namespace codegen
             return nullptr;
         }
 
+        auto bodyInsertBlock = builder.GetInsertBlock();
+        auto bodyInsertPoint = builder.GetInsertPoint();
+
         auto endBB = llvm::BasicBlock::Create(context, "loopend", func);
 
         builder.SetInsertPoint(condBB);
         builder.CreateCondBr(boolcond->value, bodyBB, endBB);
 
-        builder.SetInsertPoint(bodyBB);
+        builder.SetInsertPoint(bodyInsertBlock, bodyInsertPoint);
         builder.CreateBr(condBB);
 
         builder.SetInsertPoint(endBB);
@@ -360,6 +365,14 @@ namespace codegen
             return codegenError(
                 "Invalid init expression: Cannot assign {} to {}",
                 init->type->getDecoratedName(), type->getDecoratedName());
+        }
+
+        // Check for existing similarly named symbol
+        if(symbols.find(expr->name->value, nullptr, false))
+        {
+            return codegenError(
+                "Cannot name variable as '{}', name already defined",
+                expr->name->value);
         }
 
         // Codegen

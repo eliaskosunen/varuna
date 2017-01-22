@@ -47,7 +47,8 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Integer literals")
         {
-            f.setContent("123 9999999i32 8i8 5i16 10i64 1001b 60o 0xff 0xdead");
+            f.setContent(
+                "123 9999999i32 8i8 5i16 10i64 0b1001 0o60 0xff 0xdead");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 10);
@@ -71,16 +72,16 @@ TEST_CASE("Test lexer")
             REQUIRE(v[3].value == "5");
             REQUIRE(v[3].modifierInt.isSet(INTEGER_INT16));
             REQUIRE(v[3].modifierInt.isNotSet(INTEGER_INT64));
-            REQUIRE(v[3].modifierInt.isNotSet(INTEGER_OCTAL));
+            REQUIRE(v[3].modifierInt.isNotSet(INTEGER_OCT));
 
             REQUIRE(v[4].value == "10");
             REQUIRE(v[4].modifierInt.isSet(INTEGER_INT64));
 
             REQUIRE(v[5].value == "1001");
-            REQUIRE(v[5].modifierInt.isSet(INTEGER_BINARY));
+            REQUIRE(v[5].modifierInt.isSet(INTEGER_BIN));
 
             REQUIRE(v[6].value == "60");
-            REQUIRE(v[6].modifierInt.isSet(INTEGER_OCTAL));
+            REQUIRE(v[6].modifierInt.isSet(INTEGER_OCT));
 
             REQUIRE(v[7].value == "ff");
             REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
