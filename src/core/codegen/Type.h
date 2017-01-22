@@ -78,7 +78,6 @@ namespace codegen
         virtual std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder,
                                                  CastType c, llvm::Value* val,
                                                  Type* to) const = 0;
-        // virtual CastTuple cast(CastType c, Type* to) const = 0;
 
         bool isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
                                         llvm::Value* val, Type* to) const;
@@ -90,6 +89,8 @@ namespace codegen
         virtual bool isIntegral() const = 0;
         virtual bool isFloatingPoint() const = 0;
 
+        /// Are types completely equal
+        /// e.g. Same mutability
         bool equal(const Type& t) const
         {
             return kind == t.kind && getDecoratedName() == t.getDecoratedName();
@@ -117,6 +118,8 @@ namespace codegen
             return inequal(t);
         }
 
+        /// Are types equal
+        /// e.g. Mutability can differ
         bool basicEqual(const Type& t) const
         {
             return kind == t.kind && getName() == t.getName();
@@ -141,10 +144,12 @@ namespace codegen
         Kind kind;
         bool isMutable{false};
 
+        /// Get basic name of type
         std::string getName() const
         {
             return name;
         }
+        /// Get complete name of type
         std::string getDecoratedName() const
         {
             if(isMutable)
@@ -154,6 +159,7 @@ namespace codegen
             return name;
         }
 
+        /// Get type operations
         TypeOperationBase* getOperations() const;
 
     protected:

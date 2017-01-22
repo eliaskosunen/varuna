@@ -3,6 +3,7 @@ build/
 .vscode/
 html/
 latex/
+doc/
 Doxyfile.bak
 *.anjuta*
 .anjuta/

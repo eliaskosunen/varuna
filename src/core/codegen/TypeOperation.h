@@ -33,15 +33,19 @@ namespace codegen
             return nullptr;
         }
 
+        /// Assignment operations
         virtual std::unique_ptr<TypedValue> assignmentOperation(
             llvm::IRBuilder<>& builder, core::lexer::TokenType op,
             std::vector<std::unique_ptr<TypedValue>> operands) const = 0;
+        /// Unary operations
         virtual std::unique_ptr<TypedValue> unaryOperation(
             llvm::IRBuilder<>& builder, core::lexer::TokenType op,
             std::vector<std::unique_ptr<TypedValue>> operands) const = 0;
+        /// Binary operations
         virtual std::unique_ptr<TypedValue> binaryOperation(
             llvm::IRBuilder<>& builder, core::lexer::TokenType op,
             std::vector<std::unique_ptr<TypedValue>> operands) const = 0;
+        /// Arbitrary-operand operations
         virtual std::unique_ptr<TypedValue> arbitraryOperation(
             llvm::IRBuilder<>& builder, core::lexer::TokenType op,
             std::vector<std::unique_ptr<TypedValue>> operands) const = 0;

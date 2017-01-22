@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "fe/api/FwdDecl.h"
+#include "fe/app/FwdDecl.h"
 #include "util/FileCache.h"
 #include "util/Logger.h"
 #include "util/ThreadPool.h"
@@ -34,6 +34,7 @@ namespace api
         bool runFiles(std::vector<std::shared_ptr<util::File>> files);
         bool runAll();
 
+        /// Execute the input file list from ProgramOptions
         bool execute();
 
     private:

@@ -2,7 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "fe/api/App.h"
+#include "fe/app/App.h"
 #include "core/codegen/Codegen.h"
 #include "core/lexer/Lexer.h"
 #include "core/parser/Parser.h"
@@ -34,7 +34,7 @@ namespace api
         return pool->push([file](int) {
             assert(file.get());
 
-            util::logger->info("Running file: '{}'", file->filename);
+            util::logger->info("Running file: '{}'", file->getFilename());
 
             util::logger->debug("Starting lexer");
             core::lexer::Lexer l(file.get());
@@ -43,7 +43,7 @@ namespace api
             {
                 util::logger->debug("Lexing failed");
                 util::logger->info("Lexing of file '{}' failed, terminating\n",
-                                   file->filename);
+                                   file->getFilename());
                 return false;
             }
             util::logger->debug("Lexing finished\n");
@@ -74,13 +74,13 @@ namespace api
                 util::logger->debug("Code generation failed");
                 util::logger->info(
                     "Code generation of file '{}' failed, terminating\n",
-                    file->filename);
+                    file->getFilename());
                 return false;
             }
             util::logger->debug("Code generation finished\n");
 
             util::logger->info("File '{}' compiled successfully",
-                               file->filename);
+                               file->getFilename());
 
             return true;
         });

@@ -18,7 +18,7 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Whitespace skipping")
         {
-            f.content = " \n\t\v";
+            f.setContent(" \n\t\v");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 1);
@@ -30,9 +30,9 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Comments")
         {
-            f.content = R"(// Comment
+            f.setContent(R"(// Comment
 123//Literal
-			)";
+			)");
             Lexer l(&f);
             v = l.run();
 
@@ -47,7 +47,7 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Integer literals")
         {
-            f.content = "123 9999999i32 8i8 5i16 10i64 1001b 60o 0xff 0xdead";
+            f.setContent("123 9999999i32 8i8 5i16 10i64 1001b 60o 0xff 0xdead");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 10);
@@ -91,7 +91,7 @@ TEST_CASE("Test lexer")
         }
         SUBCASE("Float literals")
         {
-            f.content = "3.1415926535 12.34f32 42.0f64 39.99d";
+            f.setContent("3.1415926535 12.34f32 42.0f64 39.99d");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
@@ -121,8 +121,8 @@ TEST_CASE("Test lexer")
         }
         SUBCASE("String literals")
         {
-            f.content =
-                "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"";
+            f.setContent(
+                "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 4);
@@ -141,7 +141,7 @@ TEST_CASE("Test lexer")
 
     SUBCASE("Identifiers")
     {
-        f.content = "io.stdout.writeln(\"Hello World\")";
+        f.setContent("io.stdout.writeln(\"Hello World\")");
         Lexer l(&f);
         v = l.run();
         CHECK(v.size() == 9);
@@ -168,7 +168,7 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Default import")
         {
-            f.content = "import io;";
+            f.setContent("import io;");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 4);
@@ -184,7 +184,7 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Module import")
         {
-            f.content = "import module mymodule;";
+            f.setContent("import module mymodule;");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
@@ -201,7 +201,7 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Package import")
         {
-            f.content = "import package cstd.io;";
+            f.setContent("import package cstd.io;");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 7);
@@ -221,7 +221,7 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Path import")
         {
-            f.content = "import module \"path/to/module\";";
+            f.setContent("import module \"path/to/module\";");
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
@@ -238,7 +238,7 @@ TEST_CASE("Test lexer")
     }
     SUBCASE("Main function definition")
     {
-        f.content = "def main(List<String>): Void {}";
+        f.setContent("def main(List<String>): Void {}");
         Lexer l(&f);
         v = l.run();
         CHECK(v.size() == 13);
@@ -267,7 +267,7 @@ TEST_CASE("Test lexer")
     }
     SUBCASE("If-else")
     {
-        f.content = "if(foo == 123) bar = true; else bar = false;";
+        f.setContent("if(foo == 123) bar = true; else bar = false;");
         Lexer l(&f);
         v = l.run();
         CHECK(v.size() == 16);

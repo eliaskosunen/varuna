@@ -68,12 +68,6 @@ static void logException(const std::string& msg,
     }
 }
 
-/**
- * The entry point of the application
- * @param  argc Argument count
- * @param  argv Argument vector
- * @return      Application return value
- */
 int main(int argc, char** argv)
 {
     try

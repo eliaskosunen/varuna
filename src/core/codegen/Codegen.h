@@ -16,6 +16,7 @@ namespace core
 {
 namespace codegen
 {
+    /// Code generator
     class Codegen final
     {
     public:
@@ -27,11 +28,15 @@ namespace codegen
         Codegen& operator=(Codegen&&) noexcept = default;
         ~Codegen() noexcept = default;
 
+        /// Run it
         bool run();
 
     private:
+        /// Initialize code generation
         bool prepare();
+        /// Run CodegenVisitor
         bool visit();
+        /// Optimize
         bool finish();
 
         std::unique_ptr<ast::AST> ast;

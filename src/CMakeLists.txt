@@ -6,4 +6,4 @@ add_subdirectory(util)
 file(GLOB_RECURSE sources	Main.cpp)
 
 add_executable(varuna ${sources})
-target_link_libraries(varuna core api cli util thirdparty)
+target_link_libraries(varuna core app cli util thirdparty)

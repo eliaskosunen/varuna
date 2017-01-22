@@ -33,14 +33,16 @@ namespace parser
         Parser& operator=(Parser&&) noexcept = default;
         ~Parser() noexcept = default;
 
+        /// Run the parser
         void run();
 
         bool getError() const;
         ErrorLevel getErrorLevel() const;
 
-        ast::AST* getAST();
-        ast::AST& getASTRef();
-        const ast::AST& getASTConstRef() const;
+        /// Get reference to the AST
+        ast::AST& getAST();
+        const ast::AST& getAST() const;
+        /// Consume the AST
         std::unique_ptr<ast::AST> retrieveAST();
 
         bool warningsAsErrors;
@@ -198,17 +200,12 @@ namespace parser
         return error;
     }
 
-    inline ast::AST* Parser::getAST()
-    {
-        assert(ast && "Trying to access nullptr AST");
-        return ast.get();
-    }
-    inline ast::AST& Parser::getASTRef()
+    inline ast::AST& Parser::getAST()
     {
         assert(ast && "Trying to access nullptr AST");
         return *(ast.get());
     }
-    inline const ast::AST& Parser::getASTConstRef() const
+    inline const ast::AST& Parser::getAST() const
     {
         assert(ast && "Trying to access nullptr AST");
         return *(ast.get());

@@ -8,17 +8,10 @@
 
 namespace util
 {
-/**
- * Colored and stylized logger.
- * @see The spdlog documentation
- */
 extern std::shared_ptr<spdlog::logger> logger;
-/**
- * Unstylized logger.
- * @see The spdlog documentation
- */
 extern std::shared_ptr<spdlog::logger> loggerBasic;
 
+/// Create a new logger
 inline auto createLogger(bool isColor, const std::string& name = "Logger")
 {
     if(isColor)
@@ -29,10 +22,9 @@ inline auto createLogger(bool isColor, const std::string& name = "Logger")
     return spdlog::stdout_logger_mt(fmt::format("{}-{}", name, std::rand()));
 }
 
-/**
- * Set logger styles
- */
+/// Initialize logger and loggerBasic
 void initLogger();
 
+/// Drop all loggers
 void dropLogger();
 } // namespace util

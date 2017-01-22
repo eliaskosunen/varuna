@@ -10,8 +10,10 @@ namespace core
 {
 namespace codegen
 {
+    /// Information for Codegen, CodegenVisitor and Optimizer
     struct CodegenInfo
     {
+        /// Are optimizations enabled
         bool optEnabled() const
         {
             return optLevel > 0 || sizeLevel > 0;

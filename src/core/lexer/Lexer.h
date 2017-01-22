@@ -32,9 +32,10 @@ namespace lexer
         using ContentIterator = std::string::const_iterator;
 
         explicit Lexer(util::File* file)
-            : warningsAsErrors(false), content(std::move(file->content)),
-              it(content.begin()), end(content.end()),
-              currentLocation(file->filename, 1), error(ERROR_NONE)
+            : warningsAsErrors(false),
+              content(std::move(file->consumeContent())), it(content.begin()),
+              end(content.end()), currentLocation(file->getFilename(), 1),
+              error(ERROR_NONE)
         {
         }
 
@@ -44,6 +45,7 @@ namespace lexer
         Lexer& operator=(Lexer&&) noexcept = default;
         ~Lexer() noexcept = default;
 
+        /// Run lexer
         TokenVector run();
 
         bool getError() const

@@ -112,7 +112,7 @@ inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
             throw std::runtime_error("Invalid file encoding");
         }
     }
-    cache.insert({file->filename, file});
+    cache.insert({file->getFilename(), file});
     return true;
 }
 inline bool FileCache::addFile(const std::string& name, bool read)

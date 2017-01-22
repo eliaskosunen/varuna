@@ -35,7 +35,9 @@ namespace codegen
         Optimizer& operator=(const Optimizer&) = delete;
         Optimizer& operator=(Optimizer&&) noexcept = default;
 
+        /// Initialize optimizer passes
         void init();
+        /// Run the passes
         void run();
 
     private:

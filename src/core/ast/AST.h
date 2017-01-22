@@ -14,6 +14,7 @@ namespace core
 {
 namespace ast
 {
+    /// AST representation
     class AST final
     {
     public:
@@ -24,16 +25,20 @@ namespace ast
         }
 
         AST(const AST&) = delete;
-        AST(AST&&) noexcept = default;
         AST& operator=(const AST&) = delete;
+
+        AST(AST&&) noexcept = default;
         AST& operator=(AST&&) noexcept = default;
+
         ~AST() noexcept = default;
 
+        /// Push a statement in the root node of the AST
         void pushStatement(std::unique_ptr<ASTStatement> stmt)
         {
             globalNode->nodes.push_back(std::move(stmt));
         }
 
+        /// Wrap the expression and push it in the AST
         void pushExpression(std::unique_ptr<ASTExpression> expr)
         {
             auto stmt = std::make_unique<ASTWrappedExpressionStatement>(
@@ -41,6 +46,7 @@ namespace ast
             pushStatement(std::move(stmt));
         }
 
+        /// Get root node count
         size_t countTopLevelNodes()
         {
             return globalNode->nodes.size();

@@ -3,7 +3,7 @@
 // See LICENSE for details
 
 #include "fe/cli/CLI.h"
-#include "fe/api/App.h"
+#include "fe/app/App.h"
 #include <llvm/Config/llvm-config.h>
 #include <llvm/Support/CommandLine.h>
 

@@ -21,6 +21,7 @@ namespace cli
     public:
         CLI(int pArgc, char** pArgv);
 
+        /// Run CLI
         int run();
 
     private:

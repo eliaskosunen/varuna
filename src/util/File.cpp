@@ -15,10 +15,6 @@
 
 namespace util
 {
-File::File(std::string pFilename) : filename(std::move(pFilename)), checksum(0)
-{
-}
-
 bool File::readFile()
 {
     if(!content.empty())
@@ -34,6 +30,7 @@ bool File::readFile()
         util::logger->error(e.what());
         return false;
     }
+    contentValid = true;
     return true;
 }
 

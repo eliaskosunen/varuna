@@ -32,6 +32,7 @@ namespace codegen
 
         virtual ~Symbol() = default;
 
+        /// Get the type of the symbol
         Type* getType() const
         {
             assert(value && "No value given for Symbol");

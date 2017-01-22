@@ -34,8 +34,10 @@ namespace codegen
         CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                        const CodegenInfo& i);
 
+        /// Visit AST
         bool codegen(ast::AST* ast);
 
+        /// Dump the module to stdout
         void dumpModule() const
         {
             module->dump();
@@ -44,13 +46,12 @@ namespace codegen
     private:
         void emitDebugLocation(ast::ASTNode* node);
 
+        /// Create a new void-typed value
         std::unique_ptr<TypedValue> createVoidVal(llvm::Value* v = nullptr);
+        /// Get a dummy LLVM value
         llvm::Value* getDummyValue();
+        /// Get a typed dummy value
         std::unique_ptr<TypedValue> getTypedDummyValue();
-
-        std::unique_ptr<TypedValue>
-        checkTypedValue(std::unique_ptr<TypedValue> val,
-                        const Type& requiredType) const;
 
         template <typename... Args>
         std::nullptr_t codegenError(const std::string& format,
@@ -58,16 +59,22 @@ namespace codegen
         template <typename... Args>
         void codegenWarning(const std::string& format, Args... args) const;
 
+        /// Find a function by name
         FunctionSymbol* findFunction(const std::string& name,
                                      bool logError = true);
+        /// Get the prototype of the function of node
         ast::ASTFunctionPrototypeStatement*
         getASTNodeFunction(ast::ASTNode* node) const;
+        /// Declare function
         FunctionSymbol*
         declareFunction(FunctionType* type, const std::string& name,
                         ast::ASTFunctionPrototypeStatement* proto);
 
+        /// Remove all instructions after block terminators
+        /// Also add 'unreachable'-instruction if no terminators are found
         void stripInstructionsAfterTerminators();
 
+        /// Create 'alloca'-instruction for variable
         llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
                                                  llvm::Type* type,
                                                  const std::string& name);
@@ -175,19 +182,6 @@ namespace codegen
                                                Args... args) const
     {
         util::logger->warn(format.c_str(), args...);
-    }
-
-    inline std::unique_ptr<TypedValue>
-    CodegenVisitor::checkTypedValue(std::unique_ptr<TypedValue> val,
-                                    const Type& requiredType) const
-    {
-        /*auto cast = val->type->cast(Type::IMPLICIT, requiredType);
-        if(std::get<0>(cast) || std::get<1>(cast))
-        {
-            return nullptr;
-        }
-        return val;*/
-        return *val->type == requiredType ? std::move(val) : nullptr;
     }
 } // namespace codegen
 } // namespace core

@@ -17,6 +17,8 @@ namespace ast
     public:
         ASTParentSolverVisitor() = default;
 
+        /// Solve parents of ASTNodes
+        /// \param root Root node
         template <typename T>
         void run(T* root)
         {

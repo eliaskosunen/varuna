@@ -42,6 +42,8 @@ namespace ast
         void start(T* root);
         void finish();
 
+        /// Dump the AST
+        /// \param node Root node
         template <typename T>
         static void dump(T* node)
         {

@@ -1280,7 +1280,7 @@ namespace parser
                                 "isPath: '{}', type: '{}'",
                                 import->importee->value, import->isPath,
                                 static_cast<int>(import->importType));
-            getAST()->pushStatement(std::move(import));
+            getAST().pushStatement(std::move(import));
         }
         else
         {
@@ -1294,7 +1294,7 @@ namespace parser
         {
             util::logger->trace("Parsed module statement: moduleName: '{}'",
                                 module->moduleName->value);
-            getAST()->pushStatement(std::move(module));
+            getAST().pushStatement(std::move(module));
         }
         else
         {
@@ -1311,7 +1311,7 @@ namespace parser
                                 def->proto->name->value,
                                 def->proto->returnType->value,
                                 def->proto->params.size());
-            getAST()->pushStatement(std::move(def));
+            getAST().pushStatement(std::move(def));
         }
         else
         {
@@ -1324,7 +1324,7 @@ namespace parser
         if(auto stmt = emptyStatement())
         {
             util::logger->trace("Parsed empty statement");
-            getAST()->pushStatement(std::move(stmt));
+            getAST().pushStatement(std::move(stmt));
         }
         else
         {

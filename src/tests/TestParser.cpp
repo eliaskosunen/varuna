@@ -13,7 +13,7 @@ static core::lexer::TokenVector runLexer(const std::string& code)
     using namespace core::lexer;
 
     util::File f(TEST_FILE);
-    f.content = code;
+    f.setContent(code);
     Lexer l(&f);
     return l.run();
 }
