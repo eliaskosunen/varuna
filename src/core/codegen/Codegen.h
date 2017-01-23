@@ -31,6 +31,8 @@ namespace codegen
         /// Run it
         bool run();
 
+        void write();
+
     private:
         /// Initialize code generation
         bool prepare();

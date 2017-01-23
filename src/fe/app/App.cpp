@@ -82,6 +82,8 @@ namespace api
             util::logger->info("File '{}' compiled successfully",
                                file->getFilename());
 
+            codegen.write();
+
             return true;
         });
     }

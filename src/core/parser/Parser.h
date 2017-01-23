@@ -154,6 +154,7 @@ namespace parser
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();
+        std::unique_ptr<ast::ASTFunctionParameter> parseFunctionParameter();
         std::unique_ptr<ast::ASTFunctionPrototypeStatement>
         parseFunctionPrototype();
         std::unique_ptr<ast::ASTFunctionDefinitionStatement>

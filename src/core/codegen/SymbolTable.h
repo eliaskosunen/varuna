@@ -56,6 +56,8 @@ namespace codegen
 
         void dump() const;
 
+        std::vector<Symbol*> findExports() const;
+
     private:
         std::vector<std::unordered_map<std::string, std::unique_ptr<Symbol>>>
             list;
@@ -85,6 +87,11 @@ namespace codegen
     inline void SymbolTable::clear()
     {
         list.clear();
+    }
+
+    inline std::vector<Symbol*> SymbolTable::findExports() const
+    {
+        return {};
     }
 
     inline Symbol* SymbolTable::find(const std::string& name, Type::Kind type,

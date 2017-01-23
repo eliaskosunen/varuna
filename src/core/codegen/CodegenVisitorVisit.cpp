@@ -172,6 +172,8 @@ namespace codegen
 
         builder.SetInsertPoint(loopEndBB);
 
+        symbols.removeTopBlock();
+
         return getTypedDummyValue();
     }
     std::unique_ptr<TypedValue>
@@ -743,9 +745,9 @@ namespace codegen
             return nullptr;
         }
 
-        std::vector<std::unique_ptr<TypedValue>> operands;
-        operands.push_back(std::move(lhs));
-        operands.push_back(std::move(rhs));
+        std::vector<TypedValue*> operands;
+        operands.push_back(lhs.get());
+        operands.push_back(rhs.get());
         return operands.front()->type->getOperations()->binaryOperation(
             builder, expr->oper, std::move(operands));
     }
@@ -759,8 +761,8 @@ namespace codegen
             return nullptr;
         }
 
-        std::vector<std::unique_ptr<TypedValue>> operands;
-        operands.push_back(std::move(operand));
+        std::vector<TypedValue*> operands;
+        operands.push_back(operand.get());
         return operands.front()->type->getOperations()->unaryOperation(
             builder, expr->oper, std::move(operands));
     }
@@ -779,16 +781,16 @@ namespace codegen
             return nullptr;
         }
 
-        std::vector<std::unique_ptr<TypedValue>> operands;
-        operands.push_back(std::move(lhs));
-        operands.push_back(std::move(rhs));
+        std::vector<TypedValue*> operands;
+        operands.push_back(lhs.get());
+        operands.push_back(rhs.get());
         return operands.front()->type->getOperations()->assignmentOperation(
             builder, node->oper, std::move(operands));
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTArbitraryOperationExpression* node)
     {
-        std::vector<std::unique_ptr<TypedValue>> operands;
+        std::vector<std::unique_ptr<TypedValue>> operandsOwned;
 
         for(auto& o : node->operands)
         {
@@ -797,7 +799,15 @@ namespace codegen
             {
                 return nullptr;
             }
-            operands.push_back(std::move(v));
+            operandsOwned.push_back(std::move(v));
+        }
+
+        std::vector<TypedValue*> operands;
+        operands.reserve(operandsOwned.size());
+
+        for(auto& o : operandsOwned)
+        {
+            operands.push_back(o.get());
         }
 
         return operands.front()->type->getOperations()->arbitraryOperation(

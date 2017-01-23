@@ -12,6 +12,7 @@
 #include "core/ast/ASTStatement.h"
 #include "core/ast/FwdDecl.h"
 #include "util/ProgramInfo.h"
+#include "util/ProgramOptions.h"
 
 #define USE_LLVM_MODULE_VERIFY 0
 
@@ -76,6 +77,17 @@ namespace codegen
 #endif
 
         return true;
+    }
+
+    void CodegenVisitor::writeExports()
+    {
+        if(util::getProgramOptions().outputFilename == "stdout")
+        {
+            util::logger->info("Not writing module export file");
+            return;
+        }
+
+        auto filename = fmt::format("{}.vaexport", info.filename);
     }
 
     void CodegenVisitor::stripInstructionsAfterTerminators()

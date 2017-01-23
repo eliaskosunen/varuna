@@ -854,6 +854,21 @@ namespace parser
             {
                 type = "int64";
             }
+            else if(lit->modifierInt.isSet(INTEGER_BYTE))
+            {
+                type = "byte";
+                if(val > std::numeric_limits<uint8_t>::max() ||
+                   val < std::numeric_limits<uint8_t>::min())
+                {
+                    throw std::out_of_range(
+                        fmt::format("'{}' cannot fit into byte", lit->value));
+                }
+            }
+            /*else if(lit->modifierInt.isSet(INTEGER_BIN) ||
+                    lit->modifierInt.isSet(INTEGER_OCT) ||
+                    lit->modifierInt.isSet(INTEGER_HEX))
+            {
+            }*/
             else
             {
                 throw std::invalid_argument(fmt::format(
@@ -1319,6 +1334,52 @@ namespace parser
         return block;
     }
 
+    std::unique_ptr<ast::ASTFunctionParameter> Parser::parseFunctionParameter()
+    {
+        if(it->type != TOKEN_IDENTIFIER)
+        {
+            return parserError("Invalid function parameter: expected "
+                               "identifier, got '{}' instead",
+                               it->value);
+        }
+        std::string name = it->value;
+        ++it; // Skip name
+
+        if(it->type != TOKEN_PUNCT_COLON)
+        {
+            return parserError("Invalid function parameter: expected "
+                               "':' after identifier, got '{}' instead",
+                               it->value);
+        }
+        ++it; // Skip ':'
+
+        std::string typen = it->value;
+        ++it; // Skip type
+
+        // Parse possible init expression
+        auto init = [&]() -> std::unique_ptr<ASTExpression> {
+            if(it->type == TOKEN_OPERATORA_SIMPLE)
+            {
+                ++it; // Skip '='
+                return parseExpression();
+            }
+
+            // No init expression
+            return std::make_unique<ASTEmptyExpression>();
+        }();
+        if(!init)
+        {
+            return nullptr;
+        }
+
+        auto typeExpr = std::make_unique<ASTIdentifierExpression>(typen);
+        auto nameExpr = std::make_unique<ASTIdentifierExpression>(name);
+        auto var = std::make_unique<ASTVariableDefinitionExpression>(
+            std::move(typeExpr), std::move(nameExpr), std::move(init));
+
+        return std::make_unique<ASTFunctionParameter>(std::move(var));
+    }
+
     std::unique_ptr<ASTFunctionPrototypeStatement>
     Parser::parseFunctionPrototype()
     {
@@ -1348,13 +1409,11 @@ namespace parser
                 break;
             }
 
-            auto var = parseVariableDefinition();
-            if(!var)
+            auto param = parseFunctionParameter();
+            if(!param)
             {
                 return nullptr;
             }
-
-            auto param = std::make_unique<ASTFunctionParameter>(std::move(var));
             params.push_back(std::move(param));
 
             if(it->type == TOKEN_EOF)

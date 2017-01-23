@@ -1,22 +1,16 @@
 // code.va
 
-def main(): int
-{
-    //let a;
-    //let mut b;
-    //var c;
+module code;
 
-    let d = 1;
-    let mut e = 1;
-    var f = 1;
+def len(): int;
+def do(p: int): int {
+    return p * 2 - 1;
+}
 
-    let g: int;
-    let mut h: int;
-    var i: int;
-
-    let j: int = 1;
-    let mut k: int = 1;
-    var l: int = 1;
-
-    return 0;
+def main(): int {
+    var j = 2;
+    for var i = 0, i < len(), i += 1 {
+        j = do(i);
+    }
+    return j;
 }

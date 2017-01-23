@@ -46,6 +46,8 @@ namespace codegen
     private:
         void emitDebugLocation(ast::ASTNode* node);
 
+        void writeExports();
+
         /// Create a new void-typed value
         std::unique_ptr<TypedValue> createVoidVal(llvm::Value* v = nullptr);
         /// Get a dummy LLVM value

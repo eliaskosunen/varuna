@@ -78,8 +78,12 @@ namespace cli
         cl::opt<bool> licenseArg(
             "license", cl::desc("Print license and copyright information"),
             cl::init(false), cl::cat(cat));
+        // Output file
+        cl::opt<std::string> outputFileArg("o", cl::desc("Output file"),
+                                           cl::init("stdout"), cl::cat(cat));
         // Input files
         cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
+                                            cl::value_desc("file"),
                                             cl::Positional, cl::cat(cat));
 
         cl::HideUnrelatedOptions(cat);
@@ -101,7 +105,7 @@ namespace cli
         if(threads < 0)
         {
             util::logger->error("Invalid number of jobs: {}", threads);
-            return 1;
+            return -1;
         }
         auto app = std::make_unique<api::Application>(threads);
 
@@ -109,13 +113,19 @@ namespace cli
         if(inputFilesArg.empty())
         {
             util::logger->error("At least one input file required");
-            return 1;
+            return -1;
+        }
+        if(inputFilesArg.size() > 1)
+        {
+            util::logger->error("Only one input file is supported");
+            return -1;
         }
         for(auto&& f : inputFilesArg)
         {
             filelist.push_back(std::move(f));
         }
         util::getProgramOptions().inputFilenames = std::move(filelist);
+        util::getProgramOptions().outputFilename = std::move(outputFileArg);
 
         if(!app->execute())
         {
