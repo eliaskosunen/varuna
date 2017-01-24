@@ -72,6 +72,7 @@ namespace ast
         void visit(ASTVariableRefExpression* node, size_t ind = 0);
         void visit(ASTCastExpression* node, size_t ind = 0);
         void visit(ASTVariableDefinitionExpression* node, size_t ind = 0);
+        void visit(ASTGlobalVariableDefinitionExpression* node, size_t ind = 0);
         void visit(ASTSubscriptExpression* node, size_t ind = 0);
         void visit(ASTSubscriptRangedExpression* node, size_t ind = 0);
         void visit(ASTMemberAccessExpression* node, size_t ind = 0);

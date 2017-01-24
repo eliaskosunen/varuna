@@ -73,6 +73,11 @@ namespace ast
     {
         v->visit(this, ind);
     }
+    void ASTGlobalVariableDefinitionExpression::accept(DumpASTVisitor* v,
+                                                       size_t ind)
+    {
+        v->visit(this, ind);
+    }
     void ASTSubscriptExpression::accept(DumpASTVisitor* v, size_t ind)
     {
         v->visit(this, ind);
@@ -262,9 +267,14 @@ namespace ast
         log(ind + 1, "Name:");
         node->name->accept(this, ind + 2);
         log(ind + 1, "Mutable: {}", node->isMutable);
-        log(ind + 1, "ArraySize: {}", node->arraySize);
         log(ind + 1, "InitExpression:");
         node->init->accept(this, ind + 2);
+    }
+    void DumpASTVisitor::visit(ASTGlobalVariableDefinitionExpression* node,
+                               size_t ind)
+    {
+        log(ind, "ASTGlobalVariableDefinitionExpression:");
+        node->var->accept(this, ind + 1);
     }
     void DumpASTVisitor::visit(ASTSubscriptExpression* node, size_t ind)
     {

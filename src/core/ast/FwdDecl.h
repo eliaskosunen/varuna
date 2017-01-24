@@ -33,6 +33,7 @@ namespace ast
     class ASTSubscriptRangedExpression;
     class ASTUnaryOperationExpression;
     class ASTVariableDefinitionExpression;
+    class ASTGlobalVariableDefinitionExpression;
 
     class ASTStatement;
     class ASTBlockStatement;

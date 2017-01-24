@@ -83,6 +83,9 @@ namespace codegen
 
         llvm::Constant* createStringConstant(const char* str);
 
+        std::tuple<Type*, std::unique_ptr<TypedValue>>
+        inferVariableDefType(ast::ASTVariableDefinitionExpression* expr);
+
         llvm::LLVMContext& context;
         llvm::Module* module;
         const CodegenInfo& info;
@@ -113,6 +116,8 @@ namespace codegen
         std::unique_ptr<TypedValue> visit(ast::ASTCastExpression* node);
         std::unique_ptr<TypedValue>
         visit(ast::ASTVariableDefinitionExpression* expr);
+        std::unique_ptr<TypedValue>
+        visit(ast::ASTGlobalVariableDefinitionExpression* expr);
         std::unique_ptr<TypedValue> visit(ast::ASTSubscriptExpression* node);
         std::unique_ptr<TypedValue>
         visit(ast::ASTSubscriptRangedExpression* node);

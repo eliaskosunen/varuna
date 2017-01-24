@@ -2,7 +2,6 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "core/codegen/CodegenVisitor.h"
 #include "core/ast/ASTControlStatement.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
@@ -11,6 +10,7 @@
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
 #include "core/ast/FwdDecl.h"
+#include "core/codegen/CodegenVisitor.h"
 
 std::unique_ptr<core::codegen::TypedValue>
 core::ast::ASTExpression::accept(core::codegen::CodegenVisitor* v)
@@ -76,6 +76,12 @@ core::ast::ASTCastExpression::accept(core::codegen::CodegenVisitor* v)
 }
 std::unique_ptr<core::codegen::TypedValue>
 core::ast::ASTVariableDefinitionExpression::accept(
+    core::codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<core::codegen::TypedValue>
+core::ast::ASTGlobalVariableDefinitionExpression::accept(
     core::codegen::CodegenVisitor* v)
 {
     return v->visit(this);

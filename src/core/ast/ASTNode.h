@@ -39,6 +39,7 @@ namespace ast
             SUBSCRIPT_RANGED_EXPR,
             UNARY_OPERATION_EXPR,
             VARIABLE_DEFINITION_EXPR,
+            GLOBAL_VARIABLE_DEFINITION_EXPR,
 
             STMT = 100,
             BLOCK_STMT,

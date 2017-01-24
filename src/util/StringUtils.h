@@ -146,7 +146,7 @@ namespace StringUtils
     }
 
     /**
-     * Convert a C string (const char*) to a C++ string (string_t)
+     * Convert a C string (const char_t*) to a C++ string (string_t)
      * @param  cstr C string to convert
      * @return      Equivalent C++ string
      */
@@ -158,7 +158,7 @@ namespace StringUtils
     }
 
     /**
-     * Convert a C string (const char*) to a C++ string (string_t) with length
+     * Convert a C string (const char_t*) to a C++ string (string_t) with length
      * information
      * @param  cstr C string to convert
      * @param  len  Length of the C string
@@ -218,22 +218,23 @@ namespace StringUtils
 
     inline bool isCharAlpha(char_t c)
     {
-        return std::isalpha(c) != 0;
-    }
-
-    inline bool isCharAlnum(char_t c)
-    {
-        return std::isalnum(c) != 0;
+        return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
     }
 
     inline bool isCharDigit(char_t c)
     {
-        return std::isdigit(c) != 0;
+        return (c >= '0' && c <= '9');
+    }
+
+    inline bool isCharAlnum(char_t c)
+    {
+        return (isCharAlpha(c) || isCharDigit(c));
     }
 
     inline bool isCharHexDigit(char_t c)
     {
-        return std::isxdigit(c) != 0;
+        return (isCharDigit(c) || (c >= 'A' && c <= 'F') ||
+                (c >= 'a' && c <= 'f'));
     }
 
     inline bool isCharOctDigit(char_t c)
@@ -248,7 +249,8 @@ namespace StringUtils
 
     inline bool isCharPunctuation(char_t c)
     {
-        return std::ispunct(c) != 0;
+        return ((c >= 0x21 && c <= 0x2F) || (c >= 0x3A && c <= 0x40) ||
+                (c >= 0x5B && c <= 0x60) || (c >= 0x7B && c <= 0x7E));
     }
 
     /**
@@ -258,12 +260,27 @@ namespace StringUtils
      */
     inline bool isCharWhitespace(char_t c)
     {
-        return std::isspace(c) != 0;
+        return ((c >= 0x09 && c <= 0x0D) || c == 0x20);
     }
 
     inline bool isCharControlCharacter(char_t c)
     {
-        return std::iscntrl(c) != 0;
+        return (isCharWhitespace(c) || (c >= 0x0E && c <= 0x1F) || c == 0x7F);
+    }
+
+    inline bool isValidIdentifierChar(char_t c)
+    {
+        return (isCharAlnum(c) || c == '_');
+    }
+
+    inline bool isValidStringChar(char_t c)
+    {
+        return (isCharAlnum(c) || isCharPunctuation(c) || isCharWhitespace(c) ||
+#if CHAR_SIGNED
+                c < 0);
+#else
+                c > 127);
+#endif
     }
 } // namespace StringUtils
 } // namespace util

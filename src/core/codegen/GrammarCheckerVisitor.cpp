@@ -88,6 +88,11 @@ namespace codegen
         }
         return true;
     }
+    bool
+    GrammarCheckerVisitor::visit(ast::ASTGlobalVariableDefinitionExpression*)
+    {
+        return true;
+    }
     bool GrammarCheckerVisitor::visit(ast::ASTSubscriptExpression*)
     {
         return true;

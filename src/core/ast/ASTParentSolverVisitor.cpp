@@ -108,6 +108,14 @@ namespace ast
         node->name->accept(this, node);
         node->init->accept(this, node);
     }
+    void
+    ASTParentSolverVisitor::visit(ASTGlobalVariableDefinitionExpression* node,
+                                  ASTNode* parent)
+    {
+        node->parent = parent;
+
+        node->var->accept(this, node);
+    }
     void ASTParentSolverVisitor::visit(ASTSubscriptExpression* node,
                                        ASTNode* parent)
     {
@@ -331,6 +339,11 @@ void core::ast::ASTCastExpression::accept(core::ast::ASTParentSolverVisitor* v,
     return v->visit(this, p);
 }
 void core::ast::ASTVariableDefinitionExpression::accept(
+    core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
+{
+    return v->visit(this, p);
+}
+void core::ast::ASTGlobalVariableDefinitionExpression::accept(
     core::ast::ASTParentSolverVisitor* v, core::ast::ASTNode* p)
 {
     return v->visit(this, p);

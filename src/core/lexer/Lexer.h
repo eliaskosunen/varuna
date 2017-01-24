@@ -152,6 +152,7 @@ namespace lexer
     {
         // auto tmp = static_cast<util::char_t>(utf8::next(it, end));
         it += 1;
+        assert(it != end);
         auto tmp = static_cast<util::char_t>(*it);
         // util::string_t tmpstr("\0");
         // <3 STL iterators
@@ -163,6 +164,11 @@ namespace lexer
     }
     inline Lexer::ContentIterator& Lexer::advance()
     {
+        if(it + 1 == end)
+        {
+            it += 1;
+            return end;
+        }
         _next();
         if(!lexComment())
         {

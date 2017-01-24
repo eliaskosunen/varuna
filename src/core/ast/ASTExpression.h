@@ -122,10 +122,10 @@ namespace ast
         ASTVariableDefinitionExpression(
             std::unique_ptr<ASTIdentifierExpression> pType,
             std::unique_ptr<ASTIdentifierExpression> pName,
-            std::unique_ptr<ASTExpression> pInit, uint32_t arrSize = 0)
+            std::unique_ptr<ASTExpression> pInit)
             : ASTExpression(VARIABLE_DEFINITION_EXPR), type(std::move(pType)),
               name(std::move(pName)), init(std::move(pInit)),
-              arraySize(arrSize), typeInferred{false}
+              typeInferred{false}
         {
         }
         ASTVariableDefinitionExpression(
@@ -133,8 +133,7 @@ namespace ast
             std::unique_ptr<ASTExpression> pInit)
             : ASTExpression(VARIABLE_DEFINITION_EXPR),
               type(std::make_unique<ASTIdentifierExpression>("")),
-              name(std::move(pName)), init(std::move(pInit)), arraySize(0),
-              typeInferred{true}
+              name(std::move(pName)), init(std::move(pInit)), typeInferred{true}
         {
         }
 
@@ -146,9 +145,44 @@ namespace ast
 
         std::unique_ptr<ASTIdentifierExpression> type, name;
         std::unique_ptr<ASTExpression> init;
-        uint32_t arraySize;
         bool typeInferred;
         bool isMutable{false};
+    };
+
+    class ASTGlobalVariableDefinitionExpression : public ASTExpression
+    {
+    public:
+        ASTGlobalVariableDefinitionExpression(
+            std::unique_ptr<ASTIdentifierExpression> pType,
+            std::unique_ptr<ASTIdentifierExpression> pName,
+            std::unique_ptr<ASTExpression> pInit)
+            : ASTExpression(GLOBAL_VARIABLE_DEFINITION_EXPR),
+              var(std::make_unique<ASTVariableDefinitionExpression>(
+                  std::move(pType), std::move(pName), std::move(pInit)))
+        {
+        }
+        ASTGlobalVariableDefinitionExpression(
+            std::unique_ptr<ASTIdentifierExpression> pName,
+            std::unique_ptr<ASTExpression> pInit)
+            : ASTExpression(GLOBAL_VARIABLE_DEFINITION_EXPR),
+              var(std::make_unique<ASTVariableDefinitionExpression>(
+                  std::move(pName), std::move(pInit)))
+        {
+        }
+        ASTGlobalVariableDefinitionExpression(
+            std::unique_ptr<ASTVariableDefinitionExpression> pVar)
+            : ASTExpression(GLOBAL_VARIABLE_DEFINITION_EXPR),
+              var(std::move(pVar))
+        {
+        }
+
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTVariableDefinitionExpression> var;
     };
 
     class ASTSubscriptExpression : public ASTExpression

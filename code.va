@@ -2,15 +2,9 @@
 
 module code;
 
-def len(): int;
-def do(p: int): int {
-    return p * 2 - 1;
-}
+let global = 1;
 
 def main(): int {
-    var j = 2;
-    for var i = 0, i < len(), i += 1 {
-        j = do(i);
-    }
-    return j;
+    let local = -1;
+    return global + local;
 }

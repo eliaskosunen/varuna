@@ -77,6 +77,11 @@ namespace parser
             case TOKEN_KEYWORD_DEFINE:
                 handleDef();
                 break;
+            // Global variable
+            case TOKEN_KEYWORD_LET:
+            case TOKEN_KEYWORD_VAR:
+                handleGlobalVariable();
+                break;
 
             // Unsupported top-level token
             default:
@@ -486,6 +491,18 @@ namespace parser
             std::move(typename_), std::move(name_), std::move(init));
         def->isMutable = mut;
         return def;
+    }
+
+    std::unique_ptr<ASTGlobalVariableDefinitionExpression>
+    Parser::parseGlobalVariableDefinition()
+    {
+        auto var = parseVariableDefinition();
+        if(!var)
+        {
+            return nullptr;
+        }
+        return std::make_unique<ASTGlobalVariableDefinitionExpression>(
+            std::move(var));
     }
 
     std::unique_ptr<ASTModuleStatement> Parser::parseModuleStatement()
@@ -1260,6 +1277,24 @@ namespace parser
         {
             util::logger->trace("Parsed empty statement");
             getAST().pushStatement(std::move(stmt));
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    void Parser::handleGlobalVariable()
+    {
+        if(auto stmt = parseGlobalVariableDefinition())
+        {
+            util::logger->trace("Parsed global variable definition: name: "
+                                "'{}', type: '{}', isMutable: '{}'",
+                                stmt->var->name->value,
+                                stmt->var->typeInferred ? stmt->var->type->value
+                                                        : "(will be inferred)",
+                                stmt->var->isMutable);
+            getAST().pushStatement(wrapExpression(std::move(stmt)));
         }
         else
         {

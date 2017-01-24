@@ -47,6 +47,8 @@ namespace ast
         void visit(ASTVariableRefExpression* node, ASTNode* parent);
         void visit(ASTCastExpression* node, ASTNode* parent);
         void visit(ASTVariableDefinitionExpression* node, ASTNode* parent);
+        void visit(ASTGlobalVariableDefinitionExpression* node,
+                   ASTNode* parent);
         void visit(ASTSubscriptExpression* node, ASTNode* parent);
         void visit(ASTSubscriptRangedExpression* node, ASTNode* parent);
         void visit(ASTMemberAccessExpression* node, ASTNode* parent);

@@ -60,6 +60,7 @@ namespace codegen
         bool visit(ast::ASTVariableRefExpression* node);
         bool visit(ast::ASTCastExpression* node);
         bool visit(ast::ASTVariableDefinitionExpression* node);
+        bool visit(ast::ASTGlobalVariableDefinitionExpression* node);
         bool visit(ast::ASTSubscriptExpression* node);
         bool visit(ast::ASTSubscriptRangedExpression* node);
         bool visit(ast::ASTMemberAccessExpression* node);

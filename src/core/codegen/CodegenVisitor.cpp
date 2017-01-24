@@ -214,5 +214,101 @@ namespace codegen
             strConst->getType(), gvStr, {});
         return strVal;
     }
+
+    std::tuple<Type*, std::unique_ptr<TypedValue>>
+    CodegenVisitor::inferVariableDefType(
+        ast::ASTVariableDefinitionExpression* expr)
+    {
+        auto ret = [](Type* t, std::unique_ptr<TypedValue> i) {
+            return std::make_tuple(t, std::move(i));
+        };
+        auto err = [](std::nullptr_t n = nullptr) {
+            return std::make_tuple(n, n);
+        };
+
+        // Initializer
+        std::unique_ptr<TypedValue> init = nullptr;
+        if(expr->init->nodeType != ast::ASTNode::EMPTY_EXPR)
+        {
+            init = expr->init->accept(this);
+            if(!init)
+            {
+                return err();
+            }
+        }
+
+        // Infer type
+        Type* type = nullptr;
+        if(expr->typeInferred)
+        {
+            type = types.find(init->type->getName(),
+                              expr->isMutable ? TypeTable::FIND_MUTABLE
+                                              : TypeTable::FIND_DEFAULT);
+        }
+        else
+        {
+            type = types.find(expr->type->value, expr->isMutable
+                                                     ? TypeTable::FIND_MUTABLE
+                                                     : TypeTable::FIND_DEFAULT);
+        }
+        if(!type)
+        {
+            return err();
+        }
+
+        // Type checks
+        if(!type->isSized())
+        {
+            return err(
+                codegenError("Cannot create a variable of unsized type: {}",
+                             type->getDecoratedName()));
+        }
+        if(types.isDefinedUndecorated(expr->name->value) != 0)
+        {
+            return err(
+                codegenError("Cannot name variable as '{}': Reserved typename",
+                             expr->name->value));
+        }
+
+        // No initializer:
+        // Init as undefined
+        if(!init)
+        {
+            if(expr->isMutable)
+            {
+                codegenWarning("Uninitialized variable: {}", expr->name->value);
+            }
+            else
+            {
+                codegenWarning(
+                    "Useless variable: Uninitialized immutable variable: {}",
+                    expr->name->value);
+            }
+            init = std::make_unique<TypedValue>(
+                type, llvm::UndefValue::get(type->type));
+            if(!init)
+            {
+                return err();
+            }
+        }
+
+        // Check init type
+        if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
+        {
+            return err(codegenError(
+                "Invalid init expression: Cannot assign {} to {}",
+                init->type->getDecoratedName(), type->getDecoratedName()));
+        }
+
+        // Check for existing similarly named symbol
+        if(symbols.find(expr->name->value, nullptr, false))
+        {
+            return err(codegenError(
+                "Cannot name variable as '{}', name already defined",
+                expr->name->value));
+        }
+
+        return ret(type, std::move(init));
+    }
 } // namespace codegen
 } // namespace core

@@ -2,7 +2,6 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "core/codegen/GrammarCheckerVisitor.h"
 #include "core/ast/ASTControlStatement.h"
 #include "core/ast/ASTExpression.h"
 #include "core/ast/ASTFunctionStatement.h"
@@ -11,6 +10,7 @@
 #include "core/ast/ASTOperatorExpression.h"
 #include "core/ast/ASTStatement.h"
 #include "core/ast/FwdDecl.h"
+#include "core/codegen/GrammarCheckerVisitor.h"
 
 bool core::ast::ASTExpression::accept(core::codegen::GrammarCheckerVisitor* v)
 {
@@ -71,6 +71,11 @@ bool core::ast::ASTCastExpression::accept(
     return v->visit(this);
 }
 bool core::ast::ASTVariableDefinitionExpression::accept(
+    core::codegen::GrammarCheckerVisitor* v)
+{
+    return v->visit(this);
+}
+bool core::ast::ASTGlobalVariableDefinitionExpression::accept(
     core::codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);

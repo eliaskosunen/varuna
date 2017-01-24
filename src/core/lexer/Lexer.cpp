@@ -39,12 +39,19 @@ namespace lexer
         while(util::StringUtils::isCharWhitespace(currentChar))
         {
             util::logger->trace("Skipping whitespace");
+
+            if(it == end)
+            {
+                return createToken(TOKEN_EOF, "EOF");
+            }
+
             currentChar = *advance();
 
             if(it == end)
             {
                 return createToken(TOKEN_EOF, "EOF");
             }
+
             return getNextToken();
         }
 

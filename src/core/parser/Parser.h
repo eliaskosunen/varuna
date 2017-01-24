@@ -119,6 +119,8 @@ namespace parser
         std::unique_ptr<ast::ASTWhileStatement> parseWhileStatement();
         std::unique_ptr<ast::ASTVariableDefinitionExpression>
         parseVariableDefinition();
+        std::unique_ptr<ast::ASTGlobalVariableDefinitionExpression>
+        parseGlobalVariableDefinition();
         std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
         std::unique_ptr<ast::ASTReturnStatement> parseReturnStatement();
 
@@ -151,6 +153,7 @@ namespace parser
         void handleModule();
         void handleDef();
         void handleEmptyStatement();
+        void handleGlobalVariable();
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();

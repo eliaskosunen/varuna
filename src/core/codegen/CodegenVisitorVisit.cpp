@@ -296,85 +296,13 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* expr)
     {
-        // Initializer
-        std::unique_ptr<TypedValue> init = nullptr;
-        if(expr->init->nodeType != ast::ASTNode::EMPTY_EXPR)
-        {
-            init = expr->init->accept(this);
-            if(!init)
-            {
-                return nullptr;
-            }
-        }
+        Type* type;
+        std::unique_ptr<TypedValue> init;
+        std::tie(type, init) = inferVariableDefType(expr);
 
-        // Infer type
-        Type* type = nullptr;
-        if(expr->typeInferred)
-        {
-            type = types.find(init->type->getName(),
-                              expr->isMutable ? TypeTable::FIND_MUTABLE
-                                              : TypeTable::FIND_DEFAULT);
-        }
-        else
-        {
-            type = types.find(expr->type->value, expr->isMutable
-                                                     ? TypeTable::FIND_MUTABLE
-                                                     : TypeTable::FIND_DEFAULT);
-        }
-        if(!type)
+        if(!type || !init)
         {
             return nullptr;
-        }
-
-        // Type checks
-        if(!type->isSized())
-        {
-            return codegenError("Cannot create a variable of unsized type: {}",
-                                type->getDecoratedName());
-        }
-        if(types.isDefinedUndecorated(expr->name->value) != 0)
-        {
-            return codegenError(
-                "Cannot name variable as '{}': Reserved typename",
-                expr->name->value);
-        }
-
-        // No initializer:
-        // Init as undefined
-        if(!init)
-        {
-            if(expr->isMutable)
-            {
-                codegenWarning("Uninitialized variable: {}", expr->name->value);
-            }
-            else
-            {
-                codegenWarning(
-                    "Useless variable: Uninitialized immutable variable: {}",
-                    expr->name->value);
-            }
-            init = std::make_unique<TypedValue>(
-                type, llvm::UndefValue::get(type->type));
-            if(!init)
-            {
-                return nullptr;
-            }
-        }
-
-        // Check init type
-        if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
-        {
-            return codegenError(
-                "Invalid init expression: Cannot assign {} to {}",
-                init->type->getDecoratedName(), type->getDecoratedName());
-        }
-
-        // Check for existing similarly named symbol
-        if(symbols.find(expr->name->value, nullptr, false))
-        {
-            return codegenError(
-                "Cannot name variable as '{}', name already defined",
-                expr->name->value);
         }
 
         // Codegen
@@ -387,6 +315,48 @@ namespace codegen
             std::make_unique<TypedValue>(type, alloca), expr->name->value);
         symbols.getTop().insert(
             std::make_pair(expr->name->value, std::move(var)));
+
+        return std::make_unique<TypedValue>(type, init->value);
+    }
+    std::unique_ptr<TypedValue>
+    CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* expr)
+    {
+        Type* type;
+        std::unique_ptr<TypedValue> init;
+        std::tie(type, init) = inferVariableDefType(expr->var.get());
+
+        if(!type || !init)
+        {
+            return nullptr;
+        }
+
+        // Codegen
+        if(expr->var->init->nodeType == ast::ASTNode::EMPTY_EXPR)
+        {
+            return codegenError("Global variables have to be initialized");
+        }
+
+        bool isConstant = !expr->var->isMutable;
+        llvm::Constant* llvminit = nullptr;
+
+        {
+            auto castedinit = llvm::dyn_cast<llvm::Constant>(init->value);
+            if(!castedinit)
+            {
+                return codegenError("Global variable has to be initialized "
+                                    "with a constant expression");
+            }
+            llvminit = castedinit;
+        }
+
+        llvm::GlobalVariable* gvar = new llvm::GlobalVariable(
+            *module, type->type, isConstant, llvm::GlobalValue::InternalLinkage,
+            llvminit, expr->var->name->value);
+
+        auto var = std::make_unique<Symbol>(
+            std::make_unique<TypedValue>(type, gvar), expr->var->name->value);
+        symbols.getTop().insert(
+            std::make_pair(expr->var->name->value, std::move(var)));
 
         return std::make_unique<TypedValue>(type, init->value);
     }
