@@ -20,8 +20,8 @@ init:
 clone_folder: C:\projects\varuna
 
 before_build:
-    - cmd: cd /d C:\Program Files\LLVM
-    - cmd: for /r %i in (*) do @echo %~nxi
+    - cmd: cd C:\Program Files\LLVM
+    - cmd: dir /s
     - cmd: cd C:\projects\varuna
     - cmd: md build
     - cmd: cd build
