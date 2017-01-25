@@ -28,7 +28,8 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${CLANG_VERSION} main" ; fi
     - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-    - git clone --depth=1 -b release_39 --single-branch https://github.com/llvm-mirror/llvm.git llvm-src
+    - mkdir -p $HOME/llvm
+    - git clone --depth=1 -b release_39 --single-branch https://github.com/llvm-mirror/llvm.git $HOME/llvm/llvm-src
 
 install:
     - mkdir cmake && cd cmake
@@ -38,6 +39,7 @@ install:
     - cd ..
     - sudo apt-get update -qq
     - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ${PACKAGE}
+    - cd $HOME/llvm
     - mkdir llvm-build && cd llvm-build
     - cmake -DCMAKE_C_COMPILER=${COMPILER_C} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$HOME/llvm ../llvm-src
     - make -j2
