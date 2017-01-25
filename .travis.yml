@@ -44,7 +44,7 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
     - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-    - git clone --depth=1 https://github.com/llvm-mirror/release_39/llvm.git llvm-src
+    - git clone --depth=1 -b release_39 --single-branch https://github.com/llvm-mirror/llvm.git llvm-src
 
 install:
     - sudo apt-get update -qq
