@@ -58,6 +58,11 @@ namespace codegen
         return false;
     }
 
+    std::unique_ptr<TypedValue> VoidType::zeroInit()
+    {
+        return nullptr;
+    }
+
     IntegralType::IntegralType(TypeTable* list, uint32_t w, Kind k,
                                llvm::LLVMContext& c, llvm::Type* t,
                                llvm::DIType* d, const std::string& n, bool mut)
@@ -74,6 +79,12 @@ namespace codegen
     bool IntegralType::isFloatingPoint() const
     {
         return false;
+    }
+
+    std::unique_ptr<TypedValue> IntegralType::zeroInit()
+    {
+        auto val = llvm::Constant::getNullValue(type);
+        return std::make_unique<TypedValue>(this, val);
     }
 
     IntType::IntType(TypeTable* list, llvm::LLVMContext& c,
@@ -140,6 +151,12 @@ namespace codegen
         return false;
     }
 
+    std::unique_ptr<TypedValue> BoolType::zeroInit()
+    {
+        auto val = llvm::Constant::getNullValue(type);
+        return std::make_unique<TypedValue>(this, val);
+    }
+
     CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
                        llvm::DIBuilder& dbuilder, bool mut)
         : Type(list, std::make_unique<CharTypeOperation>(this), CHAR, c,
@@ -157,6 +174,12 @@ namespace codegen
     bool CharType::isFloatingPoint() const
     {
         return false;
+    }
+
+    std::unique_ptr<TypedValue> CharType::zeroInit()
+    {
+        auto val = llvm::Constant::getNullValue(type);
+        return std::make_unique<TypedValue>(this, val);
     }
 
     ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,
@@ -178,6 +201,12 @@ namespace codegen
         return false;
     }
 
+    std::unique_ptr<TypedValue> ByteType::zeroInit()
+    {
+        auto val = llvm::Constant::getNullValue(type);
+        return std::make_unique<TypedValue>(this, val);
+    }
+
     FPType::FPType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
                    llvm::Type* t, llvm::DIType* d, const std::string& n,
                    bool mut)
@@ -194,6 +223,12 @@ namespace codegen
     bool FPType::isFloatingPoint() const
     {
         return true;
+    }
+
+    std::unique_ptr<TypedValue> FPType::zeroInit()
+    {
+        auto val = llvm::Constant::getNullValue(type);
+        return std::make_unique<TypedValue>(this, val);
     }
 
     FloatType::FloatType(TypeTable* list, llvm::LLVMContext& c,
@@ -226,11 +261,10 @@ namespace codegen
     StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
                            llvm::DIBuilder&, bool mut)
         : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
-               /*llvm::StructType::create(c, {
-                   llvm::Type::getInt64Ty(c),
-                   llvm::Type::getInt8PtrTy(c)
-               }, "string_t", true),*/
-               llvm::Type::getInt8PtrTy(c), nullptr, "string_t", mut)
+               llvm::StructType::create(
+                   c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)},
+                   "string_t", true),
+               nullptr, "string_t", mut)
     {
     }
 
@@ -241,6 +275,11 @@ namespace codegen
     bool StringType::isFloatingPoint() const
     {
         return false;
+    }
+
+    std::unique_ptr<TypedValue> StringType::zeroInit()
+    {
+        return nullptr;
     }
 
     FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
@@ -260,6 +299,11 @@ namespace codegen
     bool FunctionType::isFloatingPoint() const
     {
         return false;
+    }
+
+    std::unique_ptr<TypedValue> FunctionType::zeroInit()
+    {
+        return nullptr;
     }
 
     llvm::FunctionType*

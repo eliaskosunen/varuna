@@ -61,6 +61,14 @@ namespace ast
         {
         }
 
+        ASTFunctionDefinitionStatement(
+            std::unique_ptr<ASTFunctionPrototypeStatement> pProto,
+            std::unique_ptr<ASTEmptyStatement> pBody)
+            : ASTStatement(FUNCTION_DEF_STMT), proto(std::move(pProto)),
+              body(std::make_unique<ASTBlockStatement>()), isDecl(true)
+        {
+        }
+
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
         std::unique_ptr<codegen::TypedValue>
         accept(codegen::CodegenVisitor* v) override;
@@ -69,6 +77,7 @@ namespace ast
 
         std::unique_ptr<ASTFunctionPrototypeStatement> proto;
         std::unique_ptr<ASTBlockStatement> body;
+        bool isDecl{false};
     };
 
     class ASTReturnStatement : public ASTStatement

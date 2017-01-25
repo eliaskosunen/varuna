@@ -77,6 +77,7 @@ namespace ast
 
         NodeType nodeType{NODE};
         ASTNode* parent{nullptr};
+        bool isExport{false};
 
     protected:
         explicit ASTNode(NodeType t) : nodeType(t)

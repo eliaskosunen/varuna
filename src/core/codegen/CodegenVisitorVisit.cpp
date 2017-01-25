@@ -331,14 +331,26 @@ namespace codegen
         }
 
         // Codegen
-        if(expr->var->init->nodeType == ast::ASTNode::EMPTY_EXPR)
-        {
-            return codegenError("Global variables have to be initialized");
-        }
-
         bool isConstant = !expr->var->isMutable;
+        auto linkage = [&]() {
+            if(!expr->isExport)
+            {
+                return llvm::GlobalValue::InternalLinkage;
+            }
+            return llvm::GlobalValue::WeakODRLinkage;
+        }();
+        auto zeroinit = type->zeroInit();
         llvm::Constant* llvminit = nullptr;
 
+        if(expr->var->init->nodeType == ast::ASTNode::EMPTY_EXPR)
+        {
+            // if(linkage != llvm::GlobalValue::LinkOnceODRLinkage)
+            //{
+            return codegenError("Global variable has to be initialized");
+            //}
+            // llvminit = llvm::cast<llvm::Constant>(zeroinit->value);
+        }
+        else
         {
             auto castedinit = llvm::dyn_cast<llvm::Constant>(init->value);
             if(!castedinit)
@@ -349,9 +361,10 @@ namespace codegen
             llvminit = castedinit;
         }
 
-        llvm::GlobalVariable* gvar = new llvm::GlobalVariable(
-            *module, type->type, isConstant, llvm::GlobalValue::InternalLinkage,
-            llvminit, expr->var->name->value);
+        llvm::GlobalVariable* gvar =
+            new llvm::GlobalVariable(*module, type->type, isConstant, linkage,
+                                     nullptr, expr->var->name->value);
+        gvar->setInitializer(llvminit);
 
         auto var = std::make_unique<Symbol>(
             std::make_unique<TypedValue>(type, gvar), expr->var->name->value);
@@ -520,8 +533,8 @@ namespace codegen
         }
         auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
 
-        // Empty block statement, declaration
-        if(stmt->body->nodes.empty())
+        // Check if it's a declaration
+        if(stmt->isDecl)
         {
             return std::make_unique<TypedValue>(functionType, llvmfunc);
         }
@@ -632,50 +645,9 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTStringLiteralExpression* expr)
     {
-        auto str = createStringConstant(expr->value.c_str());
-        return std::make_unique<TypedValue>(types.findDecorated("string_t"),
-                                            str);
-
-        /*auto t = findType("string");
-        if(!t)
-        {
-            return nullptr;
-        }
-        auto type = llvm::dyn_cast<llvm::StructType>(t->type);
-        auto valtype = findType("int64");
-        auto ret = llvm::ConstantStruct::get(type,
-        {
-            llvm::ConstantInt::get(valtype->type, str->getNumElements()),
-            str
-        });
-        return std::make_unique<TypedValue>(valtype, ret);*/
-        /*auto val = llvm::ConstantDataArray::getString(context, expr->value,
-        false);
-        if(!val)
-        {
-            return codegenError("Invalid string literal");
-        }
-
-        auto literal = llvm::dyn_cast<llvm::ConstantDataArray>(val);
-        if(!literal)
-        {
-            return codegenError("Unable to cast String literal to
-        ConstantDataArray");
-        }
-
-        auto t = findType("string");
-        if(!t)
-        {
-            return nullptr;
-        }
-        auto type = llvm::dyn_cast<llvm::StructType>(t->type);
-        auto valtype = findType("int64");
-        auto ret = llvm::ConstantStruct::get(type,
-        {
-            llvm::ConstantInt::get(valtype->type, literal->getNumElements()),
-            val
-        });
-        return std::make_unique<TypedValue>(valtype, ret);*/
+        codegenWarning("Unimplemented CodegenVisitor::visit({})",
+                       expr->nodeType.get());
+        return nullptr;
     }
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCharLiteralExpression* expr)

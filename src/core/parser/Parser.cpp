@@ -82,6 +82,10 @@ namespace parser
             case TOKEN_KEYWORD_VAR:
                 handleGlobalVariable();
                 break;
+            // Exported symbol
+            case TOKEN_KEYWORD_EXPORT:
+                handleExport();
+                break;
 
             // Unsupported top-level token
             default:
@@ -1286,19 +1290,65 @@ namespace parser
 
     void Parser::handleGlobalVariable()
     {
-        if(auto stmt = parseGlobalVariableDefinition())
+        if(auto expr = parseGlobalVariableDefinition())
         {
             util::logger->trace("Parsed global variable definition: name: "
                                 "'{}', type: '{}', isMutable: '{}'",
-                                stmt->var->name->value,
-                                stmt->var->typeInferred ? stmt->var->type->value
+                                expr->var->name->value,
+                                expr->var->typeInferred ? expr->var->type->value
                                                         : "(will be inferred)",
-                                stmt->var->isMutable);
-            getAST().pushStatement(wrapExpression(std::move(stmt)));
+                                expr->var->isMutable);
+            getAST().pushStatement(wrapExpression(std::move(expr)));
         }
         else
         {
             ++it;
+        }
+    }
+
+    void Parser::handleExport()
+    {
+        ++it; // Skip 'export'
+
+        if(it->type == TOKEN_KEYWORD_LET || it->type == TOKEN_KEYWORD_VAR)
+        {
+            auto expr = parseGlobalVariableDefinition();
+            if(!expr)
+            {
+                return;
+            }
+
+            expr->isExport = true;
+
+            util::logger->trace("Parsed global variable definition: name: "
+                                "'{}', type: '{}', isMutable: '{}'",
+                                expr->var->name->value,
+                                expr->var->typeInferred ? expr->var->type->value
+                                                        : "(will be inferred)",
+                                expr->var->isMutable);
+            getAST().pushStatement(wrapExpression(std::move(expr)));
+        }
+        else if(it->type == TOKEN_KEYWORD_DEFINE)
+        {
+            auto def = parseFunctionDefinitionStatement();
+            if(!def)
+            {
+                return;
+            }
+
+            def->isExport = true;
+
+            util::logger->trace("Parsed function definition: name: '{}', "
+                                "return: '{}', params.size: '{}'",
+                                def->proto->name->value,
+                                def->proto->returnType->value,
+                                def->proto->params.size());
+            getAST().pushStatement(std::move(def));
+        }
+        else
+        {
+            util::logger->error("Unexpected token after 'export': '{}'",
+                                it->value);
         }
     }
 
@@ -1510,7 +1560,7 @@ namespace parser
         if(it->type == TOKEN_PUNCT_SEMICOLON)
         {
             ++it; // Skip ';'
-            auto body = std::make_unique<ASTBlockStatement>();
+            auto body = std::make_unique<ASTEmptyStatement>();
             return std::make_unique<ASTFunctionDefinitionStatement>(
                 std::move(proto), std::move(body));
         }

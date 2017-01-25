@@ -16,6 +16,7 @@ namespace lexer
         TOKEN_DEFAULT = 0,
 
         TOKEN_KEYWORD_IMPORT = 1,
+        TOKEN_KEYWORD_EXPORT,
         TOKEN_KEYWORD_DEFINE,
         TOKEN_KEYWORD_CLASS,
         TOKEN_KEYWORD_OVERRIDE,

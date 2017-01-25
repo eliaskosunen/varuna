@@ -89,6 +89,26 @@ namespace codegen
         virtual bool isIntegral() const = 0;
         virtual bool isFloatingPoint() const = 0;
 
+        virtual std::unique_ptr<TypedValue> zeroInit() = 0;
+
+        /// Get basic name of type
+        std::string getName() const
+        {
+            return name;
+        }
+        /// Get complete name of type
+        std::string getDecoratedName() const
+        {
+            if(isMutable)
+            {
+                return fmt::format("{} mut", name);
+            }
+            return name;
+        }
+
+        /// Get type operations
+        TypeOperationBase* getOperations() const;
+
         /// Are types completely equal
         /// e.g. Same mutability
         bool equal(const Type& t) const
@@ -144,24 +164,6 @@ namespace codegen
         Kind kind;
         bool isMutable{false};
 
-        /// Get basic name of type
-        std::string getName() const
-        {
-            return name;
-        }
-        /// Get complete name of type
-        std::string getDecoratedName() const
-        {
-            if(isMutable)
-            {
-                return fmt::format("{} mut", name);
-            }
-            return name;
-        }
-
-        /// Get type operations
-        TypeOperationBase* getOperations() const;
-
     protected:
         std::unique_ptr<TypedValue> implicitCast(llvm::IRBuilder<>& builder,
                                                  llvm::Value* val,
@@ -183,6 +185,8 @@ namespace codegen
                                          llvm::Value* val,
                                          Type* to) const override;
 
+        std::unique_ptr<TypedValue> zeroInit() override;
+
         bool isSized() const override;
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -198,6 +202,8 @@ namespace codegen
         std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val,
                                          Type* to) const override;
+
+        std::unique_ptr<TypedValue> zeroInit() override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -250,6 +256,8 @@ namespace codegen
                                          llvm::Value* val,
                                          Type* to) const override;
 
+        std::unique_ptr<TypedValue> zeroInit() override;
+
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
     };
@@ -263,6 +271,8 @@ namespace codegen
         std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val,
                                          Type* to) const override;
+
+        std::unique_ptr<TypedValue> zeroInit() override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -278,6 +288,8 @@ namespace codegen
                                          llvm::Value* val,
                                          Type* to) const override;
 
+        std::unique_ptr<TypedValue> zeroInit() override;
+
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
     };
@@ -292,6 +304,8 @@ namespace codegen
         std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val,
                                          Type* to) const override;
+
+        std::unique_ptr<TypedValue> zeroInit() override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
@@ -330,6 +344,8 @@ namespace codegen
                                          llvm::Value* val,
                                          Type* to) const override;
 
+        std::unique_ptr<TypedValue> zeroInit() override;
+
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
     };
@@ -352,6 +368,8 @@ namespace codegen
         std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val,
                                          Type* to) const override;
+
+        std::unique_ptr<TypedValue> zeroInit() override;
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;

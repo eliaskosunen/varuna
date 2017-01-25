@@ -154,6 +154,7 @@ namespace parser
         void handleDef();
         void handleEmptyStatement();
         void handleGlobalVariable();
+        void handleExport();
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();

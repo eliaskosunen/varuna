@@ -2,9 +2,7 @@
 
 module code;
 
-let global = 1;
-
 def main(): int {
-    let local = -1;
-    return global + local;
+    string s = "constant";
+    return 0;
 }

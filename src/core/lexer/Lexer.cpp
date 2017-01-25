@@ -538,6 +538,10 @@ namespace lexer
         {
             return TOKEN_KEYWORD_IMPORT;
         }
+        if(buf == "export")
+        {
+            return TOKEN_KEYWORD_EXPORT;
+        }
         if(buf == "def")
         {
             return TOKEN_KEYWORD_DEFINE;
