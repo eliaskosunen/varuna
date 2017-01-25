@@ -8,22 +8,6 @@ os:
 git:
     depth: 5
 
-addons:
-    coverity_scan:
-        project:
-            name: "varuna-lang/varuna"
-            description: ""
-        notification_email: "varuna-lang@gmail.com"
-        build_command_preprend: "mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .."
-        build_command: "cmake --build . -- -j2"
-        branch_pattern: coverity_scan
-    apt:
-        sources:
-            - george-edison55-precise-backports
-        packages:
-            - cmake
-            - cmake-data
-
 env:
     global:
         - secure: "fWZGN/tQeRgtWKqkPQuOYt/woRRudT0Ye5e5q5kcZpLKUiG58DZyary00r079YwFOWXAtjUH8H7FthelYtIgLYcohcMwmQFbSKEU7F3cORYIAKmd7p2UyTiwkfkHYWsYmQEUmhv6f6qWTgGz0hUrucMlCYa7R5AXoRwMSd5H3U06IfH6ZjF96y9saAybu68vRu1R0fI/MdIVKPHztNAy0vwZW9qgwCjvA7hzWSPStQDPLXJLEbrF95e7er3tbsvMpNSnqEzEL4+vLOHkDiN46x/UrnUkC5Cbtdgc48SGZTPSdcD2upzrgCTCAz7JdI58lybU3AdWBiN+JLXzZUlKPoy+TbCRTXdeHsoDPXugkzDuSI+qN8H5qavKc2dZDcthG4ggyQ4ms2ubwdHqlIDgQmFpLr6f36sv/vV7jSvhnv57FggVg41SZwcJ/666rfJYeqKMo5e7DsaTp8oYQ83Dbs19EOKSAAU4fo04H2fBA1dubjxuie4L99Wm4JQ41nr2tugKDUptgG+6P+EEIqaHEvgTNt1EC9zcWRMDT6jsA7e4Ez5A//Ga6jVYEHEThdwUDpAHZZenqdfUvnkM5cYFDOp1MGimh3SWn+YwCSKn74678dkJb4oq+ry0UwSSE//K/420uHy4g6e7A78jxHVeCK24vTvoB4gITu1ez9DS36o="
@@ -47,6 +31,11 @@ before_install:
     - git clone --depth=1 -b release_39 --single-branch https://github.com/llvm-mirror/llvm.git llvm-src
 
 install:
+    - mkdir cmake && cd cmake
+    - curl -sSL https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.sh -o install-cmake.sh
+    - chmod +x install-cmake.sh
+    - sudo ./install-cmake.sh --prefix=/usr/local --skip-license
+    - cd ..
     - sudo apt-get update -qq
     - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ${PACKAGE}
     - mkdir llvm-build && cd llvm-build
