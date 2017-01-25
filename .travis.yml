@@ -32,8 +32,8 @@ env:
     matrix:
         - COMPILER=g++-5 PACKAGE=g++-5 LLVM_VERSION=0 COMPILER_C=gcc-5
         - COMPILER=g++-6 PACKAGE=g++-6 LLVM_VERSION=0 COMPILER_C=gcc-6
-        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 LLVM_VERSION=3.6 COMPILER_C=clang-3.6
-        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 LLVM_VERSION=3.8 COMPILER_C=clang-3.8
+        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 CLANG_VERSION=3.6 COMPILER_C=clang-3.6
+        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 CLANG_VERSION=3.8 COMPILER_C=clang-3.8
 
 cache:
     directories:
@@ -42,7 +42,7 @@ cache:
 
 before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${LLVM_VERSION} main" ; fi
+    - if [ ${LLVM_VERSION} != 0 ]; then sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-${CLANG_VERSION} main" ; fi
     - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
     - git clone --depth=1 -b release_39 --single-branch https://github.com/llvm-mirror/llvm.git llvm-src
 
@@ -52,13 +52,12 @@ install:
     - mkdir llvm-build && cd llvm-build
     - cmake -DCMAKE_C_COMPILER=${COMPILER_C} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$HOME/llvm ../llvm-src
     - make -j2
-    - sudo make install
     - cd ..
 
 script:
     - mkdir build
     - cd build
-    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C .. ; fi
+    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C -DLLVM_DIR=../llvm-src .. ; fi
     - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2 ; fi
     - cd ..
     - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./bin/tests ; fi
