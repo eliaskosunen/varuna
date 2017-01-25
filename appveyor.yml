@@ -23,8 +23,8 @@ before_build:
     - cmd: cd C:\projects\varuna
     - cmd: md build
     - cmd: cd build
-    - cmd: dir C:\Program Files\LLVM
-    - cmd: dir C:\Program Files\LLVM\bin
+    - cmd: dir C:\Program Files\LLVM\
+    - cmd: dir C:\Program Files\LLVM\bin\
 
     - cmd: if "%platform%"=="Win32" cmake -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR="C:\Program Files\LLVM\bin" ..
 
