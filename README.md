@@ -51,7 +51,7 @@ Varuna compiler options:
   -license     - Print license and copyright information
   -logging     - Logging level
     =trace     -   Internal trace messages
-    =debug     -   Internal trace messages
+    =debug     -   Internal debugging messages
     =info      -   Default logging level
     =warning   -   Log only warnings or greater
     =error     -   Log only errors or greater

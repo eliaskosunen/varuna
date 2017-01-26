@@ -52,7 +52,7 @@ namespace cli
                            "Internal trace messages"),
                 clEnumValN(spdlog::level::debug,
                            spdlog::level::to_str(spdlog::level::debug),
-                           "Internal trace messages"),
+                           "Internal debugging messages"),
                 clEnumValN(spdlog::level::info,
                            spdlog::level::to_str(spdlog::level::info),
                            "Default logging level"),

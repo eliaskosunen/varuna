@@ -15,11 +15,6 @@ env:
         - COMPILER=clang++-3.6 PACKAGE=clang-3.6 COMPILER_C=clang-3.6
         - COMPILER=clang++-3.9 PACKAGE=clang-3.9 COMPILER_C=clang-3.9
 
-cache:
-    directories:
-        - $HOME/Downloads
-        - $HOME/llvm
-
 before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main"

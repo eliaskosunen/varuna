@@ -1,8 +1,12 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
 // code.va
 
 module code;
 
 def main(): int {
-    string s = "constant";
-    return 0;
+    let i = 0;
+    return i;
 }
