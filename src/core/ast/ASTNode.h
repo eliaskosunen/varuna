@@ -62,8 +62,8 @@ namespace ast
         ASTNode() = default;
         ASTNode(const ASTNode&) = delete;
         ASTNode& operator=(const ASTNode&) = delete;
-        ASTNode(ASTNode&&) noexcept = default;
-        ASTNode& operator=(ASTNode&&) noexcept = default;
+        ASTNode(ASTNode&&) = default;
+        ASTNode& operator=(ASTNode&&) = default;
         virtual ~ASTNode() noexcept = default;
 
         ASTNode* getFunction()

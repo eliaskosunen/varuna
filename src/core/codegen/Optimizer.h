@@ -30,10 +30,10 @@ namespace codegen
         ~Optimizer();
 
         Optimizer(const Optimizer&) = delete;
-        Optimizer(Optimizer&&) noexcept = default;
+        Optimizer(Optimizer&&) = default;
 
         Optimizer& operator=(const Optimizer&) = delete;
-        Optimizer& operator=(Optimizer&&) noexcept = default;
+        Optimizer& operator=(Optimizer&&) = default;
 
         /// Initialize optimizer passes
         void init();

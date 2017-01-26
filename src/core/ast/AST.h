@@ -27,8 +27,8 @@ namespace ast
         AST(const AST&) = delete;
         AST& operator=(const AST&) = delete;
 
-        AST(AST&&) noexcept = default;
-        AST& operator=(AST&&) noexcept = default;
+        AST(AST&&) = default;
+        AST& operator=(AST&&) = default;
 
         ~AST() noexcept = default;
 

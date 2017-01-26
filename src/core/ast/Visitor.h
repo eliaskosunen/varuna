@@ -14,10 +14,10 @@ namespace ast
         Visitor() = default;
 
         Visitor(const Visitor&) = delete;
-        Visitor(Visitor&&) noexcept = default;
+        Visitor(Visitor&&) = default;
 
         Visitor& operator=(const Visitor&) = delete;
-        Visitor& operator=(Visitor&&) noexcept = default;
+        Visitor& operator=(Visitor&&) = default;
 
         virtual ~Visitor() noexcept = default;
     };

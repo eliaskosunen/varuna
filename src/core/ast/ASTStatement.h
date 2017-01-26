@@ -22,8 +22,8 @@ namespace ast
         }
         ASTStatement(const ASTStatement&) = delete;
         ASTStatement& operator=(const ASTStatement&) = delete;
-        ASTStatement(ASTStatement&&) noexcept = default;
-        ASTStatement& operator=(ASTStatement&&) noexcept = default;
+        ASTStatement(ASTStatement&&) = default;
+        ASTStatement& operator=(ASTStatement&&) = default;
         ~ASTStatement() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;

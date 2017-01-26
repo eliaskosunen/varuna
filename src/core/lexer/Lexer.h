@@ -40,9 +40,9 @@ namespace lexer
         }
 
         Lexer(const Lexer&) = delete;
-        Lexer(Lexer&&) noexcept = default;
+        Lexer(Lexer&&) = default;
         Lexer& operator=(const Lexer&) = delete;
-        Lexer& operator=(Lexer&&) noexcept = default;
+        Lexer& operator=(Lexer&&) = default;
         ~Lexer() noexcept = default;
 
         /// Run lexer

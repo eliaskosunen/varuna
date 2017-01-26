@@ -63,8 +63,8 @@ namespace codegen
              std::string n, bool mut = false);
         Type(const Type& t) = default;
         Type& operator=(const Type& t) = default;
-        Type(Type&&) noexcept = default;
-        Type& operator=(Type&&) noexcept = default;
+        Type(Type&&) = default;
+        Type& operator=(Type&&) = default;
         virtual ~Type() noexcept;
 
         template <typename... Args>

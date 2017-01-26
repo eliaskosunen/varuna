@@ -164,4 +164,4 @@ while cond() {
 
 `cast<type>(value)`.
 
-Invalid casts produces a compile-time error.
+Invalid casts produce a compile-time error.

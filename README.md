@@ -13,9 +13,52 @@ Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lan
 Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
 More specifically, this compiler is an LLVM front-end.
+It produces (optionally) optimized LLVM IR.
 
 WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
 Wait for 0.1 release (coming soon(tm)) or grab the code from the develop branch.
+
+## Language tutorial
+
+WORK IN PROGRESS.
+
+A quick guide can be found from quick-guide.md
+
+## Usage
+
+```
+OVERVIEW: Varuna Compiler
+USAGE: varuna [subcommand] [options] Input file list
+
+OPTIONS:
+
+Generic Options:
+
+  -help        - Display available options (-help-hidden for more)
+  -help-list   - Display list of available options (-help-list-hidden for more)
+  -version     - Display the version of this program
+
+Varuna compiler options:
+
+  Optimization level
+    -O0        - No optimizations
+    -O1        - Enable trivial optimizations
+    -O2        - Enable default optimizations
+    -O3        - Enable expensive optimizations
+    -Os        - Enable size optimizations
+    -Oz        - Enable maximum size optimizations
+  -j=<threads> - Number of worker threads to use (Default: 1)
+  -license     - Print license and copyright information
+  -logging     - Logging level
+    =trace     -   Internal trace messages
+    =debug     -   Internal trace messages
+    =info      -   Default logging level
+    =warning   -   Log only warnings or greater
+    =error     -   Log only errors or greater
+    =critical  -   Log only critical messages
+    =off       -   Disable all log messages
+  -o=<string>  - Output file
+```
 
 ## Building
 

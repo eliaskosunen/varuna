@@ -21,8 +21,8 @@ namespace ast
         }
         ASTExpression(const ASTExpression&) = delete;
         ASTExpression& operator=(const ASTExpression&) = delete;
-        ASTExpression(ASTExpression&&) noexcept = default;
-        ASTExpression& operator=(ASTExpression&&) noexcept = default;
+        ASTExpression(ASTExpression&&) = default;
+        ASTExpression& operator=(ASTExpression&&) = default;
         ~ASTExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
@@ -61,9 +61,9 @@ namespace ast
         ASTIdentifierExpression(const ASTIdentifierExpression&) = delete;
         ASTIdentifierExpression&
         operator=(const ASTIdentifierExpression&) = delete;
-        ASTIdentifierExpression(ASTIdentifierExpression&&) noexcept = default;
+        ASTIdentifierExpression(ASTIdentifierExpression&&) = default;
         ASTIdentifierExpression&
-        operator=(ASTIdentifierExpression&&) noexcept = default;
+        operator=(ASTIdentifierExpression&&) = default;
         ~ASTIdentifierExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;
@@ -203,11 +203,11 @@ namespace ast
         }
 
         ASTSubscriptExpression(const ASTSubscriptExpression&) = delete;
-        ASTSubscriptExpression(ASTSubscriptExpression&&) noexcept = default;
+        ASTSubscriptExpression(ASTSubscriptExpression&&) = default;
         ASTSubscriptExpression&
         operator=(const ASTSubscriptExpression&) = delete;
         ASTSubscriptExpression&
-        operator=(ASTSubscriptExpression&&) noexcept = default;
+        operator=(ASTSubscriptExpression&&) = default;
         ~ASTSubscriptExpression() override = default;
 
         void accept(DumpASTVisitor* v, size_t ind = 0) override;

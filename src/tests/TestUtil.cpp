@@ -38,7 +38,7 @@ template <typename T>
 void testIsChar(T&& f, std::vector<util::char_t>&& is,
                 std::vector<util::char_t>&& isnot)
 {
-    auto isfunc = [f](auto c) {
+    auto isfunc = [&f](util::char_t c) {
         if(!f(c))
         {
             // Returned false:
@@ -46,7 +46,7 @@ void testIsChar(T&& f, std::vector<util::char_t>&& is,
             CHECK(c == 0);
         }
     };
-    auto isnotfunc = [f](auto c) {
+    auto isnotfunc = [&f](util::char_t c) {
         if(f(c))
         {
             // Returned true:

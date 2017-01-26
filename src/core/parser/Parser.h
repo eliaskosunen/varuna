@@ -28,9 +28,9 @@ namespace parser
         explicit Parser(const core::lexer::TokenVector& tok);
 
         Parser(const Parser&) = delete;
-        Parser(Parser&&) noexcept = default;
+        Parser(Parser&&) = default;
         Parser& operator=(const Parser&) = delete;
-        Parser& operator=(Parser&&) noexcept = default;
+        Parser& operator=(Parser&&) = default;
         ~Parser() noexcept = default;
 
         /// Run the parser

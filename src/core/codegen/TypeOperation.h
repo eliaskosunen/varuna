@@ -20,8 +20,8 @@ namespace codegen
         TypeOperationBase(const TypeOperationBase&) = delete;
         TypeOperationBase& operator=(const TypeOperationBase&) = delete;
 
-        TypeOperationBase(TypeOperationBase&&) noexcept = default;
-        TypeOperationBase& operator=(TypeOperationBase&&) noexcept = default;
+        TypeOperationBase(TypeOperationBase&&) = default;
+        TypeOperationBase& operator=(TypeOperationBase&&) = default;
 
         virtual ~TypeOperationBase() = default;
 
