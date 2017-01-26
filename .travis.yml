@@ -9,10 +9,6 @@ git:
     depth: 5
 
 env:
-    global:
-        - secure: "fWZGN/tQeRgtWKqkPQuOYt/woRRudT0Ye5e5q5kcZpLKUiG58DZyary00r079YwFOWXAtjUH8H7FthelYtIgLYcohcMwmQFbSKEU7F3cORYIAKmd7p2UyTiwkfkHYWsYmQEUmhv6f6qWTgGz0hUrucMlCYa7R5AXoRwMSd5H3U06IfH6ZjF96y9saAybu68vRu1R0fI/MdIVKPHztNAy0vwZW9qgwCjvA7hzWSPStQDPLXJLEbrF95e7er3tbsvMpNSnqEzEL4+vLOHkDiN46x/UrnUkC5Cbtdgc48SGZTPSdcD2upzrgCTCAz7JdI58lybU3AdWBiN+JLXzZUlKPoy+TbCRTXdeHsoDPXugkzDuSI+qN8H5qavKc2dZDcthG4ggyQ4ms2ubwdHqlIDgQmFpLr6f36sv/vV7jSvhnv57FggVg41SZwcJ/666rfJYeqKMo5e7DsaTp8oYQ83Dbs19EOKSAAU4fo04H2fBA1dubjxuie4L99Wm4JQ41nr2tugKDUptgG+6P+EEIqaHEvgTNt1EC9zcWRMDT6jsA7e4Ez5A//Ga6jVYEHEThdwUDpAHZZenqdfUvnkM5cYFDOp1MGimh3SWn+YwCSKn74678dkJb4oq+ry0UwSSE//K/420uHy4g6e7A78jxHVeCK24vTvoB4gITu1ez9DS36o="
-
-
     matrix:
         - COMPILER=g++-5 PACKAGE=g++-5 COMPILER_C=gcc-5
         - COMPILER=g++-6 PACKAGE=g++-6 COMPILER_C=gcc-6
@@ -28,7 +24,7 @@ before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main"
     - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main"
-    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+    - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
 install:
     - mkdir cmake && cd cmake
@@ -42,7 +38,7 @@ install:
 script:
     - mkdir build
     - cd build
-    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C -DLLVM_DIR=/usr/lib/llvm-3.9 .. ; fi
-    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2 ; fi
+    - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C -DLLVM_DIR=/usr/lib/llvm-3.9 ..
+    - make -j2
     - cd ..
-    - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./bin/tests ; fi
+    - ./bin/tests
