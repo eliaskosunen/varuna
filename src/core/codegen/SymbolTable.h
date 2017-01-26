@@ -76,7 +76,9 @@ namespace codegen
 
     inline void SymbolTable::addBlock()
     {
-        list.push_back({});
+        // Empty initializer list {} errors on some configurations
+        // Dunno why
+        list.push_back(decltype(list)::value_type{});
     }
     inline void SymbolTable::removeTopBlock()
     {

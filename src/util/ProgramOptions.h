@@ -24,12 +24,12 @@ enum OptimizationLevel
 
 struct ProgramOptions
 {
-    std::vector<std::string> inputFilenames;
-    std::string outputFilename;
+    std::vector<std::string> inputFilenames{};
+    std::string outputFilename{""};
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     OptimizationLevel optLevel{OPT_O2};
 
-    std::tuple<uint8_t, uint8_t> getOptLevel() const noexcept
+    auto getOptLevel() const noexcept
     {
         uint8_t o = 0;
         uint8_t s = 0;
@@ -54,7 +54,7 @@ struct ProgramOptions
             break;
         }
 
-        return {o, s};
+        return std::make_tuple(o, s);
     }
 };
 
