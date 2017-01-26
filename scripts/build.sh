@@ -19,3 +19,7 @@ cd ..
 # or don't want to use it
 valgrind bin/tests
 #bin/tests
+
+# Build documentation
+echo Building documentation...
+./scripts/doxygen.sh

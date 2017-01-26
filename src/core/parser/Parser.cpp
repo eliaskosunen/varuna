@@ -290,11 +290,8 @@ namespace parser
 
         auto makeTuple = [](std::unique_ptr<ASTExpression> i,
                             std::unique_ptr<ASTExpression> e,
-                            std::unique_ptr<ASTExpression> s)
-            -> std::tuple<std::unique_ptr<ASTExpression>,
-                          std::unique_ptr<ASTExpression>,
-                          std::unique_ptr<ASTExpression>> {
-            return {std::move(i), std::move(e), std::move(s)};
+                            std::unique_ptr<ASTExpression> s) {
+            return std::make_tuple(std::move(i), std::move(e), std::move(s));
         };
         auto errorToTuple = [&](std::nullptr_t e) -> auto
         {
