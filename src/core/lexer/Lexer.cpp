@@ -97,12 +97,12 @@ namespace lexer
 
         // Word: a keyword or an identifier
         // [a-zA-Z_][a-zA-Z_0-9]*
-        if(util::StringUtils::isCharAlpha(currentChar) || currentChar == '_')
+        if(util::StringUtils::isValidIdentifierBeginnigChar(currentChar))
         {
             util::string_t buf;
             buf.reserve(8);
             buf.push_back(currentChar);
-            while(util::StringUtils::isCharAlnum(*advance()) || *it == '_')
+            while(util::StringUtils::isValidIdentifierChar(*advance()))
             {
                 buf.push_back(*it);
             }

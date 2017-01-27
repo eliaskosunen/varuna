@@ -12,7 +12,7 @@ These rules are guidelines, not laws.
 They are there only to provide consistency.
 
 * Exceptions and RTTI are allowed (not disabled), but not encouraged
-* `#include <iostream>` is allowed only, if `spdlog` fails
+* Do not use `#include <iostream>`. Use `spdlog`, and if it fails, fall back on `<cstdio>`
 * Naming style:
     * **Types** (classes, structs, enums...) in PascalCase
     * **Variables**, **functions** and **namespaces** in camelCase

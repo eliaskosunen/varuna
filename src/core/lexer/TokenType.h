@@ -5,11 +5,14 @@
 #pragma once
 
 #include "util/SafeEnum.h"
+#include <limits>
 
 namespace core
 {
 namespace lexer
 {
+    using TokenTypeUnderlying = int16_t;
+
     enum TokenType_t
     {
         TOKEN_UNDEFINED = -1,
@@ -117,9 +120,9 @@ namespace lexer
         TOKEN_PUNCT_SEMICOLON,        // ;
         TOKEN_PUNCT_COMMA,            // ,
 
-        TOKEN_EOF = 32767
+        TOKEN_EOF = std::numeric_limits<TokenTypeUnderlying>::max()
     };
 
-    using TokenType = util::SafeEnum<TokenType_t>;
+    using TokenType = util::SafeEnum<TokenType_t, TokenTypeUnderlying>;
 } // namespace lexer
 } // namespace core

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "util/Compatibility.h"
-#include <spdlog/fmt/fmt.h>
 #include <array>
 #include <stdexcept>
 #include <string>
@@ -29,37 +28,12 @@ namespace programinfo
         constexpr Status status = DEV;
         constexpr uint8_t rc = 0;
 
-        inline const std::string& toString()
-        {
-            static const std::string str = [&]() {
-                switch(status)
-                {
-                case DEV:
-                    return fmt::format("{}.{}.{}-dev", major, minor, patch);
-                case RC:
-                    return fmt::format("{}.{}.{}-rc{}", major, minor, patch,
-                                       rc);
-                case STABLE:
-                    return fmt::format("{}.{}.{}", major, minor, patch);
-                }
-            }();
-            return str;
-        }
+        const std::string& toString();
     } // namespace version
 
     constexpr const char* name = "Varuna";
 
-    inline const std::string& getIdentifier()
-    {
-        static const std::string str =
-            fmt::format("{} (version {})", name, version::toString());
-        return str;
-    }
-
-    inline const std::string& getBuildDate()
-    {
-        static const std::string str = __DATE__;
-        return str;
-    }
+    const std::string& getIdentifier();
+    const std::string& getBuildDate();
 } // namespace programinfo
 } // namespace util

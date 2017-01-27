@@ -770,7 +770,7 @@ namespace codegen
             if(!child->accept(this))
             {
                 codegenWarning("Block child codegen failed: {}",
-                               child->nodeType);
+                               child->nodeType.get());
 
                 // Not necessary,
                 // execution will be stopped
@@ -789,7 +789,7 @@ namespace codegen
         if(!val)
         {
             codegenWarning("Wrapped expression codegen failed: {}",
-                           stmt->expr->nodeType);
+                           stmt->expr->nodeType.get());
         }
         return val;
     }

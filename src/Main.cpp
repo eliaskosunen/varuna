@@ -6,7 +6,6 @@
 #include "util/Logger.h"
 #include <utf8.h>
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 static void cleanup()
@@ -32,10 +31,11 @@ static void logException(const std::string& msg)
     }
     else
     {
-        std::cerr << "An exception occured during program execution.\n"
-                  << "Exception message: '" << msg << "'\n"
-                  << "Program will be terminated.\n"
-                  << "No loggers available for message delivery." << std::endl;
+        fprintf(stderr, "An exception occured during program execution.\n");
+        fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
+        fprintf(stderr, "Program will be terminated.\n");
+        fprintf(stderr, "No loggers available for message delivery.\n");
+        fflush(stderr);
     }
 }
 
@@ -60,11 +60,12 @@ static void logException(const std::string& msg,
     }
     else
     {
-        std::cerr << "An exception occured during program execution.\n"
-                  << "Exception message: '" << msg << "'\n"
-                  << "Additional message: '" << additionalMsg << "'\n"
-                  << "Program will be terminated.\n"
-                  << "No loggers available for message delivery." << std::endl;
+        fprintf(stderr, "An exception occured during program execution.\n");
+        fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
+        fprintf(stderr, "Additional message: '%s'\n", additionalMsg.c_str());
+        fprintf(stderr, "Program will be terminated.\n");
+        fprintf(stderr, "No loggers available for message delivery.\n");
+        fflush(stderr);
     }
 }
 
@@ -75,8 +76,7 @@ int main(int argc, char** argv)
         const int atexitResult = std::atexit(cleanup);
         if(atexitResult != 0)
         {
-            std::cerr << "Failed to register cleanup function\n";
-            return -1;
+            throw std::runtime_error("Failed to register cleanup function\n");
         }
 
         util::initLogger();
@@ -86,11 +86,11 @@ int main(int argc, char** argv)
     }
     catch(const spdlog::spdlog_ex& e)
     {
-        std::cerr << "An exception occured during program execution.\n"
-                  << "Application logger threw an exception.\n"
-                  << "Exception message: '" << e.what() << "'\n"
-                  << "Program will be terminated.\n"
-                  << std::endl;
+        fprintf(stderr, "An exception occured during program execution.\n");
+        fprintf(stderr, "Application logger threw an exception.\n");
+        fprintf(stderr, "Exception message: '%s'\n", e.what());
+        fprintf(stderr, "Program will be terminated.\n");
+        fflush(stderr);
     }
 
     catch(const utf8::invalid_code_point& e)

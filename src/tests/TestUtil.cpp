@@ -5,7 +5,6 @@
 #include "util/StreamReader.h"
 #include "util/StringUtils.h"
 #include <doctest.h>
-#include <iostream>
 #include <string>
 #include <vector>
 

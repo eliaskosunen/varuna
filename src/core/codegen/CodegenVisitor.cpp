@@ -53,7 +53,7 @@ namespace codegen
             if(!child->accept(this))
             {
                 codegenWarning("Block child codegen failed: {}",
-                               child->nodeType);
+                               child->nodeType.get());
                 return false;
             }
         }

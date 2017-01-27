@@ -4,7 +4,6 @@
 
 #include "util/Logger.h"
 #include "util/ProgramInfo.h"
-#include <iostream>
 #include <string>
 
 namespace util

@@ -370,7 +370,7 @@ namespace ast
     {
         log(ind, "ASTBinaryOperationExpression:");
         log(ind + 1, "Operator: {} ({})",
-            core::lexer::Token::typeToString(node->oper), node->oper);
+            core::lexer::Token::typeToString(node->oper), node->oper.get());
         log(ind + 1, "LHS:");
         node->lhs->accept(this, ind + 2);
         log(ind + 1, "RHS:");
@@ -380,7 +380,7 @@ namespace ast
     {
         log(ind, "ASTUnaryOperationExpression:");
         log(ind + 1, "Operator: {} ({})",
-            core::lexer::Token::typeToString(node->oper), node->oper);
+            core::lexer::Token::typeToString(node->oper), node->oper.get());
         log(ind + 1, "Operand:");
         node->operand->accept(this, ind + 2);
     }
@@ -389,7 +389,7 @@ namespace ast
     {
         log(ind, "ASTAssignmentOperationExpression:");
         log(ind + 1, "Operator: {} ({})",
-            core::lexer::Token::typeToString(node->oper), node->oper);
+            core::lexer::Token::typeToString(node->oper), node->oper.get());
         log(ind + 1, "LHS:");
         node->lhs->accept(this, ind + 2);
         log(ind + 1, "RHS:");
@@ -400,7 +400,7 @@ namespace ast
     {
         log(ind, "ASTArbitraryOperationExpression:");
         log(ind + 1, "Operator: {}, ({})",
-            lexer::Token::typeToString(node->oper), node->oper);
+            lexer::Token::typeToString(node->oper), node->oper.get());
         log(ind + 1, "Operands:");
         for(auto& o : node->operands)
         {

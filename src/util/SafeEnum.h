@@ -107,7 +107,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& o, const Enum_t& t)
     {
-        o << static_cast<int>(t);
+        o << static_cast<Underlying_t>(t);
         return o;
     }
 

@@ -335,7 +335,7 @@ namespace codegen
             {
                 return operationError(
                     "Unsupported assignment operator for '{}': {}",
-                    lhs->type->getDecoratedName(), op);
+                    lhs->type->getDecoratedName(), op.get());
             }
             else
             {

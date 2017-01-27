@@ -70,8 +70,8 @@ Windows is supported, and macOS may work, but is not tested due to lack of resou
 
 A C++14 compliant compiler is required for building.
 The project is confirmed to build on
-Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.8.0) and
-on Windows with Visual Studio 14 (2015). Older compilers may work, but are not actively supported.
+Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.9.1) and
+on Windows with Visual Studio 14 (2015). Other compilers may work, but are not actively supported.
 Further support is not planned.
 
 This project depends on LLVM. It is developed on version 3.9, but earlier versions may work as well.

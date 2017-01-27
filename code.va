@@ -7,6 +7,6 @@
 module code;
 
 def main(): int {
-    let i = 0;
-    return i;
+    let ä = 1;
+    return 0;
 }
