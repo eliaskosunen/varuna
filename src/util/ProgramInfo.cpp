@@ -17,8 +17,7 @@ namespace programinfo
             case DEV:
                 return fmt::format("{}.{}.{}-dev", major, minor, patch);
             case RC:
-                return fmt::format("{}.{}.{}-rc{}", major, minor, patch,
-                                   rc);
+                return fmt::format("{}.{}.{}-rc{}", major, minor, patch, rc);
             case STABLE:
                 return fmt::format("{}.{}.{}", major, minor, patch);
             }

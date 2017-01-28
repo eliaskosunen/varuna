@@ -969,22 +969,32 @@ namespace parser
         const TokenVector::const_iterator lit = it;
         ++it;
 
-        try
+        std::vector<char32_t> result;
+        utf8::utf8to32(lit->value.begin(), lit->value.end(),
+                       std::back_inserter(result));
+
+        if(result.size() > 1)
         {
-            if(lit->value.length() > 1)
-            {
-                throw std::out_of_range("Char literal length more than 1");
-            }
-            auto val = lit->value.at(0);
-            return std::make_unique<ASTCharLiteralExpression>(
-                static_cast<char32_t>(val));
+            return parserError("Invalid char literal: Value out of range: "
+                               "Length more than one Unicode character (4 "
+                               "bytes): '{}'",
+                               lit->value);
         }
-        catch(std::out_of_range& e)
+        assert(result.size() == 1);
+
+        return std::make_unique<ASTCharLiteralExpression>(result[0]);
+        /*char32_t val = 0;
+        bool set = false;
+        for(int i = 3; i >= 0; --i)
         {
-            return parserError("Invalid char literal: value out of range: "
-                               "'{}'. Description: '{}'",
-                               lit->value, e.what());
+            std::string chbuf(lit->value.begin(), lit->value.begin() + i);
+            int64_t tmp = 0;
+
         }
+        std::string ch
+        auto val = lit->value.at(0);
+        return std::make_unique<ASTCharLiteralExpression>(
+            static_cast<char32_t>(val));*/
     }
     std::unique_ptr<ASTBoolLiteralExpression>
     Parser::parseTrueLiteralExpression()

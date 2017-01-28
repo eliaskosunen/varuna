@@ -517,11 +517,6 @@ namespace lexer
             escaped.push_back(c);
         }
 
-        if(isChar && escaped.length() > 1)
-        {
-            lexerError("Invalid character literal: Length more than 1: '{}'",
-                       escaped);
-        }
         advance();
         return escaped;
     }

@@ -6,7 +6,17 @@
 
 module code;
 
+def putchar(ch: char): char;
+def getchar(): char;
+
+def asc(ch: char): int;
+def chr(num: int): char;
+
 def main(): int {
-    let ä = 1;
-    return 0;
+    let ch = 'a';
+    let ch2 = 'ä';
+    let ch3 = '😂';
+    putchar(ch3);
+    let ret = getchar();
+    return asc(ret);
 }

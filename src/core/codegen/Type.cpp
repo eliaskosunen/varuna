@@ -160,8 +160,8 @@ namespace codegen
     CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
                        llvm::DIBuilder& dbuilder, bool mut)
         : Type(list, std::make_unique<CharTypeOperation>(this), CHAR, c,
-               llvm::Type::getInt8Ty(c),
-               dbuilder.createBasicType("char", 8, 8,
+               llvm::Type::getInt32Ty(c),
+               dbuilder.createBasicType("char", 32, 32,
                                         llvm::dwarf::DW_ATE_unsigned_char),
                "char", mut)
     {
