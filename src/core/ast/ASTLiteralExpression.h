@@ -18,9 +18,10 @@ namespace ast
     {
     public:
         ASTIntegerLiteralExpression(
-            int64_t val, std::unique_ptr<ASTIdentifierExpression> pType)
+            int64_t val, std::unique_ptr<ASTIdentifierExpression> pType,
+            bool pIsSigned = true)
             : ASTExpression(INTEGER_LITERAL_EXPR), value(val),
-              type(std::move(pType))
+              isSigned(pIsSigned), type(std::move(pType))
         {
         }
 
@@ -31,6 +32,7 @@ namespace ast
         bool accept(codegen::GrammarCheckerVisitor* v) override;
 
         int64_t value;
+        bool isSigned;
         std::unique_ptr<ASTIdentifierExpression> type;
     };
 

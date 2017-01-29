@@ -632,7 +632,14 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* expr)
     {
         auto t = types.findDecorated(expr->type->value);
-        auto val = llvm::ConstantInt::getSigned(t->type, expr->value);
+        auto val = [&t, &expr]() {
+            if(expr->isSigned)
+            {
+                return llvm::ConstantInt::getSigned(t->type, expr->value);
+            }
+            return llvm::ConstantInt::get(
+                t->type, static_cast<uint64_t>(expr->value), false);
+        }();
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>
@@ -653,7 +660,7 @@ namespace codegen
     CodegenVisitor::visit(ast::ASTCharLiteralExpression* expr)
     {
         auto t = types.findDecorated("char");
-        auto val = llvm::ConstantInt::get(t->type, expr->value);
+        auto val = llvm::ConstantInt::get(t->type, expr->value, false);
         return std::make_unique<TypedValue>(t, val);
     }
     std::unique_ptr<TypedValue>

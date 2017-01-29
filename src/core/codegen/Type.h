@@ -7,6 +7,7 @@
 #include "core/ast/ASTFunctionStatement.h"
 #include "core/lexer/Token.h"
 #include "util/Logger.h"
+#include "util/ProgramOptions.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
 #include <tuple>
@@ -195,7 +196,7 @@ namespace codegen
     class IntegralType : public Type
     {
     public:
-        IntegralType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+        IntegralType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
                      llvm::Type* t, llvm::DIType* d, const std::string& n,
                      bool mut = false);
 
@@ -208,7 +209,15 @@ namespace codegen
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
 
-        uint32_t width;
+        size_t getIntSize() const noexcept
+        {
+            assert(util::getProgramOptions().intSize % 8 == 0);
+            assert(util::getProgramOptions().intSize <= 64);
+            assert(util::getProgramOptions().intSize >= 8);
+            return util::getProgramOptions().intSize;
+        }
+
+        size_t width;
     };
 
     class IntType : public IntegralType
@@ -297,7 +306,7 @@ namespace codegen
     class FPType : public Type
     {
     public:
-        FPType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+        FPType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
                llvm::Type* t, llvm::DIType* d, const std::string& n,
                bool mut = false);
 
@@ -310,7 +319,7 @@ namespace codegen
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
 
-        uint32_t width;
+        size_t width;
     };
 
     class FloatType : public FPType

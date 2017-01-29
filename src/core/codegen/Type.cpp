@@ -63,7 +63,7 @@ namespace codegen
         return nullptr;
     }
 
-    IntegralType::IntegralType(TypeTable* list, uint32_t w, Kind k,
+    IntegralType::IntegralType(TypeTable* list, size_t w, Kind k,
                                llvm::LLVMContext& c, llvm::Type* t,
                                llvm::DIType* d, const std::string& n, bool mut)
         : Type(list, std::make_unique<IntegralTypeOperation>(this), k, c, t, d,
@@ -89,10 +89,12 @@ namespace codegen
 
     IntType::IntType(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder, bool mut)
-        : IntegralType(list, 32, INT, c, llvm::Type::getInt32Ty(c),
-                       dbuilder.createBasicType("int", 32, 32,
-                                                llvm::dwarf::DW_ATE_signed),
-                       "int", mut)
+        : IntegralType(
+              list, getIntSize(), INT, c,
+              llvm::Type::getIntNTy(c, static_cast<unsigned int>(getIntSize())),
+              dbuilder.createBasicType("int", getIntSize(), getIntSize(),
+                                       llvm::dwarf::DW_ATE_signed),
+              "int", mut)
     {
     }
 
@@ -207,7 +209,7 @@ namespace codegen
         return std::make_unique<TypedValue>(this, val);
     }
 
-    FPType::FPType(TypeTable* list, uint32_t w, Kind k, llvm::LLVMContext& c,
+    FPType::FPType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
                    llvm::Type* t, llvm::DIType* d, const std::string& n,
                    bool mut)
         : Type(list, std::make_unique<FPTypeOperation>(this), k, c, t, d, n,

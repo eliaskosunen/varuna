@@ -21,6 +21,12 @@ enum OptimizationLevel
     OPT_Os,
     OPT_Oz
 };
+enum IntSize
+{
+    INTSIZE_VOIDPTR = 0,
+    INTSIZE_32 = 32,
+    INTSIZE_64 = 64
+};
 
 struct ProgramOptions
 {
@@ -28,6 +34,7 @@ struct ProgramOptions
     std::string outputFilename{""};
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     OptimizationLevel optLevel{OPT_O2};
+    size_t intSize{0};
 
     auto getOptLevel() const noexcept
     {

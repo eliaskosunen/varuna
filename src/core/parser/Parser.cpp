@@ -828,6 +828,7 @@ namespace parser
         {
             int64_t val = std::stoll(lit->value, nullptr, base);
             std::string type;
+            bool isSigned = true;
             if(lit->modifierInt.isSet(INTEGER_INT))
             {
                 type = "int";
@@ -881,19 +882,15 @@ namespace parser
                     throw std::out_of_range(
                         fmt::format("'{}' cannot fit into byte", lit->value));
                 }
+                isSigned = false;
             }
-            /*else if(lit->modifierInt.isSet(INTEGER_BIN) ||
-                    lit->modifierInt.isSet(INTEGER_OCT) ||
-                    lit->modifierInt.isSet(INTEGER_HEX))
-            {
-            }*/
             else
             {
                 throw std::invalid_argument(fmt::format(
                     "Invalid integer modifier: {}", lit->modifierInt.get()));
             }
             return std::make_unique<ASTIntegerLiteralExpression>(
-                val, std::make_unique<ASTIdentifierExpression>(type));
+                val, std::make_unique<ASTIdentifierExpression>(type), isSigned);
         }
         catch(std::invalid_argument& e)
         {

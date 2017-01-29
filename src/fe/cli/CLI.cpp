@@ -4,6 +4,7 @@
 
 #include "fe/cli/CLI.h"
 #include "fe/app/App.h"
+#include "util/MathUtils.h"
 #include <llvm/Config/llvm-config.h>
 #include <llvm/Support/CommandLine.h>
 
@@ -85,6 +86,15 @@ namespace cli
         cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
                                             cl::value_desc("file"),
                                             cl::Positional, cl::cat(cat));
+        cl::opt<util::IntSize> intSizeArg(
+            "fint-size", cl::desc("Size of type 'int' (Default: 0)"),
+            cl::init(util::INTSIZE_VOIDPTR),
+            cl::values(
+                clEnumValN(util::INTSIZE_VOIDPTR, "0",
+                           "32 or 64 bits depending on the CPU architecture"),
+                clEnumValN(util::INTSIZE_32, "32", "32 bits"),
+                clEnumValN(util::INTSIZE_64, "64", "64 bits"), nullptr),
+            cl::cat(cat));
 
         cl::HideUnrelatedOptions(cat);
         cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
@@ -126,6 +136,13 @@ namespace cli
         }
         util::getProgramOptions().inputFilenames = std::move(filelist);
         util::getProgramOptions().outputFilename = std::move(outputFileArg);
+
+        int intSize = intSizeArg;
+        if(intSize == 0)
+        {
+            intSize = sizeof(void*) * 8;
+        }
+        util::getProgramOptions().intSize = static_cast<size_t>(intSize);
 
         if(!app->execute())
         {

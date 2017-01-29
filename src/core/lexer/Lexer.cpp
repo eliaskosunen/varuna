@@ -130,17 +130,17 @@ namespace lexer
             IntegerLiteralBase base = BASE_DEC;
             if(currentChar == '0')
             {
-                if(*(it + 1) == 'x')
+                if(*(it + 1) == 'x' || *(it + 1) == 'X')
                 {
                     currentChar = *(it += 2);
                     base = BASE_HEX;
                 }
-                else if(*(it + 1) == 'o')
+                else if(*(it + 1) == 'o' || *(it + 1) == 'O')
                 {
                     currentChar = *(it += 2);
                     base = BASE_OCT;
                 }
-                else if(*(it + 1) == 'b')
+                else if(*(it + 1) == 'b' || *(it + 1) == 'B')
                 {
                     currentChar = *(it += 2);
                     base = BASE_BIN;
@@ -180,7 +180,7 @@ namespace lexer
                                         {"i32", INTEGER_INT32},
                                         {"i16", INTEGER_INT16},
                                         {"i8", INTEGER_INT8},
-                                        {"b", INTEGER_BYTE}};
+                                        {"o", INTEGER_BYTE}}; // o = octet
                 auto mod = [&]() {
                     util::string_t modbuf;
                     while(util::StringUtils::isCharAlnum(currentChar))
@@ -356,18 +356,53 @@ namespace lexer
 
     bool Lexer::lexComment()
     {
-        if(*it == '/' && peekNext() == '/')
+        if(*it == '/')
         {
-            advance(); // Skip the both slashes
-            advance();
-            do
+            // Single line comment: '//'
+            if(peekNext() == '/')
             {
-                if(it == end)
+                advance(); // Skip the both slashes
+                advance();
+                do
                 {
-                    return false;
+                    if(it == end)
+                    {
+                        return false;
+                    }
+                } while(*advance() != '\n');
+                advance(); // Skip '\n'
+            }
+            // Multi line comment: '/*'
+            else if(peekNext() == '*')
+            {
+                advance(); // Skip '/'
+                advance(); // Skip '*'
+
+                int openCommentCount = 1;
+                while(openCommentCount > 0)
+                {
+                    if(it == end)
+                    {
+                        lexerWarning("Unclosed multi-line comment");
+                        return false;
+                    }
+                    if(*it == '/' && peekNext() == '*')
+                    {
+                        advance(); // Skip '/'
+                        advance(); // Skip '*'
+                        ++openCommentCount;
+                        continue;
+                    }
+                    if(*it == '*' && peekNext() == '/')
+                    {
+                        advance(); // Skip '*'
+                        advance(); // Skip '/'
+                        --openCommentCount;
+                        continue;
+                    }
+                    advance();
                 }
-            } while(*advance() != '\n');
-            advance(); // Skip '\n'
+            }
         }
         return true;
     }

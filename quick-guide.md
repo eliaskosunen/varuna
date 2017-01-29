@@ -27,8 +27,8 @@ All integer types are signed.
 
 `void`: Unsized type. Used only for describing functions that return no value.  
 `bool`: Boolean type. Allowed values: `true`, `false`.  
-`byte`: 8-bit unsigned integer. Literal suffix: `b`  
-`char`: 8-bit unsigned character. Literal syntax: `'a'`
+`byte`: 8-bit unsigned integer. Literal suffix: `o` (stands for 'octet')  
+`char`: 32-bit unsigned character (UTF-8 in source code). Literal syntax: `'a'`
 
 # Comments
 

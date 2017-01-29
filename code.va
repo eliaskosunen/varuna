@@ -18,5 +18,8 @@ def main(): int {
     let ch3 = '😂';
     putchar(ch3);
     let ret = getchar();
+
+    let b = 0xfeo;
+
     return asc(ret);
 }

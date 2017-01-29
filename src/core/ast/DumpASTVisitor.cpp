@@ -335,6 +335,7 @@ namespace ast
         log(ind, "ASTIntegerLiteralExpression:");
         log(ind + 1, "Value: {}", node->value);
         log(ind + 1, "Type: {}", node->type->value);
+        log(ind + 1, "Signed: {}", node->isSigned);
     }
     void DumpASTVisitor::visit(ASTFloatLiteralExpression* node, size_t ind)
     {

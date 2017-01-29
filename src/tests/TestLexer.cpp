@@ -41,6 +41,28 @@ TEST_CASE("Test lexer")
 
             REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
         }
+
+        SUBCASE("Multi-line comments")
+        {
+            f.setContent(R"(
+                /*
+                // Comment
+                 */
+                123
+                /*
+                /*
+                Nested
+                */
+                 */
+            )");
+            Lexer l(&f);
+            v = l.run();
+
+            CHECK(v.size() == 2);
+            REQUIRE(!l.getError());
+
+            REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
+        }
     }
 
     SUBCASE("Literals")
@@ -48,13 +70,13 @@ TEST_CASE("Test lexer")
         SUBCASE("Integer literals")
         {
             f.setContent(
-                "123 9999999i32 8i8 5i16 10i64 0b1001 0o60 0xff 0xdead");
+                "123 9999999i32 8i8 5i16 10i64 0b1001 0o60 0XFF 0xdead 0x6bo");
             Lexer l(&f);
             v = l.run();
-            CHECK(v.size() == 10);
+            CHECK(v.size() == 11);
             REQUIRE(!l.getError());
 
-            for(unsigned int i = 0; i <= 8; ++i)
+            for(unsigned int i = 0; i <= 9; ++i)
             {
                 REQUIRE(v[i].type == TOKEN_LITERAL_INTEGER);
             }
@@ -83,12 +105,16 @@ TEST_CASE("Test lexer")
             REQUIRE(v[6].value == "60");
             REQUIRE(v[6].modifierInt.isSet(INTEGER_OCT));
 
-            REQUIRE(v[7].value == "ff");
+            REQUIRE(v[7].value == "FF");
             REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
             REQUIRE(v[7].modifierInt.isNotSet(INTEGER_INT64));
 
             REQUIRE(v[8].value == "dead");
             REQUIRE(v[8].modifierInt.isSet(INTEGER_HEX));
+
+            REQUIRE(v[9].value == "6b");
+            REQUIRE(v[9].modifierInt.isSet(INTEGER_HEX));
+            REQUIRE(v[9].modifierInt.isSet(INTEGER_BYTE));
         }
         SUBCASE("Float literals")
         {
