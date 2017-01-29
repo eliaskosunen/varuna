@@ -159,29 +159,47 @@ namespace codegen
         return std::make_unique<TypedValue>(this, val);
     }
 
-    CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
-                       llvm::DIBuilder& dbuilder, bool mut)
-        : Type(list, std::make_unique<CharTypeOperation>(this), CHAR, c,
-               llvm::Type::getInt32Ty(c),
-               dbuilder.createBasicType("char", 32, 32,
-                                        llvm::dwarf::DW_ATE_unsigned_char),
-               "char", mut)
+    CharacterType::CharacterType(TypeTable* list, size_t w, Kind k,
+                                 llvm::LLVMContext& c, llvm::Type* t,
+                                 llvm::DIType* d, const std::string& n,
+                                 bool mut)
+        : Type(list, std::make_unique<CharacterTypeOperation>(this), k, c, t, d,
+               n, mut),
+          width(w)
     {
     }
 
-    bool CharType::isIntegral() const
+    bool CharacterType::isIntegral() const
     {
         return false;
     }
-    bool CharType::isFloatingPoint() const
+    bool CharacterType::isFloatingPoint() const
     {
         return false;
     }
 
-    std::unique_ptr<TypedValue> CharType::zeroInit()
+    std::unique_ptr<TypedValue> CharacterType::zeroInit()
     {
         auto val = llvm::Constant::getNullValue(type);
         return std::make_unique<TypedValue>(this, val);
+    }
+
+    CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder, bool mut)
+        : CharacterType(list, 32, CHAR, c, llvm::Type::getInt32Ty(c),
+                        dbuilder.createBasicType(
+                            "char", 32, 32, llvm::dwarf::DW_ATE_unsigned_char),
+                        "char", mut)
+    {
+    }
+
+    ByteCharType::ByteCharType(TypeTable* list, llvm::LLVMContext& c,
+                               llvm::DIBuilder& dbuilder, bool mut)
+        : CharacterType(list, 8, BCHAR, c, llvm::Type::getInt8Ty(c),
+                        dbuilder.createBasicType(
+                            "bchar", 8, 8, llvm::dwarf::DW_ATE_unsigned_char),
+                        "bchar", mut)
+    {
     }
 
     ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,

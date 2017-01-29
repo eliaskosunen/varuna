@@ -38,6 +38,7 @@ namespace codegen
         types.insertTypeWithVariants<F64Type>(context, dbuilder);
         types.insertTypeWithVariants<BoolType>(context, dbuilder);
         types.insertTypeWithVariants<CharType>(context, dbuilder);
+        types.insertTypeWithVariants<ByteCharType>(context, dbuilder);
         types.insertTypeWithVariants<ByteType>(context, dbuilder);
         types.insertTypeWithVariants<StringType>(context, dbuilder);
     }

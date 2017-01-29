@@ -16,6 +16,7 @@ def main(): int {
     let ch = 'a';
     let ch2 = 'ä';
     let ch3 = '😂';
+    let bch = b'a';
     putchar(ch3);
     let ret = getchar();
 

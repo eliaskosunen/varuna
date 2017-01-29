@@ -147,10 +147,10 @@ namespace codegen
                            std::vector<TypedValue*> operands) const override;
     };
 
-    class CharTypeOperation : public TypeOperationBase
+    class CharacterTypeOperation : public TypeOperationBase
     {
     public:
-        CharTypeOperation(CharType* pType) : TypeOperationBase(pType)
+        CharacterTypeOperation(CharacterType* pType) : TypeOperationBase(pType)
         {
         }
 

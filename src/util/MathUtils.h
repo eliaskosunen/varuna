@@ -6,13 +6,13 @@
 
 namespace util
 {
-    template <typename T>
-    bool isPowerOf(T num, T exp)
+template <typename T>
+bool isPowerOf(T num, T exp)
+{
+    while(num % exp == 0)
     {
-        while(num % exp == 0)
-        {
-            num /= exp;
-        }
-        return num == 1;
+        num /= exp;
     }
+    return num == 1;
+}
 }

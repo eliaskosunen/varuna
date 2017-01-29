@@ -966,6 +966,19 @@ namespace parser
         const TokenVector::const_iterator lit = it;
         ++it;
 
+        if(lit->modifierChar.isSet(CHAR_BYTE))
+        {
+            if(lit->value.length() > 1)
+            {
+                return parserError("Invalid byte char literal: Value out of "
+                                   "range: Value more than 1 byte: '{}'",
+                                   lit->value);
+            }
+            auto t = std::make_unique<ASTIdentifierExpression>("bchar");
+            return std::make_unique<ASTCharLiteralExpression>(lit->value[0],
+                                                              std::move(t));
+        }
+
         std::vector<char32_t> result;
         utf8::utf8to32(lit->value.begin(), lit->value.end(),
                        std::back_inserter(result));
@@ -973,25 +986,15 @@ namespace parser
         if(result.size() > 1)
         {
             return parserError("Invalid char literal: Value out of range: "
-                               "Length more than one Unicode character (4 "
+                               "Value more than one Unicode character (4 "
                                "bytes): '{}'",
                                lit->value);
         }
         assert(result.size() == 1);
 
-        return std::make_unique<ASTCharLiteralExpression>(result[0]);
-        /*char32_t val = 0;
-        bool set = false;
-        for(int i = 3; i >= 0; --i)
-        {
-            std::string chbuf(lit->value.begin(), lit->value.begin() + i);
-            int64_t tmp = 0;
-
-        }
-        std::string ch
-        auto val = lit->value.at(0);
-        return std::make_unique<ASTCharLiteralExpression>(
-            static_cast<char32_t>(val));*/
+        auto t = std::make_unique<ASTIdentifierExpression>("char");
+        return std::make_unique<ASTCharLiteralExpression>(result[0],
+                                                          std::move(t));
     }
     std::unique_ptr<ASTBoolLiteralExpression>
     Parser::parseTrueLiteralExpression()

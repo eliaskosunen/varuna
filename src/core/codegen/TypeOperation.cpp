@@ -218,7 +218,7 @@ namespace codegen
             operands[0]->type->getDecoratedName());
     }
 
-    std::unique_ptr<TypedValue> CharTypeOperation::assignmentOperation(
+    std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
         std::vector<TypedValue*> operands) const
     {
@@ -260,19 +260,17 @@ namespace codegen
         builder.CreateStore(rhsval, lhsval);
         return std::make_unique<TypedValue>(*lhs);
     }
-    std::unique_ptr<TypedValue>
-    CharTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
-                                      std::vector<TypedValue*> operands) const
+    std::unique_ptr<TypedValue> CharacterTypeOperation::unaryOperation(
+        llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+        std::vector<TypedValue*> operands) const
     {
         assert(operands.size() == 1);
         return operationError("No unary operations for '{}' are supported",
                               operands[0]->type->getDecoratedName());
     }
-    std::unique_ptr<TypedValue>
-    CharTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
-                                       std::vector<TypedValue*> operands) const
+    std::unique_ptr<TypedValue> CharacterTypeOperation::binaryOperation(
+        llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+        std::vector<TypedValue*> operands) const
     {
         assert(operands.size() == 2);
 
@@ -307,7 +305,7 @@ namespace codegen
         return operationError("Unsupported binary operator for '{}': {}",
                               operands[0]->type->getDecoratedName(), op.get());
     }
-    std::unique_ptr<TypedValue> CharTypeOperation::arbitraryOperation(
+    std::unique_ptr<TypedValue> CharacterTypeOperation::arbitraryOperation(
         llvm::IRBuilder<>& builder, core::lexer::TokenType op,
         std::vector<TypedValue*> operands) const
     {

@@ -78,9 +78,10 @@ namespace ast
     class ASTCharLiteralExpression : public ASTExpression
     {
     public:
-        explicit ASTCharLiteralExpression(char32_t val)
+        ASTCharLiteralExpression(char32_t val,
+                                 std::unique_ptr<ASTIdentifierExpression> pType)
             : ASTExpression(CHAR_LITERAL_EXPR), value(val),
-              type(std::make_unique<ASTIdentifierExpression>("char"))
+              type(std::move(pType))
         {
         }
 

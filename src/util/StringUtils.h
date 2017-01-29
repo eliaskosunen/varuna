@@ -268,7 +268,7 @@ namespace StringUtils
         return (isCharWhitespace(c) || (c >= 0x0E && c <= 0x1F) || c == 0x7F);
     }
 
-    inline bool isValidIdentifierBeginnigChar(char_t c)
+    inline bool isValidIdentifierBeginningChar(char_t c)
     {
         return (isCharAlpha(c) || c == '_');
     }

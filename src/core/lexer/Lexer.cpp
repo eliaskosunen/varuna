@@ -60,27 +60,6 @@ namespace lexer
             return createToken(TOKEN_EOF, "EOF");
         }
         currentChar = *it;
-        /*
-                    if(currentChar == '\0')
-                    {
-                        while(true)
-                        {
-                            currentChar = *advance();
-                            if(it == end)
-                            {
-                                return createToken(TOKEN_EOF, "EOF");
-                            }
-                            else if(currentChar == '\0')
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-        */
         // Invalid character
         if(util::StringUtils::isCharControlCharacter(currentChar) &&
            !util::StringUtils::isCharWhitespace(currentChar))
@@ -97,18 +76,32 @@ namespace lexer
 
         // Word: a keyword or an identifier
         // [a-zA-Z_][a-zA-Z_0-9]*
-        if(util::StringUtils::isValidIdentifierBeginnigChar(currentChar))
+        if(util::StringUtils::isValidIdentifierBeginningChar(currentChar))
         {
-            util::string_t buf;
-            buf.reserve(8);
-            buf.push_back(currentChar);
-            while(util::StringUtils::isValidIdentifierChar(*advance()))
+            if((currentChar == 'b' || currentChar == 'B') && peekNext() == '\'')
             {
-                buf.push_back(*it);
+                advance(); // Skip 'b'
+                util::string_t buf = lexStringLiteral(true);
+                if(!getError())
+                {
+                    Token t = createToken(TOKEN_LITERAL_CHAR, buf);
+                    t.modifierChar = CHAR_BYTE;
+                    return t;
+                }
             }
+            else
+            {
+                util::string_t buf;
+                buf.reserve(8);
+                buf.push_back(currentChar);
+                while(util::StringUtils::isValidIdentifierChar(*advance()))
+                {
+                    buf.push_back(*it);
+                }
 
-            // Identify the meaning of the word
-            return getTokenFromWord(buf);
+                // Identify the meaning of the word
+                return getTokenFromWord(buf);
+            }
         }
 
         // Number literal
@@ -266,7 +259,9 @@ namespace lexer
             util::string_t buf = lexStringLiteral();
             if(!getError())
             {
-                return createToken(TOKEN_LITERAL_STRING, buf);
+                Token t = createToken(TOKEN_LITERAL_STRING, buf);
+                t.modifierChar = CHAR_CHAR;
+                return t;
             }
         }
 

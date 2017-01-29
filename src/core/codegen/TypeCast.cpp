@@ -128,9 +128,10 @@ namespace codegen
         llvm_unreachable("Logic error in BoolType::cast");
     }
 
-    std::unique_ptr<TypedValue> CharType::cast(llvm::IRBuilder<>& builder,
-                                               CastType c, llvm::Value* val,
-                                               Type* to) const
+    std::unique_ptr<TypedValue> CharacterType::cast(llvm::IRBuilder<>& builder,
+                                                    CastType c,
+                                                    llvm::Value* val,
+                                                    Type* to) const
     {
         if(c == IMPLICIT)
         {
@@ -154,7 +155,6 @@ namespace codegen
         }
         return castError("Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
-        llvm_unreachable("Logic error in CharType::cast");
     }
 
     std::unique_ptr<TypedValue> ByteType::cast(llvm::IRBuilder<>& builder,
@@ -195,7 +195,6 @@ namespace codegen
             return castError("Invalid cast: Cannot convert from {} to {}",
                              getDecoratedName(), to->getDecoratedName());
         }
-        llvm_unreachable("Logic error in ByteType::cast");
     }
 
     std::unique_ptr<TypedValue> FPType::cast(llvm::IRBuilder<>& builder,

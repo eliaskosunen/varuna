@@ -38,6 +38,7 @@ namespace codegen
             F64,
             BYTE,
             CHAR,
+            BCHAR,
             STRING,
             FUNCTION
         };
@@ -271,11 +272,12 @@ namespace codegen
         bool isFloatingPoint() const override;
     };
 
-    class CharType : public Type
+    class CharacterType : public Type
     {
     public:
-        CharType(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder, bool mut = false);
+        CharacterType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
+                      llvm::Type* t, llvm::DIType* d, const std::string& n,
+                      bool mut = false);
 
         std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val,
@@ -285,6 +287,22 @@ namespace codegen
 
         bool isIntegral() const override;
         bool isFloatingPoint() const override;
+
+        size_t width;
+    };
+
+    class CharType : public CharacterType
+    {
+    public:
+        CharType(TypeTable* list, llvm::LLVMContext& c,
+                 llvm::DIBuilder& dbuilder, bool mut = false);
+    };
+
+    class ByteCharType : public CharacterType
+    {
+    public:
+        ByteCharType(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, bool mut = false);
     };
 
     class ByteType : public Type

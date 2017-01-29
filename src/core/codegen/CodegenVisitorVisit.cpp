@@ -659,7 +659,7 @@ namespace codegen
     std::unique_ptr<TypedValue>
     CodegenVisitor::visit(ast::ASTCharLiteralExpression* expr)
     {
-        auto t = types.findDecorated("char");
+        auto t = types.findDecorated(expr->type->value);
         auto val = llvm::ConstantInt::get(t->type, expr->value, false);
         return std::make_unique<TypedValue>(t, val);
     }
