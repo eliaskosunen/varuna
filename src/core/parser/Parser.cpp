@@ -1532,23 +1532,25 @@ namespace parser
             }
         }
 
-        if(it->type != TOKEN_PUNCT_COLON)
+        if(it->type == TOKEN_PUNCT_COLON)
         {
-            return parserError("Invalid function prototype: expected ':' "
-                               "before return type, got '{}' instead",
-                               it->value);
-        }
-        ++it; // Skip ':'
+            ++it; // Skip ':'
 
-        if(it->type != TOKEN_IDENTIFIER)
-        {
-            return parserError("Invalid function prototype: expected "
-                               "identifier in return type, got '{}' instead",
-                               it->value);
-        }
-        auto returnType = std::make_unique<ASTIdentifierExpression>(it->value);
-        ++it; // Skip identifier
+            if(it->type != TOKEN_IDENTIFIER)
+            {
+                return parserError(
+                    "Invalid function prototype: expected "
+                    "identifier in return type, got '{}' instead",
+                    it->value);
+            }
+            auto returnType =
+                std::make_unique<ASTIdentifierExpression>(it->value);
+            ++it; // Skip identifier
 
+            return std::make_unique<ASTFunctionPrototypeStatement>(
+                std::move(funcName), std::move(returnType), std::move(params));
+        }
+        auto returnType = std::make_unique<ASTIdentifierExpression>("void");
         return std::make_unique<ASTFunctionPrototypeStatement>(
             std::move(funcName), std::move(returnType), std::move(params));
     }

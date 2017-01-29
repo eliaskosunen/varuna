@@ -6,11 +6,14 @@ No implicit conversions between any of the types are allowed.
 
 | Typename | Size (bits) | Literal suffix |
 | -------- | ----------- | -------------- |
-| `int`    | 32          | (none)         |
+| `int`    | 32/64*      | (none)         |
 | `int8`   | 8           | `i8`           |
 | `int16`  | 16          | `i16`          |
 | `int32`  | 32          | `i32`          |
 | `int64`  | 64          | `i64`          |
+
+\* `int` size can be determined with compiler flag `-fint-size=[0|32|64]`.
+`0` is the default, and is either 32 or 64 bits depending on the CPU architecture.
 
 All integer types are signed.  
 
@@ -28,12 +31,22 @@ All integer types are signed.
 `void`: Unsized type. Used only for describing functions that return no value.  
 `bool`: Boolean type. Allowed values: `true`, `false`.  
 `byte`: 8-bit unsigned integer. Literal suffix: `o` (stands for 'octet')  
-`char`: 32-bit unsigned character (UTF-8 in source code). Literal syntax: `'a'`
+`char`: 32-bit unsigned character (UTF-8 in source code). Literal syntax: `'a'`  
+`bchar`: 8-bit unsigned character. Literal syntax: `b'a'`
 
 # Comments
 
 ```
 // C++-style single-line comments
+```
+
+```
+/*
+C-style multi-line comments
+/*
+That nest properly
+*/
+*/
 ```
 
 # Variables
