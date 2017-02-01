@@ -1,49 +1,26 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
 #include <istream>
-#include <string>
+#include <memory>
+#include <stdexcept>
 
 namespace util
 {
-	/**
-	 * Read an istream
-	 */
-	class StreamReader
-	{
-	public:
-		/**
-		 * Constructor
-		 */
-		StreamReader() {}
-
-		/**
-		 * Read an istream
-		 * @param  stream Stream to read
-		 * @return        Contents of the stream
-		 */
-		std::string readStream(std::istream &stream) const;
-		/**
-		 * Read a file
-		 * @param  filename Name of the file to read
-		 * @return          Contents of the file
-		 */
-		std::string readFile(const std::string &filename) const;
-	};
-}
+/**
+ * Read an istream
+ */
+class StreamReader
+{
+public:
+    /**
+     * Read a file
+     * @param  filename Name of the file to read
+     * @return          Contents of the file
+     */
+    static std::string readFile(const std::string& filename);
+};
+} // namespace util

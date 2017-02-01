@@ -1,78 +1,100 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
-#include "core/ast/ASTNode.h"
 #include "core/ast/ASTExpression.h"
-
-#include <vector>
+#include "core/ast/ASTNode.h"
+#include "core/ast/FwdDecl.h"
 #include <memory>
+#include <vector>
 
 namespace core
 {
-	namespace ast
-	{
-		class ASTStatement : public ASTNode
-		{
-		public:
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0);
+namespace ast
+{
+    class ASTStatement : public ASTNode
+    {
+    public:
+        ASTStatement() : ASTNode(STMT)
+        {
+        }
+        ASTStatement(const ASTStatement&) = delete;
+        ASTStatement& operator=(const ASTStatement&) = delete;
+        ASTStatement(ASTStatement&&) = default;
+        ASTStatement& operator=(ASTStatement&&) = default;
+        ~ASTStatement() override = default;
 
-			ASTStatement() = default;
-			ASTStatement(const ASTStatement&) = default;
-			ASTStatement &operator = (const ASTStatement&) = default;
-			ASTStatement(ASTStatement&&) = default;
-			ASTStatement &operator = (ASTStatement&&) = default;
-			virtual ~ASTStatement() = default;
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        virtual std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v);
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTEmptyStatement : public ASTStatement
-		{
-		public:
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+    protected:
+        explicit ASTStatement(NodeType t) : ASTNode(t)
+        {
+        }
+    };
 
-		class ASTBlockStatement : public ASTStatement
-		{
-		public:
-			typedef std::unique_ptr<ASTStatement> Statement;
-			typedef std::vector<Statement> StatementVector;
-			StatementVector nodes;
+    class ASTEmptyStatement : public ASTStatement
+    {
+    public:
+        ASTEmptyStatement() : ASTStatement(EMPTY_STMT)
+        {
+        }
 
-			ASTBlockStatement() {}
-			ASTBlockStatement(Statement first)
-			{
-				nodes.push_back(std::move(first));
-			}
-			ASTBlockStatement(StatementVector vec)
-				: nodes(std::move(vec)) {}
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
+    };
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+    class ASTBlockStatement : public ASTStatement
+    {
+    public:
+        using Statement = std::unique_ptr<ASTStatement>;
+        using StatementVector = std::vector<Statement>;
 
-		class ASTWrappedExpressionStatement : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTExpression> expr;
+        ASTBlockStatement() : ASTStatement(BLOCK_STMT)
+        {
+        }
+        explicit ASTBlockStatement(Statement first) : ASTStatement(BLOCK_STMT)
+        {
+            nodes.push_back(std::move(first));
+        }
+        explicit ASTBlockStatement(StatementVector vec)
+            : ASTStatement(BLOCK_STMT), nodes(std::move(vec))
+        {
+        }
 
-			ASTWrappedExpressionStatement(std::unique_ptr<ASTExpression> expression) : expr(std::move(expression)) {}
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
-	}
-}
+        StatementVector nodes;
+    };
+
+    class ASTWrappedExpressionStatement : public ASTStatement
+    {
+    public:
+        explicit ASTWrappedExpressionStatement(
+            std::unique_ptr<ASTExpression> pExpr)
+            : ASTStatement(WRAPPED_EXPR_STMT), expr(std::move(pExpr))
+        {
+        }
+
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+        std::unique_ptr<ASTExpression> expr;
+    };
+} // namespace ast
+} // namespace core

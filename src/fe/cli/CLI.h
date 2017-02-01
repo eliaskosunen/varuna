@@ -1,45 +1,35 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "tclap.h"
-
 #include "util/ProgramInfo.h"
+#include "util/ProgramOptions.h"
 
 namespace fe
 {
-	namespace cli
-	{
-		class CLI
-		{
-			const int argc;
-			char **argv;
-			TCLAP::CmdLine cmd;
+namespace api
+{
+    class Application;
+} // namespace api
 
-			void showLicense() const;
+namespace cli
+{
+    class CLI final
+    {
+    public:
+        CLI(int pArgc, char** pArgv);
 
-			bool setLoggingLevel(const std::string &level);
+        /// Run CLI
+        int run();
 
-		public:
-			CLI(int argc_, char **argv_)
-				: argc(argc_), argv(argv_), cmd(util::programinfo::name, ' ', util::programinfo::version.toString()) {}
+    private:
+        void showLicense() const;
+        static void showVersion();
 
-			int run();
-		};
-	}
-}
+        const int argc;
+        char** argv;
+    };
+} // namespace cli
+} // namespace fe

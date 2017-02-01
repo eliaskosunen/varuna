@@ -1,91 +1,123 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
+#include "util/File.h"
+#include "util/Logger.h"
 #include "util/StreamReader.h"
-
+#include <utf8.h>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
-#include <memory>
 
 namespace util
 {
-	class FileCache
-	{
-	public:
-		class File
-		{
-		public:
-			typedef uint64_t Checksum_t;
+class FileCache
+{
+public:
+    FileCache()
+    {
+    }
 
-			std::string filename, content;
-			Checksum_t checksum;
+    auto& getCache()
+    {
+        return cache;
+    }
+    const auto& getCache() const
+    {
+        return cache;
+    }
 
-			File(const std::string &filename_)
-				: filename(filename_), checksum(0) {}
+    std::shared_ptr<File> getFile(const std::string& name) const;
+    std::vector<std::string> getFilenameList() const;
 
-			bool readFile()
-			{
-				if(!content.empty())
-				{
-					return true;
-				}
-				const util::StreamReader sr;
-				content = sr.readFile(filename);
-				if(content.empty() || content == "ERROR")
-				{
-					return false;
-				}
-				return true;
-			}
+    std::vector<std::shared_ptr<File>> getFiles() const;
 
-			void calculateChecksum()
-			{
-				// TODO
-			}
-		};
+    std::vector<std::shared_ptr<File>>
+    getFilesByNames(const std::vector<std::string>& names) const;
 
-	private:
-		std::unordered_map<std::string, std::unique_ptr<File>> cache;
+    bool addFile(std::shared_ptr<File> file, bool read = true);
+    bool addFile(const std::string& name, bool read = true);
 
-	public:
-		FileCache() {}
+private:
+    std::unordered_map<std::string, std::shared_ptr<File>> cache;
+};
 
-		File *getFile(const std::string &name)
-		{
-			return cache.at(name).get();
-		}
-
-		bool addFile(std::unique_ptr<File> file, bool read = true)
-		{
-			if(read)
-			{
-				if(!file->readFile())
-				{
-					return false;
-				}
-			}
-			cache.insert(std::make_pair(file->filename, std::move(file)));
-			return true;
-		}
-		bool addFile(const std::string &name, bool read = true)
-		{
-			auto file = std::make_unique<File>(name);
-			return addFile(std::move(file), read);
-		}
-	};
+inline std::shared_ptr<File> FileCache::getFile(const std::string& name) const
+{
+    auto fileit = cache.find(name);
+    if(fileit == cache.end())
+    {
+        return nullptr;
+    }
+    return fileit->second;
 }
+
+inline std::vector<std::string> FileCache::getFilenameList() const
+{
+    std::vector<std::string> files;
+    files.reserve(cache.size());
+    for(const auto& file : cache)
+    {
+        files.push_back(file.first);
+    }
+    return files;
+}
+
+inline std::vector<std::shared_ptr<File>> FileCache::getFiles() const
+{
+    std::vector<std::shared_ptr<File>> files;
+    files.reserve(cache.size());
+    for(const auto& f : cache)
+    {
+        files.push_back(f.second);
+    }
+    return files;
+}
+
+inline std::vector<std::shared_ptr<File>>
+FileCache::getFilesByNames(const std::vector<std::string>& names) const
+{
+    std::vector<std::shared_ptr<File>> files;
+    files.reserve(names.size());
+    for(const auto& fname : names)
+    {
+        auto f = getFile(fname);
+        if(!f)
+        {
+            throw std::invalid_argument(
+                fmt::format("File '{}' not found from cache", fname));
+        }
+        files.push_back(f);
+    }
+    return files;
+}
+
+inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
+{
+    if(!file)
+    {
+        throw std::invalid_argument("Invalid file given to FileCache::addFile");
+    }
+    if(read)
+    {
+        if(!file->readFile())
+        {
+            return false;
+        }
+        if(!file->checkUtf8())
+        {
+            throw std::runtime_error("Invalid file encoding");
+        }
+    }
+    cache.insert({file->getFilename(), file});
+    return true;
+}
+inline bool FileCache::addFile(const std::string& name, bool read)
+{
+    auto file = std::make_shared<File>(name);
+    return addFile(std::move(file), read);
+}
+} // namespace util

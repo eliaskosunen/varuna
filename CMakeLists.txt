@@ -10,9 +10,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	set(CXX_STANDARD	"--std=c++14")
 
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused")
+		set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wno-switch-default -Wundef -Wno-unused -Wno-date-time")
 	else()
-		set(WARNINGS "-Weverything -Wno-c++98-compat -Wno-padded -Wno-unused -Wno-unused-parameter -Wno-weak-vtables -Wno-exit-time-destructors -Wno-global-constructors")
+		set(WARNINGS "-Weverything -Wno-c++98-compat -Wno-padded -Wno-unused -Wno-unused-parameter -Wno-weak-vtables -Wno-exit-time-destructors -Wno-global-constructors -Wno-date-time")
 	endif()
 
 	set(DEBUG_FLAGS		"-g -O0")
@@ -52,10 +52,18 @@ else()
 	message(STATUS "Build flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake")
+message(STATUS "LLVM include directory: ${LLVM_INCLUDE_DIRS}")
+
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(third-party/include)
 include_directories(SYSTEM third-party/include-private)
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+
+add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(third-party)
 add_subdirectory(src)

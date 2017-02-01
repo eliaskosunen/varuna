@@ -3,6 +3,7 @@ build/
 .vscode/
 html/
 latex/
+doc/
 Doxyfile.bak
 *.anjuta*
 .anjuta/
@@ -16,5 +17,7 @@ tests/*.cmake
 CMakeCache.txt
 src/Makefile
 tests/Makefile
+Makefile
 Makefile*
+*.cmake*
 cmake/

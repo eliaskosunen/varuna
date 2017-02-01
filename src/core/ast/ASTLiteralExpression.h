@@ -1,96 +1,135 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTExpression.h"
-
+#include "core/ast/ASTOperatorExpression.h"
+#include "core/ast/FwdDecl.h"
 #include "core/lexer/Token.h"
 #include "util/SafeEnum.h"
 
-#include <string>
-
 namespace core
 {
-	namespace ast
-	{
-		class ASTIntegerLiteralExpression : public ASTExpression
-		{
-		public:
-			int64_t value;
+namespace ast
+{
+    class ASTIntegerLiteralExpression : public ASTExpression
+    {
+    public:
+        ASTIntegerLiteralExpression(
+            int64_t val, std::unique_ptr<ASTIdentifierExpression> pType,
+            bool pIsSigned = true)
+            : ASTExpression(INTEGER_LITERAL_EXPR), value(val),
+              isSigned(pIsSigned), type(std::move(pType))
+        {
+        }
 
-			core::lexer::TokenIntegerLiteralModifier mod;
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-			ASTIntegerLiteralExpression(core::lexer::TokenIntegerLiteralModifier _mod = core::lexer::INTEGER_INTEGER) : value(0), mod(_mod) {}
-			ASTIntegerLiteralExpression(int64_t val, core::lexer::TokenIntegerLiteralModifier _mod) : value(val), mod(_mod) {}
+        int64_t value;
+        bool isSigned;
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+    class ASTFloatLiteralExpression : public ASTExpression
+    {
+    public:
+        ASTFloatLiteralExpression(
+            double val, std::unique_ptr<ASTIdentifierExpression> pType)
+            : ASTExpression(FLOAT_LITERAL_EXPR), value(val),
+              type(std::move(pType))
+        {
+        }
 
-		class ASTFloatLiteralExpression : public ASTExpression
-		{
-		public:
-			double value;
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-			core::lexer::TokenFloatLiteralModifier mod;
+        double value;
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
 
-			ASTFloatLiteralExpression(core::lexer::TokenFloatLiteralModifier _mod = core::lexer::FLOAT_FLOAT) : value(0.0), mod(_mod) {}
-			ASTFloatLiteralExpression(double val, core::lexer::TokenFloatLiteralModifier _mod) : value(val), mod(_mod) {}
+    class ASTStringLiteralExpression : public ASTExpression
+    {
+    public:
+        explicit ASTStringLiteralExpression(const std::string& val)
+            : ASTExpression(STRING_LITERAL_EXPR), value(val),
+              type(std::make_unique<ASTIdentifierExpression>("string"))
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTStringLiteralExpression : public ASTExpression
-		{
-		public:
-			const std::string &value;
+        const std::string& value;
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
 
-			ASTStringLiteralExpression(const std::string &val) : value(val) {}
+    class ASTCharLiteralExpression : public ASTExpression
+    {
+    public:
+        ASTCharLiteralExpression(char32_t val,
+                                 std::unique_ptr<ASTIdentifierExpression> pType)
+            : ASTExpression(CHAR_LITERAL_EXPR), value(val),
+              type(std::move(pType))
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTCharLiteralExpression : public ASTExpression
-		{
-		public:
-			char32_t value;
+        char32_t value;
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
 
-			ASTCharLiteralExpression(char32_t val) : value(val) {}
+    class ASTBoolLiteralExpression : public ASTExpression
+    {
+    public:
+        explicit ASTBoolLiteralExpression(bool val)
+            : ASTExpression(BOOL_LITERAL_EXPR), value(val),
+              type(std::make_unique<ASTIdentifierExpression>("bool"))
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTBoolLiteralExpression : public ASTExpression
-		{
-		public:
-			bool value;
+        bool value;
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
 
-			ASTBoolLiteralExpression(bool val) : value(val) {}
+    class ASTNoneLiteralExpression : public ASTExpression
+    {
+    public:
+        ASTNoneLiteralExpression()
+            : ASTExpression(NONE_LITERAL_EXPR),
+              type(std::make_unique<ASTIdentifierExpression>("none_t"))
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTNoneLiteralExpression : public ASTExpression
-		{
-		public:
-			ASTNoneLiteralExpression() {}
-
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
-	}
-}
+        std::unique_ptr<ASTIdentifierExpression> type;
+    };
+} // namespace ast
+} // namespace core

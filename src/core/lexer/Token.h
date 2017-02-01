@@ -1,102 +1,107 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include <string>
-#include <map>
-
 #include "core/lexer/TokenType.h"
-#include "util/SafeEnum.h"
 #include "util/Logger.h"
+#include "util/SafeEnum.h"
+#include <map>
+#include <string>
 
 namespace core
 {
-	namespace lexer
-	{
-		enum TokenIntegerLiteralModifier_t
-		{
-			INTEGER_INT8 	= 1,	// i8
-			INTEGER_INT16	= 2,	// i16
-			INTEGER_INT32	= 4,	// i32 or none
-			INTEGER_INT64	= 8,	// i64
-			INTEGER_BINARY	= 16,	// b
-			INTEGER_OCTAL	= 32,	// o
-			INTEGER_HEX		= 64,	// x
+namespace lexer
+{
+    enum TokenIntegerLiteralModifier_t
+    {
+        INTEGER_INT = 1,    // none
+        INTEGER_INT8 = 2,   // i8
+        INTEGER_INT16 = 4,  // i16
+        INTEGER_INT32 = 8,  // i32
+        INTEGER_INT64 = 16, // i64
+        INTEGER_BYTE = 32,  // b
+        INTEGER_BIN = 64,   // 0b...
+        INTEGER_OCT = 128,  // 0o...
+        INTEGER_HEX = 256,  // 0x...
 
-			INTEGER_INTEGER	= INTEGER_INT32,
-			INTEGER_NONE	= INTEGER_INT32
-		};
+        INTEGER_NONE = 0
+    };
 
-		enum TokenFloatLiteralModifier_t
-		{
-			FLOAT_DOUBLE	= 1,	// No suffix
-			FLOAT_FLOAT		= 2,	// f
-			FLOAT_DECIMAL	= 4,	// d
+    enum TokenFloatLiteralModifier_t
+    {
+        FLOAT_FLOAT = 1,   // none
+        FLOAT_F64 = 2,     // f64
+        FLOAT_F32 = 4,     // f32
+        FLOAT_DECIMAL = 8, // d
 
-			FLOAT_NONE		= FLOAT_DOUBLE
-		};
+        FLOAT_NONE = 0
+    };
 
-		typedef util::SafeEnum<TokenIntegerLiteralModifier_t> TokenIntegerLiteralModifier;
-		typedef util::SafeEnum<TokenFloatLiteralModifier_t> TokenFloatLiteralModifier;
+    enum TokenCharLiteralModifier_t
+    {
+        CHAR_CHAR = 1, // none
+        CHAR_BYTE = 2, // b...
 
-		class SourceLocation
-		{
-		public:
-			std::string file;
-			uint64_t line, column;
+        CHAR_NONE = 0
+    };
 
-			SourceLocation(const std::string &f = "undefined", uint64_t l = 0, uint64_t c = 0)
-				: file(f), line(l), column(c) {}
+    using TokenIntegerLiteralModifier =
+        util::SafeEnum<TokenIntegerLiteralModifier_t>;
+    using TokenFloatLiteralModifier =
+        util::SafeEnum<TokenFloatLiteralModifier_t>;
+    using TokenCharLiteralModifier = util::SafeEnum<TokenCharLiteralModifier_t>;
 
-			std::string toString() const
-			{
-				//return fmt::format("{}:{}:{}", file, line, column);
-				return file + ":" + std::to_string(line) + ":" + std::to_string(column);
-			}
-		};
+    struct SourceLocation
+    {
+        SourceLocation() = default;
+        SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
+        {
+        }
 
-		class Token
-		{
-		public:
-			SourceLocation loc;
+        std::string toString() const
+        {
+            // return fmt::format("{}:{}:{}", file, line, column);
+            return file + ":" + std::to_string(line);
+        }
 
-			TokenType type;
-			std::string value;
+        std::string file{"undefined"};
+        uint64_t line{0};
+    };
 
-			TokenIntegerLiteralModifier modifierInt;
-			TokenFloatLiteralModifier modifierFloat;
+    struct Token final
+    {
+        explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
+            : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
+              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE)
+        {
+        }
 
-			Token(TokenType t = TOKEN_DEFAULT, const std::string &val = "") : loc(), type(t), value(val), modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE) {}
+        std::string typeToString() const;
 
-			std::string typeToString() const;
+        static std::string typeToString(TokenType t)
+        {
+            Token tok(t, "");
+            return tok.typeToString();
+        }
 
-			static std::string typeToString(TokenType t)
-			{
-				Token tok(t, "");
-				return tok.typeToString();
-			}
+        static Token create(TokenType t, const std::string& val,
+                            SourceLocation loc = SourceLocation())
+        {
+            Token tok(t, val);
+            tok.loc = loc;
+            return tok;
+        }
 
-			static Token create(TokenType t, const std::string &val, SourceLocation loc = SourceLocation())
-			{
-				Token tok(t, val);
-				tok.loc = loc;
-				return tok;
-			}
-		};
-	}
-}
+        SourceLocation loc;
+
+        TokenType type;
+        std::string value;
+
+        TokenIntegerLiteralModifier modifierInt;
+        TokenFloatLiteralModifier modifierFloat;
+        TokenCharLiteralModifier modifierChar;
+    };
+} // namespace lexer
+} // namespace core

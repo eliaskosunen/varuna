@@ -1,41 +1,30 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "spdlog.h"
+#include <spdlog.h>
 
 namespace util
 {
-	/**
-	 * Colored and stylized logger.
-	 * @see The spdlog documentation
-	 */
-	extern std::shared_ptr<spdlog::logger> logger;
-	/**
-	 * Unstylized logger.
-	 * @see The spdlog documentation
-	 */
-	extern std::shared_ptr<spdlog::logger> loggerBasic;
+extern std::shared_ptr<spdlog::logger> logger;
+extern std::shared_ptr<spdlog::logger> loggerBasic;
 
-	/**
-	 * Set logger styles
-	 */
-	void initLogger();
-
-	void dropLogger();
+/// Create a new logger
+inline auto createLogger(bool isColor, const std::string& name = "Logger")
+{
+    if(isColor)
+    {
+        // std::rand() is baaaaaaaaad
+        return spdlog::stdout_color_mt(fmt::format("{}-{}", name, std::rand()));
+    }
+    return spdlog::stdout_logger_mt(fmt::format("{}-{}", name, std::rand()));
 }
+
+/// Initialize logger and loggerBasic
+void initLogger();
+
+/// Drop all loggers
+void dropLogger();
+} // namespace util

@@ -1,55 +1,59 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTStatement.h"
+#include "core/ast/FwdDecl.h"
 #include "core/ast/Visitor.h"
 #include "util/Compatibility.h"
-
 #include <algorithm>
 
 namespace core
 {
-	namespace ast
-	{
-		class AST
-		{
-		public:
-			std::unique_ptr<ASTBlockStatement> globalNode;
+namespace ast
+{
+    /// AST representation
+    class AST final
+    {
+    public:
+        explicit AST(std::string f)
+            : globalNode(std::make_unique<ASTBlockStatement>()),
+              file(std::move(f))
+        {
+        }
 
-			AST() : globalNode(std::make_unique<ASTBlockStatement>()) {}
+        AST(const AST&) = delete;
+        AST& operator=(const AST&) = delete;
 
-			void pushStatement(std::unique_ptr<ASTStatement> stmt)
-			{
-				globalNode->nodes.push_back(std::move(stmt));
-			}
+        AST(AST&&) = default;
+        AST& operator=(AST&&) = default;
 
-			void pushExpression(std::unique_ptr<ASTExpression> expr)
-			{
-				auto stmt = std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
-				pushStatement(std::move(stmt));
-			}
+        ~AST() noexcept = default;
 
-			size_t countTopLevelNodes()
-			{
-				return globalNode->nodes.size();
-			}
-		};
-	}
-}
+        /// Push a statement in the root node of the AST
+        void pushStatement(std::unique_ptr<ASTStatement> stmt)
+        {
+            globalNode->nodes.push_back(std::move(stmt));
+        }
+
+        /// Wrap the expression and push it in the AST
+        void pushExpression(std::unique_ptr<ASTExpression> expr)
+        {
+            auto stmt = std::make_unique<ASTWrappedExpressionStatement>(
+                std::move(expr));
+            pushStatement(std::move(stmt));
+        }
+
+        /// Get root node count
+        size_t countTopLevelNodes()
+        {
+            return globalNode->nodes.size();
+        }
+
+        std::unique_ptr<ASTBlockStatement> globalNode;
+        std::string file;
+    };
+} // namespace ast
+} // namespace core

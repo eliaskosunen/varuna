@@ -1,54 +1,43 @@
-/*
-Copyright (C) 2016 Elias Kosunen
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#include "doctest.h"
-
-#include "core/parser/Parser.h"
 #include "core/lexer/Lexer.h"
+#include "core/parser/Parser.h"
+#include "util/File.h"
 #include "util/Logger.h"
+#include <doctest.h>
 
-static core::lexer::TokenVector runLexer(const std::string &code)
+static core::lexer::TokenVector runLexer(const std::string& code)
 {
-	using namespace core::lexer;
+    using namespace core::lexer;
 
-	Lexer l(code, TEST_FILE);
-	return l.run();
+    util::File f(TEST_FILE);
+    f.setContent(code);
+    Lexer l(&f);
+    return l.run();
 }
 
-static core::parser::Parser parse(const std::string &code)
+static core::parser::Parser parse(const std::string& code)
 {
-	using namespace core::parser;
+    using namespace core::parser;
 
-	Parser p(runLexer(code));
-	p.run();
-	return p;
+    Parser p(runLexer(code));
+    p.run();
+    return p;
 }
 
 TEST_CASE("Test parser")
 {
-	using namespace core::parser;
+    using namespace core::parser;
 
-	SUBCASE("General")
-	{
-		auto p = parse("");
-		auto ast = p.retrieveAST();
-		auto root = ast->globalNode.get();
+    SUBCASE("General")
+    {
+        auto p = parse("");
+        auto ast = p.retrieveAST();
+        auto root = ast->globalNode.get();
 
-		CHECK(root->nodes.size() == 0);
-		REQUIRE(!p.getError());
-	}
+        CHECK(root->nodes.size() == 0);
+        REQUIRE(!p.getError());
+    }
 }

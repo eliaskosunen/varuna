@@ -1,9 +1,26 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
 // code.va
-import io;
 
-module main;
+module code;
 
-def main(): Void
-{
-	Integer num = 2 + 3 * 5; // Comment
+def putchar(ch: char): char;
+def getchar(): char;
+
+def asc(ch: char): int;
+def chr(num: int): char;
+
+def main(): int {
+    let ch = 'a';
+    let ch2 = 'ä';
+    let ch3 = '😂';
+    let bch = b'a';
+    putchar(ch3);
+    let ret = getchar();
+
+    let b = 0xfeo;
+
+    return asc(ret);
 }

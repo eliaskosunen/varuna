@@ -1,39 +1,101 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
 #include "core/ast/FwdDecl.h"
+#include "util/SafeEnum.h"
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
 
 namespace core
 {
-	namespace ast
-	{
-		class ASTNode
-		{
-		public:
-			virtual void accept(DumpASTVisitor *v, size_t ind = 0) = 0;
+namespace ast
+{
+    class ASTNode
+    {
+    public:
+        enum NodeType_t
+        {
+            NODE = -1,
 
-			ASTNode() = default;
-			ASTNode(const ASTNode&) = default;
-			ASTNode &operator = (const ASTNode&) = default;
-			ASTNode(ASTNode&&) = default;
-			ASTNode &operator = (ASTNode&&) = default;
-			virtual ~ASTNode() = default;
-		};
-	}
-}
+            EXPR = 0,
+            ARBITRARY_OPERATION_EXPR,
+            ASSIGNMENT_OPERATION_EXPR,
+            BINARY_OPERATION_EXPR,
+            BOOL_LITERAL_EXPR,
+            CAST_EXPR = 5,
+            CHAR_LITERAL_EXPR,
+            EMPTY_EXPR,
+            FLOAT_LITERAL_EXPR,
+            IDENTIFIER_EXPR,
+            VARIABLE_REF_EXPR = 10,
+            INTEGER_LITERAL_EXPR,
+            MEMBER_ACCESS_EXPR,
+            NONE_LITERAL_EXPR,
+            STRING_LITERAL_EXPR,
+            SUBSCRIPT_EXPR = 15,
+            SUBSCRIPT_RANGED_EXPR,
+            UNARY_OPERATION_EXPR,
+            VARIABLE_DEFINITION_EXPR,
+            GLOBAL_VARIABLE_DEFINITION_EXPR,
+
+            STMT = 100,
+            BLOCK_STMT,
+            EMPTY_STMT,
+            FOREACH_STMT,
+            FOR_STMT,
+            FUNCTION_DEF_STMT = 105,
+            FUNCTION_PARAMETER,
+            FUNCTION_PROTO_STMT,
+            IF_STMT,
+            IMPORT_STMT,
+            MODULE_STMT = 110,
+            RETURN_STMT,
+            WHILE_STMT,
+            WRAPPED_EXPR_STMT
+        };
+
+        using NodeType = util::SafeEnum<NodeType_t>;
+
+        ASTNode() = default;
+        ASTNode(const ASTNode&) = delete;
+        ASTNode& operator=(const ASTNode&) = delete;
+        ASTNode(ASTNode&&) = default;
+        ASTNode& operator=(ASTNode&&) = default;
+        virtual ~ASTNode() noexcept = default;
+
+        ASTNode* getFunction()
+        {
+            return _getFunction();
+        }
+
+        virtual void accept(DumpASTVisitor* v, size_t ind = 0) = 0;
+        virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
+        virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
+
+        NodeType nodeType{NODE};
+        ASTNode* parent{nullptr};
+        bool isExport{false};
+
+    protected:
+        explicit ASTNode(NodeType t) : nodeType(t)
+        {
+        }
+
+        ASTNode* _getFunction()
+        {
+            if(nodeType == FUNCTION_DEF_STMT)
+            {
+                return this;
+            }
+            if(!parent)
+            {
+                return nullptr;
+            }
+            return parent->_getFunction();
+        }
+    };
+} // namespace ast
+} // namespace core

@@ -1,89 +1,100 @@
-/*
-Copyright (C) 2016 Elias Kosunen
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
 
 #pragma once
 
-#include "core/ast/FwdDecl.h"
 #include "core/ast/ASTStatement.h"
-#include "core/ast/ASTExpression.h"
+#include "core/ast/FwdDecl.h"
 
 namespace core
 {
-	namespace ast
-	{
-		class ASTFunctionParameter : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTVariableDefinitionExpression> var;
-			enum PassType
-			{
-				COPY = 0,
-				REF = 1,
-				VIEW = 2
-			} passType;
+namespace ast
+{
+    class ASTFunctionParameter : public ASTStatement
+    {
+    public:
+        explicit ASTFunctionParameter(
+            std::unique_ptr<ASTVariableDefinitionExpression> pVar)
+            : ASTStatement(FUNCTION_PARAMETER), var(std::move(pVar))
+        {
+        }
 
-			ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionExpression> _var, PassType _passType = COPY)
-				: var(std::move(_var)), passType(_passType) {}
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        std::unique_ptr<ASTVariableDefinitionExpression> var;
+    };
 
-		class ASTFunctionPrototypeStatement : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTIdentifierExpression> name, returnType;
-			std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+    class ASTFunctionPrototypeStatement : public ASTStatement
+    {
+    public:
+        ASTFunctionPrototypeStatement(
+            std::unique_ptr<ASTIdentifierExpression> pName,
+            std::unique_ptr<ASTIdentifierExpression> retType,
+            std::vector<std::unique_ptr<ASTFunctionParameter>> pParams)
+            : ASTStatement(FUNCTION_PROTO_STMT), name(std::move(pName)),
+              returnType(std::move(retType)), params(std::move(pParams))
+        {
+        }
 
-			ASTFunctionPrototypeStatement(std::unique_ptr<ASTIdentifierExpression> _name, std::unique_ptr<ASTIdentifierExpression> retType, std::vector<std::unique_ptr<ASTFunctionParameter>> _params) : name(std::move(_name)), returnType(std::move(retType)), params(std::move(_params)) {}
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        std::unique_ptr<ASTIdentifierExpression> name, returnType;
+        std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+    };
 
-		class ASTFunctionDefinitionStatement : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTFunctionPrototypeStatement> proto;
-			std::unique_ptr<ASTBlockStatement> body;
+    class ASTFunctionDefinitionStatement : public ASTStatement
+    {
+    public:
+        ASTFunctionDefinitionStatement(
+            std::unique_ptr<ASTFunctionPrototypeStatement> pProto,
+            std::unique_ptr<ASTBlockStatement> pBody)
+            : ASTStatement(FUNCTION_DEF_STMT), proto(std::move(pProto)),
+              body(std::move(pBody))
+        {
+        }
 
-			ASTFunctionDefinitionStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, std::unique_ptr<ASTBlockStatement> _body) : proto(std::move(_proto)), body(std::move(_body)) {}
+        ASTFunctionDefinitionStatement(
+            std::unique_ptr<ASTFunctionPrototypeStatement> pProto,
+            std::unique_ptr<ASTEmptyStatement> pBody)
+            : ASTStatement(FUNCTION_DEF_STMT), proto(std::move(pProto)),
+              body(std::make_unique<ASTBlockStatement>()), isDecl(true)
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTFunctionDeclarationStatement : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTFunctionPrototypeStatement> proto;
-			bool isExtern;
+        std::unique_ptr<ASTFunctionPrototypeStatement> proto;
+        std::unique_ptr<ASTBlockStatement> body;
+        bool isDecl{false};
+    };
 
-			ASTFunctionDeclarationStatement(std::unique_ptr<ASTFunctionPrototypeStatement> _proto, bool _isExtern = false) : proto(std::move(_proto)), isExtern(_isExtern) {}
+    class ASTReturnStatement : public ASTStatement
+    {
+    public:
+        explicit ASTReturnStatement(std::unique_ptr<ASTExpression> retval)
+            : ASTStatement(RETURN_STMT), returnValue(std::move(retval))
+        {
+        }
 
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
+        void accept(DumpASTVisitor* v, size_t ind = 0) override;
+        std::unique_ptr<codegen::TypedValue>
+        accept(codegen::CodegenVisitor* v) override;
+        void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+        bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-		class ASTReturnStatement : public ASTStatement
-		{
-		public:
-			std::unique_ptr<ASTExpression> returnValue;
-
-			ASTReturnStatement(std::unique_ptr<ASTExpression> retval = nullptr)
-				: returnValue(std::move(retval)) {}
-
-			void accept(DumpASTVisitor *v, size_t ind = 0);
-		};
-	}
-}
+        std::unique_ptr<ASTExpression> returnValue;
+    };
+} // namespace ast
+} // namespace core
