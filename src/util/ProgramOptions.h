@@ -70,4 +70,9 @@ inline ProgramOptions& getProgramOptions() noexcept
     static ProgramOptions p;
     return p;
 }
+
+inline const ProgramOptions& viewProgramOptions() noexcept
+{
+    return getProgramOptions();
+}
 }

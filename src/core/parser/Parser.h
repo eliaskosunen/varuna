@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "core/ast/AST.h"
-#include "core/ast/DumpASTVisitor.h"
+#include "ast/AST.h"
+#include "ast/DumpASTVisitor.h"
 #include "core/lexer/Lexer.h"
 #include "util/Compatibility.h"
 #include "util/Logger.h"

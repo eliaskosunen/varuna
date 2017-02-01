@@ -6,11 +6,14 @@
 
 module code;
 
-def putchar(ch: char): char;
-def getchar(): char;
+export def putchar(ch: char): char;
+export def getchar(): char;
 
-def asc(ch: char): int;
-def chr(num: int): char;
+export def asc(ch: char): int;
+export def chr(num: int): char;
+
+export def fn() {}
+def fn2() {}
 
 def main(): int {
     let ch = 'a';

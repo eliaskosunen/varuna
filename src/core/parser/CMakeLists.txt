@@ -1,4 +1,5 @@
-file(GLOB_RECURSE sources_parser *.cpp)
+file(GLOB sources_core_parser *.cpp)
+file(GLOB headers_core_parser *.h)
 
-add_library(parser ${sources_parser})
-target_link_libraries(parser ast)
+add_library(core_parser ${sources_core_parser} ${headers_core_parser})
+target_link_libraries(core_parser ast core_lexer util thirdparty)

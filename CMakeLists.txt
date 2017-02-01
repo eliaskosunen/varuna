@@ -67,3 +67,8 @@ add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(third-party)
 add_subdirectory(src)
+
+file(GLOB main_sources src/Main.cpp)
+
+add_executable(varuna ${main_sources})
+target_link_libraries(varuna src)

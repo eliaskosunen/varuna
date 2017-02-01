@@ -2,7 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "fe/cli/CLI.h"
+#include "CLI.h"
 #include "util/Logger.h"
 #include <utf8.h>
 #include <cstdlib>
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
         util::initLogger();
 
-        fe::cli::CLI commandLineInterface(argc, argv);
+        CLI commandLineInterface(argc, argv);
         return commandLineInterface.run();
     }
     catch(const spdlog::spdlog_ex& e)

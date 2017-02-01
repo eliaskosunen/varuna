@@ -3,13 +3,13 @@
 // See LICENSE for details
 
 #include "core/parser/Parser.h"
-#include "core/ast/ASTControlStatement.h"
-#include "core/ast/ASTExpression.h"
-#include "core/ast/ASTFunctionStatement.h"
-#include "core/ast/ASTLiteralExpression.h"
-#include "core/ast/ASTOperatorExpression.h"
-#include "core/ast/ASTParentSolverVisitor.h"
-#include "core/ast/DumpASTVisitor.h"
+#include "ast/ASTControlStatement.h"
+#include "ast/ASTExpression.h"
+#include "ast/ASTFunctionStatement.h"
+#include "ast/ASTLiteralExpression.h"
+#include "ast/ASTOperatorExpression.h"
+#include "ast/ASTParentSolverVisitor.h"
+#include "ast/DumpASTVisitor.h"
 #include "core/lexer/Token.h"
 #include "util/Compatibility.h"
 #include "util/StringUtils.h"
@@ -22,7 +22,7 @@ namespace core
 namespace parser
 {
     using namespace core::lexer;
-    using namespace core::ast;
+    using namespace ast;
 
     Parser::Parser(const core::lexer::TokenVector& tok)
         : warningsAsErrors(false),
@@ -1343,7 +1343,7 @@ namespace parser
                 return;
             }
 
-            def->isExport = true;
+            def->proto->isExport = true;
 
             util::logger->trace("Parsed function definition: name: '{}', "
                                 "return: '{}', params.size: '{}'",
@@ -1547,12 +1547,24 @@ namespace parser
                 std::make_unique<ASTIdentifierExpression>(it->value);
             ++it; // Skip identifier
 
-            return std::make_unique<ASTFunctionPrototypeStatement>(
+            auto fnName = funcName->value;
+            auto proto = std::make_unique<ASTFunctionPrototypeStatement>(
                 std::move(funcName), std::move(returnType), std::move(params));
+            if(fnName == "main")
+            {
+                proto->isMain = true;
+            }
+            return proto;
         }
+        auto fnName = funcName->value;
         auto returnType = std::make_unique<ASTIdentifierExpression>("void");
-        return std::make_unique<ASTFunctionPrototypeStatement>(
+        auto proto = std::make_unique<ASTFunctionPrototypeStatement>(
             std::move(funcName), std::move(returnType), std::move(params));
+        if(fnName == "main")
+        {
+            proto->isMain = true;
+        }
+        return proto;
     }
 
     std::unique_ptr<ASTFunctionDefinitionStatement>
