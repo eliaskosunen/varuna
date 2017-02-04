@@ -45,7 +45,7 @@ bool Frontend::runLexer()
 bool Frontend::runParser()
 {
     util::logger->debug("Starting parser");
-    parser::Parser p(tokens);
+    parser::Parser p(file, tokens);
     p.run();
     if(p.getError())
     {

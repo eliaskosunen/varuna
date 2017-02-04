@@ -15,6 +15,43 @@ namespace core
 {
 namespace lexer
 {
+    TokenVector Lexer::run()
+    {
+        TokenVector tokens;
+        int dummy = 0;
+
+        while(true)
+        {
+            Token t = getNextToken();
+            if(getError())
+            {
+                break;
+            }
+            tokens.push_back(t);
+            util::logger->trace("Pushed new token: ({}): '{}'",
+                                t.typeToString(), t.value);
+            if(t.type == TOKEN_EOF)
+            {
+                util::logger->trace("Token is EOF, stop");
+                break;
+            }
+        }
+
+        if(tokens.empty())
+        {
+            lexerError("Empty token list");
+        }
+        if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
+        {
+            lexerWarning("Empty translation unit");
+        }
+        if(tokens.back().type != TOKEN_EOF)
+        {
+            lexerError("No EOF token found");
+        }
+        return tokens;
+    }
+
     Token Lexer::getNextToken()
     {
         util::char_t currentChar = *it;
@@ -40,11 +77,6 @@ namespace lexer
         {
             util::logger->trace("Skipping whitespace");
 
-            if(it == end)
-            {
-                return createToken(TOKEN_EOF, "EOF");
-            }
-
             currentChar = *advance();
 
             if(it == end)
@@ -52,7 +84,7 @@ namespace lexer
                 return createToken(TOKEN_EOF, "EOF");
             }
 
-            return getNextToken();
+            // return getNextToken();
         }
 
         if(!lexComment())
@@ -312,60 +344,64 @@ namespace lexer
                            util::StringUtils::charToString(currentChar));
     }
 
-    TokenVector Lexer::run()
-    {
-        // Initialize variables
-        TokenVector tokens;
-
-        while(true)
-        {
-            Token t = getNextToken();
-            if(getError())
-            {
-                break;
-            }
-            tokens.push_back(t);
-            util::logger->trace("Pushed new token: ({}): '{}'",
-                                t.typeToString(), t.value);
-            if(t.type == TOKEN_EOF)
-            {
-                util::logger->trace("Token is EOF, stop");
-                break;
-            }
-        }
-
-        if(tokens.empty())
-        {
-            lexerError("Empty token list");
-        }
-        if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
-        {
-            lexerWarning("Empty translation unit");
-        }
-        if(tokens.back().type != TOKEN_EOF)
-        {
-            lexerError("No EOF token found");
-        }
-        return tokens;
-    }
-
     bool Lexer::lexComment()
     {
+
         if(*it == '/')
         {
             // Single line comment: '//'
             if(peekNext() == '/')
             {
+                auto _advance = [&]() {
+                    // Custom advance(), we need to know if we hit a newline
+                    _next(); // Next character
+
+                    if(it == end)
+                    {
+                        return 2;
+                    }
+
+                    if(*it == '\r')
+                    {
+                        if(peekNext() != '\n')
+                        {
+                            lexerWarning("Unexpected CR (carriage return) "
+                                         "without a trailing LF (line feed)");
+                            newline();
+                            return 1;
+                        }
+                        _next(); // Skip '\r'
+                    }
+
+                    if(*it == '\n')
+                    {
+                        newline();
+                        return 1;
+                    }
+                    return 0;
+                };
+
                 advance(); // Skip the both slashes
                 advance();
+
+                if(it == end)
+                {
+                    return false;
+                }
+
                 do
                 {
-                    if(it == end)
+                    auto a = _advance();
+                    if(a == 1)
+                    {
+                        break;
+                    }
+                    if(a == 2)
                     {
                         return false;
                     }
-                } while(*advance() != '\n');
-                advance(); // Skip '\n'
+                } while(true);
+                advance();
             }
             // Multi line comment: '/*'
             else if(peekNext() == '*')

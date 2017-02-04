@@ -44,12 +44,10 @@ public:
     size_t isDefinedLLVM(llvm::Type* type) const;
 
     template <typename T>
-    void insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder);
-    template <typename T>
-    void insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder,
-                    bool mut);
+    Type* insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder,
+                     bool mut = false);
 
-    void insertType(std::unique_ptr<Type> type);
+    Type* insertType(std::unique_ptr<Type> type);
 
     template <typename T>
     void insertTypeWithVariants(llvm::LLVMContext& context,
@@ -70,27 +68,28 @@ private:
 };
 
 template <typename T>
-inline void TypeTable::insertType(llvm::LLVMContext& context,
-                                  llvm::DIBuilder& dbuilder)
+inline Type* TypeTable::insertType(llvm::LLVMContext& context,
+                                   llvm::DIBuilder& dbuilder, bool mut)
 {
-    list.push_back(std::make_unique<T>(this, context, dbuilder));
+    auto t = std::make_unique<T>(this, context, dbuilder, mut);
+    auto ptr = t.get();
+    list.push_back(std::move(t));
+    return ptr;
 }
-template <typename T>
-inline void TypeTable::insertType(llvm::LLVMContext& context,
-                                  llvm::DIBuilder& dbuilder, bool mut)
+inline Type* TypeTable::insertType(std::unique_ptr<Type> type)
 {
-    list.push_back(std::make_unique<T>(this, context, dbuilder, mut));
-}
-inline void TypeTable::insertType(std::unique_ptr<Type> type)
-{
+    auto ptr = type.get();
     list.push_back(std::move(type));
+    return ptr;
 }
 template <typename T>
 inline void TypeTable::insertTypeWithVariants(llvm::LLVMContext& context,
                                               llvm::DIBuilder& dbuilder,
                                               bool mutableAllowed)
 {
-    insertType<T>(context, dbuilder);
+    auto t = insertType<T>(context, dbuilder);
+    t->dtype =
+        dbuilder.createQualifiedType(llvm::dwarf::DW_TAG_const_type, t->dtype);
     if(mutableAllowed)
     {
         insertType<T>(context, dbuilder, true);

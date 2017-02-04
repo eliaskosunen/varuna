@@ -12,7 +12,7 @@ namespace codegen
 {
 std::unique_ptr<TypedValue>
 VoidTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     return operationError(
@@ -20,7 +20,7 @@ VoidTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 VoidTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  core::lexer::TokenType op,
+                                  util::OperatorType op,
                                   std::vector<TypedValue*> operands) const
 {
     return operationError(
@@ -28,7 +28,7 @@ VoidTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 VoidTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   core::lexer::TokenType op,
+                                   util::OperatorType op,
                                    std::vector<TypedValue*> operands) const
 {
     return operationError(
@@ -36,7 +36,7 @@ VoidTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 VoidTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
+                                      util::OperatorType op,
                                       std::vector<TypedValue*> operands) const
 {
     return operationError(
@@ -44,7 +44,7 @@ VoidTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
 }
 
 std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -57,25 +57,20 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
     auto lhs = operands[0];
     assert(lhs);
     auto rhs = [&]() -> std::unique_ptr<TypedValue> {
-        if(op != core::lexer::TOKEN_OPERATORA_SIMPLE)
+        if(op != util::OPERATORA_SIMPLE)
         {
             switch(op.get())
             {
-            case core::lexer::TOKEN_OPERATORA_ADD:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_ADD, operands);
-            case core::lexer::TOKEN_OPERATORA_SUB:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_SUB, operands);
-            case core::lexer::TOKEN_OPERATORA_MUL:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_MUL, operands);
-            case core::lexer::TOKEN_OPERATORA_DIV:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_DIV, operands);
-            case core::lexer::TOKEN_OPERATORA_MOD:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_MOD, operands);
+            case util::OPERATORA_ADD:
+                return binaryOperation(builder, util::OPERATORB_ADD, operands);
+            case util::OPERATORA_SUB:
+                return binaryOperation(builder, util::OPERATORB_SUB, operands);
+            case util::OPERATORA_MUL:
+                return binaryOperation(builder, util::OPERATORB_MUL, operands);
+            case util::OPERATORA_DIV:
+                return binaryOperation(builder, util::OPERATORB_DIV, operands);
+            case util::OPERATORA_MOD:
+                return binaryOperation(builder, util::OPERATORB_MOD, operands);
             default:
                 return operationError(
                     "Unsupported assignment operator for '{}': {}",
@@ -118,7 +113,7 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
 }
 std::unique_ptr<TypedValue>
 IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
+                                      util::OperatorType op,
                                       std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -129,14 +124,14 @@ IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORU_PLUS:
+    case util::OPERATORU_PLUS:
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
         return operands[0]->type->cast(builder, Type::CAST, operands[0]->value,
                                        t);
     }
-    case core::lexer::TOKEN_OPERATORU_MINUS:
+    case util::OPERATORU_MINUS:
         return ret(builder.CreateNeg(operands[0]->value, "negtmp"));
     default:
         return operationError("Unsupported unary operator for '{}': '{}'",
@@ -145,7 +140,7 @@ IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 IntegralTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -169,38 +164,38 @@ IntegralTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
     };
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORB_ADD:
+    case util::OPERATORB_ADD:
         return ret(builder.CreateAdd(operands[0]->value, operands[1]->value,
                                      "addtmp", true, true));
-    case core::lexer::TOKEN_OPERATORB_SUB:
+    case util::OPERATORB_SUB:
         return ret(builder.CreateSub(operands[0]->value, operands[1]->value,
                                      "subtmp", true, true));
-    case core::lexer::TOKEN_OPERATORB_MUL:
+    case util::OPERATORB_MUL:
         return ret(builder.CreateMul(operands[0]->value, operands[1]->value,
                                      "multmp", true, true));
-    case core::lexer::TOKEN_OPERATORB_DIV:
+    case util::OPERATORB_DIV:
         return ret(builder.CreateSDiv(operands[0]->value, operands[1]->value,
                                       "divtmp"));
-    case core::lexer::TOKEN_OPERATORB_REM:
-    case core::lexer::TOKEN_OPERATORB_MOD:
+    case util::OPERATORB_REM:
+    case util::OPERATORB_MOD:
         return ret(builder.CreateSRem(operands[0]->value, operands[1]->value,
                                       "remtmp"));
-    case core::lexer::TOKEN_OPERATORB_EQ:
+    case util::OPERATORB_EQ:
         return comp(builder.CreateICmpEQ(operands[0]->value, operands[1]->value,
                                          "eqtmp"));
-    case core::lexer::TOKEN_OPERATORB_NOTEQ:
+    case util::OPERATORB_NOTEQ:
         return comp(builder.CreateICmpNE(operands[0]->value, operands[1]->value,
                                          "neqtmp"));
-    case core::lexer::TOKEN_OPERATORB_GREATER:
+    case util::OPERATORB_GREATER:
         return comp(builder.CreateICmpSGT(operands[0]->value,
                                           operands[1]->value, "gttmp"));
-    case core::lexer::TOKEN_OPERATORB_GREATEQ:
+    case util::OPERATORB_GREATEQ:
         return comp(builder.CreateICmpSGE(operands[0]->value,
                                           operands[1]->value, "getmp"));
-    case core::lexer::TOKEN_OPERATORB_LESS:
+    case util::OPERATORB_LESS:
         return comp(builder.CreateICmpSLT(operands[0]->value,
                                           operands[1]->value, "lttmp"));
-    case core::lexer::TOKEN_OPERATORB_LESSEQ:
+    case util::OPERATORB_LESSEQ:
         return comp(builder.CreateICmpSLE(operands[0]->value,
                                           operands[1]->value, "letmp"));
     default:
@@ -209,7 +204,7 @@ IntegralTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
     }
 }
 std::unique_ptr<TypedValue> IntegralTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -219,7 +214,7 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::arbitraryOperation(
 }
 
 std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -234,7 +229,7 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
     assert(lhs);
     assert(rhs);
 
-    if(op != core::lexer::TOKEN_OPERATORA_SIMPLE)
+    if(op != util::OPERATORA_SIMPLE)
     {
         return operationError("Unsupported assignment operator for '{}': {}",
                               lhs->type->getDecoratedName(), op.get());
@@ -261,7 +256,7 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
 }
 std::unique_ptr<TypedValue>
 CharacterTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -270,7 +265,7 @@ CharacterTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 CharacterTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                        core::lexer::TokenType op,
+                                        util::OperatorType op,
                                         std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -293,12 +288,12 @@ CharacterTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
         return std::make_unique<TypedValue>(boolt, v);
     };
 
-    if(op == core::lexer::TOKEN_OPERATORB_EQ)
+    if(op == util::OPERATORB_EQ)
     {
         return comp(builder.CreateICmpEQ(operands[0]->value, operands[1]->value,
                                          "eqtmp"));
     }
-    else if(op == core::lexer::TOKEN_OPERATORB_NOTEQ)
+    else if(op == util::OPERATORB_NOTEQ)
     {
         return comp(builder.CreateICmpNE(operands[0]->value, operands[1]->value,
                                          "eqtmp"));
@@ -307,7 +302,7 @@ CharacterTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
                           operands[0]->type->getDecoratedName(), op.get());
 }
 std::unique_ptr<TypedValue> CharacterTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -318,7 +313,7 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::arbitraryOperation(
 
 std::unique_ptr<TypedValue>
 BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -331,7 +326,7 @@ BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
     auto lhs = operands[0];
     assert(lhs);
     auto rhs = [&]() -> std::unique_ptr<TypedValue> {
-        if(op != core::lexer::TOKEN_OPERATORA_SIMPLE)
+        if(op != util::OPERATORA_SIMPLE)
         {
             return operationError(
                 "Unsupported assignment operator for '{}': {}",
@@ -364,7 +359,7 @@ BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 BoolTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  core::lexer::TokenType op,
+                                  util::OperatorType op,
                                   std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -375,7 +370,7 @@ BoolTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORU_NOT:
+    case util::OPERATORU_NOT:
         return ret(builder.CreateNot(operands[0]->value, "nottmp"));
     default:
         return operationError("Unsupported unary operator for '{}': '{}'",
@@ -384,7 +379,7 @@ BoolTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 BoolTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   core::lexer::TokenType op,
+                                   util::OperatorType op,
                                    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -404,16 +399,16 @@ BoolTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
     };
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORB_EQ:
+    case util::OPERATORB_EQ:
         return comp(builder.CreateICmpEQ(operands[0]->value, operands[1]->value,
                                          "eqtmp"));
-    case core::lexer::TOKEN_OPERATORB_NOTEQ:
+    case util::OPERATORB_NOTEQ:
         return comp(builder.CreateICmpNE(operands[0]->value, operands[1]->value,
                                          "neqtmp"));
-    case core::lexer::TOKEN_OPERATORB_AND:
+    case util::OPERATORB_AND:
         return comp(builder.CreateAnd(operands[0]->value, operands[1]->value,
                                       "andtmp"));
-    case core::lexer::TOKEN_OPERATORB_OR:
+    case util::OPERATORB_OR:
         return comp(
             builder.CreateOr(operands[0]->value, operands[1]->value, "ortmp"));
     default:
@@ -423,7 +418,7 @@ BoolTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 BoolTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
+                                      util::OperatorType op,
                                       std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -434,7 +429,7 @@ BoolTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
 
 std::unique_ptr<TypedValue>
 ByteTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -443,7 +438,7 @@ ByteTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 ByteTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  core::lexer::TokenType op,
+                                  util::OperatorType op,
                                   std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -452,7 +447,7 @@ ByteTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 ByteTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   core::lexer::TokenType op,
+                                   util::OperatorType op,
                                    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -461,7 +456,7 @@ ByteTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 ByteTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
+                                      util::OperatorType op,
                                       std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -472,7 +467,7 @@ ByteTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
 
 std::unique_ptr<TypedValue>
 FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                     core::lexer::TokenType op,
+                                     util::OperatorType op,
                                      std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -484,25 +479,20 @@ FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
 
     auto lhs = operands[0];
     auto rhs = [&]() -> std::unique_ptr<TypedValue> {
-        if(op != core::lexer::TOKEN_OPERATORA_SIMPLE)
+        if(op != util::OPERATORA_SIMPLE)
         {
             switch(op.get())
             {
-            case core::lexer::TOKEN_OPERATORA_ADD:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_ADD, operands);
-            case core::lexer::TOKEN_OPERATORA_SUB:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_SUB, operands);
-            case core::lexer::TOKEN_OPERATORA_MUL:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_MUL, operands);
-            case core::lexer::TOKEN_OPERATORA_DIV:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_DIV, operands);
-            case core::lexer::TOKEN_OPERATORA_MOD:
-                return binaryOperation(
-                    builder, core::lexer::TOKEN_OPERATORB_MOD, operands);
+            case util::OPERATORA_ADD:
+                return binaryOperation(builder, util::OPERATORB_ADD, operands);
+            case util::OPERATORA_SUB:
+                return binaryOperation(builder, util::OPERATORB_SUB, operands);
+            case util::OPERATORA_MUL:
+                return binaryOperation(builder, util::OPERATORB_MUL, operands);
+            case util::OPERATORA_DIV:
+                return binaryOperation(builder, util::OPERATORB_DIV, operands);
+            case util::OPERATORA_MOD:
+                return binaryOperation(builder, util::OPERATORB_MOD, operands);
             default:
                 return operationError(
                     "Unsupported assignment operator for '{}': {}",
@@ -530,7 +520,7 @@ FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 FPTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                core::lexer::TokenType op,
+                                util::OperatorType op,
                                 std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -541,14 +531,14 @@ FPTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORU_PLUS:
+    case util::OPERATORU_PLUS:
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
         return operands[0]->type->cast(builder, Type::CAST, operands[0]->value,
                                        t);
     }
-    case core::lexer::TOKEN_OPERATORU_MINUS:
+    case util::OPERATORU_MINUS:
         return ret(builder.CreateFNeg(operands[0]->value, "negtmp"));
     default:
         return operationError("Unsupported unary operator for '{}': '{}'",
@@ -557,7 +547,7 @@ FPTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                 core::lexer::TokenType op,
+                                 util::OperatorType op,
                                  std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -581,38 +571,38 @@ FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
     };
     switch(op.get())
     {
-    case core::lexer::TOKEN_OPERATORB_ADD:
+    case util::OPERATORB_ADD:
         return ret(builder.CreateFAdd(operands[0]->value, operands[1]->value,
                                       "addtmp"));
-    case core::lexer::TOKEN_OPERATORB_SUB:
+    case util::OPERATORB_SUB:
         return ret(builder.CreateFSub(operands[0]->value, operands[1]->value,
                                       "subtmp"));
-    case core::lexer::TOKEN_OPERATORB_MUL:
+    case util::OPERATORB_MUL:
         return ret(builder.CreateFMul(operands[0]->value, operands[1]->value,
                                       "multmp"));
-    case core::lexer::TOKEN_OPERATORB_DIV:
+    case util::OPERATORB_DIV:
         return ret(builder.CreateFDiv(operands[0]->value, operands[1]->value,
                                       "divtmp"));
-    case core::lexer::TOKEN_OPERATORB_REM:
-    case core::lexer::TOKEN_OPERATORB_MOD:
+    case util::OPERATORB_REM:
+    case util::OPERATORB_MOD:
         return ret(builder.CreateFRem(operands[0]->value, operands[1]->value,
                                       "remtmp"));
-    case core::lexer::TOKEN_OPERATORB_EQ:
+    case util::OPERATORB_EQ:
         return comp(builder.CreateFCmpOEQ(operands[0]->value,
                                           operands[1]->value, "eqtmp"));
-    case core::lexer::TOKEN_OPERATORB_NOTEQ:
+    case util::OPERATORB_NOTEQ:
         return comp(builder.CreateFCmpONE(operands[0]->value,
                                           operands[1]->value, "neqtmp"));
-    case core::lexer::TOKEN_OPERATORB_GREATER:
+    case util::OPERATORB_GREATER:
         return comp(builder.CreateFCmpOGT(operands[0]->value,
                                           operands[1]->value, "gttmp"));
-    case core::lexer::TOKEN_OPERATORB_GREATEQ:
+    case util::OPERATORB_GREATEQ:
         return comp(builder.CreateFCmpOGE(operands[0]->value,
                                           operands[1]->value, "getmp"));
-    case core::lexer::TOKEN_OPERATORB_LESS:
+    case util::OPERATORB_LESS:
         return comp(builder.CreateFCmpOLT(operands[0]->value,
                                           operands[1]->value, "lttmp"));
-    case core::lexer::TOKEN_OPERATORB_LESSEQ:
+    case util::OPERATORB_LESSEQ:
         return comp(builder.CreateFCmpOLE(operands[0]->value,
                                           operands[1]->value, "letmp"));
     default:
@@ -622,7 +612,7 @@ FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 FPTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                    core::lexer::TokenType op,
+                                    util::OperatorType op,
                                     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -632,7 +622,7 @@ FPTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
 }
 
 std::unique_ptr<TypedValue> StringTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -641,7 +631,7 @@ std::unique_ptr<TypedValue> StringTypeOperation::assignmentOperation(
 }
 std::unique_ptr<TypedValue>
 StringTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                    core::lexer::TokenType op,
+                                    util::OperatorType op,
                                     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -650,7 +640,7 @@ StringTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 StringTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                     core::lexer::TokenType op,
+                                     util::OperatorType op,
                                      std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -659,7 +649,7 @@ StringTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 StringTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                        core::lexer::TokenType op,
+                                        util::OperatorType op,
                                         std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -669,7 +659,7 @@ StringTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
 }
 
 std::unique_ptr<TypedValue> FunctionTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -678,7 +668,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::assignmentOperation(
 }
 std::unique_ptr<TypedValue>
 FunctionTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                      core::lexer::TokenType op,
+                                      util::OperatorType op,
                                       std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
@@ -687,7 +677,7 @@ FunctionTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
 }
 std::unique_ptr<TypedValue>
 FunctionTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                       core::lexer::TokenType op,
+                                       util::OperatorType op,
                                        std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
@@ -695,12 +685,12 @@ FunctionTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
                           operands[0]->type->getDecoratedName());
 }
 std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
 
-    if(op != core::lexer::TOKEN_OPERATORC_CALL)
+    if(op != util::OPERATORC_CALL)
     {
         return operationError(
             "Unsupported arbitrary-operand operator for '{}': '{}'",

@@ -367,4 +367,20 @@ std::string FunctionType::functionTypeToString(Type* returnType,
                        paramVectorToString(params, false));
 }
 
+llvm::DISubroutineType* FunctionType::createDebugFunctionType(
+    llvm::DIBuilder* dbuilder, Type* returnType,
+    const std::vector<Type*>& params, llvm::DIFile* file)
+{
+    llvm::SmallVector<llvm::Metadata*, 8> elementTypes;
+    elementTypes.push_back(returnType->dtype);
+
+    for(const auto& p : params)
+    {
+        elementTypes.push_back(p->dtype);
+    }
+
+    return dbuilder->createSubroutineType(
+        dbuilder->getOrCreateTypeArray(elementTypes));
+}
+
 } // namespace codegen

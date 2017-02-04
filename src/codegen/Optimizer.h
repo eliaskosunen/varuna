@@ -24,7 +24,7 @@ namespace codegen
 class Optimizer
 {
 public:
-    Optimizer(llvm::Module* m, const CodegenInfo& i);
+    Optimizer(llvm::Module* m, CodegenInfo i);
     ~Optimizer();
 
     Optimizer(const Optimizer&) = delete;
@@ -44,7 +44,7 @@ private:
     void addLinkPasses();
 
     llvm::Module* module;
-    const CodegenInfo& info;
+    CodegenInfo info;
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
     std::unique_ptr<llvm::legacy::PassManager> mpm;
     uint8_t optLevel;

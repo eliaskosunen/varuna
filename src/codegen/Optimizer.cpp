@@ -15,7 +15,7 @@
 
 namespace codegen
 {
-Optimizer::Optimizer(llvm::Module* m, const CodegenInfo& i)
+Optimizer::Optimizer(llvm::Module* m, CodegenInfo i)
     : module(m), info(i),
       fpm(std::make_unique<llvm::legacy::FunctionPassManager>(m)),
       mpm{std::make_unique<llvm::legacy::PassManager>()},
@@ -84,7 +84,7 @@ void Optimizer::addPasses(llvm::TargetMachine* tm)
     builder.OptLevel = optLevel;
     builder.SizeLevel = sizeLevel;
 
-    if(optLevel > 1)
+    if(optLevel >= 1)
     {
         builder.Inliner = llvm::createFunctionInliningPass(optLevel, sizeLevel);
     }

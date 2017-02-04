@@ -7,6 +7,7 @@
 #include "core/lexer/TokenType.h"
 #include "util/Logger.h"
 #include "util/SafeEnum.h"
+#include "util/SourceLocation.h"
 #include <map>
 #include <string>
 
@@ -53,23 +54,6 @@ namespace lexer
         util::SafeEnum<TokenFloatLiteralModifier_t>;
     using TokenCharLiteralModifier = util::SafeEnum<TokenCharLiteralModifier_t>;
 
-    struct SourceLocation
-    {
-        SourceLocation() = default;
-        SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
-        {
-        }
-
-        std::string toString() const
-        {
-            // return fmt::format("{}:{}:{}", file, line, column);
-            return file + ":" + std::to_string(line);
-        }
-
-        std::string file{"undefined"};
-        uint64_t line{0};
-    };
-
     struct Token final
     {
         explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
@@ -87,14 +71,14 @@ namespace lexer
         }
 
         static Token create(TokenType t, const std::string& val,
-                            SourceLocation loc = SourceLocation())
+                            util::SourceLocation loc)
         {
             Token tok(t, val);
             tok.loc = loc;
             return tok;
         }
 
-        SourceLocation loc;
+        util::SourceLocation loc;
 
         TokenType type;
         std::string value;

@@ -19,31 +19,35 @@
 namespace codegen
 {
 CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
-                               const CodegenInfo& i)
+                               CodegenInfo i)
     : context{c}, module(m), info{i}, builder(context), dbuilder(*m),
-      dcu{dbuilder.createCompileUnit(llvm::dwarf::DW_LANG_C, info.filename, ".",
-                                     util::programinfo::getIdentifier(),
-                                     info.optEnabled(), "", 0)}
+      dcu{dbuilder.createCompileUnit(
+          llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
+          util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
+      dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())}
 {
     types.insertTypeWithVariants<VoidType>(context, dbuilder, false);
-    types.insertTypeWithVariants<IntType>(context, dbuilder);
-    types.insertTypeWithVariants<Int8Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int16Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int32Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int64Type>(context, dbuilder);
-    types.insertTypeWithVariants<FloatType>(context, dbuilder);
-    types.insertTypeWithVariants<F32Type>(context, dbuilder);
-    types.insertTypeWithVariants<F64Type>(context, dbuilder);
-    types.insertTypeWithVariants<BoolType>(context, dbuilder);
-    types.insertTypeWithVariants<CharType>(context, dbuilder);
-    types.insertTypeWithVariants<ByteCharType>(context, dbuilder);
-    types.insertTypeWithVariants<ByteType>(context, dbuilder);
-    types.insertTypeWithVariants<StringType>(context, dbuilder);
+    types.insertTypeWithVariants<IntType>(context, dbuilder, true);
+    types.insertTypeWithVariants<Int8Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<Int16Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<Int32Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<Int64Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<FloatType>(context, dbuilder, true);
+    types.insertTypeWithVariants<F32Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<F64Type>(context, dbuilder, true);
+    types.insertTypeWithVariants<BoolType>(context, dbuilder, true);
+    types.insertTypeWithVariants<CharType>(context, dbuilder, true);
+    types.insertTypeWithVariants<ByteCharType>(context, dbuilder, true);
+    types.insertTypeWithVariants<ByteType>(context, dbuilder, true);
+    types.insertTypeWithVariants<StringType>(context, dbuilder, true);
 }
 
 bool CodegenVisitor::codegen(ast::AST* ast)
 {
-    module->setSourceFileName(ast->file);
+    module->addModuleFlag(llvm::Module::Warning, "Debug Info Version",
+                          llvm::DEBUG_METADATA_VERSION);
+
+    module->setSourceFileName(ast->file->getFilename());
 
     auto root = ast->globalNode.get();
     symbols.addBlock();
@@ -81,6 +85,25 @@ bool CodegenVisitor::codegen(ast::AST* ast)
     return true;
 }
 
+void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
+{
+    if(!node)
+    {
+        return builder.SetCurrentDebugLocation(llvm::DebugLoc());
+    }
+
+    auto scope = [&]() -> llvm::DIScope* {
+        if(dblocks.empty())
+        {
+            return dcu;
+        }
+        return dblocks.back();
+    }();
+
+    builder.SetCurrentDebugLocation(
+        llvm::DebugLoc::get(node->loc.line, 0, scope));
+}
+
 void CodegenVisitor::writeExports()
 {
     if(util::viewProgramOptions().outputFilename == "stdout")
@@ -89,7 +112,7 @@ void CodegenVisitor::writeExports()
         return;
     }
 
-    auto filename = fmt::format("{}.vaexport", info.filename);
+    auto filename = fmt::format("{}.vamod", info.file->getFilename());
 }
 
 void CodegenVisitor::stripInstructionsAfterTerminators()
@@ -219,7 +242,7 @@ llvm::Constant* CodegenVisitor::createStringConstant(const char* str)
 }
 
 std::tuple<Type*, std::unique_ptr<TypedValue>>
-CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* expr)
+CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
 {
     auto ret = [](Type* t, std::unique_ptr<TypedValue> i) {
         return std::make_tuple(t, std::move(i));
@@ -228,9 +251,9 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* expr)
 
     // Initializer
     std::unique_ptr<TypedValue> init = nullptr;
-    if(expr->init->nodeType != ast::ASTNode::EMPTY_EXPR)
+    if(node->init->nodeType != ast::ASTNode::EMPTY_EXPR)
     {
-        init = expr->init->accept(this);
+        init = node->init->accept(this);
         if(!init)
         {
             return err();
@@ -239,15 +262,15 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* expr)
 
     // Infer type
     Type* type = nullptr;
-    if(expr->typeInferred)
+    if(node->typeInferred)
     {
-        type = types.find(init->type->getName(), expr->isMutable
+        type = types.find(init->type->getName(), node->isMutable
                                                      ? TypeTable::FIND_MUTABLE
                                                      : TypeTable::FIND_DEFAULT);
     }
     else
     {
-        type = types.find(expr->type->value, expr->isMutable
+        type = types.find(node->type->value, node->isMutable
                                                  ? TypeTable::FIND_MUTABLE
                                                  : TypeTable::FIND_DEFAULT);
     }
@@ -262,26 +285,26 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* expr)
         return err(codegenError("Cannot create a variable of unsized type: {}",
                                 type->getDecoratedName()));
     }
-    if(types.isDefinedUndecorated(expr->name->value) != 0)
+    if(types.isDefinedUndecorated(node->name->value) != 0)
     {
         return err(
             codegenError("Cannot name variable as '{}': Reserved typename",
-                         expr->name->value));
+                         node->name->value));
     }
 
     // No initializer:
     // Init as undefined
     if(!init)
     {
-        if(expr->isMutable)
+        if(node->isMutable)
         {
-            codegenWarning("Uninitialized variable: {}", expr->name->value);
+            codegenWarning("Uninitialized variable: {}", node->name->value);
         }
         else
         {
             codegenWarning(
                 "Useless variable: Uninitialized immutable variable: {}",
-                expr->name->value);
+                node->name->value);
         }
         init = std::make_unique<TypedValue>(type,
                                             llvm::UndefValue::get(type->type));
@@ -295,16 +318,16 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* expr)
     if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
     {
         return err(codegenError(
-            "Invalid init expression: Cannot assign {} to {}",
+            "Invalid init nodeession: Cannot assign {} to {}",
             init->type->getDecoratedName(), type->getDecoratedName()));
     }
 
     // Check for existing similarly named symbol
-    if(symbols.find(expr->name->value, nullptr, false))
+    if(symbols.find(node->name->value, nullptr, false))
     {
         return err(
             codegenError("Cannot name variable as '{}', name already defined",
-                         expr->name->value));
+                         node->name->value));
     }
 
     return ret(type, std::move(init));

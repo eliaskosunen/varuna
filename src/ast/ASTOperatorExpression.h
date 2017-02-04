@@ -6,7 +6,7 @@
 
 #include "ast/ASTExpression.h"
 #include "ast/FwdDecl.h"
-#include "core/lexer/Token.h"
+#include "util/OperatorType.h"
 
 namespace ast
 {
@@ -15,7 +15,7 @@ class ASTBinaryOperationExpression : public ASTExpression
 public:
     ASTBinaryOperationExpression(std::unique_ptr<ASTExpression> l,
                                  std::unique_ptr<ASTExpression> r,
-                                 core::lexer::TokenType o)
+                                 util::OperatorType o)
         : ASTExpression(BINARY_OPERATION_EXPR), lhs(std::move(l)),
           rhs(std::move(r)), oper(o)
     {
@@ -28,14 +28,14 @@ public:
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
     std::unique_ptr<ASTExpression> lhs, rhs;
-    core::lexer::TokenType oper;
+    util::OperatorType oper;
 };
 
 class ASTUnaryOperationExpression : public ASTExpression
 {
 public:
     ASTUnaryOperationExpression(std::unique_ptr<ASTExpression> _operand,
-                                core::lexer::TokenType o)
+                                util::OperatorType o)
         : ASTExpression(UNARY_OPERATION_EXPR), operand(std::move(_operand)),
           oper(o)
     {
@@ -48,7 +48,7 @@ public:
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
     std::unique_ptr<ASTExpression> operand;
-    core::lexer::TokenType oper;
+    util::OperatorType oper;
 };
 
 class ASTAssignmentOperationExpression : public ASTExpression
@@ -56,7 +56,7 @@ class ASTAssignmentOperationExpression : public ASTExpression
 public:
     ASTAssignmentOperationExpression(std::unique_ptr<ASTExpression> l,
                                      std::unique_ptr<ASTExpression> r,
-                                     core::lexer::TokenType o)
+                                     util::OperatorType o)
         : ASTExpression(ASSIGNMENT_OPERATION_EXPR), lhs(std::move(l)),
           rhs(std::move(r)), oper(o)
     {
@@ -70,7 +70,7 @@ public:
 
     std::unique_ptr<ASTExpression> lhs;
     std::unique_ptr<ASTExpression> rhs;
-    core::lexer::TokenType oper;
+    util::OperatorType oper;
 };
 
 class ASTArbitraryOperationExpression : public ASTExpression
@@ -78,7 +78,7 @@ class ASTArbitraryOperationExpression : public ASTExpression
 public:
     ASTArbitraryOperationExpression(
         std::vector<std::unique_ptr<ASTExpression>> pOperands,
-        core::lexer::TokenType o)
+        util::OperatorType o)
         : ASTExpression(ARBITRARY_OPERATION_EXPR),
           operands(std::move(pOperands)), oper(o)
     {
@@ -91,6 +91,6 @@ public:
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
     std::vector<std::unique_ptr<ASTExpression>> operands;
-    core::lexer::TokenType oper;
+    util::OperatorType oper;
 };
 } // namespace ast

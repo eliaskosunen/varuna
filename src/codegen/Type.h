@@ -5,8 +5,8 @@
 #pragma once
 
 #include "ast/ASTFunctionStatement.h"
-#include "core/lexer/Token.h"
 #include "util/Logger.h"
+#include "util/OperatorType.h"
 #include "util/ProgramOptions.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
@@ -378,6 +378,11 @@ public:
                                            bool addBeginningComma = false);
     static std::string functionTypeToString(Type* returnType,
                                             const std::vector<Type*>& params);
+
+    static llvm::DISubroutineType*
+    createDebugFunctionType(llvm::DIBuilder* dbuilder, Type* returnType,
+                            const std::vector<Type*>& params,
+                            llvm::DIFile* file);
 
     std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;

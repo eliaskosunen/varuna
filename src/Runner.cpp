@@ -75,10 +75,11 @@ Runner::runCodegen(std::shared_ptr<ast::AST> t)
         {
             util::logger->info(
                 "Code generation of file '{}' failed, terminating\n",
-                ast->file);
+                ast->file->getFilename());
             return c;
         }
-        util::logger->info("File '{}' compiled successfully", ast->file);
+        util::logger->info("File '{}' compiled successfully",
+                           ast->file->getFilename());
         c->write();
         return c;
     });

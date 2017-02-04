@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <string>
+#include "util/File.h"
 
 namespace codegen
 {
@@ -17,7 +17,7 @@ struct CodegenInfo
         return optLevel > 0 || sizeLevel > 0;
     }
 
-    const std::string& filename;
+    std::shared_ptr<util::File> file;
     uint8_t optLevel{0};
     uint8_t sizeLevel{0};
 };

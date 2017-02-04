@@ -367,8 +367,7 @@ void DumpASTVisitor::visit(ASTNoneLiteralExpression* node, size_t ind)
 void DumpASTVisitor::visit(ASTBinaryOperationExpression* node, size_t ind)
 {
     log(ind, "ASTBinaryOperationExpression:");
-    log(ind + 1, "Operator: {} ({})",
-        core::lexer::Token::typeToString(node->oper), node->oper.get());
+    log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "LHS:");
     node->lhs->accept(this, ind + 2);
     log(ind + 1, "RHS:");
@@ -377,16 +376,14 @@ void DumpASTVisitor::visit(ASTBinaryOperationExpression* node, size_t ind)
 void DumpASTVisitor::visit(ASTUnaryOperationExpression* node, size_t ind)
 {
     log(ind, "ASTUnaryOperationExpression:");
-    log(ind + 1, "Operator: {} ({})",
-        core::lexer::Token::typeToString(node->oper), node->oper.get());
+    log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "Operand:");
     node->operand->accept(this, ind + 2);
 }
 void DumpASTVisitor::visit(ASTAssignmentOperationExpression* node, size_t ind)
 {
     log(ind, "ASTAssignmentOperationExpression:");
-    log(ind + 1, "Operator: {} ({})",
-        core::lexer::Token::typeToString(node->oper), node->oper.get());
+    log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "LHS:");
     node->lhs->accept(this, ind + 2);
     log(ind + 1, "RHS:");
@@ -395,8 +392,7 @@ void DumpASTVisitor::visit(ASTAssignmentOperationExpression* node, size_t ind)
 void DumpASTVisitor::visit(ASTArbitraryOperationExpression* node, size_t ind)
 {
     log(ind, "ASTArbitraryOperationExpression:");
-    log(ind + 1, "Operator: {}, ({})",
-        core::lexer::Token::typeToString(node->oper), node->oper.get());
+    log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "Operands:");
     for(auto& o : node->operands)
     {

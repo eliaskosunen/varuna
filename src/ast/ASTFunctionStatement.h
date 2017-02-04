@@ -12,9 +12,9 @@ namespace ast
 class ASTFunctionParameter : public ASTStatement
 {
 public:
-    explicit ASTFunctionParameter(
-        std::unique_ptr<ASTVariableDefinitionExpression> pVar)
-        : ASTStatement(FUNCTION_PARAMETER), var(std::move(pVar))
+    ASTFunctionParameter(std::unique_ptr<ASTVariableDefinitionExpression> pVar,
+                         uint32_t pNum)
+        : ASTStatement(FUNCTION_PARAMETER), var(std::move(pVar)), num(pNum)
     {
     }
 
@@ -24,6 +24,7 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
 
     std::unique_ptr<ASTVariableDefinitionExpression> var;
+    uint32_t num;
 };
 
 class ASTFunctionPrototypeStatement : public ASTStatement

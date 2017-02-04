@@ -65,6 +65,82 @@ TEST_CASE("Test lexer")
         }
     }
 
+    SUBCASE("Line counting")
+    {
+        SUBCASE("'LF' line endings")
+        {
+            f.setContent("// Line 1\n"
+                         " 123 /* Line 2 */\n"
+                         " \"abc\" // Line 3\n"
+                         "\n"
+                         "foo // Line 5\n");
+            Lexer l(&f);
+            v = l.run();
+
+            CHECK(v.size() == 4);
+            REQUIRE(!l.getError());
+
+            REQUIRE(v[0].loc.line == 2);
+            REQUIRE(v[1].loc.line == 3);
+            REQUIRE(v[2].loc.line == 5);
+        }
+
+        SUBCASE("'CR' line endings")
+        {
+            // CR line endings cause warnings by design
+            f.setContent("// Line 1\r"
+                         " 123 /* Line 2 */\r"
+                         " \"abc\" // Line 3\r"
+                         "\r"
+                         "foo // Line 5\r");
+            Lexer l(&f);
+            v = l.run();
+
+            CHECK(v.size() == 4);
+            REQUIRE(!l.getError());
+
+            REQUIRE(v[0].loc.line == 2);
+            REQUIRE(v[1].loc.line == 3);
+            REQUIRE(v[2].loc.line == 5);
+        }
+
+        SUBCASE("'CRLF' line endings")
+        {
+            f.setContent("// Line 1\r\n"
+                         " 123 /* Line 2 */\r\n"
+                         " \"abc\" // Line 3\r\n"
+                         "\r\n"
+                         "foo // Line 5\r\n");
+            Lexer l(&f);
+            v = l.run();
+
+            CHECK(v.size() == 4);
+            REQUIRE(!l.getError());
+
+            REQUIRE(v[0].loc.line == 2);
+            REQUIRE(v[1].loc.line == 3);
+            REQUIRE(v[2].loc.line == 5);
+        }
+
+        SUBCASE("Mixed line endings")
+        {
+            f.setContent("// Line 1\r\n"
+                         " 123 /* Line 2 */\r"
+                         " \"abc\" // Line 3\n"
+                         "\r\n"
+                         "foo // Line 5\n");
+            Lexer l(&f);
+            v = l.run();
+
+            CHECK(v.size() == 4);
+            REQUIRE(!l.getError());
+
+            REQUIRE(v[0].loc.line == 2);
+            REQUIRE(v[1].loc.line == 3);
+            REQUIRE(v[2].loc.line == 5);
+        }
+    }
+
     SUBCASE("Literals")
     {
         SUBCASE("Integer literals")

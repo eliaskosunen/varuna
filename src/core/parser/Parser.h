@@ -7,7 +7,7 @@
 #include "ast/AST.h"
 #include "ast/DumpASTVisitor.h"
 #include "core/lexer/Lexer.h"
-#include "util/Compatibility.h"
+#include "util/File.h"
 #include "util/Logger.h"
 #include <tuple>
 
@@ -25,7 +25,7 @@ namespace parser
     class Parser final
     {
     public:
-        explicit Parser(const core::lexer::TokenVector& tok);
+        Parser(std::shared_ptr<util::File> f, const lexer::TokenVector& tok);
 
         Parser(const Parser&) = delete;
         Parser(Parser&&) = default;
@@ -56,7 +56,7 @@ namespace parser
             auto loc = [&]() {
                 if(it == tokens.begin())
                 {
-                    return core::lexer::SourceLocation(it->loc.file, 1);
+                    return util::SourceLocation(it->loc.file, 1);
                 }
                 return (it - 1)->loc;
             }();
@@ -75,7 +75,7 @@ namespace parser
             auto loc = [&]() {
                 if(it == tokens.begin())
                 {
-                    return core::lexer::SourceLocation(it->loc.file, 1);
+                    return util::SourceLocation(it->loc.file, 1);
                 }
                 return (it - 1)->loc;
             }();
@@ -89,24 +89,31 @@ namespace parser
             return ast->globalNode->nodes;
         }
 
+        template <typename T, typename... Args>
+        std::unique_ptr<T> createNode(lexer::TokenVector::const_iterator iter,
+                                      Args&&... args)
+        {
+            auto node = std::make_unique<T>(std::forward<Args>(args)...);
+            node->loc = iter->loc;
+            return node;
+        }
+
         bool isPrefixUnaryOperator() const;
-        bool isPrefixUnaryOperator(const core::lexer::TokenType& op) const;
+        bool isPrefixUnaryOperator(util::OperatorType op) const;
         bool isPostfixUnaryOperator() const;
-        bool isPostfixUnaryOperator(const core::lexer::TokenType& op) const;
+        bool isPostfixUnaryOperator(util::OperatorType op) const;
         bool isUnaryOperator() const;
-        bool isUnaryOperator(const core::lexer::TokenType& op) const;
+        bool isUnaryOperator(util::OperatorType op) const;
         bool isBinaryOperator() const;
         bool isAssignmentOperator() const;
-        bool
-        isAssignmentOperator(core::lexer::TokenVector::const_iterator op) const;
+        bool isAssignmentOperator(lexer::TokenVector::const_iterator op) const;
         bool isOperator() const;
         int getBinOpPrecedence() const;
-        int
-        getBinOpPrecedence(core::lexer::TokenVector::const_iterator op) const;
-        int getBinOpPrecedence(const core::lexer::TokenType& t) const;
+        int getBinOpPrecedence(lexer::TokenVector::const_iterator op) const;
+        int getBinOpPrecedence(util::OperatorType t) const;
         bool isBinOpRightAssociative() const;
-        bool isBinOpRightAssociative(
-            core::lexer::TokenVector::const_iterator op) const;
+        bool
+        isBinOpRightAssociative(lexer::TokenVector::const_iterator op) const;
 
         std::tuple<std::unique_ptr<ast::ASTExpression>,
                    std::unique_ptr<ast::ASTExpression>,
@@ -158,7 +165,8 @@ namespace parser
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();
-        std::unique_ptr<ast::ASTFunctionParameter> parseFunctionParameter();
+        std::unique_ptr<ast::ASTFunctionParameter>
+        parseFunctionParameter(uint32_t num);
         std::unique_ptr<ast::ASTFunctionPrototypeStatement>
         parseFunctionPrototype();
         std::unique_ptr<ast::ASTFunctionDefinitionStatement>
@@ -176,11 +184,13 @@ namespace parser
         void _runParser();
 
         std::unique_ptr<ast::AST> ast;
-        const core::lexer::TokenVector& tokens;
-        core::lexer::TokenVector::const_iterator it;
-        const core::lexer::TokenVector::const_iterator endTokens;
+        const lexer::TokenVector& tokens;
+        lexer::TokenVector::const_iterator it;
+        const lexer::TokenVector::const_iterator endTokens;
 
         ErrorLevel error;
+
+        std::shared_ptr<util::File> file;
     };
 
     inline bool Parser::getError() const

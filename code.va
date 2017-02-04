@@ -6,24 +6,15 @@
 
 module code;
 
-export def putchar(ch: char): char;
-export def getchar(): char;
-
-export def asc(ch: char): int;
-export def chr(num: int): char;
-
-export def fn() {}
-def fn2() {}
-
 def main(): int {
-    let ch = 'a';
-    let ch2 = 'ä';
-    let ch3 = '😂';
-    let bch = b'a';
-    putchar(ch3);
-    let ret = getchar();
-
-    let b = 0xfeo;
-
-    return asc(ret);
+    let top = 1;
+    var top2 = 1;
+    {
+        let block = 2;
+        var block2 = 2;
+        if(block == block2) {
+            let deep = 3;
+        }
+    }
+    return top;
 }

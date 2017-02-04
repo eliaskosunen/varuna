@@ -29,7 +29,7 @@ namespace codegen
 class CodegenVisitor final : public ast::Visitor
 {
 public:
-    CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m, const CodegenInfo& i);
+    CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m, CodegenInfo i);
 
     /// Visit AST
     bool codegen(ast::AST* ast);
@@ -86,12 +86,13 @@ private:
 
     llvm::LLVMContext& context;
     llvm::Module* module;
-    const CodegenInfo& info;
+    CodegenInfo info;
     llvm::IRBuilder<> builder;
 
     llvm::DIBuilder dbuilder;
     llvm::DICompileUnit* dcu;
-    std::vector<llvm::DIScope*> dBlocks;
+    llvm::DIFile* dfile;
+    std::vector<llvm::DIScope*> dblocks;
 
     SymbolTable symbols;
     TypeTable types;
@@ -101,7 +102,7 @@ public:
     std::unique_ptr<TypedValue> visit(ast::ASTStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTExpression* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTIfStatement* stmt);
+    std::unique_ptr<TypedValue> visit(ast::ASTIfStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTForStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTForeachStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTWhileStatement* node);
@@ -121,10 +122,10 @@ public:
     std::unique_ptr<TypedValue> visit(ast::ASTMemberAccessExpression* node);
 
     std::unique_ptr<TypedValue> visit(ast::ASTFunctionParameter* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTFunctionPrototypeStatement* stmt);
+    std::unique_ptr<TypedValue> visit(ast::ASTFunctionPrototypeStatement* node);
     std::unique_ptr<TypedValue>
-    visit(ast::ASTFunctionDefinitionStatement* stmt);
-    std::unique_ptr<TypedValue> visit(ast::ASTReturnStatement* stmt);
+    visit(ast::ASTFunctionDefinitionStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::ASTReturnStatement* node);
 
     std::unique_ptr<TypedValue> visit(ast::ASTIntegerLiteralExpression* expr);
     std::unique_ptr<TypedValue> visit(ast::ASTFloatLiteralExpression* expr);
@@ -141,8 +142,8 @@ public:
     visit(ast::ASTArbitraryOperationExpression* node);
 
     std::unique_ptr<TypedValue> visit(ast::ASTEmptyStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* stmt);
-    std::unique_ptr<TypedValue> visit(ast::ASTWrappedExpressionStatement* stmt);
+    std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::ASTWrappedExpressionStatement* node);
 };
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::createVoidVal(llvm::Value* v)

@@ -5,7 +5,7 @@
 
 # Format current pending changes and
 # write it to stdout
-#git diff -U0 --no-color HEAD^ | clang-format-diff-3.9 -p1 -style=file
+#git diff -U0 --no-color HEAD^ src/ | clang-format-diff-3.9 -p1 -style=file
 
 # Format current pending changes and apply them
-git diff -U0 --no-color HEAD^ | clang-format-diff-3.9 -p1 -i -style=file -v
+git diff -U0 --no-color HEAD^ src/ | clang-format-diff-3.9 -p1 -i -style=file -v

@@ -106,7 +106,7 @@ namespace lexer
         ContentIterator it;
         ContentIterator end;
 
-        SourceLocation currentLocation;
+        util::SourceLocation currentLocation;
 
         ErrorLevel error;
     };
@@ -154,12 +154,6 @@ namespace lexer
         it += 1;
         assert(it != end);
         auto tmp = static_cast<util::char_t>(*it);
-        // util::string_t tmpstr("\0");
-        // <3 STL iterators
-        // plz ranges come fast
-        // auto tmpit = std::find_end(content.rbegin(), content.rend(),
-        // tmpstr.begin(), tmpstr.end());
-        // end = util::ritToFwdIt(tmpit);
         return tmp;
     }
     inline Lexer::ContentIterator& Lexer::advance()
@@ -175,27 +169,25 @@ namespace lexer
             return it;
         }
 
-        bool newLine = false;
         if(it != end)
         {
             if(*it == '\r')
             {
-                newLine = true;
-                // Skip '\r' if next is '\n'
                 if(peekNext() != '\n')
                 {
-                    _next();
+                    lexerWarning("Unexpected CR (carriage return) "
+                                 "without a trailing LF (line feed)");
+                    newline();
+                    return it;
                 }
+                _next(); // Skip '\r'
             }
+
             if(*it == '\n')
             {
-                newLine = true;
+                newline();
+                return it;
             }
-        }
-
-        if(newLine)
-        {
-            newline();
         }
 
         return it;

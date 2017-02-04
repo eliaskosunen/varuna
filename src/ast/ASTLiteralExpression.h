@@ -7,7 +7,6 @@
 #include "ast/ASTExpression.h"
 #include "ast/ASTOperatorExpression.h"
 #include "ast/FwdDecl.h"
-#include "core/lexer/Token.h"
 #include "util/SafeEnum.h"
 
 namespace ast

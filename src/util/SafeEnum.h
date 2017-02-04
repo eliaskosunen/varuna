@@ -137,6 +137,12 @@ public:
         flags = static_cast<Enum_t>(0);
     }
 
+    template <typename T>
+    T convert() const
+    {
+        return T{static_cast<typename T::EnumType>(get())};
+    }
+
 protected:
     Underlying_t flags{static_cast<Underlying_t>(0)};
 };

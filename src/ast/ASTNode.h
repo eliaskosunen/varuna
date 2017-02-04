@@ -6,6 +6,7 @@
 
 #include "ast/FwdDecl.h"
 #include "util/SafeEnum.h"
+#include "util/SourceLocation.h"
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
@@ -76,6 +77,7 @@ public:
     NodeType nodeType{NODE};
     ASTNode* parent{nullptr};
     bool isExport{false};
+    util::SourceLocation loc;
 
 protected:
     explicit ASTNode(NodeType t) : nodeType(t)

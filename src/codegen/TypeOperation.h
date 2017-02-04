@@ -33,19 +33,19 @@ public:
 
     /// Assignment operations
     virtual std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const = 0;
     /// Unary operations
     virtual std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const = 0;
     /// Binary operations
     virtual std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const = 0;
     /// Arbitrary-operand operations
     virtual std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const = 0;
 
     Type* type;
@@ -59,16 +59,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -80,16 +80,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -101,16 +101,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -122,16 +122,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -143,16 +143,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -164,16 +164,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -185,16 +185,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 
@@ -206,16 +206,16 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    assignmentOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    unaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    binaryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(llvm::IRBuilder<>& builder, core::lexer::TokenType op,
+    arbitraryOperation(llvm::IRBuilder<>& builder, util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
 } // namespace codegen

@@ -7,7 +7,7 @@
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
 #include "ast/Visitor.h"
-#include "util/Compatibility.h"
+#include "util/File.h"
 #include <algorithm>
 
 namespace ast
@@ -16,8 +16,8 @@ namespace ast
 class AST final
 {
 public:
-    explicit AST(std::string f)
-        : globalNode(std::make_unique<ASTBlockStatement>()), file(std::move(f))
+    explicit AST(std::shared_ptr<util::File> f)
+        : globalNode(std::make_unique<ASTBlockStatement>()), file(f)
     {
     }
 
@@ -42,6 +42,6 @@ public:
     }
 
     std::unique_ptr<ASTBlockStatement> globalNode;
-    std::string file;
+    std::shared_ptr<util::File> file;
 };
 } // namespace ast
