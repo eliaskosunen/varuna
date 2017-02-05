@@ -22,10 +22,10 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 1);
-            REQUIRE(!l.getError());
-            REQUIRE(l.getErrorLevel() == ERROR_WARNING);
+            CHECK(!l.getError());
+            CHECK(l.getErrorLevel() == ERROR_WARNING);
 
-            REQUIRE(v[0].type == TOKEN_EOF);
+            CHECK(v[0].type == TOKEN_EOF);
         }
 
         SUBCASE("Comments")
@@ -37,9 +37,9 @@ TEST_CASE("Test lexer")
             v = l.run();
 
             CHECK(v.size() == 2);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
+            CHECK(v[0].type == TOKEN_LITERAL_INTEGER);
         }
 
         SUBCASE("Multi-line comments")
@@ -59,9 +59,9 @@ TEST_CASE("Test lexer")
             v = l.run();
 
             CHECK(v.size() == 2);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_LITERAL_INTEGER);
+            CHECK(v[0].type == TOKEN_LITERAL_INTEGER);
         }
     }
 
@@ -73,16 +73,19 @@ TEST_CASE("Test lexer")
                          " 123 /* Line 2 */\n"
                          " \"abc\" // Line 3\n"
                          "\n"
-                         "foo // Line 5\n");
+                         "// Comment on line 5\n"
+                         "// Another comment on line 6\n"
+                         "\n"
+                         "foo // Line 8\n");
             Lexer l(&f);
             v = l.run();
 
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].loc.line == 2);
-            REQUIRE(v[1].loc.line == 3);
-            REQUIRE(v[2].loc.line == 5);
+            CHECK(v[0].loc.line == 2);
+            CHECK(v[1].loc.line == 3);
+            CHECK(v[2].loc.line == 8);
         }
 
         SUBCASE("'CR' line endings")
@@ -92,16 +95,19 @@ TEST_CASE("Test lexer")
                          " 123 /* Line 2 */\r"
                          " \"abc\" // Line 3\r"
                          "\r"
-                         "foo // Line 5\r");
+                         "// Comment on line 5\r"
+                         "// Another comment on line 6\r"
+                         "\r"
+                         "foo // Line 8\r");
             Lexer l(&f);
             v = l.run();
 
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].loc.line == 2);
-            REQUIRE(v[1].loc.line == 3);
-            REQUIRE(v[2].loc.line == 5);
+            CHECK(v[0].loc.line == 2);
+            CHECK(v[1].loc.line == 3);
+            CHECK(v[2].loc.line == 8);
         }
 
         SUBCASE("'CRLF' line endings")
@@ -110,16 +116,19 @@ TEST_CASE("Test lexer")
                          " 123 /* Line 2 */\r\n"
                          " \"abc\" // Line 3\r\n"
                          "\r\n"
-                         "foo // Line 5\r\n");
+                         "// Comment on line 5\r\n"
+                         "// Another comment on line 6\r\n"
+                         "\r\n"
+                         "foo // Line 8\r\n");
             Lexer l(&f);
             v = l.run();
 
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].loc.line == 2);
-            REQUIRE(v[1].loc.line == 3);
-            REQUIRE(v[2].loc.line == 5);
+            CHECK(v[0].loc.line == 2);
+            CHECK(v[1].loc.line == 3);
+            CHECK(v[2].loc.line == 8);
         }
 
         SUBCASE("Mixed line endings")
@@ -128,16 +137,19 @@ TEST_CASE("Test lexer")
                          " 123 /* Line 2 */\r"
                          " \"abc\" // Line 3\n"
                          "\r\n"
-                         "foo // Line 5\n");
+                         "// Comment on line 5\n"
+                         "// Another comment on line 6\n"
+                         "\r\n"
+                         "foo // Line 8\n");
             Lexer l(&f);
             v = l.run();
 
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].loc.line == 2);
-            REQUIRE(v[1].loc.line == 3);
-            REQUIRE(v[2].loc.line == 5);
+            CHECK(v[0].loc.line == 2);
+            CHECK(v[1].loc.line == 3);
+            CHECK(v[2].loc.line == 8);
         }
     }
 
@@ -150,47 +162,47 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 11);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
             for(unsigned int i = 0; i <= 9; ++i)
             {
-                REQUIRE(v[i].type == TOKEN_LITERAL_INTEGER);
+                CHECK(v[i].type == TOKEN_LITERAL_INTEGER);
             }
 
-            REQUIRE(v[0].value == "123");
-            REQUIRE(v[0].modifierInt.get() == INTEGER_INT);
+            CHECK(v[0].value == "123");
+            CHECK(v[0].modifierInt.get() == INTEGER_INT);
 
-            REQUIRE(v[1].value == "9999999");
-            REQUIRE(v[1].modifierInt.isSet(INTEGER_INT32));
-            REQUIRE(v[1].modifierInt.isNotSet(INTEGER_HEX));
+            CHECK(v[1].value == "9999999");
+            CHECK(v[1].modifierInt.isSet(INTEGER_INT32));
+            CHECK(v[1].modifierInt.isNotSet(INTEGER_HEX));
 
-            REQUIRE(v[2].value == "8");
-            REQUIRE(v[2].modifierInt.isSet(INTEGER_INT8));
+            CHECK(v[2].value == "8");
+            CHECK(v[2].modifierInt.isSet(INTEGER_INT8));
 
-            REQUIRE(v[3].value == "5");
-            REQUIRE(v[3].modifierInt.isSet(INTEGER_INT16));
-            REQUIRE(v[3].modifierInt.isNotSet(INTEGER_INT64));
-            REQUIRE(v[3].modifierInt.isNotSet(INTEGER_OCT));
+            CHECK(v[3].value == "5");
+            CHECK(v[3].modifierInt.isSet(INTEGER_INT16));
+            CHECK(v[3].modifierInt.isNotSet(INTEGER_INT64));
+            CHECK(v[3].modifierInt.isNotSet(INTEGER_OCT));
 
-            REQUIRE(v[4].value == "10");
-            REQUIRE(v[4].modifierInt.isSet(INTEGER_INT64));
+            CHECK(v[4].value == "10");
+            CHECK(v[4].modifierInt.isSet(INTEGER_INT64));
 
-            REQUIRE(v[5].value == "1001");
-            REQUIRE(v[5].modifierInt.isSet(INTEGER_BIN));
+            CHECK(v[5].value == "1001");
+            CHECK(v[5].modifierInt.isSet(INTEGER_BIN));
 
-            REQUIRE(v[6].value == "60");
-            REQUIRE(v[6].modifierInt.isSet(INTEGER_OCT));
+            CHECK(v[6].value == "60");
+            CHECK(v[6].modifierInt.isSet(INTEGER_OCT));
 
-            REQUIRE(v[7].value == "FF");
-            REQUIRE(v[7].modifierInt.isSet(INTEGER_HEX));
-            REQUIRE(v[7].modifierInt.isNotSet(INTEGER_INT64));
+            CHECK(v[7].value == "FF");
+            CHECK(v[7].modifierInt.isSet(INTEGER_HEX));
+            CHECK(v[7].modifierInt.isNotSet(INTEGER_INT64));
 
-            REQUIRE(v[8].value == "dead");
-            REQUIRE(v[8].modifierInt.isSet(INTEGER_HEX));
+            CHECK(v[8].value == "dead");
+            CHECK(v[8].modifierInt.isSet(INTEGER_HEX));
 
-            REQUIRE(v[9].value == "6b");
-            REQUIRE(v[9].modifierInt.isSet(INTEGER_HEX));
-            REQUIRE(v[9].modifierInt.isSet(INTEGER_BYTE));
+            CHECK(v[9].value == "6b");
+            CHECK(v[9].modifierInt.isSet(INTEGER_HEX));
+            CHECK(v[9].modifierInt.isSet(INTEGER_BYTE));
         }
         SUBCASE("Float literals")
         {
@@ -198,29 +210,29 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
             for(unsigned int i = 0; i <= 3; ++i)
             {
-                REQUIRE(v[i].type == TOKEN_LITERAL_FLOAT);
+                CHECK(v[i].type == TOKEN_LITERAL_FLOAT);
             }
 
-            REQUIRE(v[0].value == "3.1415926535");
-            REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_F32));
-            REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_F64));
-            REQUIRE(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
-            REQUIRE(v[0].modifierFloat.isSet(FLOAT_FLOAT));
+            CHECK(v[0].value == "3.1415926535");
+            CHECK(v[0].modifierFloat.isNotSet(FLOAT_F32));
+            CHECK(v[0].modifierFloat.isNotSet(FLOAT_F64));
+            CHECK(v[0].modifierFloat.isNotSet(FLOAT_DECIMAL));
+            CHECK(v[0].modifierFloat.isSet(FLOAT_FLOAT));
 
-            REQUIRE(v[1].value == "12.34");
-            REQUIRE(v[1].modifierFloat.isSet(FLOAT_F32));
-            REQUIRE(v[1].modifierFloat.isNotSet(FLOAT_F64));
+            CHECK(v[1].value == "12.34");
+            CHECK(v[1].modifierFloat.isSet(FLOAT_F32));
+            CHECK(v[1].modifierFloat.isNotSet(FLOAT_F64));
 
-            REQUIRE(v[2].value == "42.0");
-            REQUIRE(v[2].modifierFloat.isSet(FLOAT_F64));
-            REQUIRE(v[2].modifierFloat.isNotSet(FLOAT_FLOAT));
+            CHECK(v[2].value == "42.0");
+            CHECK(v[2].modifierFloat.isSet(FLOAT_F64));
+            CHECK(v[2].modifierFloat.isNotSet(FLOAT_FLOAT));
 
-            REQUIRE(v[3].value == "39.99");
-            REQUIRE(v[3].modifierFloat.isSet(FLOAT_DECIMAL));
+            CHECK(v[3].value == "39.99");
+            CHECK(v[3].modifierFloat.isSet(FLOAT_DECIMAL));
         }
         SUBCASE("String literals")
         {
@@ -229,16 +241,16 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
             for(unsigned int i = 0; i <= 2; ++i)
             {
-                REQUIRE(v[i].type == TOKEN_LITERAL_STRING);
+                CHECK(v[i].type == TOKEN_LITERAL_STRING);
             }
 
-            REQUIRE(v[0].value == "String");
-            REQUIRE(v[1].value == "Special\nstring\t");
-            REQUIRE(v[2].value == "Hex 0 Oct 0");
+            CHECK(v[0].value == "String");
+            CHECK(v[1].value == "Special\nstring\t");
+            CHECK(v[2].value == "Hex 0 Oct 0");
         }
     }
 
@@ -248,23 +260,23 @@ TEST_CASE("Test lexer")
         Lexer l(&f);
         v = l.run();
         CHECK(v.size() == 9);
-        REQUIRE(!l.getError());
+        CHECK(!l.getError());
 
-        REQUIRE(v[0].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[0].value == "io");
-        REQUIRE(v[1].type == TOKEN_OPERATORB_MEMBER);
+        CHECK(v[0].type == TOKEN_IDENTIFIER);
+        CHECK(v[0].value == "io");
+        CHECK(v[1].type == TOKEN_OPERATORB_MEMBER);
 
-        REQUIRE(v[2].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[2].value == "stdout");
-        REQUIRE(v[3].type == TOKEN_OPERATORB_MEMBER);
+        CHECK(v[2].type == TOKEN_IDENTIFIER);
+        CHECK(v[2].value == "stdout");
+        CHECK(v[3].type == TOKEN_OPERATORB_MEMBER);
 
-        REQUIRE(v[4].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[4].value == "writeln");
+        CHECK(v[4].type == TOKEN_IDENTIFIER);
+        CHECK(v[4].value == "writeln");
 
-        REQUIRE(v[5].type == TOKEN_PUNCT_PAREN_OPEN);
-        REQUIRE(v[6].type == TOKEN_LITERAL_STRING);
-        REQUIRE(v[6].value == "Hello World");
-        REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
+        CHECK(v[5].type == TOKEN_PUNCT_PAREN_OPEN);
+        CHECK(v[6].type == TOKEN_LITERAL_STRING);
+        CHECK(v[6].value == "Hello World");
+        CHECK(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
     }
 
     SUBCASE("Import")
@@ -275,14 +287,14 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 4);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
+            CHECK(v[0].type == TOKEN_KEYWORD_IMPORT);
 
-            REQUIRE(v[1].type == TOKEN_IDENTIFIER);
-            REQUIRE(v[1].value == "io");
+            CHECK(v[1].type == TOKEN_IDENTIFIER);
+            CHECK(v[1].value == "io");
 
-            REQUIRE(v[2].type == TOKEN_PUNCT_SEMICOLON);
+            CHECK(v[2].type == TOKEN_PUNCT_SEMICOLON);
         }
 
         SUBCASE("Module import")
@@ -291,15 +303,15 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
-            REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+            CHECK(v[0].type == TOKEN_KEYWORD_IMPORT);
+            CHECK(v[1].type == TOKEN_KEYWORD_MODULE);
 
-            REQUIRE(v[2].type == TOKEN_IDENTIFIER);
-            REQUIRE(v[2].value == "mymodule");
+            CHECK(v[2].type == TOKEN_IDENTIFIER);
+            CHECK(v[2].value == "mymodule");
 
-            REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+            CHECK(v[3].type == TOKEN_PUNCT_SEMICOLON);
         }
 
         SUBCASE("Package import")
@@ -308,18 +320,18 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 7);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
-            REQUIRE(v[1].type == TOKEN_KEYWORD_PACKAGE);
+            CHECK(v[0].type == TOKEN_KEYWORD_IMPORT);
+            CHECK(v[1].type == TOKEN_KEYWORD_PACKAGE);
 
-            REQUIRE(v[2].type == TOKEN_IDENTIFIER);
-            REQUIRE(v[2].value == "cstd");
-            REQUIRE(v[3].type == TOKEN_OPERATORB_MEMBER);
-            REQUIRE(v[4].type == TOKEN_IDENTIFIER);
-            REQUIRE(v[4].value == "io");
+            CHECK(v[2].type == TOKEN_IDENTIFIER);
+            CHECK(v[2].value == "cstd");
+            CHECK(v[3].type == TOKEN_OPERATORB_MEMBER);
+            CHECK(v[4].type == TOKEN_IDENTIFIER);
+            CHECK(v[4].value == "io");
 
-            REQUIRE(v[5].type == TOKEN_PUNCT_SEMICOLON);
+            CHECK(v[5].type == TOKEN_PUNCT_SEMICOLON);
         }
 
         SUBCASE("Path import")
@@ -328,45 +340,39 @@ TEST_CASE("Test lexer")
             Lexer l(&f);
             v = l.run();
             CHECK(v.size() == 5);
-            REQUIRE(!l.getError());
+            CHECK(!l.getError());
 
-            REQUIRE(v[0].type == TOKEN_KEYWORD_IMPORT);
-            REQUIRE(v[1].type == TOKEN_KEYWORD_MODULE);
+            CHECK(v[0].type == TOKEN_KEYWORD_IMPORT);
+            CHECK(v[1].type == TOKEN_KEYWORD_MODULE);
 
-            REQUIRE(v[2].type == TOKEN_LITERAL_STRING);
-            REQUIRE(v[2].value == "path/to/module");
+            CHECK(v[2].type == TOKEN_LITERAL_STRING);
+            CHECK(v[2].value == "path/to/module");
 
-            REQUIRE(v[3].type == TOKEN_PUNCT_SEMICOLON);
+            CHECK(v[3].type == TOKEN_PUNCT_SEMICOLON);
         }
     }
     SUBCASE("Main function definition")
     {
-        f.setContent("def main(List<String>): Void {}");
+        f.setContent("def main(): int {}");
         Lexer l(&f);
         v = l.run();
-        CHECK(v.size() == 13);
-        REQUIRE(!l.getError());
+        CHECK(v.size() == 9);
+        CHECK(!l.getError());
 
-        REQUIRE(v[0].type == TOKEN_KEYWORD_DEFINE);
+        CHECK(v[0].type == TOKEN_KEYWORD_DEFINE);
 
-        REQUIRE(v[1].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[1].value == "main");
+        CHECK(v[1].type == TOKEN_IDENTIFIER);
+        CHECK(v[1].value == "main");
 
-        REQUIRE(v[2].type == TOKEN_PUNCT_PAREN_OPEN);
-        REQUIRE(v[3].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[3].value == "List");
-        REQUIRE(v[4].type == TOKEN_OPERATORB_LESS);
-        REQUIRE(v[5].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[5].value == "String");
-        REQUIRE(v[6].type == TOKEN_OPERATORB_GREATER);
-        REQUIRE(v[7].type == TOKEN_PUNCT_PAREN_CLOSE);
+        CHECK(v[2].type == TOKEN_PUNCT_PAREN_OPEN);
+        CHECK(v[3].type == TOKEN_PUNCT_PAREN_CLOSE);
 
-        REQUIRE(v[8].type == TOKEN_PUNCT_COLON);
-        REQUIRE(v[9].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[9].value == "Void");
+        CHECK(v[4].type == TOKEN_PUNCT_COLON);
+        CHECK(v[5].type == TOKEN_IDENTIFIER);
+        CHECK(v[5].value == "int");
 
-        REQUIRE(v[10].type == TOKEN_PUNCT_BRACE_OPEN);
-        REQUIRE(v[11].type == TOKEN_PUNCT_BRACE_CLOSE);
+        CHECK(v[6].type == TOKEN_PUNCT_BRACE_OPEN);
+        CHECK(v[7].type == TOKEN_PUNCT_BRACE_CLOSE);
     }
     SUBCASE("If-else")
     {
@@ -374,29 +380,29 @@ TEST_CASE("Test lexer")
         Lexer l(&f);
         v = l.run();
         CHECK(v.size() == 16);
-        REQUIRE(!l.getError());
+        CHECK(!l.getError());
 
-        REQUIRE(v[0].type == TOKEN_KEYWORD_IF);
-        REQUIRE(v[1].type == TOKEN_PUNCT_PAREN_OPEN);
-        REQUIRE(v[2].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[2].value == "foo");
-        REQUIRE(v[3].type == TOKEN_OPERATORB_EQ);
-        REQUIRE(v[4].type == TOKEN_LITERAL_INTEGER);
-        REQUIRE(v[4].value == "123");
-        REQUIRE(v[5].type == TOKEN_PUNCT_PAREN_CLOSE);
+        CHECK(v[0].type == TOKEN_KEYWORD_IF);
+        CHECK(v[1].type == TOKEN_PUNCT_PAREN_OPEN);
+        CHECK(v[2].type == TOKEN_IDENTIFIER);
+        CHECK(v[2].value == "foo");
+        CHECK(v[3].type == TOKEN_OPERATORB_EQ);
+        CHECK(v[4].type == TOKEN_LITERAL_INTEGER);
+        CHECK(v[4].value == "123");
+        CHECK(v[5].type == TOKEN_PUNCT_PAREN_CLOSE);
 
-        REQUIRE(v[6].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[6].value == "bar");
-        REQUIRE(v[7].type == TOKEN_OPERATORA_SIMPLE);
-        REQUIRE(v[8].type == TOKEN_LITERAL_TRUE);
-        REQUIRE(v[9].type == TOKEN_PUNCT_SEMICOLON);
+        CHECK(v[6].type == TOKEN_IDENTIFIER);
+        CHECK(v[6].value == "bar");
+        CHECK(v[7].type == TOKEN_OPERATORA_SIMPLE);
+        CHECK(v[8].type == TOKEN_LITERAL_TRUE);
+        CHECK(v[9].type == TOKEN_PUNCT_SEMICOLON);
 
-        REQUIRE(v[10].type == TOKEN_KEYWORD_ELSE);
+        CHECK(v[10].type == TOKEN_KEYWORD_ELSE);
 
-        REQUIRE(v[11].type == TOKEN_IDENTIFIER);
-        REQUIRE(v[11].value == "bar");
-        REQUIRE(v[12].type == TOKEN_OPERATORA_SIMPLE);
-        REQUIRE(v[13].type == TOKEN_LITERAL_FALSE);
-        REQUIRE(v[14].type == TOKEN_PUNCT_SEMICOLON);
+        CHECK(v[11].type == TOKEN_IDENTIFIER);
+        CHECK(v[11].value == "bar");
+        CHECK(v[12].type == TOKEN_OPERATORA_SIMPLE);
+        CHECK(v[13].type == TOKEN_LITERAL_FALSE);
+        CHECK(v[14].type == TOKEN_PUNCT_SEMICOLON);
     }
 }

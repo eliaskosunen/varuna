@@ -44,8 +44,11 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
 
 bool CodegenVisitor::codegen(ast::AST* ast)
 {
-    module->addModuleFlag(llvm::Module::Warning, "Debug Info Version",
-                          llvm::DEBUG_METADATA_VERSION);
+    if(info.emitDebug)
+    {
+        module->addModuleFlag(llvm::Module::Warning, "Debug Info Version",
+                              llvm::DEBUG_METADATA_VERSION);
+    }
 
     module->setSourceFileName(ast->file->getFilename());
 
@@ -55,8 +58,6 @@ bool CodegenVisitor::codegen(ast::AST* ast)
     {
         if(!child->accept(this))
         {
-            codegenWarning("Block child codegen failed: {}",
-                           child->nodeType.get());
             return false;
         }
     }
@@ -87,21 +88,25 @@ bool CodegenVisitor::codegen(ast::AST* ast)
 
 void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
 {
-    if(!node)
+    if(info.emitDebug)
     {
-        return builder.SetCurrentDebugLocation(llvm::DebugLoc());
-    }
-
-    auto scope = [&]() -> llvm::DIScope* {
-        if(dblocks.empty())
+        if(!node)
         {
-            return dcu;
+            builder.SetCurrentDebugLocation(llvm::DebugLoc());
+            return;
         }
-        return dblocks.back();
-    }();
 
-    builder.SetCurrentDebugLocation(
-        llvm::DebugLoc::get(node->loc.line, 0, scope));
+        auto scope = [&]() -> llvm::DIScope* {
+            if(dblocks.empty())
+            {
+                return dcu;
+            }
+            return dblocks.back();
+        }();
+
+        builder.SetCurrentDebugLocation(
+            llvm::DebugLoc::get(node->loc.line, node->loc.col, scope));
+    }
 }
 
 void CodegenVisitor::writeExports()
@@ -149,7 +154,7 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
 }
 
 FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
-                                             bool logError)
+                                             ast::ASTNode* node, bool logError)
 {
     auto f = symbols.find(name, Type::FUNCTION, logError);
     if(f)
@@ -161,7 +166,7 @@ FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
 
     if(logError)
     {
-        return codegenError("Undefined function: '{}'", name);
+        return codegenError(node, "Undefined function: '{}'", name);
     }
     return nullptr;
 }
@@ -171,7 +176,7 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
                                 ast::ASTFunctionPrototypeStatement* proto)
 {
     // Check if function with the same name is already declared
-    auto func = findFunction(name, false);
+    auto func = findFunction(name, nullptr, false);
     if(func)
     {
         // Check for type
@@ -181,7 +186,8 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
         }
         else
         {
-            return codegenError("Function declaration failed: Mismatching "
+            return codegenError(proto,
+                                "Function declaration failed: Mismatching "
                                 "prototypes for similarly named functions: "
                                 "'{}' and '{}'",
                                 func->value->type->getDecoratedName(),
@@ -282,14 +288,15 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     // Type checks
     if(!type->isSized())
     {
-        return err(codegenError("Cannot create a variable of unsized type: {}",
+        return err(codegenError(node->type.get(),
+                                "Cannot create a variable of unsized type: {}",
                                 type->getDecoratedName()));
     }
     if(types.isDefinedUndecorated(node->name->value) != 0)
     {
-        return err(
-            codegenError("Cannot name variable as '{}': Reserved typename",
-                         node->name->value));
+        return err(codegenError(
+            node->type.get(), "Cannot name variable as '{}': Reserved typename",
+            node->name->value));
     }
 
     // No initializer:
@@ -298,12 +305,13 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     {
         if(node->isMutable)
         {
-            codegenWarning("Uninitialized variable: {}", node->name->value);
+            codegenWarning(node, "Uninitialized variable: {}",
+                           node->name->value);
         }
         else
         {
             codegenWarning(
-                "Useless variable: Uninitialized immutable variable: {}",
+                node, "Useless variable: Uninitialized immutable variable: {}",
                 node->name->value);
         }
         init = std::make_unique<TypedValue>(type,
@@ -318,7 +326,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
     {
         return err(codegenError(
-            "Invalid init nodeession: Cannot assign {} to {}",
+            node->init.get(), "Invalid init nodeession: Cannot assign {} to {}",
             init->type->getDecoratedName(), type->getDecoratedName()));
     }
 
@@ -326,7 +334,8 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     if(symbols.find(node->name->value, nullptr, false))
     {
         return err(
-            codegenError("Cannot name variable as '{}', name already defined",
+            codegenError(node->name.get(),
+                         "Cannot name variable as '{}', name already defined",
                          node->name->value));
     }
 

@@ -33,9 +33,9 @@ public:
         return *this;
     }
 
-    Symbol(Symbol&& other) noexcept
-        : value(std::move(other.value)), name(std::move(other.name)),
-          isExport(std::move(other.isExport))
+    Symbol(Symbol&& other) noexcept : value(std::move(other.value)),
+                                      name(std::move(other.name)),
+                                      isExport(std::move(other.isExport))
     {
         other.value = nullptr;
         other.name = "";
@@ -97,7 +97,8 @@ public:
     }
 
     FunctionSymbol(FunctionSymbol&& other) noexcept
-        : Symbol(std::move(other)), proto(std::move(other.proto))
+        : Symbol(std::move(other)),
+          proto(std::move(other.proto))
     {
         other.value = nullptr;
         other.name = "";

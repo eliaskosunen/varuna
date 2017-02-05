@@ -133,6 +133,9 @@ IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
     }
     case util::OPERATORU_MINUS:
         return ret(builder.CreateNeg(operands[0]->value, "negtmp"));
+    case util::OPERATORU_NOT:
+        return ret(builder.CreateXor(operands[0]->value,
+                                     static_cast<uint64_t>(-1), "compltmp"));
     default:
         return operationError("Unsupported unary operator for '{}': '{}'",
                               operands[0]->type->getDecoratedName(), op.get());

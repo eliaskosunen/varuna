@@ -34,7 +34,7 @@ namespace lexer
         explicit Lexer(util::File* file)
             : warningsAsErrors(false),
               content(std::move(file->consumeContent())), it(content.begin()),
-              end(content.end()), currentLocation(file->getFilename(), 1),
+              end(content.end()), currentLocation(file->getFilename(), 1, 1),
               error(ERROR_NONE)
         {
         }
@@ -85,18 +85,20 @@ namespace lexer
         Token getTokenFromOperator(const util::string_t& buf) const;
 
         template <typename... Args>
-        void lexerError(const util::string_t& format, const Args&... args);
+        void lexerError(const util::string_t& format, Args&&... args);
         template <typename... Args>
-        void lexerWarning(const util::string_t& format, const Args&... args);
+        void lexerWarning(const util::string_t& format, Args&&... args);
 
         void newline();
         util::char_t peekUpcoming(std::ptrdiff_t) const;
         util::char_t peekNext() const;
 
-        util::char_t _next();
+        void _next();
+        util::char_t _getNext();
         ContentIterator& advance();
+        int _advance();
 
-        void prevline();
+        [[noreturn]] void prevline();
         util::char_t peekPrevious() const;
         util::char_t peekPassed(std::ptrdiff_t n) const;
 
@@ -112,29 +114,29 @@ namespace lexer
     };
 
     template <typename... Args>
-    inline void Lexer::lexerError(const util::string_t& format,
-                                  const Args&... args)
+    inline void Lexer::lexerError(const util::string_t& format, Args&&... args)
     {
         error = ERROR_ERROR;
-        util::logger->error("{}: Lexer error: {}", currentLocation.toString(),
-                            fmt::format(format, args...));
+        util::logger->error("{}: {}", currentLocation.toString(),
+                            fmt::format(format, std::forward<Args>(args)...));
     }
 
     template <typename... Args>
     inline void Lexer::lexerWarning(const util::string_t& format,
-                                    const Args&... args)
+                                    Args&&... args)
     {
         if(error != ERROR_ERROR)
         {
             error = ERROR_WARNING;
         }
-        util::logger->warn("{}: Lexer warning: {}", currentLocation.toString(),
-                           fmt::format(format, args...));
+        util::logger->warn("{}: {}", currentLocation.toString(),
+                           fmt::format(format, std::forward<Args>(args)...));
     }
 
     inline void Lexer::newline()
     {
         currentLocation.line++;
+        currentLocation.col = 1;
     }
     inline util::char_t Lexer::peekUpcoming(std::ptrdiff_t) const
     {
@@ -148,10 +150,15 @@ namespace lexer
         return static_cast<util::char_t>(*(copy + 1));
     }
 
-    inline util::char_t Lexer::_next()
+    inline void Lexer::_next()
+    {
+        it += 1;
+        currentLocation.col++;
+    }
+    inline util::char_t Lexer::_getNext()
     {
         // auto tmp = static_cast<util::char_t>(utf8::next(it, end));
-        it += 1;
+        _next();
         assert(it != end);
         auto tmp = static_cast<util::char_t>(*it);
         return tmp;
@@ -160,7 +167,7 @@ namespace lexer
     {
         if(it + 1 == end)
         {
-            it += 1;
+            _next();
             return end;
         }
         _next();
@@ -169,33 +176,64 @@ namespace lexer
             return it;
         }
 
-        if(it != end)
+        if(*it == '\r')
         {
-            if(*it == '\r')
+            if((it + 1) != end && peekNext() != '\n')
             {
-                if(peekNext() != '\n')
-                {
-                    lexerWarning("Unexpected CR (carriage return) "
-                                 "without a trailing LF (line feed)");
-                    newline();
-                    return it;
-                }
-                _next(); // Skip '\r'
-            }
-
-            if(*it == '\n')
-            {
+                lexerWarning("Unexpected CR (carriage return) "
+                             "without a trailing LF (line feed)");
                 newline();
+                _next(); // Skip '\r'
                 return it;
             }
+            util::logger->trace("Found \\r, skipping.");
+            _next();
+        }
+
+        if(*it == '\n')
+        {
+            util::logger->trace("Found \\n, skipping.");
+            newline();
+            _next(); // Skip '\n'
+            return it;
         }
 
         return it;
+    }
+    inline int Lexer::_advance()
+    {
+        _next(); // Next character
+
+        if(it == end)
+        {
+            return 2;
+        }
+
+        if(*it == '\r')
+        {
+            if(peekNext() != '\n')
+            {
+                lexerWarning("Unexpected CR (carriage return) "
+                             "without a trailing LF (line feed)");
+                newline();
+                return 1;
+            }
+            _next(); // Skip '\r'
+        }
+
+        if(*it == '\n')
+        {
+            newline();
+            return 1;
+        }
+        return 0;
     }
 
     inline void Lexer::prevline()
     {
         currentLocation.line--;
+        throw std::logic_error(
+            "Don't use Lexer::prevline(), it messes up the column counter");
     }
     inline util::char_t Lexer::peekPrevious() const
     {

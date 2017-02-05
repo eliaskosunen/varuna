@@ -79,6 +79,7 @@ int CLI::run()
     cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
                                         cl::value_desc("file"), cl::Positional,
                                         cl::cat(cat));
+    // 'int' size
     cl::opt<util::IntSize> intSizeArg(
         "fint-size", cl::desc("Size of type 'int' (Default: 0)"),
         cl::init(util::INTSIZE_VOIDPTR),
@@ -88,6 +89,9 @@ int CLI::run()
             clEnumValN(util::INTSIZE_32, "32", "32 bits"),
             clEnumValN(util::INTSIZE_64, "64", "64 bits"), nullptr),
         cl::cat(cat));
+    // Debugging symbols
+    cl::opt<bool> debugArg("g", cl::desc("Emit debugging symbols"),
+                           cl::init(false), cl::cat(cat));
 
     cl::HideUnrelatedOptions(cat);
     cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
@@ -136,6 +140,8 @@ int CLI::run()
         intSize = sizeof(void*) * 8;
     }
     util::getProgramOptions().intSize = static_cast<size_t>(intSize);
+
+    util::getProgramOptions().emitDebug = debugArg;
 
     if(!runner.run())
     {

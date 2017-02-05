@@ -18,7 +18,6 @@ namespace lexer
     TokenVector Lexer::run()
     {
         TokenVector tokens;
-        int dummy = 0;
 
         while(true)
         {
@@ -45,7 +44,7 @@ namespace lexer
         {
             lexerWarning("Empty translation unit");
         }
-        if(tokens.back().type != TOKEN_EOF)
+        if(tokens.back().type != TOKEN_EOF && !getError())
         {
             lexerError("No EOF token found");
         }
@@ -75,14 +74,13 @@ namespace lexer
         // Skip any whitespace
         while(util::StringUtils::isCharWhitespace(currentChar))
         {
-            util::logger->trace("Skipping whitespace");
+            util::logger->trace("Skipping whitespace: '{}'", currentChar);
 
-            currentChar = *advance();
-
-            if(it == end)
+            if(advance() == end)
             {
                 return createToken(TOKEN_EOF, "EOF");
             }
+            currentChar = *it;
 
             // return getNextToken();
         }
@@ -157,17 +155,20 @@ namespace lexer
             {
                 if(*(it + 1) == 'x' || *(it + 1) == 'X')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_HEX;
                 }
                 else if(*(it + 1) == 'o' || *(it + 1) == 'O')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_OCT;
                 }
                 else if(*(it + 1) == 'b' || *(it + 1) == 'B')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_BIN;
                 }
             }
@@ -324,7 +325,11 @@ namespace lexer
                     }
                 }
                 buf.push_back(currentChar);
-                currentChar = *advance();
+                if(_advance() != 0)
+                {
+                    break;
+                }
+                currentChar = *it;
             }
             Token t = getTokenFromOperator(buf);
             if(t.type == TOKEN_UNDEFINED)
@@ -346,41 +351,11 @@ namespace lexer
 
     bool Lexer::lexComment()
     {
-
         if(*it == '/')
         {
             // Single line comment: '//'
             if(peekNext() == '/')
             {
-                auto _advance = [&]() {
-                    // Custom advance(), we need to know if we hit a newline
-                    _next(); // Next character
-
-                    if(it == end)
-                    {
-                        return 2;
-                    }
-
-                    if(*it == '\r')
-                    {
-                        if(peekNext() != '\n')
-                        {
-                            lexerWarning("Unexpected CR (carriage return) "
-                                         "without a trailing LF (line feed)");
-                            newline();
-                            return 1;
-                        }
-                        _next(); // Skip '\r'
-                    }
-
-                    if(*it == '\n')
-                    {
-                        newline();
-                        return 1;
-                    }
-                    return 0;
-                };
-
                 advance(); // Skip the both slashes
                 advance();
 

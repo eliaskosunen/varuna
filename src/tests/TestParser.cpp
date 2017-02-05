@@ -43,6 +43,6 @@ TEST_CASE("Test parser")
         auto root = ast->globalNode.get();
 
         CHECK(root->nodes.size() == 0);
-        REQUIRE(!p.getError());
+        CHECK(!p.getError());
     }
 }

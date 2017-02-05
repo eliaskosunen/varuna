@@ -6,15 +6,9 @@
 
 module code;
 
+def fn(): int;
+
 def main(): int {
-    let top = 1;
-    var top2 = 1;
-    {
-        let block = 2;
-        var block2 = 2;
-        if(block == block2) {
-            let deep = 3;
-        }
-    }
-    return top;
+    let i = !fn();
+    return i;
 }

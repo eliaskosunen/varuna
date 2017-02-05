@@ -57,12 +57,21 @@ private:
     std::unique_ptr<TypedValue> getTypedDummyValue();
 
     template <typename... Args>
-    std::nullptr_t codegenError(const std::string& format, Args... args) const;
+    std::nullptr_t codegenError(ast::ASTNode* node, const std::string& format,
+                                Args&&... args) const;
     template <typename... Args>
-    void codegenWarning(const std::string& format, Args... args) const;
+    void codegenWarning(ast::ASTNode* node, const std::string& format,
+                        Args&&... args) const;
+
+    template <typename... Args>
+    std::nullptr_t _codegenError(const std::string& format,
+                                 Args&&... args) const;
+    template <typename... Args>
+    void _codegenWarning(const std::string& format, Args&&... args) const;
 
     /// Find a function by name
-    FunctionSymbol* findFunction(const std::string& name, bool logError = true);
+    FunctionSymbol* findFunction(const std::string& name, ast::ASTNode* node,
+                                 bool logError = true);
     /// Get the prototype of the function of node
     ast::ASTFunctionPrototypeStatement*
     getASTNodeFunction(ast::ASTNode* node) const;
@@ -168,17 +177,44 @@ inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 }
 
 template <typename... Args>
-inline std::nullptr_t CodegenVisitor::codegenError(const std::string& format,
-                                                   Args... args) const
+inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
+                                                   const std::string& format,
+                                                   Args&&... args) const
 {
-    util::logger->error(format.c_str(), args...);
+    if(!node)
+    {
+        return _codegenError(format, std::forward<Args>(args)...);
+    }
+    return _codegenError(fmt::format("{}: {}", node->loc.toString(), format),
+                         std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
+                                           const std::string& format,
+                                           Args&&... args) const
+{
+    if(!node)
+    {
+        _codegenWarning(format, std::forward<Args>(args)...);
+        return;
+    }
+    _codegenWarning(fmt::format("{}: {}", node->loc.toString(), format),
+                    std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline std::nullptr_t CodegenVisitor::_codegenError(const std::string& format,
+                                                    Args&&... args) const
+{
+    util::logger->error(format.c_str(), std::forward<Args>(args)...);
     return nullptr;
 }
 
 template <typename... Args>
-inline void CodegenVisitor::codegenWarning(const std::string& format,
-                                           Args... args) const
+inline void CodegenVisitor::_codegenWarning(const std::string& format,
+                                            Args&&... args) const
 {
-    util::logger->warn(format.c_str(), args...);
+    util::logger->warn(format.c_str(), std::forward<Args>(args)...);
 }
 } // namespace codegen

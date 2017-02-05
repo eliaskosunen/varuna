@@ -35,6 +35,7 @@ struct ProgramOptions
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     OptimizationLevel optLevel{OPT_O2};
     size_t intSize{0};
+    bool emitDebug{false};
 
     auto getOptLevel() const noexcept
     {

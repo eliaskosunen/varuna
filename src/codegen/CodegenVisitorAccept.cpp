@@ -2,6 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
+#include "codegen/CodegenVisitor.h"
 #include "ast/ASTControlStatement.h"
 #include "ast/ASTExpression.h"
 #include "ast/ASTFunctionStatement.h"
@@ -10,7 +11,6 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
-#include "codegen/CodegenVisitor.h"
 
 std::unique_ptr<codegen::TypedValue>
 ast::ASTExpression::accept(codegen::CodegenVisitor* v)

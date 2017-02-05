@@ -10,7 +10,8 @@ namespace codegen
 Generator::Generator(std::shared_ptr<ast::AST> t) : ast(t), c{nullptr}
 {
     const auto& opt = util::viewProgramOptions().getOptLevel();
-    CodegenInfo cinfo{t->file, std::get<0>(opt), std::get<1>(opt)};
+    CodegenInfo cinfo{t->file, std::get<0>(opt), std::get<1>(opt),
+                      util::viewProgramOptions().emitDebug};
     c = std::make_unique<GeneratorClass>(t, cinfo);
 }
 

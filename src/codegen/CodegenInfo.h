@@ -20,5 +20,6 @@ struct CodegenInfo
     std::shared_ptr<util::File> file;
     uint8_t optLevel{0};
     uint8_t sizeLevel{0};
+    bool emitDebug{false};
 };
 } // namespace codegen

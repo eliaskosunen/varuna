@@ -17,8 +17,8 @@ make -j4
 cd ..
 # Comment out if you don't have valgrind
 # or don't want to use it
-valgrind bin/tests
-#bin/tests
+#valgrind bin/tests
+./bin/tests
 
 # Build documentation
 echo Building documentation...

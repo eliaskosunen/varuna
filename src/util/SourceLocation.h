@@ -11,16 +11,18 @@ namespace util
 struct SourceLocation
 {
     SourceLocation() = default;
-    SourceLocation(std::string f, uint32_t l) : file(std::move(f)), line(l)
+    SourceLocation(std::string f, uint32_t l, uint32_t c)
+        : file(std::move(f)), line(l), col(c)
     {
     }
 
     std::string toString() const
     {
-        return fmt::format("{}:{}", file, line);
+        return fmt::format("{}:{}:{}", file, line, col);
     }
 
     std::string file{"undefined"};
     uint32_t line{0};
+    uint32_t col{0};
 };
 }

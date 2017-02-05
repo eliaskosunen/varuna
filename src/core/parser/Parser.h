@@ -49,24 +49,23 @@ namespace parser
 
     private:
         template <typename... Args>
-        std::nullptr_t parserError(const std::string& format,
-                                   const Args&... args)
+        std::nullptr_t parserError(const std::string& format, Args&&... args)
         {
             error = ERROR_ERROR;
             auto loc = [&]() {
                 if(it == tokens.begin())
                 {
-                    return util::SourceLocation(it->loc.file, 1);
+                    return util::SourceLocation(it->loc.file, 1, 1);
                 }
                 return (it - 1)->loc;
             }();
-            util::logger->error("{}: Parser error: {}", loc.toString(),
+            util::logger->error("{}: {}", loc.toString(),
                                 fmt::format(format, args...));
             return nullptr;
         }
 
         template <typename... Args>
-        void parserWarning(const std::string& format, const Args&... args)
+        void parserWarning(const std::string& format, Args&&... args)
         {
             if(error != ERROR_ERROR)
             {
@@ -75,12 +74,11 @@ namespace parser
             auto loc = [&]() {
                 if(it == tokens.begin())
                 {
-                    return util::SourceLocation(it->loc.file, 1);
+                    return util::SourceLocation(it->loc.file, 1, 1);
                 }
                 return (it - 1)->loc;
             }();
-            util::logger->warn("{}: Parser warning: {}",
-                               (it - 1)->loc.toString(),
+            util::logger->warn("{}: {}", (it - 1)->loc.toString(),
                                fmt::format(format, args...));
         }
 

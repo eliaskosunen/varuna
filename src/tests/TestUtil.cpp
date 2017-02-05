@@ -16,7 +16,7 @@ TEST_CASE("StreamReader tests")
     {
         std::string str = sr.readFile("./test.txt");
 
-        REQUIRE(str == "TEST \n");
+        CHECK(str == "TEST \n");
     }
 }
 
@@ -24,13 +24,13 @@ TEST_CASE("StringUtils tests")
 {
     using namespace util;
 
-    REQUIRE(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
-    REQUIRE(StringUtils::ltrimCopy("   foo") == "foo");
-    REQUIRE(StringUtils::rtrimCopy("foo   ") == "foo");
-    REQUIRE(StringUtils::trimCopy("  foo  ") == "foo");
-    REQUIRE(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
-    REQUIRE(StringUtils::cstrToString("foo") == "foo");
-    REQUIRE(StringUtils::charToString('a') == "a");
+    CHECK(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
+    CHECK(StringUtils::ltrimCopy("   foo") == "foo");
+    CHECK(StringUtils::rtrimCopy("foo   ") == "foo");
+    CHECK(StringUtils::trimCopy("  foo  ") == "foo");
+    CHECK(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
+    CHECK(StringUtils::cstrToString("foo") == "foo");
+    CHECK(StringUtils::charToString('a') == "a");
 }
 
 template <typename T>
