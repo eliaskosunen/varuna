@@ -156,7 +156,7 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
 FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
                                              ast::ASTNode* node, bool logError)
 {
-    auto f = symbols.find(name, Type::FUNCTION, logError);
+    auto f = symbols.find(name, Type::FUNCTION, false);
     if(f)
     {
         auto func = static_cast<FunctionSymbol*>(f);
@@ -323,7 +323,8 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     }
 
     // Check init type
-    if(!init->type->isSameOrImplicitlyCastable(builder, init->value, type))
+    if(!init->type->isSameOrImplicitlyCastable(node->init.get(), builder,
+                                               init->value, type))
     {
         return err(codegenError(
             node->init.get(), "Invalid init nodeession: Cannot assign {} to {}",

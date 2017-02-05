@@ -2,7 +2,6 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "codegen/GrammarCheckerVisitor.h"
 #include "ast/ASTControlStatement.h"
 #include "ast/ASTExpression.h"
 #include "ast/ASTFunctionStatement.h"
@@ -11,6 +10,7 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
+#include "codegen/GrammarCheckerVisitor.h"
 
 bool ast::ASTExpression::accept(codegen::GrammarCheckerVisitor* v)
 {
@@ -126,21 +126,19 @@ bool ast::ASTNoneLiteralExpression::accept(codegen::GrammarCheckerVisitor* v)
     return v->visit(this);
 }
 
-bool ast::ASTBinaryOperationExpression::accept(
-    codegen::GrammarCheckerVisitor* v)
+bool ast::ASTBinaryExpression::accept(codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
 }
-bool ast::ASTUnaryOperationExpression::accept(codegen::GrammarCheckerVisitor* v)
+bool ast::ASTUnaryExpression::accept(codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
 }
-bool ast::ASTAssignmentOperationExpression::accept(
-    codegen::GrammarCheckerVisitor* v)
+bool ast::ASTAssignmentExpression::accept(codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
 }
-bool ast::ASTArbitraryOperationExpression::accept(
+bool ast::ASTArbitraryOperandExpression::accept(
     codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);

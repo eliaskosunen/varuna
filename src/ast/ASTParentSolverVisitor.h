@@ -62,10 +62,10 @@ public:
     void visit(ASTBoolLiteralExpression* node, ASTNode* parent);
     void visit(ASTNoneLiteralExpression* node, ASTNode* parent);
 
-    void visit(ASTBinaryOperationExpression* node, ASTNode* parent);
-    void visit(ASTUnaryOperationExpression* node, ASTNode* parent);
-    void visit(ASTAssignmentOperationExpression* node, ASTNode* parent);
-    void visit(ASTArbitraryOperationExpression* node, ASTNode* parent);
+    void visit(ASTBinaryExpression* node, ASTNode* parent);
+    void visit(ASTUnaryExpression* node, ASTNode* parent);
+    void visit(ASTAssignmentExpression* node, ASTNode* parent);
+    void visit(ASTArbitraryOperandExpression* node, ASTNode* parent);
 
     void visit(ASTEmptyStatement* node, ASTNode* parent);
     void visit(ASTBlockStatement* node, ASTNode* parent);

@@ -6,9 +6,8 @@
 
 module code;
 
-def fn(): int;
+def fn() -> int;
 
-def main(): int {
-    let i = !fn();
-    return i;
+def main() -> int {
+    return fn() * 3;
 }

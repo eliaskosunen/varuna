@@ -86,10 +86,10 @@ public:
     void visit(ASTBoolLiteralExpression* node, size_t ind = 0);
     void visit(ASTNoneLiteralExpression* node, size_t ind = 0);
 
-    void visit(ASTBinaryOperationExpression* node, size_t ind = 0);
-    void visit(ASTUnaryOperationExpression* node, size_t ind = 0);
-    void visit(ASTAssignmentOperationExpression* node, size_t ind = 0);
-    void visit(ASTArbitraryOperationExpression* node, size_t ind = 0);
+    void visit(ASTBinaryExpression* node, size_t ind = 0);
+    void visit(ASTUnaryExpression* node, size_t ind = 0);
+    void visit(ASTAssignmentExpression* node, size_t ind = 0);
+    void visit(ASTArbitraryOperandExpression* node, size_t ind = 0);
 
     void visit(ASTEmptyStatement* node, size_t ind = 0);
     void visit(ASTBlockStatement* node, size_t ind = 0);

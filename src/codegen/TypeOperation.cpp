@@ -10,48 +10,44 @@
 
 namespace codegen
 {
-std::unique_ptr<TypedValue>
-VoidTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> VoidTypeOperation::assignmentOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     return operationError(
-        "Invalid operation: Cannot make any operations on void");
+        node, "Invalid operation: Cannot make any operations on void");
 }
-std::unique_ptr<TypedValue>
-VoidTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  util::OperatorType op,
-                                  std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> VoidTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     return operationError(
-        "Invalid operation: Cannot make any operations on void");
+        node, "Invalid operation: Cannot make any operations on void");
 }
-std::unique_ptr<TypedValue>
-VoidTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   util::OperatorType op,
-                                   std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> VoidTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     return operationError(
-        "Invalid operation: Cannot make any operations on void");
+        node, "Invalid operation: Cannot make any operations on void");
 }
-std::unique_ptr<TypedValue>
-VoidTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      util::OperatorType op,
-                                      std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> VoidTypeOperation::arbitraryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     return operationError(
-        "Invalid operation: Cannot make any operations on void");
+        node, "Invalid operation: Cannot make any operations on void");
 }
 
 std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(!operands[0]->type->isMutable)
     {
-        return operationError("Cannot assign to immutable lhs");
+        return operationError(node, "Cannot assign to immutable lhs");
     }
 
     auto lhs = operands[0];
@@ -62,18 +58,23 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
             switch(op.get())
             {
             case util::OPERATORA_ADD:
-                return binaryOperation(builder, util::OPERATORB_ADD, operands);
+                return binaryOperation(node, builder, util::OPERATORB_ADD,
+                                       operands);
             case util::OPERATORA_SUB:
-                return binaryOperation(builder, util::OPERATORB_SUB, operands);
+                return binaryOperation(node, builder, util::OPERATORB_SUB,
+                                       operands);
             case util::OPERATORA_MUL:
-                return binaryOperation(builder, util::OPERATORB_MUL, operands);
+                return binaryOperation(node, builder, util::OPERATORB_MUL,
+                                       operands);
             case util::OPERATORA_DIV:
-                return binaryOperation(builder, util::OPERATORB_DIV, operands);
+                return binaryOperation(node, builder, util::OPERATORB_DIV,
+                                       operands);
             case util::OPERATORA_MOD:
-                return binaryOperation(builder, util::OPERATORB_MOD, operands);
+                return binaryOperation(node, builder, util::OPERATORB_MOD,
+                                       operands);
             default:
                 return operationError(
-                    "Unsupported assignment operator for '{}': {}",
+                    node, "Unsupported assignment operator for '{}': {}",
                     lhs->type->getDecoratedName(), op.get());
             }
         }
@@ -93,7 +94,7 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
     assert(rhs->type);
     if(rhs->type->basicInequal(lhs->type))
     {
-        return operationError("Cannot assign '{}' to '{}'",
+        return operationError(node, "Cannot assign '{}' to '{}'",
                               rhs->type->getDecoratedName(),
                               lhs->type->getDecoratedName());
     }
@@ -111,10 +112,9 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
     builder.CreateStore(rhsval, lhsval);
     return std::make_unique<TypedValue>(*lhs);
 }
-std::unique_ptr<TypedValue>
-IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                      util::OperatorType op,
-                                      std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> IntegralTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
 
@@ -128,8 +128,8 @@ IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
-        return operands[0]->type->cast(builder, Type::CAST, operands[0]->value,
-                                       t);
+        return operands[0]->type->cast(node, builder, Type::CAST,
+                                       operands[0]->value, t);
     }
     case util::OPERATORU_MINUS:
         return ret(builder.CreateNeg(operands[0]->value, "negtmp"));
@@ -137,20 +137,20 @@ IntegralTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
         return ret(builder.CreateXor(operands[0]->value,
                                      static_cast<uint64_t>(-1), "compltmp"));
     default:
-        return operationError("Unsupported unary operator for '{}': '{}'",
+        return operationError(node, "Unsupported unary operator for '{}': '{}'",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
-std::unique_ptr<TypedValue>
-IntegralTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> IntegralTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(operands[0]->type->basicInequal(*operands[1]->type))
     {
-        return operationError("IntegralType binary operation operand types "
+        return operationError(node,
+                              "IntegralType binary operation operand types "
                               "don't match: '{}' and '{}'",
                               operands[0]->type->getDecoratedName(),
                               operands[1]->type->getDecoratedName());
@@ -202,29 +202,29 @@ IntegralTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
         return comp(builder.CreateICmpSLE(operands[0]->value,
                                           operands[1]->value, "letmp"));
     default:
-        return operationError("Unsupported binary operator for '{}': {}",
+        return operationError(node, "Unsupported binary operator for '{}': {}",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
 std::unique_ptr<TypedValue> IntegralTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
 std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(!operands[0]->type->isMutable)
     {
-        return operationError("Cannot assign to immutable lhs");
+        return operationError(node, "Cannot assign to immutable lhs");
     }
 
     auto lhs = operands[0];
@@ -234,12 +234,13 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
 
     if(op != util::OPERATORA_SIMPLE)
     {
-        return operationError("Unsupported assignment operator for '{}': {}",
+        return operationError(node,
+                              "Unsupported assignment operator for '{}': {}",
                               lhs->type->getDecoratedName(), op.get());
     }
     if(rhs->type->basicInequal(lhs->type))
     {
-        return operationError("Cannot assign '{}' to '{}'",
+        return operationError(node, "Cannot assign '{}' to '{}'",
                               rhs->type->getDecoratedName(),
                               lhs->type->getDecoratedName());
     }
@@ -257,26 +258,24 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
     builder.CreateStore(rhsval, lhsval);
     return std::make_unique<TypedValue>(*lhs);
 }
-std::unique_ptr<TypedValue>
-CharacterTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> CharacterTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
-    return operationError("No unary operations for '{}' are supported",
+    return operationError(node, "No unary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-CharacterTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                        util::OperatorType op,
-                                        std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> CharacterTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(operands[0]->type->basicInequal(*operands[1]->type))
     {
-        return operationError("CharType binary operation operand types "
-                              "don't match: '{}' and '{}'",
+        return operationError(node, "CharType binary operation operand types "
+                                    "don't match: '{}' and '{}'",
                               operands[0]->type->getDecoratedName(),
                               operands[1]->type->getDecoratedName());
     }
@@ -301,29 +300,28 @@ CharacterTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
         return comp(builder.CreateICmpNE(operands[0]->value, operands[1]->value,
                                          "eqtmp"));
     }
-    return operationError("Unsupported binary operator for '{}': {}",
+    return operationError(node, "Unsupported binary operator for '{}': {}",
                           operands[0]->type->getDecoratedName(), op.get());
 }
 std::unique_ptr<TypedValue> CharacterTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
-std::unique_ptr<TypedValue>
-BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> BoolTypeOperation::assignmentOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(!operands[0]->type->isMutable)
     {
-        return operationError("Cannot assign to immutable lhs");
+        return operationError(node, "Cannot assign to immutable lhs");
     }
 
     auto lhs = operands[0];
@@ -332,7 +330,7 @@ BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
         if(op != util::OPERATORA_SIMPLE)
         {
             return operationError(
-                "Unsupported assignment operator for '{}': {}",
+                node, "Unsupported assignment operator for '{}': {}",
                 lhs->type->getDecoratedName(), op.get());
         }
         else
@@ -360,10 +358,9 @@ BoolTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
     builder.CreateStore(rhsval, lhsval);
     return std::make_unique<TypedValue>(*lhs);
 }
-std::unique_ptr<TypedValue>
-BoolTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  util::OperatorType op,
-                                  std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> BoolTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
 
@@ -376,21 +373,20 @@ BoolTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
     case util::OPERATORU_NOT:
         return ret(builder.CreateNot(operands[0]->value, "nottmp"));
     default:
-        return operationError("Unsupported unary operator for '{}': '{}'",
+        return operationError(node, "Unsupported unary operator for '{}': '{}'",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
-std::unique_ptr<TypedValue>
-BoolTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   util::OperatorType op,
-                                   std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> BoolTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(operands[0]->type->basicInequal(*operands[1]->type))
     {
-        return operationError("BoolType binary operation operand types "
-                              "don't match: '{}' and '{}'",
+        return operationError(node, "BoolType binary operation operand types "
+                                    "don't match: '{}' and '{}'",
                               operands[0]->type->getDecoratedName(),
                               operands[1]->type->getDecoratedName());
     }
@@ -415,69 +411,64 @@ BoolTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
         return comp(
             builder.CreateOr(operands[0]->value, operands[1]->value, "ortmp"));
     default:
-        return operationError("Unsupported binary operator for '{}': {}",
+        return operationError(node, "Unsupported binary operator for '{}': {}",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
-std::unique_ptr<TypedValue>
-BoolTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      util::OperatorType op,
-                                      std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> BoolTypeOperation::arbitraryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
-std::unique_ptr<TypedValue>
-ByteTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> ByteTypeOperation::assignmentOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No assignment operations for '{}' are supported",
+    return operationError(node,
+                          "No assignment operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-ByteTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                  util::OperatorType op,
-                                  std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> ByteTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
-    return operationError("No unary operations for '{}' are supported",
+    return operationError(node, "No unary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-ByteTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                   util::OperatorType op,
-                                   std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> ByteTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No binary operations for '{}' are supported",
+    return operationError(node, "No binary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-ByteTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                      util::OperatorType op,
-                                      std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> ByteTypeOperation::arbitraryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
-std::unique_ptr<TypedValue>
-FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
-                                     util::OperatorType op,
-                                     std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> FPTypeOperation::assignmentOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
 
     if(!operands[0]->type->isMutable)
     {
-        return operationError("Cannot assign to immutable lhs");
+        return operationError(node, "Cannot assign to immutable lhs");
     }
 
     auto lhs = operands[0];
@@ -487,18 +478,23 @@ FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
             switch(op.get())
             {
             case util::OPERATORA_ADD:
-                return binaryOperation(builder, util::OPERATORB_ADD, operands);
+                return binaryOperation(node, builder, util::OPERATORB_ADD,
+                                       operands);
             case util::OPERATORA_SUB:
-                return binaryOperation(builder, util::OPERATORB_SUB, operands);
+                return binaryOperation(node, builder, util::OPERATORB_SUB,
+                                       operands);
             case util::OPERATORA_MUL:
-                return binaryOperation(builder, util::OPERATORB_MUL, operands);
+                return binaryOperation(node, builder, util::OPERATORB_MUL,
+                                       operands);
             case util::OPERATORA_DIV:
-                return binaryOperation(builder, util::OPERATORB_DIV, operands);
+                return binaryOperation(node, builder, util::OPERATORB_DIV,
+                                       operands);
             case util::OPERATORA_MOD:
-                return binaryOperation(builder, util::OPERATORB_MOD, operands);
+                return binaryOperation(node, builder, util::OPERATORB_MOD,
+                                       operands);
             default:
                 return operationError(
-                    "Unsupported assignment operator for '{}': {}",
+                    node, "Unsupported assignment operator for '{}': {}",
                     lhs->type->getDecoratedName(), op.get());
             }
         }
@@ -522,7 +518,7 @@ FPTypeOperation::assignmentOperation(llvm::IRBuilder<>& builder,
     return std::make_unique<TypedValue>(*lhs);
 }
 std::unique_ptr<TypedValue>
-FPTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
+FPTypeOperation::unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
                                 util::OperatorType op,
                                 std::vector<TypedValue*> operands) const
 {
@@ -538,18 +534,18 @@ FPTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
-        return operands[0]->type->cast(builder, Type::CAST, operands[0]->value,
-                                       t);
+        return operands[0]->type->cast(node, builder, Type::CAST,
+                                       operands[0]->value, t);
     }
     case util::OPERATORU_MINUS:
         return ret(builder.CreateFNeg(operands[0]->value, "negtmp"));
     default:
-        return operationError("Unsupported unary operator for '{}': '{}'",
+        return operationError(node, "Unsupported unary operator for '{}': '{}'",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
 std::unique_ptr<TypedValue>
-FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
+FPTypeOperation::binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
                                  util::OperatorType op,
                                  std::vector<TypedValue*> operands) const
 {
@@ -557,8 +553,8 @@ FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
 
     if(operands[0]->type->basicInequal(*operands[1]->type))
     {
-        return operationError("FPType binary operation operand types "
-                              "don't match: '{}' and '{}'",
+        return operationError(node, "FPType binary operation operand types "
+                                    "don't match: '{}' and '{}'",
                               operands[0]->type->getDecoratedName(),
                               operands[1]->type->getDecoratedName());
     }
@@ -609,86 +605,82 @@ FPTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
         return comp(builder.CreateFCmpOLE(operands[0]->value,
                                           operands[1]->value, "letmp"));
     default:
-        return operationError("Unsupported binary operator for '{}': {}",
+        return operationError(node, "Unsupported binary operator for '{}': {}",
                               operands[0]->type->getDecoratedName(), op.get());
     }
 }
-std::unique_ptr<TypedValue>
-FPTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                    util::OperatorType op,
-                                    std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> FPTypeOperation::arbitraryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
 std::unique_ptr<TypedValue> StringTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No assignment operations for '{}' are supported",
+    return operationError(node,
+                          "No assignment operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-StringTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                    util::OperatorType op,
-                                    std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> StringTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
-    return operationError("No unary operations for '{}' are supported",
+    return operationError(node, "No unary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-StringTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                     util::OperatorType op,
-                                     std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> StringTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No binary operations for '{}' are supported",
+    return operationError(node, "No binary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-StringTypeOperation::arbitraryOperation(llvm::IRBuilder<>& builder,
-                                        util::OperatorType op,
-                                        std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> StringTypeOperation::arbitraryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
     return operationError(
-        "No arbitrary-operand operations for '{}' are supported",
+        node, "No arbitrary-operand operations for '{}' are supported",
         operands[0]->type->getDecoratedName());
 }
 
 std::unique_ptr<TypedValue> FunctionTypeOperation::assignmentOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No assignment operations for '{}' are supported",
+    return operationError(node,
+                          "No assignment operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-FunctionTypeOperation::unaryOperation(llvm::IRBuilder<>& builder,
-                                      util::OperatorType op,
-                                      std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> FunctionTypeOperation::unaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 1);
-    return operationError("No unary operations for '{}' are supported",
+    return operationError(node, "No unary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
-std::unique_ptr<TypedValue>
-FunctionTypeOperation::binaryOperation(llvm::IRBuilder<>& builder,
-                                       util::OperatorType op,
-                                       std::vector<TypedValue*> operands) const
+std::unique_ptr<TypedValue> FunctionTypeOperation::binaryOperation(
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
+    std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError("No binary operations for '{}' are supported",
+    return operationError(node, "No binary operations for '{}' are supported",
                           operands[0]->type->getDecoratedName());
 }
 std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
-    llvm::IRBuilder<>& builder, util::OperatorType op,
+    ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() >= 1);
@@ -696,7 +688,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
     if(op != util::OPERATORC_CALL)
     {
         return operationError(
-            "Unsupported arbitrary-operand operator for '{}': '{}'",
+            node, "Unsupported arbitrary-operand operator for '{}': '{}'",
             operands[0]->type->getDecoratedName(), op.get());
     }
 
@@ -708,7 +700,8 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
     size_t paramCount = operands.size() - 1;
     if(calleeval->arg_size() != paramCount)
     {
-        return operationError("Function call expects {} arguments, {} provided",
+        return operationError(node,
+                              "Function call expects {} arguments, {} provided",
                               calleeval->arg_size(), paramCount);
     }
 
@@ -718,10 +711,10 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
         auto arg = operands[i];
 
         auto p = calleetype->params[i - 1];
-        if(!arg->type->isSameOrImplicitlyCastable(builder, arg->value, p))
+        if(!arg->type->isSameOrImplicitlyCastable(node, builder, arg->value, p))
         {
-            return operationError("Invalid function call: Cannot convert "
-                                  "parameter {} from {} to {}",
+            return operationError(node, "Invalid function call: Cannot convert "
+                                        "parameter {} from {} to {}",
                                   i, arg->type->getDecoratedName(),
                                   p->getDecoratedName());
         }

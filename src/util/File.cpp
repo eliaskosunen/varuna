@@ -3,6 +3,8 @@
 // See LICENSE for details
 
 #include "util/File.h"
+#include "util/Logger.h"
+#include "util/StringUtils.h"
 #include <utf8.h>
 #include <fstream>
 #include <sstream>
@@ -43,6 +45,15 @@ void File::calculateChecksum()
 {
     throw std::logic_error(
         "util::FileCache::File::calculateChecksum() not implemented");
+}
+
+const std::string& File::getLine(uint32_t line)
+{
+    if(contentRows.empty())
+    {
+        StringUtils::split(content, '\n', contentRows);
+    }
+    return contentRows.at(line - 1);
 }
 
 std::string File::_readFile(const std::string& fname)

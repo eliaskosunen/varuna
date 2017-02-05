@@ -209,22 +209,20 @@ void ASTParentSolverVisitor::visit(ASTNoneLiteralExpression* node,
     node->type->accept(this, node);
 }
 
-void ASTParentSolverVisitor::visit(ASTBinaryOperationExpression* node,
-                                   ASTNode* parent)
+void ASTParentSolverVisitor::visit(ASTBinaryExpression* node, ASTNode* parent)
 {
     node->parent = parent;
 
     node->lhs->accept(this, node);
     node->rhs->accept(this, node);
 }
-void ASTParentSolverVisitor::visit(ASTUnaryOperationExpression* node,
-                                   ASTNode* parent)
+void ASTParentSolverVisitor::visit(ASTUnaryExpression* node, ASTNode* parent)
 {
     node->parent = parent;
 
     node->operand->accept(this, node);
 }
-void ASTParentSolverVisitor::visit(ASTAssignmentOperationExpression* node,
+void ASTParentSolverVisitor::visit(ASTAssignmentExpression* node,
                                    ASTNode* parent)
 {
     node->parent = parent;
@@ -232,7 +230,7 @@ void ASTParentSolverVisitor::visit(ASTAssignmentOperationExpression* node,
     node->lhs->accept(this, node);
     node->rhs->accept(this, node);
 }
-void ASTParentSolverVisitor::visit(ASTArbitraryOperationExpression* node,
+void ASTParentSolverVisitor::visit(ASTArbitraryOperandExpression* node,
                                    ASTNode* parent)
 {
     node->parent = parent;
@@ -404,23 +402,23 @@ void ast::ASTNoneLiteralExpression::accept(ast::ASTParentSolverVisitor* v,
     return v->visit(this, p);
 }
 
-void ast::ASTBinaryOperationExpression::accept(ast::ASTParentSolverVisitor* v,
-                                               ast::ASTNode* p)
+void ast::ASTBinaryExpression::accept(ast::ASTParentSolverVisitor* v,
+                                      ast::ASTNode* p)
 {
     return v->visit(this, p);
 }
-void ast::ASTUnaryOperationExpression::accept(ast::ASTParentSolverVisitor* v,
-                                              ast::ASTNode* p)
+void ast::ASTUnaryExpression::accept(ast::ASTParentSolverVisitor* v,
+                                     ast::ASTNode* p)
 {
     return v->visit(this, p);
 }
-void ast::ASTAssignmentOperationExpression::accept(
-    ast::ASTParentSolverVisitor* v, ast::ASTNode* p)
+void ast::ASTAssignmentExpression::accept(ast::ASTParentSolverVisitor* v,
+                                          ast::ASTNode* p)
 {
     return v->visit(this, p);
 }
-void ast::ASTArbitraryOperationExpression::accept(
-    ast::ASTParentSolverVisitor* v, ast::ASTNode* p)
+void ast::ASTArbitraryOperandExpression::accept(ast::ASTParentSolverVisitor* v,
+                                                ast::ASTNode* p)
 {
     return v->visit(this, p);
 }

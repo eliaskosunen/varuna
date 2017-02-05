@@ -75,10 +75,10 @@ public:
     bool visit(ast::ASTBoolLiteralExpression* node);
     bool visit(ast::ASTNoneLiteralExpression* node);
 
-    bool visit(ast::ASTBinaryOperationExpression* node);
-    bool visit(ast::ASTUnaryOperationExpression* node);
-    bool visit(ast::ASTAssignmentOperationExpression* node);
-    bool visit(ast::ASTArbitraryOperationExpression* node);
+    bool visit(ast::ASTBinaryExpression* node);
+    bool visit(ast::ASTUnaryExpression* node);
+    bool visit(ast::ASTAssignmentExpression* node);
+    bool visit(ast::ASTArbitraryOperandExpression* node);
 
     bool visit(ast::ASTEmptyStatement* node);
     bool visit(ast::ASTBlockStatement* node);

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "util/File.h"
+#include "util/SourceLocation.h"
 #include <spdlog.h>
 
 namespace util
@@ -27,4 +29,38 @@ void initLogger();
 
 /// Drop all loggers
 void dropLogger();
+
+std::string formatCompilerMessage(File* file, SourceLocation loc);
+
+template <typename... Args>
+inline std::nullptr_t logCompilerError(File* file, SourceLocation loc,
+                                       const std::string& format,
+                                       Args&&... args)
+{
+    assert(logger);
+    logger->error("{}: {}\n{}", loc.toString(),
+                  fmt::format(format, std::forward<Args>(args)...),
+                  formatCompilerMessage(file, loc));
+    return nullptr;
+}
+
+template <typename... Args>
+inline void logCompilerWarning(File* file, SourceLocation loc,
+                               const std::string& format, Args&&... args)
+{
+    assert(logger);
+    logger->warn("{}: {}\n{}", loc.toString(),
+                 fmt::format(format, std::forward<Args>(args)...),
+                 formatCompilerMessage(file, loc));
+}
+
+template <typename... Args>
+inline void logCompilerInfo(File* file, SourceLocation loc,
+                            const std::string& format, Args&&... args)
+{
+    assert(logger);
+    logger->info("{}: {}\n{}", loc.toString(),
+                 fmt::format(format, std::forward<Args>(args)...),
+                 formatCompilerMessage(file, loc));
+}
 } // namespace util

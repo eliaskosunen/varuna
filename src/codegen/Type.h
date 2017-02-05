@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ast/AST.h"
 #include "ast/ASTFunctionStatement.h"
 #include "util/Logger.h"
 #include "util/OperatorType.h"
@@ -68,17 +69,36 @@ public:
     virtual ~Type() noexcept;
 
     template <typename... Args>
-    std::nullptr_t castError(const std::string& format, Args&&... args) const
+    std::nullptr_t castError(ast::ASTNode* node, const std::string& format,
+                             Args&&... args) const
     {
-        util::logger->error(format.c_str(), std::forward<Args>(args)...);
-        return nullptr;
+        return util::logCompilerError(node->ast->file.get(), node->loc, format,
+                                      std::forward<Args>(args)...);
     }
 
-    virtual std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder,
+    template <typename... Args>
+    void castWarning(ast::ASTNode* node, const std::string& format,
+                     Args&&... args) const
+    {
+        util::logCompilerWarning(node->ast->file.get(), node->loc, format,
+                                 std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    void castInfo(ast::ASTNode* node, const std::string& format,
+                  Args&&... args) const
+    {
+        util::logCompilerInfo(node->ast->file.get(), node->loc, format,
+                              std::forward<Args>(args)...);
+    }
+
+    virtual std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                             llvm::IRBuilder<>& builder,
                                              CastType c, llvm::Value* val,
                                              Type* to) const = 0;
 
-    bool isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
+    bool isSameOrImplicitlyCastable(ast::ASTNode* node,
+                                    llvm::IRBuilder<>& builder,
                                     llvm::Value* val, Type* to) const;
 
     virtual bool isSized() const
@@ -163,7 +183,8 @@ public:
     bool isMutable{false};
 
 protected:
-    std::unique_ptr<TypedValue> implicitCast(llvm::IRBuilder<>& builder,
+    std::unique_ptr<TypedValue> implicitCast(ast::ASTNode* node,
+                                             llvm::IRBuilder<>& builder,
                                              llvm::Value* val, Type* to) const;
 
 private:
@@ -178,7 +199,8 @@ public:
     VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
              bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -195,7 +217,8 @@ public:
                  llvm::Type* t, llvm::DIType* d, const std::string& n,
                  bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -255,7 +278,8 @@ public:
     BoolType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
              bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -271,7 +295,8 @@ public:
                   llvm::Type* t, llvm::DIType* d, const std::string& n,
                   bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -302,7 +327,8 @@ public:
     ByteType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
              bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -318,7 +344,8 @@ public:
            llvm::Type* t, llvm::DIType* d, const std::string& n,
            bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -356,7 +383,8 @@ public:
     StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
                bool mut = false);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
@@ -384,7 +412,8 @@ public:
                             const std::vector<Type*>& params,
                             llvm::DIFile* file);
 
-    std::unique_ptr<TypedValue> cast(llvm::IRBuilder<>& builder, CastType c,
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
                                      llvm::Value* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;

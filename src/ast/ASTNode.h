@@ -20,9 +20,9 @@ public:
         NODE = -1,
 
         EXPR = 0,
-        ARBITRARY_OPERATION_EXPR,
-        ASSIGNMENT_OPERATION_EXPR,
-        BINARY_OPERATION_EXPR,
+        ARBITRARY_OPERAND_EXPR,
+        ASSIGNMENT_EXPR,
+        BINARY_EXPR,
         BOOL_LITERAL_EXPR,
         CAST_EXPR = 5,
         CHAR_LITERAL_EXPR,
@@ -36,7 +36,7 @@ public:
         STRING_LITERAL_EXPR,
         SUBSCRIPT_EXPR = 15,
         SUBSCRIPT_RANGED_EXPR,
-        UNARY_OPERATION_EXPR,
+        UNARY_EXPR,
         VARIABLE_DEFINITION_EXPR,
         GLOBAL_VARIABLE_DEFINITION_EXPR,
 
@@ -65,7 +65,7 @@ public:
     ASTNode& operator=(ASTNode&&) = default;
     virtual ~ASTNode() noexcept = default;
 
-    ASTNode* getFunction()
+    ASTFunctionDefinitionStatement* getFunction()
     {
         return _getFunction();
     }
@@ -78,23 +78,13 @@ public:
     ASTNode* parent{nullptr};
     bool isExport{false};
     util::SourceLocation loc;
+    AST* ast{nullptr};
 
 protected:
     explicit ASTNode(NodeType t) : nodeType(t)
     {
     }
 
-    ASTNode* _getFunction()
-    {
-        if(nodeType == FUNCTION_DEF_STMT)
-        {
-            return this;
-        }
-        if(!parent)
-        {
-            return nullptr;
-        }
-        return parent->_getFunction();
-    }
+    ASTFunctionDefinitionStatement* _getFunction();
 };
 } // namespace ast

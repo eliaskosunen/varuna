@@ -131,19 +131,19 @@ void ASTNoneLiteralExpression::accept(DumpASTVisitor* v, size_t ind)
     v->visit(this, ind);
 }
 
-void ASTBinaryOperationExpression::accept(DumpASTVisitor* v, size_t ind)
+void ASTBinaryExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
-void ASTUnaryOperationExpression::accept(DumpASTVisitor* v, size_t ind)
+void ASTUnaryExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
-void ASTAssignmentOperationExpression::accept(DumpASTVisitor* v, size_t ind)
+void ASTAssignmentExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
-void ASTArbitraryOperationExpression::accept(DumpASTVisitor* v, size_t ind)
+void ASTArbitraryOperandExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
@@ -364,34 +364,34 @@ void DumpASTVisitor::visit(ASTNoneLiteralExpression* node, size_t ind)
     log(ind + 1, "Type: {}", node->type->value);
 }
 
-void DumpASTVisitor::visit(ASTBinaryOperationExpression* node, size_t ind)
+void DumpASTVisitor::visit(ASTBinaryExpression* node, size_t ind)
 {
-    log(ind, "ASTBinaryOperationExpression:");
+    log(ind, "ASTBinaryExpression:");
     log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "LHS:");
     node->lhs->accept(this, ind + 2);
     log(ind + 1, "RHS:");
     node->rhs->accept(this, ind + 2);
 }
-void DumpASTVisitor::visit(ASTUnaryOperationExpression* node, size_t ind)
+void DumpASTVisitor::visit(ASTUnaryExpression* node, size_t ind)
 {
-    log(ind, "ASTUnaryOperationExpression:");
+    log(ind, "ASTUnaryExpression:");
     log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "Operand:");
     node->operand->accept(this, ind + 2);
 }
-void DumpASTVisitor::visit(ASTAssignmentOperationExpression* node, size_t ind)
+void DumpASTVisitor::visit(ASTAssignmentExpression* node, size_t ind)
 {
-    log(ind, "ASTAssignmentOperationExpression:");
+    log(ind, "ASTAssignmentExpression:");
     log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "LHS:");
     node->lhs->accept(this, ind + 2);
     log(ind + 1, "RHS:");
     node->rhs->accept(this, ind + 2);
 }
-void DumpASTVisitor::visit(ASTArbitraryOperationExpression* node, size_t ind)
+void DumpASTVisitor::visit(ASTArbitraryOperandExpression* node, size_t ind)
 {
-    log(ind, "ASTArbitraryOperationExpression:");
+    log(ind, "ASTArbitraryOperandExpression:");
     log(ind + 1, "Operator: {}", node->oper.get());
     log(ind + 1, "Operands:");
     for(auto& o : node->operands)

@@ -12,28 +12,27 @@ TEST_CASE("Test lexer")
     using namespace core::lexer;
 
     TokenVector v;
-    util::File f(TEST_FILE);
+    auto f = std::make_shared<util::File>(TEST_FILE);
 
     SUBCASE("General")
     {
         SUBCASE("Whitespace skipping")
         {
-            f.setContent(" \n\t\v");
-            Lexer l(&f);
+            f->setContent(" \n\t\v");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 1);
             CHECK(!l.getError());
-            CHECK(l.getErrorLevel() == ERROR_WARNING);
 
             CHECK(v[0].type == TOKEN_EOF);
         }
 
         SUBCASE("Comments")
         {
-            f.setContent(R"(// Comment
+            f->setContent(R"(// Comment
 123//Literal
 			)");
-            Lexer l(&f);
+            Lexer l(f);
             v = l.run();
 
             CHECK(v.size() == 2);
@@ -44,7 +43,7 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Multi-line comments")
         {
-            f.setContent(R"(
+            f->setContent(R"(
                 /*
                 // Comment
                  */
@@ -55,7 +54,7 @@ TEST_CASE("Test lexer")
                 */
                  */
             )");
-            Lexer l(&f);
+            Lexer l(f);
             v = l.run();
 
             CHECK(v.size() == 2);
@@ -69,37 +68,15 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("'LF' line endings")
         {
-            f.setContent("// Line 1\n"
-                         " 123 /* Line 2 */\n"
-                         " \"abc\" // Line 3\n"
-                         "\n"
-                         "// Comment on line 5\n"
-                         "// Another comment on line 6\n"
-                         "\n"
-                         "foo // Line 8\n");
-            Lexer l(&f);
-            v = l.run();
-
-            CHECK(v.size() == 4);
-            CHECK(!l.getError());
-
-            CHECK(v[0].loc.line == 2);
-            CHECK(v[1].loc.line == 3);
-            CHECK(v[2].loc.line == 8);
-        }
-
-        SUBCASE("'CR' line endings")
-        {
-            // CR line endings cause warnings by design
-            f.setContent("// Line 1\r"
-                         " 123 /* Line 2 */\r"
-                         " \"abc\" // Line 3\r"
-                         "\r"
-                         "// Comment on line 5\r"
-                         "// Another comment on line 6\r"
-                         "\r"
-                         "foo // Line 8\r");
-            Lexer l(&f);
+            f->setContent("// Line 1\n"
+                          " 123 /* Line 2 */\n"
+                          " \"abc\" // Line 3\n"
+                          "\n"
+                          "// Comment on line 5\n"
+                          "// Another comment on line 6\n"
+                          "\n"
+                          "foo // Line 8\n");
+            Lexer l(f);
             v = l.run();
 
             CHECK(v.size() == 4);
@@ -112,15 +89,15 @@ TEST_CASE("Test lexer")
 
         SUBCASE("'CRLF' line endings")
         {
-            f.setContent("// Line 1\r\n"
-                         " 123 /* Line 2 */\r\n"
-                         " \"abc\" // Line 3\r\n"
-                         "\r\n"
-                         "// Comment on line 5\r\n"
-                         "// Another comment on line 6\r\n"
-                         "\r\n"
-                         "foo // Line 8\r\n");
-            Lexer l(&f);
+            f->setContent("// Line 1\r\n"
+                          " 123 /* Line 2 */\r\n"
+                          " \"abc\" // Line 3\r\n"
+                          "\r\n"
+                          "// Comment on line 5\r\n"
+                          "// Another comment on line 6\r\n"
+                          "\r\n"
+                          "foo // Line 8\r\n");
+            Lexer l(f);
             v = l.run();
 
             CHECK(v.size() == 4);
@@ -133,15 +110,15 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Mixed line endings")
         {
-            f.setContent("// Line 1\r\n"
-                         " 123 /* Line 2 */\r"
-                         " \"abc\" // Line 3\n"
-                         "\r\n"
-                         "// Comment on line 5\n"
-                         "// Another comment on line 6\n"
-                         "\r\n"
-                         "foo // Line 8\n");
-            Lexer l(&f);
+            f->setContent("// Line 1\r\n"
+                          " 123 /* Line 2 */\r\n"
+                          " \"abc\" // Line 3\n"
+                          "\r\n"
+                          "// Comment on line 5\n"
+                          "// Another comment on line 6\n"
+                          "\r\n"
+                          "foo // Line 8\n");
+            Lexer l(f);
             v = l.run();
 
             CHECK(v.size() == 4);
@@ -157,9 +134,9 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Integer literals")
         {
-            f.setContent(
+            f->setContent(
                 "123 9999999i32 8i8 5i16 10i64 0b1001 0o60 0XFF 0xdead 0x6bo");
-            Lexer l(&f);
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 11);
             CHECK(!l.getError());
@@ -206,8 +183,8 @@ TEST_CASE("Test lexer")
         }
         SUBCASE("Float literals")
         {
-            f.setContent("3.1415926535 12.34f32 42.0f64 39.99d");
-            Lexer l(&f);
+            f->setContent("3.1415926535 12.34f32 42.0f64 39.99d");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 5);
             CHECK(!l.getError());
@@ -236,9 +213,9 @@ TEST_CASE("Test lexer")
         }
         SUBCASE("String literals")
         {
-            f.setContent(
+            f->setContent(
                 "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"");
-            Lexer l(&f);
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 4);
             CHECK(!l.getError());
@@ -256,8 +233,8 @@ TEST_CASE("Test lexer")
 
     SUBCASE("Identifiers")
     {
-        f.setContent("io.stdout.writeln(\"Hello World\")");
-        Lexer l(&f);
+        f->setContent("io.stdout.writeln(\"Hello World\")");
+        Lexer l(f);
         v = l.run();
         CHECK(v.size() == 9);
         CHECK(!l.getError());
@@ -283,8 +260,8 @@ TEST_CASE("Test lexer")
     {
         SUBCASE("Default import")
         {
-            f.setContent("import io;");
-            Lexer l(&f);
+            f->setContent("import io;");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 4);
             CHECK(!l.getError());
@@ -299,8 +276,8 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Module import")
         {
-            f.setContent("import module mymodule;");
-            Lexer l(&f);
+            f->setContent("import module mymodule;");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 5);
             CHECK(!l.getError());
@@ -316,8 +293,8 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Package import")
         {
-            f.setContent("import package cstd.io;");
-            Lexer l(&f);
+            f->setContent("import package cstd.io;");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 7);
             CHECK(!l.getError());
@@ -336,8 +313,8 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Path import")
         {
-            f.setContent("import module \"path/to/module\";");
-            Lexer l(&f);
+            f->setContent("import module \"path/to/module\";");
+            Lexer l(f);
             v = l.run();
             CHECK(v.size() == 5);
             CHECK(!l.getError());
@@ -353,8 +330,8 @@ TEST_CASE("Test lexer")
     }
     SUBCASE("Main function definition")
     {
-        f.setContent("def main(): int {}");
-        Lexer l(&f);
+        f->setContent("def main(): int {}");
+        Lexer l(f);
         v = l.run();
         CHECK(v.size() == 9);
         CHECK(!l.getError());
@@ -376,8 +353,8 @@ TEST_CASE("Test lexer")
     }
     SUBCASE("If-else")
     {
-        f.setContent("if(foo == 123) bar = true; else bar = false;");
-        Lexer l(&f);
+        f->setContent("if(foo == 123) bar = true; else bar = false;");
+        Lexer l(f);
         v = l.run();
         CHECK(v.size() == 16);
         CHECK(!l.getError());

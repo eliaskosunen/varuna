@@ -13,9 +13,9 @@ class AST;
 class ASTNode;
 
 class ASTExpression;
-class ASTArbitraryOperationExpression;
-class ASTAssignmentOperationExpression;
-class ASTBinaryOperationExpression;
+class ASTArbitraryOperandExpression;
+class ASTAssignmentExpression;
+class ASTBinaryExpression;
 class ASTBoolLiteralExpression;
 class ASTCastExpression;
 class ASTCharLiteralExpression;
@@ -29,7 +29,7 @@ class ASTNoneLiteralExpression;
 class ASTStringLiteralExpression;
 class ASTSubscriptExpression;
 class ASTSubscriptRangedExpression;
-class ASTUnaryOperationExpression;
+class ASTUnaryExpression;
 class ASTVariableDefinitionExpression;
 class ASTGlobalVariableDefinitionExpression;
 

@@ -31,11 +31,11 @@ namespace lexer
     public:
         using ContentIterator = std::string::const_iterator;
 
-        explicit Lexer(util::File* file)
-            : warningsAsErrors(false),
-              content(std::move(file->consumeContent())), it(content.begin()),
-              end(content.end()), currentLocation(file->getFilename(), 1, 1),
-              error(ERROR_NONE)
+        explicit Lexer(std::shared_ptr<util::File> f)
+            : warningsAsErrors(false), content(f->getContent()),
+              it(content.begin()), end(content.end()),
+              currentLocation(f->getFilename(), 1, 1), error(ERROR_NONE),
+              file(f)
         {
         }
 
@@ -111,14 +111,16 @@ namespace lexer
         util::SourceLocation currentLocation;
 
         ErrorLevel error;
+
+        std::shared_ptr<util::File> file;
     };
 
     template <typename... Args>
     inline void Lexer::lexerError(const util::string_t& format, Args&&... args)
     {
         error = ERROR_ERROR;
-        util::logger->error("{}: {}", currentLocation.toString(),
-                            fmt::format(format, std::forward<Args>(args)...));
+        util::logCompilerError(file.get(), currentLocation, format,
+                               std::forward<Args>(args)...);
     }
 
     template <typename... Args>
@@ -129,8 +131,8 @@ namespace lexer
         {
             error = ERROR_WARNING;
         }
-        util::logger->warn("{}: {}", currentLocation.toString(),
-                           fmt::format(format, std::forward<Args>(args)...));
+        util::logCompilerWarning(file.get(), currentLocation, format,
+                                 std::forward<Args>(args)...);
     }
 
     inline void Lexer::newline()
@@ -153,7 +155,17 @@ namespace lexer
     inline void Lexer::_next()
     {
         it += 1;
-        currentLocation.col++;
+        if(it != end)
+        {
+            if(*it == '\t')
+            {
+                currentLocation.col += 4;
+            }
+            else
+            {
+                currentLocation.col++;
+            }
+        }
     }
     inline util::char_t Lexer::_getNext()
     {
@@ -180,11 +192,12 @@ namespace lexer
         {
             if((it + 1) != end && peekNext() != '\n')
             {
-                lexerWarning("Unexpected CR (carriage return) "
-                             "without a trailing LF (line feed)");
-                newline();
-                _next(); // Skip '\r'
-                return it;
+                // Error message formatting would go out of bounds
+                // if we did it
+                // Throwing instead
+                // TODO: better solution
+                throw std::runtime_error("Unexpected CR (carriage return) "
+                                         "without a trailing LF (line feed)");
             }
             util::logger->trace("Found \\r, skipping.");
             _next();

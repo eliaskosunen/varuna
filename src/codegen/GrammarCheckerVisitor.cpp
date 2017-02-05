@@ -144,19 +144,19 @@ bool GrammarCheckerVisitor::visit(ast::ASTNoneLiteralExpression*)
     return true;
 }
 
-bool GrammarCheckerVisitor::visit(ast::ASTBinaryOperationExpression*)
+bool GrammarCheckerVisitor::visit(ast::ASTBinaryExpression*)
 {
     return true;
 }
-bool GrammarCheckerVisitor::visit(ast::ASTUnaryOperationExpression*)
+bool GrammarCheckerVisitor::visit(ast::ASTUnaryExpression*)
 {
     return true;
 }
-bool GrammarCheckerVisitor::visit(ast::ASTAssignmentOperationExpression*)
+bool GrammarCheckerVisitor::visit(ast::ASTAssignmentExpression*)
 {
     return true;
 }
-bool GrammarCheckerVisitor::visit(ast::ASTArbitraryOperationExpression*)
+bool GrammarCheckerVisitor::visit(ast::ASTArbitraryOperandExpression*)
 {
     return true;
 }

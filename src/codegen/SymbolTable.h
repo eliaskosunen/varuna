@@ -15,13 +15,13 @@ public:
     SymbolTable() = default;
 
     Symbol* find(const std::string& name, Type::Kind type,
-                 bool logError = true);
+                 bool logError = false);
     Symbol* find(const std::string& name, Type* type = nullptr,
-                 bool logError = true);
+                 bool logError = false);
     const Symbol* find(const std::string& name, Type::Kind type,
-                       bool logError = true) const;
+                       bool logError = false) const;
     const Symbol* find(const std::string& name, Type* type = nullptr,
-                       bool logError = true) const;
+                       bool logError = false) const;
 
     bool isDefined(const std::string& name, Type::Kind kind) const;
     bool isDefined(const std::string& name, Type* type = nullptr) const;

@@ -40,10 +40,10 @@ namespace lexer
         {
             lexerError("Empty token list");
         }
-        if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
+        /*if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
         {
             lexerWarning("Empty translation unit");
-        }
+        }*/
         if(tokens.back().type != TOKEN_EOF && !getError())
         {
             lexerError("No EOF token found");
@@ -920,6 +920,10 @@ namespace lexer
         if(buf == ",")
         {
             return TOKEN_PUNCT_COMMA;
+        }
+        if(buf == "->")
+        {
+            return TOKEN_PUNCT_ARROW;
         }
 
         return TOKEN_UNDEFINED;

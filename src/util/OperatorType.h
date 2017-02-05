@@ -66,7 +66,8 @@ enum OperatorType_t
     PUNCT_SQR_CLOSE,        // ]
     PUNCT_COLON,            // :
     PUNCT_SEMICOLON,        // ;
-    PUNCT_COMMA             // ,
+    PUNCT_COMMA,            // ,
+    PUNCT_ARROW             // ->
 };
 
 using OperatorType = util::SafeEnum<OperatorType_t>;

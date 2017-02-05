@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include "util/Logger.h"
+#include <cassert>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace util
 {
@@ -37,7 +39,7 @@ public:
     const std::string& getFilename() const;
     const std::string& getContent() const;
 
-    std::string&& consumeContent();
+    const std::string& getLine(uint32_t line);
 
     void setContent(const std::string& c);
     void setContent(std::string&& c);
@@ -46,6 +48,7 @@ private:
     std::string _readFile(const std::string& fname);
 
     std::string filename, content;
+    std::vector<std::string> contentRows;
     Checksum_t checksum;
     bool contentValid;
 };
@@ -56,38 +59,19 @@ inline const std::string& File::getFilename() const
 }
 inline const std::string& File::getContent() const
 {
-    if(!contentValid)
-    {
-        throw std::runtime_error("Reading invalid file contents");
-    }
+    assert(contentValid);
     return content;
-}
-
-inline std::string&& File::consumeContent()
-{
-    if(!contentValid)
-    {
-        throw std::runtime_error("Consuming invalid file contents");
-    }
-    contentValid = false;
-    return std::move(content);
 }
 
 inline void File::setContent(const std::string& c)
 {
-    if(contentValid)
-    {
-        throw std::runtime_error("Rewriting valid file contents");
-    }
+    assert(!contentValid);
     content = c;
     contentValid = true;
 }
 inline void File::setContent(std::string&& c)
 {
-    if(contentValid)
-    {
-        throw std::runtime_error("Rewriting valid file contents");
-    }
+    assert(!contentValid);
     content = std::move(c);
     contentValid = true;
 }

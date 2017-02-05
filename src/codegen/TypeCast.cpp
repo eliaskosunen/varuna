@@ -8,38 +8,41 @@
 
 namespace codegen
 {
-std::unique_ptr<TypedValue> Type::implicitCast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
+                                               llvm::IRBuilder<>& builder,
                                                llvm::Value* val, Type* to) const
 {
     if(basicEqual(to))
     {
         return std::make_unique<TypedValue>(to, val);
     }
-    return castError("Invalid implicit cast: Cannot convert from "
-                     "{} to {} implicitly (kinds: {} and {})",
+    return castError(node, "Invalid implicit cast: Cannot convert from "
+                           "{} to {} implicitly (kinds: {} and {})",
                      getDecoratedName(), to->getDecoratedName(), kind,
                      to->kind);
 }
 
-std::unique_ptr<TypedValue> VoidType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
+                                           llvm::IRBuilder<>& builder,
                                            CastType c, llvm::Value* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
-    return castError("Invalid cast: Cannot cast void");
+    return castError(node, "Invalid cast: Cannot cast void");
 }
 
-std::unique_ptr<TypedValue> IntegralType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
+                                               llvm::IRBuilder<>& builder,
                                                CastType c, llvm::Value* val,
                                                Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
     auto ret = [&](llvm::Value* v) {
@@ -68,24 +71,25 @@ std::unique_ptr<TypedValue> IntegralType::cast(llvm::IRBuilder<>& builder,
             if(!bitcast)
             {
                 return castError(
-                    "Invalid bitcast: Cannot convert from {} to {}",
+                    node, "Invalid bitcast: Cannot convert from {} to {}",
                     getDecoratedName(), to->getDecoratedName());
             }
             return ret(bitcast);
         }
-        return castError("Invalid cast: Cannot convert from {} to {}",
+        return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
     llvm_unreachable("Logic error in IntegralType::cast");
 }
 
-std::unique_ptr<TypedValue> BoolType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
+                                           llvm::IRBuilder<>& builder,
                                            CastType c, llvm::Value* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
     auto ret = [&](llvm::Value* v) {
@@ -114,24 +118,25 @@ std::unique_ptr<TypedValue> BoolType::cast(llvm::IRBuilder<>& builder,
             if(!bitcast)
             {
                 return castError(
-                    "Invalid bitcast: Cannot convert from {} to {}",
+                    node, "Invalid bitcast: Cannot convert from {} to {}",
                     getDecoratedName(), to->getDecoratedName());
             }
             return ret(bitcast);
         }
-        return castError("Invalid cast: Cannot convert from {} to {}",
+        return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
     llvm_unreachable("Logic error in BoolType::cast");
 }
 
-std::unique_ptr<TypedValue> CharacterType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
+                                                llvm::IRBuilder<>& builder,
                                                 CastType c, llvm::Value* val,
                                                 Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
     auto ret = [&](llvm::Value* v) {
@@ -143,22 +148,24 @@ std::unique_ptr<TypedValue> CharacterType::cast(llvm::IRBuilder<>& builder,
         auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
         if(!bitcast)
         {
-            return castError("Invalid bitcast: Cannot convert from {} to {}",
+            return castError(node,
+                             "Invalid bitcast: Cannot convert from {} to {}",
                              getDecoratedName(), to->getDecoratedName());
         }
         return ret(bitcast);
     }
-    return castError("Invalid cast: Cannot convert from {} to {}",
+    return castError(node, "Invalid cast: Cannot convert from {} to {}",
                      getDecoratedName(), to->getDecoratedName());
 }
 
-std::unique_ptr<TypedValue> ByteType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
+                                           llvm::IRBuilder<>& builder,
                                            CastType c, llvm::Value* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
     auto ret = [&](llvm::Value* v) {
@@ -182,22 +189,23 @@ std::unique_ptr<TypedValue> ByteType::cast(llvm::IRBuilder<>& builder,
             if(!bitcast)
             {
                 return castError(
-                    "Invalid bitcast: Cannot convert from {} to {}",
+                    node, "Invalid bitcast: Cannot convert from {} to {}",
                     getDecoratedName(), to->getDecoratedName());
             }
             return ret(bitcast);
         }
-        return castError("Invalid cast: Cannot convert from {} to {}",
+        return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
 }
 
-std::unique_ptr<TypedValue> FPType::cast(llvm::IRBuilder<>& builder, CastType c,
+std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
+                                         llvm::IRBuilder<>& builder, CastType c,
                                          llvm::Value* val, Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
     auto ret = [&](llvm::Value* v) {
@@ -221,38 +229,40 @@ std::unique_ptr<TypedValue> FPType::cast(llvm::IRBuilder<>& builder, CastType c,
             if(!bitcast)
             {
                 return castError(
-                    "Invalid bitcast: Cannot convert from {} to {}",
+                    node, "Invalid bitcast: Cannot convert from {} to {}",
                     getDecoratedName(), to->getDecoratedName());
             }
             return ret(bitcast);
         }
-        return castError("Invalid cast: Cannot convert from {} to {}",
+        return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
     llvm_unreachable("Logic error in FPType::cast");
 }
 
-std::unique_ptr<TypedValue> StringType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
+                                             llvm::IRBuilder<>& builder,
                                              CastType c, llvm::Value* val,
                                              Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
-    return castError("Invalid cast: Cannot cast string");
+    return castError(node, "Invalid cast: Cannot cast string");
 }
 
-std::unique_ptr<TypedValue> FunctionType::cast(llvm::IRBuilder<>& builder,
+std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
+                                               llvm::IRBuilder<>& builder,
                                                CastType c, llvm::Value* val,
                                                Type* to) const
 {
     if(c == IMPLICIT)
     {
-        return implicitCast(builder, val, to);
+        return implicitCast(node, builder, val, to);
     }
 
-    return castError("Invalid cast: Cannot cast function");
+    return castError(node, "Invalid cast: Cannot cast function");
 }
 } // namespace codegen

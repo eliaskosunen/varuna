@@ -10,14 +10,13 @@
 
 namespace ast
 {
-class ASTBinaryOperationExpression : public ASTExpression
+class ASTBinaryExpression : public ASTExpression
 {
 public:
-    ASTBinaryOperationExpression(std::unique_ptr<ASTExpression> l,
-                                 std::unique_ptr<ASTExpression> r,
-                                 util::OperatorType o)
-        : ASTExpression(BINARY_OPERATION_EXPR), lhs(std::move(l)),
-          rhs(std::move(r)), oper(o)
+    ASTBinaryExpression(std::unique_ptr<ASTExpression> l,
+                        std::unique_ptr<ASTExpression> r, util::OperatorType o)
+        : ASTExpression(BINARY_EXPR), lhs(std::move(l)), rhs(std::move(r)),
+          oper(o)
     {
     }
 
@@ -31,13 +30,12 @@ public:
     util::OperatorType oper;
 };
 
-class ASTUnaryOperationExpression : public ASTExpression
+class ASTUnaryExpression : public ASTExpression
 {
 public:
-    ASTUnaryOperationExpression(std::unique_ptr<ASTExpression> _operand,
-                                util::OperatorType o)
-        : ASTExpression(UNARY_OPERATION_EXPR), operand(std::move(_operand)),
-          oper(o)
+    ASTUnaryExpression(std::unique_ptr<ASTExpression> _operand,
+                       util::OperatorType o)
+        : ASTExpression(UNARY_EXPR), operand(std::move(_operand)), oper(o)
     {
     }
 
@@ -51,14 +49,14 @@ public:
     util::OperatorType oper;
 };
 
-class ASTAssignmentOperationExpression : public ASTExpression
+class ASTAssignmentExpression : public ASTExpression
 {
 public:
-    ASTAssignmentOperationExpression(std::unique_ptr<ASTExpression> l,
-                                     std::unique_ptr<ASTExpression> r,
-                                     util::OperatorType o)
-        : ASTExpression(ASSIGNMENT_OPERATION_EXPR), lhs(std::move(l)),
-          rhs(std::move(r)), oper(o)
+    ASTAssignmentExpression(std::unique_ptr<ASTExpression> l,
+                            std::unique_ptr<ASTExpression> r,
+                            util::OperatorType o)
+        : ASTExpression(ASSIGNMENT_EXPR), lhs(std::move(l)), rhs(std::move(r)),
+          oper(o)
     {
     }
 
@@ -73,14 +71,14 @@ public:
     util::OperatorType oper;
 };
 
-class ASTArbitraryOperationExpression : public ASTExpression
+class ASTArbitraryOperandExpression : public ASTExpression
 {
 public:
-    ASTArbitraryOperationExpression(
+    ASTArbitraryOperandExpression(
         std::vector<std::unique_ptr<ASTExpression>> pOperands,
         util::OperatorType o)
-        : ASTExpression(ARBITRARY_OPERATION_EXPR),
-          operands(std::move(pOperands)), oper(o)
+        : ASTExpression(ARBITRARY_OPERAND_EXPR), operands(std::move(pOperands)),
+          oper(o)
     {
     }
 

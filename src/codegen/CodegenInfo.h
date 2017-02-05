@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/File.h"
+#include <memory>
 
 namespace codegen
 {

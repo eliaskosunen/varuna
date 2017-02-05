@@ -29,7 +29,7 @@ std::unique_ptr<ast::AST> Frontend::run()
 bool Frontend::runLexer()
 {
     util::logger->debug("Starting lexer");
-    lexer::Lexer l(file.get());
+    lexer::Lexer l(file);
     tokens = l.run();
     if(l.getError())
     {

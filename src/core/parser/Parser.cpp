@@ -89,7 +89,7 @@ namespace parser
 
             // Unsupported top-level token
             default:
-                parserError("'{}' is not allowed as a top-level token",
+                parserError(it - 1, "'{}' is not allowed as a top-level token",
                             it->value);
                 return;
             }
@@ -126,6 +126,7 @@ namespace parser
         // Either an identifier or a string literal
         std::string toImport;
         bool isPath = false;
+        const auto toImportIter = it;
 
         // Identifier:
         // Import a module/package by module/package statement
@@ -176,7 +177,8 @@ namespace parser
         }
         ++it; // Skip semicolon
 
-        auto toImportObj = std::make_unique<ASTIdentifierExpression>(toImport);
+        auto toImportObj =
+            createNode<ASTIdentifierExpression>(toImportIter, toImport);
         auto stmt = createNode<ASTImportStatement>(
             iter, importType, std::move(toImportObj), isPath);
         ++it;
@@ -442,9 +444,11 @@ namespace parser
                                it->value);
         }
         std::string name = it->value;
+        const auto nameIter = it;
         ++it; // Skip name
 
         std::string typen = "";
+        const auto typeIter = it + 1;
         if(it->type == TOKEN_PUNCT_COLON)
         {
             ++it; // Skip ':'
@@ -476,7 +480,7 @@ namespace parser
             return nullptr;
         }
 
-        auto name_ = std::make_unique<ASTIdentifierExpression>(name);
+        auto name_ = createNode<ASTIdentifierExpression>(nameIter, name);
 
         // Type will be inferred by the code generator
         if(typen.empty())
@@ -493,7 +497,7 @@ namespace parser
             return def;
         }
 
-        auto typename_ = std::make_unique<ASTIdentifierExpression>(typen);
+        auto typename_ = createNode<ASTIdentifierExpression>(typeIter, typen);
         auto def = createNode<ASTVariableDefinitionExpression>(
             iter, std::move(typename_), std::move(name_), std::move(init));
         def->isMutable = mut;
@@ -530,6 +534,7 @@ namespace parser
 
         // Construct module name
         std::string name;
+        const auto nameIter = it;
         while(true)
         {
             if(it->type == TOKEN_IDENTIFIER)
@@ -569,7 +574,7 @@ namespace parser
             ++it; // Skip '.'
         }
 
-        auto moduleName = std::make_unique<ASTIdentifierExpression>(name);
+        auto moduleName = createNode<ASTIdentifierExpression>(nameIter, name);
         return createNode<ASTModuleStatement>(iter, std::move(moduleName));
     }
 
@@ -616,7 +621,7 @@ namespace parser
             return parseVariableDefinition();
         }
 
-        auto id = std::make_unique<ASTIdentifierExpression>(idName);
+        auto id = createNode<ASTIdentifierExpression>(iter, idName);
 
         // Member access
         if(it->type == TOKEN_OPERATORB_MEMBER)
@@ -645,7 +650,7 @@ namespace parser
         };
 
         auto varref = createNode<ASTVariableRefExpression>(iter, idName);
-        std::unique_ptr<ASTAssignmentOperationExpression> assignment = nullptr;
+        std::unique_ptr<ASTAssignmentExpression> assignment = nullptr;
         if(isAssignmentOperator())
         {
             auto op = it;
@@ -654,7 +659,7 @@ namespace parser
             {
                 return nullptr;
             }
-            assignment = createNode<ASTAssignmentOperationExpression>(
+            assignment = createNode<ASTAssignmentExpression>(
                 op, std::move(varref), std::move(rhs),
                 op->type.convert<util::OperatorType>());
         }
@@ -665,7 +670,7 @@ namespace parser
         return std::move(assignment);
     }
 
-    std::unique_ptr<ast::ASTArbitraryOperationExpression>
+    std::unique_ptr<ast::ASTArbitraryOperandExpression>
     Parser::parseFunctionCallExpression(std::unique_ptr<ASTExpression> lhs)
     {
         const auto iter = it;
@@ -702,7 +707,7 @@ namespace parser
         }
 
         ++it; // Skip ')'
-        return createNode<ASTArbitraryOperationExpression>(
+        return createNode<ASTArbitraryOperandExpression>(
             iter, std::move(operands), util::OPERATORC_CALL);
     }
 
@@ -748,7 +753,7 @@ namespace parser
                 "Invalid cast: Expected identifier after '<', got '{}' instead",
                 it->value);
         }
-        auto type = std::make_unique<ASTIdentifierExpression>(it->value);
+        auto type = createNode<ASTIdentifierExpression>(it, it->value);
         ++it; // Skip identifier
 
         if(it->type != TOKEN_OPERATORB_GREATER)
@@ -904,7 +909,7 @@ namespace parser
                     "Invalid integer modifier: {}", lit->modifierInt.get()));
             }
             return createNode<ASTIntegerLiteralExpression>(
-                lit, val, std::make_unique<ASTIdentifierExpression>(type),
+                lit, val, createNode<ASTIdentifierExpression>(lit, type),
                 isSigned);
         }
         catch(std::invalid_argument& e)
@@ -950,7 +955,7 @@ namespace parser
                     "Invalid float modifier: {}", lit->modifierFloat.get()));
             }();
             return createNode<ASTFloatLiteralExpression>(
-                lit, val, std::make_unique<ASTIdentifierExpression>(type));
+                lit, val, createNode<ASTIdentifierExpression>(lit, type));
         }
         catch(std::invalid_argument& e)
         {
@@ -989,7 +994,7 @@ namespace parser
                                    "range: Value more than 1 byte: '{}'",
                                    lit->value);
             }
-            auto t = std::make_unique<ASTIdentifierExpression>("bchar");
+            auto t = createNode<ASTIdentifierExpression>(lit, "bchar");
             return createNode<ASTCharLiteralExpression>(lit, lit->value[0],
                                                         std::move(t));
         }
@@ -1007,7 +1012,7 @@ namespace parser
         }
         assert(result.size() == 1);
 
-        auto t = std::make_unique<ASTIdentifierExpression>("char");
+        auto t = createNode<ASTIdentifierExpression>(lit, "char");
         return createNode<ASTCharLiteralExpression>(lit, result[0],
                                                     std::move(t));
     }
@@ -1079,10 +1084,9 @@ namespace parser
                             auto lhs = std::move(operands.top());
                             operands.pop();
 
-                            auto expr =
-                                createNode<ASTBinaryOperationExpression>(
-                                    beginExprIt, std::move(lhs), std::move(rhs),
-                                    operators.top());
+                            auto expr = createNode<ASTBinaryExpression>(
+                                beginExprIt, std::move(lhs), std::move(rhs),
+                                operators.top());
                             operands.push(std::move(expr));
 
                             operators.pop();
@@ -1149,7 +1153,7 @@ namespace parser
                         auto lhs = std::move(operands.top());
                         operands.pop();
 
-                        auto expr = createNode<ASTBinaryOperationExpression>(
+                        auto expr = createNode<ASTBinaryExpression>(
                             beginExprIt, std::move(lhs), std::move(rhs),
                             operators.top());
                         operands.push(std::move(expr));
@@ -1223,7 +1227,7 @@ namespace parser
                 auto rhs = std::move(operands.top());
                 operands.pop();
 
-                auto expr = createNode<ASTUnaryOperationExpression>(
+                auto expr = createNode<ASTUnaryExpression>(
                     beginExprIt, std::move(rhs), operators.top());
                 operands.push(std::move(expr));
 
@@ -1240,7 +1244,7 @@ namespace parser
                 auto lhs = std::move(operands.top());
                 operands.pop();
 
-                auto expr = createNode<ASTBinaryOperationExpression>(
+                auto expr = createNode<ASTBinaryExpression>(
                     beginExprIt, std::move(lhs), std::move(rhs),
                     operators.top());
                 operands.push(std::move(expr));
@@ -1461,6 +1465,7 @@ namespace parser
                                it->value);
         }
         std::string name = it->value;
+        const auto nameIter = it;
         ++it; // Skip name
 
         if(it->type != TOKEN_PUNCT_COLON)
@@ -1472,6 +1477,7 @@ namespace parser
         ++it; // Skip ':'
 
         std::string typen = it->value;
+        const auto typeIter = it;
         ++it; // Skip type
 
         // Parse possible init expression
@@ -1490,8 +1496,8 @@ namespace parser
             return nullptr;
         }
 
-        auto typeExpr = std::make_unique<ASTIdentifierExpression>(typen);
-        auto nameExpr = std::make_unique<ASTIdentifierExpression>(name);
+        auto typeExpr = createNode<ASTIdentifierExpression>(typeIter, typen);
+        auto nameExpr = createNode<ASTIdentifierExpression>(nameIter, name);
         auto var = createNode<ASTVariableDefinitionExpression>(
             iter, std::move(typeExpr), std::move(nameExpr), std::move(init));
 
@@ -1509,7 +1515,7 @@ namespace parser
                                "identifier, got '{}' instead",
                                it->value);
         }
-        auto funcName = std::make_unique<ASTIdentifierExpression>(it->value);
+        auto funcName = createNode<ASTIdentifierExpression>(it, it->value);
         ++it; // Skip identifier
 
         if(it->type != TOKEN_PUNCT_PAREN_OPEN)
@@ -1563,9 +1569,9 @@ namespace parser
             }
         }
 
-        if(it->type == TOKEN_PUNCT_COLON)
+        if(it->type == TOKEN_PUNCT_ARROW)
         {
-            ++it; // Skip ':'
+            ++it; // Skip '->'
 
             if(it->type != TOKEN_IDENTIFIER)
             {
@@ -1575,7 +1581,7 @@ namespace parser
                     it->value);
             }
             auto returnType =
-                std::make_unique<ASTIdentifierExpression>(it->value);
+                createNode<ASTIdentifierExpression>(it, it->value);
             ++it; // Skip identifier
 
             auto fnName = funcName->value;
@@ -1589,7 +1595,7 @@ namespace parser
             return proto;
         }
         auto fnName = funcName->value;
-        auto returnType = std::make_unique<ASTIdentifierExpression>("void");
+        auto returnType = createNode<ASTIdentifierExpression>(it, "void");
         auto proto = createNode<ASTFunctionPrototypeStatement>(
             iter, std::move(funcName), std::move(returnType),
             std::move(params));
@@ -1616,16 +1622,19 @@ namespace parser
         if(it->type == TOKEN_PUNCT_SEMICOLON)
         {
             ++it; // Skip ';'
-            auto body = std::make_unique<ASTEmptyStatement>();
+            auto body = createNode<ASTEmptyStatement>(it - 1);
             return createNode<ASTFunctionDefinitionStatement>(
                 iter, std::move(proto), std::move(body));
         }
 
         if(it->type != TOKEN_PUNCT_BRACE_OPEN)
         {
-            return parserError("Invalid function definition: expected '{' to "
-                               "start function body, got '{}' instead",
-                               it->value);
+            parserError("Invalid function definition: expected '{{' or ';' to "
+                        "start function body, got '{}' instead",
+                        it->value);
+            parserInfo(it, "Add ';' (to make a declaration) or '{{' (to make a "
+                           "definition) here");
+            return nullptr;
         }
         if(auto body = parseBlockStatement())
         {
@@ -1645,9 +1654,12 @@ namespace parser
         }
         if(it->type != TOKEN_PUNCT_SEMICOLON)
         {
-            return parserError("Expected semicolon after expression statement, "
-                               "got '{}' instead",
-                               it->value);
+            parserError(it - 2,
+                        "Expected semicolon after expression statement, "
+                        "got '{}' instead",
+                        it->value);
+            parserInfo(it - 2, "Try adding a semicolon ';' here");
+            return nullptr;
         }
         ++it;
         return createNode<ASTWrappedExpressionStatement>(iter, std::move(expr));

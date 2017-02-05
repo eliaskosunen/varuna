@@ -19,7 +19,7 @@ static auto runLexer(const std::string& code)
     using namespace core::lexer;
 
     getFile()->setContent(code);
-    Lexer l(getFile().get());
+    Lexer l(getFile());
     return l.run();
 }
 

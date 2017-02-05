@@ -49,38 +49,19 @@ namespace parser
 
     private:
         template <typename... Args>
-        std::nullptr_t parserError(const std::string& format, Args&&... args)
-        {
-            error = ERROR_ERROR;
-            auto loc = [&]() {
-                if(it == tokens.begin())
-                {
-                    return util::SourceLocation(it->loc.file, 1, 1);
-                }
-                return (it - 1)->loc;
-            }();
-            util::logger->error("{}: {}", loc.toString(),
-                                fmt::format(format, args...));
-            return nullptr;
-        }
+        std::nullptr_t parserError(lexer::TokenVector::const_iterator iter,
+                                   const std::string& format, Args&&... args);
+        template <typename... Args>
+        void parserWarning(lexer::TokenVector::const_iterator iter,
+                           const std::string& format, Args&&... args);
+        template <typename... Args>
+        void parserInfo(lexer::TokenVector::const_iterator iter,
+                        const std::string& format, Args&&... args);
 
         template <typename... Args>
-        void parserWarning(const std::string& format, Args&&... args)
-        {
-            if(error != ERROR_ERROR)
-            {
-                error = ERROR_WARNING;
-            }
-            auto loc = [&]() {
-                if(it == tokens.begin())
-                {
-                    return util::SourceLocation(it->loc.file, 1, 1);
-                }
-                return (it - 1)->loc;
-            }();
-            util::logger->warn("{}: {}", (it - 1)->loc.toString(),
-                               fmt::format(format, args...));
-        }
+        std::nullptr_t parserError(const std::string& format, Args&&... args);
+        template <typename... Args>
+        void parserWarning(const std::string& format, Args&&... args);
 
         std::vector<std::unique_ptr<ast::ASTStatement>>& getGlobalNodeList()
         {
@@ -93,6 +74,7 @@ namespace parser
         {
             auto node = std::make_unique<T>(std::forward<Args>(args)...);
             node->loc = iter->loc;
+            node->ast = ast.get();
             return node;
         }
 
@@ -145,7 +127,7 @@ namespace parser
         parseNoneLiteralExpression();
 
         std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-        std::unique_ptr<ast::ASTArbitraryOperationExpression>
+        std::unique_ptr<ast::ASTArbitraryOperandExpression>
         parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
         std::unique_ptr<ast::ASTSubscriptExpression>
         parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
@@ -175,8 +157,10 @@ namespace parser
         std::unique_ptr<ast::ASTEmptyStatement> emptyStatement(bool skip = true)
         {
             if(skip)
+            {
                 ++it;
-            return std::make_unique<ast::ASTEmptyStatement>();
+            }
+            return createNode<ast::ASTEmptyStatement>(skip ? (it - 1) : it);
         }
 
         void _runParser();
@@ -227,6 +211,48 @@ namespace parser
     {
         assert(ast && "Trying to access nullptr AST");
         return std::move(ast);
+    }
+
+    template <typename... Args>
+    inline std::nullptr_t
+    Parser::parserError(lexer::TokenVector::const_iterator iter,
+                        const std::string& format, Args&&... args)
+    {
+        error = ERROR_ERROR;
+        return util::logCompilerError(file.get(), iter->loc, format,
+                                      std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    inline void Parser::parserWarning(lexer::TokenVector::const_iterator iter,
+                                      const std::string& format, Args&&... args)
+    {
+        if(error != ERROR_ERROR)
+        {
+            error = ERROR_WARNING;
+        }
+        util::logCompilerWarning(file.get(), iter->loc, format,
+                                 std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    inline void Parser::parserInfo(lexer::TokenVector::const_iterator iter,
+                                   const std::string& format, Args&&... args)
+    {
+        util::logCompilerInfo(file.get(), iter->loc, format,
+                              std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    inline std::nullptr_t Parser::parserError(const std::string& format,
+                                              Args&&... args)
+    {
+        return parserError(it, format, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    inline void Parser::parserWarning(const std::string& format, Args&&... args)
+    {
+        parserWarning(it, format, std::forward<Args>(args)...);
     }
 } // namespace parser
 } // namespace core

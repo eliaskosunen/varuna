@@ -62,12 +62,9 @@ private:
     template <typename... Args>
     void codegenWarning(ast::ASTNode* node, const std::string& format,
                         Args&&... args) const;
-
     template <typename... Args>
-    std::nullptr_t _codegenError(const std::string& format,
-                                 Args&&... args) const;
-    template <typename... Args>
-    void _codegenWarning(const std::string& format, Args&&... args) const;
+    void codegenInfo(ast::ASTNode* node, const std::string& format,
+                     Args&&... args) const;
 
     /// Find a function by name
     FunctionSymbol* findFunction(const std::string& name, ast::ASTNode* node,
@@ -143,12 +140,10 @@ public:
     std::unique_ptr<TypedValue> visit(ast::ASTBoolLiteralExpression* expr);
     std::unique_ptr<TypedValue> visit(ast::ASTNoneLiteralExpression* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTBinaryOperationExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTUnaryOperationExpression* expr);
-    std::unique_ptr<TypedValue>
-    visit(ast::ASTAssignmentOperationExpression* node);
-    std::unique_ptr<TypedValue>
-    visit(ast::ASTArbitraryOperationExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::ASTBinaryExpression* expr);
+    std::unique_ptr<TypedValue> visit(ast::ASTUnaryExpression* expr);
+    std::unique_ptr<TypedValue> visit(ast::ASTAssignmentExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::ASTArbitraryOperandExpression* node);
 
     std::unique_ptr<TypedValue> visit(ast::ASTEmptyStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* node);
@@ -183,10 +178,11 @@ inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
 {
     if(!node)
     {
-        return _codegenError(format, std::forward<Args>(args)...);
+        util::logger->error(format.c_str(), std::forward<Args>(args)...);
+        return nullptr;
     }
-    return _codegenError(fmt::format("{}: {}", node->loc.toString(), format),
-                         std::forward<Args>(args)...);
+    return util::logCompilerError(node->ast->file.get(), node->loc, format,
+                                  std::forward<Args>(args)...);
 }
 
 template <typename... Args>
@@ -196,25 +192,24 @@ inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
 {
     if(!node)
     {
-        _codegenWarning(format, std::forward<Args>(args)...);
+        util::logger->warn(format.c_str(), std::forward<Args>(args)...);
         return;
     }
-    _codegenWarning(fmt::format("{}: {}", node->loc.toString(), format),
-                    std::forward<Args>(args)...);
+    return util::logCompilerWarning(node->ast->file.get(), node->loc, format,
+                                    std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-inline std::nullptr_t CodegenVisitor::_codegenError(const std::string& format,
-                                                    Args&&... args) const
+inline void CodegenVisitor::codegenInfo(ast::ASTNode* node,
+                                        const std::string& format,
+                                        Args&&... args) const
 {
-    util::logger->error(format.c_str(), std::forward<Args>(args)...);
-    return nullptr;
-}
-
-template <typename... Args>
-inline void CodegenVisitor::_codegenWarning(const std::string& format,
-                                            Args&&... args) const
-{
-    util::logger->warn(format.c_str(), std::forward<Args>(args)...);
+    if(!node)
+    {
+        util::logger->info(format.c_str(), std::forward<Args>(args)...);
+        return;
+    }
+    return util::logCompilerInfo(node->ast->file.get(), node->loc, format,
+                                 std::forward<Args>(args)...);
 }
 } // namespace codegen

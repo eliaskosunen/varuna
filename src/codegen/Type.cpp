@@ -19,7 +19,8 @@ Type::Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Type::Kind k,
 
 Type::~Type() noexcept = default;
 
-bool Type::isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
+bool Type::isSameOrImplicitlyCastable(ast::ASTNode* node,
+                                      llvm::IRBuilder<>& builder,
                                       llvm::Value* val, Type* to) const
 {
     if(basicEqual(to))
@@ -27,7 +28,7 @@ bool Type::isSameOrImplicitlyCastable(llvm::IRBuilder<>& builder,
         return true;
     }
 
-    auto result = cast(builder, IMPLICIT, val, to);
+    auto result = cast(node, builder, IMPLICIT, val, to);
     return result != nullptr;
 }
 

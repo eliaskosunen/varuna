@@ -120,6 +120,7 @@ namespace lexer
         TOKEN_PUNCT_COLON = util::PUNCT_COLON,             // :
         TOKEN_PUNCT_SEMICOLON = util::PUNCT_SEMICOLON,     // ;
         TOKEN_PUNCT_COMMA = util::PUNCT_COMMA,             // ,
+        TOKEN_PUNCT_ARROW = util::PUNCT_ARROW,             // ->
 
         TOKEN_EOF = std::numeric_limits<TokenTypeUnderlying>::max()
     };

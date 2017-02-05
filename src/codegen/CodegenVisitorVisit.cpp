@@ -2,7 +2,6 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "codegen/CodegenVisitor.h"
 #include "ast/ASTControlStatement.h"
 #include "ast/ASTExpression.h"
 #include "ast/ASTFunctionStatement.h"
@@ -11,6 +10,7 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
+#include "codegen/CodegenVisitor.h"
 #include "codegen/TypeOperation.h"
 
 #define USE_LLVM_FUNCTION_VERIFY 0
@@ -50,8 +50,8 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
 
     auto boolt = types.find("bool");
     assert(boolt);
-    auto boolcond =
-        cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
+    auto boolcond = cond->type->cast(node->condition.get(), builder,
+                                     Type::IMPLICIT, cond->value, boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -146,8 +146,8 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     auto boolt = types.find("bool");
     assert(boolt);
-    auto boolcond =
-        cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
+    auto boolcond = cond->type->cast(node->end.get(), builder, Type::IMPLICIT,
+                                     cond->value, boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -231,8 +231,8 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
 
     auto boolt = types.find("bool");
     assert(boolt);
-    auto boolcond =
-        cond->type->cast(builder, Type::IMPLICIT, cond->value, boolt);
+    auto boolcond = cond->type->cast(node->condition.get(), builder,
+                                     Type::IMPLICIT, cond->value, boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -288,6 +288,11 @@ std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
 {
     auto symbol = symbols.find(node->value);
+    if(!symbol)
+    {
+        util::logger->trace("Node loc: '{}'", node->loc.toString());
+        return codegenError(node, "Undefined symbol: '{}'", node->value);
+    }
     return std::make_unique<TypedValue>(symbol->getType(),
                                         symbol->value->value);
 }
@@ -325,7 +330,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression* node)
         return nullptr;
     }
 
-    return castee->type->cast(builder, Type::CAST, castee->value, t);
+    return castee->type->cast(node, builder, Type::CAST, castee->value, t);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
@@ -492,8 +497,8 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
         }
 
         auto typeName = initExpr->type->getDecoratedName();
-        if(!initExpr->type->isSameOrImplicitlyCastable(builder, initExpr->value,
-                                                       type))
+        if(!initExpr->type->isSameOrImplicitlyCastable(var->init.get(), builder,
+                                                       initExpr->value, type))
         {
             return codegenError(
                 var->init.get(),
@@ -740,8 +745,11 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
     auto f = getASTNodeFunction(node);
     auto retType = types.findDecorated(f->returnType->value);
     assert(retType);
-    if(!ret->type->isSameOrImplicitlyCastable(builder, ret->value, retType))
+    if(!ret->type->isSameOrImplicitlyCastable(node->returnValue.get(), builder,
+                                              ret->value, retType))
     {
+        codegenInfo(node->getFunction()->proto->returnType.get(),
+                    "Function return type defined here");
         return nullptr;
     }
 
@@ -809,7 +817,7 @@ CodegenVisitor::visit(ast::ASTNoneLiteralExpression* node)
 }
 
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTBinaryOperationExpression* node)
+CodegenVisitor::visit(ast::ASTBinaryExpression* node)
 {
     auto lhs = node->lhs->accept(this);
     if(!lhs)
@@ -827,10 +835,9 @@ CodegenVisitor::visit(ast::ASTBinaryOperationExpression* node)
     operands.push_back(lhs.get());
     operands.push_back(rhs.get());
     return operands.front()->type->getOperations()->binaryOperation(
-        builder, node->oper, std::move(operands));
+        node, builder, node->oper, std::move(operands));
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTUnaryOperationExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTUnaryExpression* node)
 {
 
     auto operand = node->operand->accept(this);
@@ -842,10 +849,10 @@ CodegenVisitor::visit(ast::ASTUnaryOperationExpression* node)
     std::vector<TypedValue*> operands;
     operands.push_back(operand.get());
     return operands.front()->type->getOperations()->unaryOperation(
-        builder, node->oper, std::move(operands));
+        node, builder, node->oper, std::move(operands));
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTAssignmentOperationExpression* node)
+CodegenVisitor::visit(ast::ASTAssignmentExpression* node)
 {
     emitDebugLocation(node);
 
@@ -865,10 +872,10 @@ CodegenVisitor::visit(ast::ASTAssignmentOperationExpression* node)
     operands.push_back(lhs.get());
     operands.push_back(rhs.get());
     return operands.front()->type->getOperations()->assignmentOperation(
-        builder, node->oper, std::move(operands));
+        node, builder, node->oper, std::move(operands));
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTArbitraryOperationExpression* node)
+CodegenVisitor::visit(ast::ASTArbitraryOperandExpression* node)
 {
     emitDebugLocation(node);
 
@@ -893,7 +900,7 @@ CodegenVisitor::visit(ast::ASTArbitraryOperationExpression* node)
     }
 
     return operands.front()->type->getOperations()->arbitraryOperation(
-        builder, node->oper, std::move(operands));
+        node, builder, node->oper, std::move(operands));
 }
 
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyStatement*)
