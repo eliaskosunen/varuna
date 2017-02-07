@@ -181,7 +181,7 @@ inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
         util::logger->error(format.c_str(), std::forward<Args>(args)...);
         return nullptr;
     }
-    return util::logCompilerError(node->ast->file.get(), node->loc, format,
+    return util::logCompilerError(node->loc, format,
                                   std::forward<Args>(args)...);
 }
 
@@ -195,7 +195,7 @@ inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
         util::logger->warn(format.c_str(), std::forward<Args>(args)...);
         return;
     }
-    return util::logCompilerWarning(node->ast->file.get(), node->loc, format,
+    return util::logCompilerWarning(node->loc, format,
                                     std::forward<Args>(args)...);
 }
 
@@ -209,7 +209,7 @@ inline void CodegenVisitor::codegenInfo(ast::ASTNode* node,
         util::logger->info(format.c_str(), std::forward<Args>(args)...);
         return;
     }
-    return util::logCompilerInfo(node->ast->file.get(), node->loc, format,
+    return util::logCompilerInfo(node->loc, format,
                                  std::forward<Args>(args)...);
 }
 } // namespace codegen

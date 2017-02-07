@@ -18,7 +18,7 @@ namespace util
 /**
  * String utility functions
  */
-namespace StringUtils
+namespace stringutils
 {
     /**
      * Replace all occurences of needle with replacement in haystack
@@ -297,5 +297,5 @@ namespace StringUtils
         }
         return ret;
     }
-} // namespace StringUtils
+} // namespace stringutils
 } // namespace util

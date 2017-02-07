@@ -10,6 +10,7 @@
 
 namespace ast
 {
+/// if-statement
 class ASTIfStatement : public ASTStatement
 {
 public:
@@ -27,10 +28,16 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Condition
     std::unique_ptr<ASTExpression> condition;
-    std::unique_ptr<ASTStatement> ifBlock, elseBlock;
+    /// then-block
+    std::unique_ptr<ASTStatement> ifBlock;
+    /// else-block
+    /// ASTEmptyStatement if no else-block was set
+    std::unique_ptr<ASTStatement> elseBlock;
 };
 
+/// for-statement
 class ASTForStatement : public ASTStatement
 {
 public:
@@ -49,10 +56,18 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    std::unique_ptr<ASTExpression> init, end, step;
+    /// init-expression: for INIT,,
+    std::unique_ptr<ASTExpression> init;
+    /// end-expression: for ,END,
+    std::unique_ptr<ASTExpression> end;
+    /// step-expression: for ,,STEP
+    std::unique_ptr<ASTExpression> step;
+    /// Loop body
     std::unique_ptr<ASTStatement> block;
 };
 
+/// foreach-statement
+/// Currently unused
 class ASTForeachStatement : public ASTStatement
 {
 public:
@@ -74,6 +89,7 @@ public:
     std::unique_ptr<ASTStatement> block;
 };
 
+/// while-statement
 class ASTWhileStatement : public ASTStatement
 {
 public:
@@ -90,19 +106,24 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Condition
     std::unique_ptr<ASTExpression> condition;
+    /// Loop body
     std::unique_ptr<ASTStatement> block;
 };
 
+/// import-statement
 class ASTImportStatement : public ASTStatement
 {
 public:
-    enum ImportType
+    /// Type of import
+    enum _ImportType
     {
-        UNSPECIFIED = 0,
-        MODULE,
-        PACKAGE
+        UNSPECIFIED = 0, ///< import abc
+        MODULE,          ///< import module abc
+        PACKAGE          ///< import package abs
     };
+    using ImportType = util::SafeEnum<_ImportType>;
 
     ASTImportStatement(ImportType type,
                        std::unique_ptr<ASTIdentifierExpression> pImportee,
@@ -118,11 +139,14 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// What to import
     std::unique_ptr<ASTIdentifierExpression> importee;
     bool isPath;
+    /// Type of import
     ImportType importType;
 };
 
+/// module-satement
 class ASTModuleStatement : public ASTStatement
 {
 public:
@@ -137,6 +161,7 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Name of the module
     std::unique_ptr<ASTIdentifierExpression> moduleName;
 };
 } // namespace ast

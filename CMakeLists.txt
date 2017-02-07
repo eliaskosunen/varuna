@@ -5,6 +5,8 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+set(BUILD_TESTS "Build unit tests" ON)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CXX_STANDARD	"--std=c++14")
@@ -54,7 +56,6 @@ endif()
 
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake")
 message(STATUS "LLVM include directory: ${LLVM_INCLUDE_DIRS}")
 
 include_directories(${PROJECT_SOURCE_DIR})

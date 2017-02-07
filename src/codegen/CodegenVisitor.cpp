@@ -280,10 +280,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
                                                  ? TypeTable::FIND_MUTABLE
                                                  : TypeTable::FIND_DEFAULT);
     }
-    if(!type)
-    {
-        return err();
-    }
+    assert(type);
 
     // Type checks
     if(!type->isSized())

@@ -9,6 +9,7 @@
 
 namespace ast
 {
+/// Function parameter
 class ASTFunctionParameter : public ASTStatement
 {
 public:
@@ -23,10 +24,13 @@ public:
     accept(codegen::CodegenVisitor* v) override;
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
 
+    /// Parameter
     std::unique_ptr<ASTVariableDefinitionExpression> var;
+    /// 1 = first parameter, 2 = second parameter...
     uint32_t num;
 };
 
+/// Function prototype
 class ASTFunctionPrototypeStatement : public ASTStatement
 {
 public:
@@ -45,11 +49,17 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    std::unique_ptr<ASTIdentifierExpression> name, returnType;
+    /// Function name
+    std::unique_ptr<ASTIdentifierExpression> name;
+    /// Function return type
+    std::unique_ptr<ASTIdentifierExpression> returnType;
+    /// Function parameters
     std::vector<std::unique_ptr<ASTFunctionParameter>> params;
+    /// Is function a main function
     bool isMain{false};
 };
 
+/// Function definition
 class ASTFunctionDefinitionStatement : public ASTStatement
 {
 public:
@@ -75,11 +85,16 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Function prototype
     std::unique_ptr<ASTFunctionPrototypeStatement> proto;
+    /// Function body
+    /// Empty block statement if declaration
     std::unique_ptr<ASTBlockStatement> body;
+    /// Is a function declaration
     bool isDecl{false};
 };
 
+/// return-statement
 class ASTReturnStatement : public ASTStatement
 {
 public:
@@ -94,6 +109,7 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Return value
     std::unique_ptr<ASTExpression> returnValue;
 };
 } // namespace ast

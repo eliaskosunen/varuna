@@ -4,6 +4,7 @@
 
 #pragma once
 
+// C++ standard version
 #define CPP_STD_VERSION __cplusplus
 #define CPP_STD_98 199711L
 #define CPP_STD_11 201103L
@@ -11,6 +12,7 @@
 
 #ifdef _MSC_VER
 
+// __cplusplus doesn't work on MSVC
 #if _MSC_VER >= 1900
 #define CPP_STD_IS_11 0
 #define CPP_STD_IS_14 1
@@ -30,6 +32,7 @@
 
 #endif // _MSC_VER
 
+// C++14 or newer is required
 #if CPP_STD_IS11
 #error C++ Standard version not supported
 #endif

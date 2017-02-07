@@ -18,13 +18,14 @@ namespace codegen
 Optimizer::Optimizer(llvm::Module* m, CodegenInfo i)
     : module(m), info(i),
       fpm(std::make_unique<llvm::legacy::FunctionPassManager>(m)),
-      mpm{std::make_unique<llvm::legacy::PassManager>()},
-      optLevel(info.optLevel), sizeLevel(info.sizeLevel)
+      mpm{std::make_unique<llvm::legacy::PassManager>()}
 {
 }
 
 Optimizer::~Optimizer()
 {
+    // Required for some reason
+    // C'mon LLVM, C++ has RAII
     fpm->doFinalization();
 }
 
@@ -39,12 +40,15 @@ void Optimizer::init()
 
 void Optimizer::run()
 {
+    // Run function passes on each function of the module
     for(auto& func : *module)
     {
         fpm->run(func);
     }
+    // Verify
     fpm->add(llvm::createVerifierPass());
 
+    // Run module passes and verify
     mpm->add(llvm::createVerifierPass());
     mpm->run(*module);
     mpm->add(llvm::createVerifierPass());
@@ -52,6 +56,8 @@ void Optimizer::run()
 
 void Optimizer::initPasses()
 {
+    // Initialize all LLVM passes
+    // Copy-pasted from somewhere, the documentation sucks bad on this
     llvm::PassRegistry& Registry = *llvm::PassRegistry::getPassRegistry();
     llvm::initializeCore(Registry);
     llvm::initializeScalarOpts(Registry);
@@ -78,18 +84,22 @@ void Optimizer::initPasses()
 
 void Optimizer::addPasses(llvm::TargetMachine* tm)
 {
+    // Based on an LLVM example program
     fpm->add(llvm::createVerifierPass());
 
     llvm::PassManagerBuilder builder;
-    builder.OptLevel = optLevel;
-    builder.SizeLevel = sizeLevel;
+    builder.OptLevel = info.optLevel;
+    builder.SizeLevel = info.sizeLevel;
 
-    if(optLevel >= 1)
+    if(info.optLevel >= 1)
     {
-        builder.Inliner = llvm::createFunctionInliningPass(optLevel, sizeLevel);
+        // Inline only on >= -O1
+        builder.Inliner =
+            llvm::createFunctionInliningPass(info.optLevel, info.sizeLevel);
     }
     else
     {
+        // Only inline `alwaysinline`s on -O0
         builder.Inliner = llvm::createAlwaysInlinerPass();
     }
 
@@ -110,8 +120,8 @@ void Optimizer::addLinkPasses()
 {
     llvm::PassManagerBuilder builder;
     builder.VerifyInput = true;
-    builder.OptLevel = optLevel;
-    builder.SizeLevel = sizeLevel;
+    builder.OptLevel = info.optLevel;
+    builder.SizeLevel = info.sizeLevel;
 
     builder.populateLTOPassManager(*mpm);
 }

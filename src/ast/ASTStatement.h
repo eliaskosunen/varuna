@@ -12,6 +12,7 @@
 
 namespace ast
 {
+/// Generic statement
 class ASTStatement : public ASTNode
 {
 public:
@@ -36,6 +37,7 @@ protected:
     }
 };
 
+/// Empty statement
 class ASTEmptyStatement : public ASTStatement
 {
 public:
@@ -50,20 +52,19 @@ public:
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 };
 
+/// Block statement
 class ASTBlockStatement : public ASTStatement
 {
 public:
-    using Statement = std::unique_ptr<ASTStatement>;
-    using StatementVector = std::vector<Statement>;
-
     ASTBlockStatement() : ASTStatement(BLOCK_STMT)
     {
     }
-    explicit ASTBlockStatement(Statement first) : ASTStatement(BLOCK_STMT)
+    explicit ASTBlockStatement(std::unique_ptr<ASTStatement> first)
+        : ASTStatement(BLOCK_STMT)
     {
         nodes.push_back(std::move(first));
     }
-    explicit ASTBlockStatement(StatementVector vec)
+    explicit ASTBlockStatement(std::vector<std::unique_ptr<ASTStatement>>&& vec)
         : ASTStatement(BLOCK_STMT), nodes(std::move(vec))
     {
     }
@@ -74,9 +75,11 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    StatementVector nodes;
+    /// Node list
+    std::vector<std::unique_ptr<ASTStatement>> nodes;
 };
 
+/// Wrapped expression/expression statement
 class ASTWrappedExpressionStatement : public ASTStatement
 {
 public:
@@ -91,6 +94,7 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Expression inside the statement
     std::unique_ptr<ASTExpression> expr;
 };
 } // namespace ast

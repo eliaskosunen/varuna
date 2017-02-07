@@ -11,6 +11,7 @@
 
 namespace util
 {
+/// Source file
 class File
 {
 public:
@@ -29,27 +30,60 @@ public:
 
     ~File() noexcept = default;
 
-    /// Read file contents
+    /**
+     * Read file contents
+     * @return Success
+     */
     bool readFile();
-    /// Check if utf8 in the file is valid
+    /**
+     * Check for utf8 validity in the file
+     * @return Success
+     */
     bool checkUtf8();
-    /// Calculates checksum of the file
+    /**
+     * Calculate the checksum of the file
+     */
     [[noreturn]] void calculateChecksum();
 
+    /**
+     * Get filename
+     * @return Filename
+     */
     const std::string& getFilename() const;
+    /**
+     * Get contents
+     * @return Contents
+     */
     const std::string& getContent() const;
 
+    /**
+     * Get a line of contents.
+     * Throws at invalid line number
+     * @param  line Line number
+     * @return      Line contents
+     */
     const std::string& getLine(uint32_t line);
 
+    /**
+     * Set content of the file
+     * @param c File contents
+     */
     void setContent(const std::string& c);
     void setContent(std::string&& c);
 
 private:
+    /// Actually read the file
     std::string _readFile(const std::string& fname);
 
-    std::string filename, content;
+    /// Filename
+    std::string filename;
+    /// File contents
+    std::string content;
+    /// Rows of the file
     std::vector<std::string> contentRows;
+    /// File checksum
     Checksum_t checksum;
+    /// Are file contents usable
     bool contentValid;
 };
 

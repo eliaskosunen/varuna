@@ -6,8 +6,8 @@
 
 module code;
 
-def fn() -> int;
+def fn(a: char, b: int, c: float) -> int;
 
 def main() -> int {
-    return fn() * 3;
+    return fn('a', 1, 2.0);
 }

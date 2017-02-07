@@ -8,6 +8,7 @@
 
 namespace codegen
 {
+/// An abstraction layer over code generation classes
 class Generator
 {
 public:
@@ -15,17 +16,31 @@ public:
 
     Generator(std::shared_ptr<ast::AST> t);
 
+    /**
+     * Run code generation
+     * @return Success
+     */
     bool run();
 
+    /**
+     * Consume the code generator class
+     * @return Generator class
+     */
     std::unique_ptr<GeneratorClass> get();
 
+    /**
+     * Get generator identifier
+     * @return Identifier
+     */
     constexpr const char* getIdentifier() const noexcept
     {
         return "Varuna Compiler Code Generator";
     }
 
 private:
+    /// AST
     std::shared_ptr<ast::AST> ast;
+    /// Code generator
     std::unique_ptr<GeneratorClass> c;
 };
 }

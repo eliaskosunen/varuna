@@ -29,7 +29,7 @@ public:
     std::nullptr_t operationError(ast::ASTNode* node, const std::string& format,
                                   Args&&... args) const
     {
-        return util::logCompilerError(node->ast->file.get(), node->loc, format,
+        return util::logCompilerError(node->loc, format,
                                       std::forward<Args>(args)...);
     }
 
@@ -37,7 +37,7 @@ public:
     void operationWarning(ast::ASTNode* node, const std::string& format,
                           Args&&... args) const
     {
-        util::logCompilerWarning(node->ast->file.get(), node->loc, format,
+        util::logCompilerWarning(node->loc, format,
                                  std::forward<Args>(args)...);
     }
 
@@ -45,8 +45,7 @@ public:
     void operationInfo(ast::ASTNode* node, const std::string& format,
                        Args&&... args) const
     {
-        util::logCompilerInfo(node->ast->file.get(), node->loc, format,
-                              std::forward<Args>(args)...);
+        util::logCompilerInfo(node->loc, format, std::forward<Args>(args)...);
     }
 
     /// Assignment operations

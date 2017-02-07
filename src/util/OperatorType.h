@@ -8,7 +8,7 @@
 
 namespace util
 {
-enum OperatorType_t
+enum _OperatorType
 {
     OPERATORA_SIMPLE = 400, // =
     OPERATORA_ADD,          // +=
@@ -70,5 +70,5 @@ enum OperatorType_t
     PUNCT_ARROW             // ->
 };
 
-using OperatorType = util::SafeEnum<OperatorType_t>;
+using OperatorType = util::SafeEnum<_OperatorType>;
 }

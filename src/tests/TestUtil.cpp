@@ -2,35 +2,22 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "util/StreamReader.h"
 #include "util/StringUtils.h"
 #include <doctest.h>
 #include <string>
 #include <vector>
 
-TEST_CASE("StreamReader tests")
-{
-    util::StreamReader sr;
-
-    SUBCASE("Reading file")
-    {
-        std::string str = sr.readFile("./test.txt");
-
-        CHECK(str == "TEST \n");
-    }
-}
-
-TEST_CASE("StringUtils tests")
+TEST_CASE("stringutils tests")
 {
     using namespace util;
 
-    CHECK(StringUtils::replaceAllCopy("foo", "o", "a") == "faa");
-    CHECK(StringUtils::ltrimCopy("   foo") == "foo");
-    CHECK(StringUtils::rtrimCopy("foo   ") == "foo");
-    CHECK(StringUtils::trimCopy("  foo  ") == "foo");
-    CHECK(StringUtils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
-    CHECK(StringUtils::cstrToString("foo") == "foo");
-    CHECK(StringUtils::charToString('a') == "a");
+    CHECK(stringutils::replaceAllCopy("foo", "o", "a") == "faa");
+    CHECK(stringutils::ltrimCopy("   foo") == "foo");
+    CHECK(stringutils::rtrimCopy("foo   ") == "foo");
+    CHECK(stringutils::trimCopy("  foo  ") == "foo");
+    CHECK(stringutils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
+    CHECK(stringutils::cstrToString("foo") == "foo");
+    CHECK(stringutils::charToString('a') == "a");
 }
 
 template <typename T>
@@ -64,9 +51,9 @@ void testIsChar(T&& f, std::vector<util::char_t>&& is,
     }
 }
 
-TEST_CASE("StringUtils isCharSomething")
+TEST_CASE("stringutils isCharSomething")
 {
-    using namespace util::StringUtils;
+    using namespace util::stringutils;
 
     testIsChar(isCharAlpha, {'a', 'b', 'c', 'd', 'e', 'f', 'q', 'w', 'r', 't',
                              'y', 'z', 'A', 'Y', 'Y', 'L', 'M', 'A', 'O'},

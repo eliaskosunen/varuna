@@ -219,7 +219,7 @@ namespace parser
                         const std::string& format, Args&&... args)
     {
         error = ERROR_ERROR;
-        return util::logCompilerError(file.get(), iter->loc, format,
+        return util::logCompilerError(iter->loc, format,
                                       std::forward<Args>(args)...);
     }
     template <typename... Args>
@@ -230,7 +230,7 @@ namespace parser
         {
             error = ERROR_WARNING;
         }
-        util::logCompilerWarning(file.get(), iter->loc, format,
+        util::logCompilerWarning(iter->loc, format,
                                  std::forward<Args>(args)...);
     }
 
@@ -238,8 +238,7 @@ namespace parser
     inline void Parser::parserInfo(lexer::TokenVector::const_iterator iter,
                                    const std::string& format, Args&&... args)
     {
-        util::logCompilerInfo(file.get(), iter->loc, format,
-                              std::forward<Args>(args)...);
+        util::logCompilerInfo(iter->loc, format, std::forward<Args>(args)...);
     }
 
     template <typename... Args>

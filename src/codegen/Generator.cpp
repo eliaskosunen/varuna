@@ -9,15 +9,19 @@ namespace codegen
 {
 Generator::Generator(std::shared_ptr<ast::AST> t) : ast(t), c{nullptr}
 {
+    // Create CodegenInfo based on ProgramOptions
     const auto& opt = util::viewProgramOptions().getOptLevel();
     CodegenInfo cinfo{t->file, std::get<0>(opt), std::get<1>(opt),
                       util::viewProgramOptions().emitDebug};
+
+    // Create code generator
     c = std::make_unique<GeneratorClass>(t, cinfo);
 }
 
 bool Generator::run()
 {
     util::logger->debug("Starting code generation");
+    // Run code generator
     if(!c->run())
     {
         util::logger->debug("Code generation failed");

@@ -15,7 +15,7 @@ namespace core
 {
 namespace lexer
 {
-    enum TokenIntegerLiteralModifier_t
+    enum _TokenIntegerLiteralModifier
     {
         INTEGER_INT = 1,    // none
         INTEGER_INT8 = 2,   // i8
@@ -30,7 +30,7 @@ namespace lexer
         INTEGER_NONE = 0
     };
 
-    enum TokenFloatLiteralModifier_t
+    enum _TokenFloatLiteralModifier
     {
         FLOAT_FLOAT = 1,   // none
         FLOAT_F64 = 2,     // f64
@@ -40,7 +40,7 @@ namespace lexer
         FLOAT_NONE = 0
     };
 
-    enum TokenCharLiteralModifier_t
+    enum _TokenCharLiteralModifier
     {
         CHAR_CHAR = 1, // none
         CHAR_BYTE = 2, // b...
@@ -49,10 +49,10 @@ namespace lexer
     };
 
     using TokenIntegerLiteralModifier =
-        util::SafeEnum<TokenIntegerLiteralModifier_t>;
+        util::SafeEnum<_TokenIntegerLiteralModifier>;
     using TokenFloatLiteralModifier =
-        util::SafeEnum<TokenFloatLiteralModifier_t>;
-    using TokenCharLiteralModifier = util::SafeEnum<TokenCharLiteralModifier_t>;
+        util::SafeEnum<_TokenFloatLiteralModifier>;
+    using TokenCharLiteralModifier = util::SafeEnum<_TokenCharLiteralModifier>;
 
     struct Token final
     {

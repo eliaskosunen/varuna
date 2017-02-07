@@ -9,13 +9,28 @@
 
 namespace codegen
 {
+/// Module symbol table
 class SymbolTable
 {
 public:
     SymbolTable() = default;
 
+    /**
+     * Find a symbol by name and kind
+     * @param  name     Name of the symbol
+     * @param  type     Kind of the symbol
+     * @param  logError Log the error
+     * @return          Found symbol or nullptr on error
+     */
     Symbol* find(const std::string& name, Type::Kind type,
                  bool logError = false);
+    /**
+     * Find symbol by name and optionally by Type
+     * @param  name     Name of the symbol
+     * @param  type     Type of the symbol
+     * @param  logError Log the error
+     * @return          Found symbol or nullptr on error
+     */
     Symbol* find(const std::string& name, Type* type = nullptr,
                  bool logError = false);
     const Symbol* find(const std::string& name, Type::Kind type,
@@ -23,13 +38,38 @@ public:
     const Symbol* find(const std::string& name, Type* type = nullptr,
                        bool logError = false) const;
 
+    /**
+     * Is symbol defined
+     * @param  name Name of the symbol
+     * @param  kind Kind of the symbol
+     * @return      isDefined
+     */
     bool isDefined(const std::string& name, Type::Kind kind) const;
+    /**
+     * Is symbol defined
+     * @param  name Name of the symbol
+     * @param  type Type of the symbol
+     * @return      isDefined
+     */
     bool isDefined(const std::string& name, Type* type = nullptr) const;
 
+    /**
+     * Add a new scope
+     */
     void addBlock();
+    /**
+     * Remove the top scope
+     */
     void removeTopBlock();
+    /**
+     * Clear all scopes
+     */
     void clear();
 
+    /**
+     * Get the top scope
+     * @return Top scope
+     */
     auto& getTop()
     {
         assert(!list.empty() && "Cannot get the top of a empty symbol list");
@@ -41,6 +81,10 @@ public:
         return list.back();
     }
 
+    /**
+     * Get the entire symbol table
+     * @return Symbol list
+     */
     auto& getList()
     {
         return list;
@@ -50,11 +94,15 @@ public:
         return list;
     }
 
+    /**
+     * Dump the symbol table to stdout
+     */
     void dump() const;
 
     std::vector<Symbol*> findExports() const;
 
 private:
+    /// The table itself
     std::vector<std::unordered_map<std::string, std::unique_ptr<Symbol>>> list;
 };
 

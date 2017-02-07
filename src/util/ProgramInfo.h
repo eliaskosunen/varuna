@@ -15,25 +15,32 @@ namespace programinfo
 {
     namespace version
     {
-        enum Status : uint8_t
+        // Version type
+        enum class Status : uint8_t
         {
-            STABLE = 0,
-            RC = 1,
-            DEV = 2
+            STABLE = 0, ///< Stable release
+            RC = 1,     ///< Release candidate
+            DEV = 2     ///< Development version
         };
 
-        constexpr uint8_t major = 0;
-        constexpr uint8_t minor = 1;
-        constexpr uint8_t patch = 0;
-        constexpr Status status = DEV;
-        constexpr uint8_t rc = 0;
+        constexpr uint8_t major = 0; ///< Major version number: X.x.x
+        constexpr uint8_t minor = 1; ///< Minor version number: x.X.x
+        constexpr uint8_t patch = 0; ///< Patch number: x.x.X
+        constexpr uint8_t rc = 0;    ///< Release candidate number: x.x.x-rcX
+        constexpr Status status = Status::DEV; ///< Version type
 
+        /**
+         * Format a version string
+         * @return Formatted version
+         */
         const std::string& toString();
     } // namespace version
 
+    /// Program name
     constexpr const char* name = "Varuna";
-
+    /// Program identifier
     const std::string& getIdentifier();
+    /// Program build date
     const std::string& getBuildDate();
 } // namespace programinfo
 } // namespace util

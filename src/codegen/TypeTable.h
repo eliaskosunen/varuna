@@ -15,28 +15,28 @@ class TypeTable
 public:
     TypeTable() = default;
 
-    enum FindFlags_t : uint32_t
+    enum _FindFlags : uint32_t
     {
         FIND_DEFAULT = 0,
         FIND_MUTABLE = 1 << 0
     };
-    using FindFlags = util::SafeEnum<FindFlags_t, uint32_t>;
+    using FindFlags = util::SafeEnum<_FindFlags, uint32_t>;
 
     Type* find(const std::string& name, FindFlags flags = FIND_DEFAULT,
-               bool logError = true);
+               bool logError = false);
     std::vector<Type*> findUndecorated(const std::string& name,
-                                       bool logError = true);
-    Type* findDecorated(const std::string& name, bool logError = true);
-    std::vector<Type*> findLLVM(llvm::Type* type, bool logError = true);
+                                       bool logError = false);
+    Type* findDecorated(const std::string& name, bool logError = false);
+    std::vector<Type*> findLLVM(llvm::Type* type, bool logError = false);
 
     const Type* find(const std::string& name, FindFlags flags = FIND_DEFAULT,
-                     bool logError = true) const;
+                     bool logError = false) const;
     const std::vector<Type*> findUndecorated(const std::string& name,
-                                             bool logError = true) const;
+                                             bool logError = false) const;
     const Type* findDecorated(const std::string& name,
-                              bool logError = true) const;
+                              bool logError = false) const;
     const std::vector<Type*> findLLVM(llvm::Type* type,
-                                      bool logError = true) const;
+                                      bool logError = false) const;
 
     size_t isDefined(const std::string& name, FindFlags = FIND_DEFAULT) const;
     size_t isDefinedUndecorated(const std::string& name) const;

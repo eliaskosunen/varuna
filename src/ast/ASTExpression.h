@@ -11,6 +11,7 @@
 
 namespace ast
 {
+/// Generic expression
 class ASTExpression : public ASTNode
 {
 public:
@@ -35,6 +36,7 @@ protected:
     }
 };
 
+/// Empty expression
 class ASTEmptyExpression : public ASTExpression
 {
 public:
@@ -49,10 +51,11 @@ public:
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 };
 
+/// Identifier expression
 class ASTIdentifierExpression : public ASTExpression
 {
 public:
-    explicit ASTIdentifierExpression(std::string val)
+    explicit ASTIdentifierExpression(std::string&& val)
         : ASTExpression(IDENTIFIER_EXPR), value(std::move(val))
     {
     }
@@ -68,6 +71,7 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Textual value of the identifier
     std::string value;
 
 protected:
@@ -77,13 +81,21 @@ protected:
     }
 };
 
+/// Variable reference expression
 class ASTVariableRefExpression : public ASTIdentifierExpression
 {
 public:
-    explicit ASTVariableRefExpression(std::string val)
-        : ASTIdentifierExpression(VARIABLE_REF_EXPR, val)
+    explicit ASTVariableRefExpression(std::string&& val)
+        : ASTIdentifierExpression(VARIABLE_REF_EXPR, std::move(val))
     {
     }
+
+    ASTVariableRefExpression(const ASTVariableRefExpression&) = delete;
+    ASTVariableRefExpression&
+    operator=(const ASTVariableRefExpression&) = delete;
+    ASTVariableRefExpression(ASTVariableRefExpression&&) = default;
+    ASTVariableRefExpression& operator=(ASTVariableRefExpression&&) = default;
+    ~ASTVariableRefExpression() override = default;
 
     void accept(DumpASTVisitor* v, size_t ind = 0) override;
     std::unique_ptr<codegen::TypedValue>

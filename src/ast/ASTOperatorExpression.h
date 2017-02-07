@@ -10,6 +10,7 @@
 
 namespace ast
 {
+/// Binary-operand expression
 class ASTBinaryExpression : public ASTExpression
 {
 public:
@@ -26,10 +27,15 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    std::unique_ptr<ASTExpression> lhs, rhs;
+    /// Left-hand side
+    std::unique_ptr<ASTExpression> lhs;
+    /// Right-hand side
+    std::unique_ptr<ASTExpression> rhs;
+    /// Operator
     util::OperatorType oper;
 };
 
+/// Unary-operand expression
 class ASTUnaryExpression : public ASTExpression
 {
 public:
@@ -45,10 +51,13 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Operand
     std::unique_ptr<ASTExpression> operand;
+    /// Operator
     util::OperatorType oper;
 };
 
+/// Assignment expression
 class ASTAssignmentExpression : public ASTExpression
 {
 public:
@@ -66,11 +75,15 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Left-hand side
     std::unique_ptr<ASTExpression> lhs;
+    /// Right-hand side
     std::unique_ptr<ASTExpression> rhs;
+    /// Operator
     util::OperatorType oper;
 };
 
+/// Arbitrary-operand expression
 class ASTArbitraryOperandExpression : public ASTExpression
 {
 public:
@@ -88,7 +101,9 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
+    /// Operand list
     std::vector<std::unique_ptr<ASTExpression>> operands;
+    /// Operator
     util::OperatorType oper;
 };
 } // namespace ast

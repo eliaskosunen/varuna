@@ -12,10 +12,12 @@
 
 namespace ast
 {
+/// A node in the AST
 class ASTNode
 {
 public:
-    enum NodeType_t
+    /// Node type
+    enum _NodeType
     {
         NODE = -1,
 
@@ -55,8 +57,7 @@ public:
         WHILE_STMT,
         WRAPPED_EXPR_STMT
     };
-
-    using NodeType = util::SafeEnum<NodeType_t>;
+    using NodeType = util::SafeEnum<_NodeType>;
 
     ASTNode() = default;
     ASTNode(const ASTNode&) = delete;
@@ -65,6 +66,12 @@ public:
     ASTNode& operator=(ASTNode&&) = default;
     virtual ~ASTNode() noexcept = default;
 
+    /**
+     * Get the ASTFunctionDefinitionStatement of the node
+     * Requires a ASTParentSolverVisitor beforehand
+     * @return Pointer to the function, or nullptr if none was found (e.g.
+     * Global node without a function)
+     */
     ASTFunctionDefinitionStatement* getFunction()
     {
         return _getFunction();
@@ -74,17 +81,28 @@ public:
     virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
     virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
 
+    /// NodeType of this ASTNode
     NodeType nodeType{NODE};
+    /// The parent of this ASTNode
+    /// nullptr by default, run ASTParentSolverVisitor to assign a value
+    /// If this is nullptr after parent solving, this is a root node
     ASTNode* parent{nullptr};
+    /// Is ASTNode marked to be an exported symbol
     bool isExport{false};
+    /// Location of this file in the source code
     util::SourceLocation loc;
+    /// Tree of this node
+    /// nullptr by default, is not set automatically, set yourself after
+    /// creation
     AST* ast{nullptr};
 
 protected:
+    /// Constructor for child nodes
     explicit ASTNode(NodeType t) : nodeType(t)
     {
     }
 
+    /// Actual implementation of getFunction()
     ASTFunctionDefinitionStatement* _getFunction();
 };
 } // namespace ast

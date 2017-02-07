@@ -48,17 +48,6 @@ public:
         BITCAST
     };
 
-    /*
-    tuple<bool, bool, CastOps>
-    isError
-    castNeeded
-    castOperation
-     */
-    // using CastTuple = std::tuple<bool, bool, llvm::Instruction::CastOps>;
-    using CastTuple = std::tuple<bool, std::unique_ptr<TypedValue>>;
-    const decltype(llvm::Instruction::BitCast) defaultCast =
-        llvm::Instruction::BitCast;
-
     Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
          llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n,
          bool mut = false);
@@ -67,30 +56,6 @@ public:
     Type(Type&&) = default;
     Type& operator=(Type&&) = default;
     virtual ~Type() noexcept;
-
-    template <typename... Args>
-    std::nullptr_t castError(ast::ASTNode* node, const std::string& format,
-                             Args&&... args) const
-    {
-        return util::logCompilerError(node->ast->file.get(), node->loc, format,
-                                      std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    void castWarning(ast::ASTNode* node, const std::string& format,
-                     Args&&... args) const
-    {
-        util::logCompilerWarning(node->ast->file.get(), node->loc, format,
-                                 std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    void castInfo(ast::ASTNode* node, const std::string& format,
-                  Args&&... args) const
-    {
-        util::logCompilerInfo(node->ast->file.get(), node->loc, format,
-                              std::forward<Args>(args)...);
-    }
 
     virtual std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                              llvm::IRBuilder<>& builder,
@@ -186,6 +151,29 @@ protected:
     std::unique_ptr<TypedValue> implicitCast(ast::ASTNode* node,
                                              llvm::IRBuilder<>& builder,
                                              llvm::Value* val, Type* to) const;
+
+    template <typename... Args>
+    std::nullptr_t castError(ast::ASTNode* node, const std::string& format,
+                             Args&&... args) const
+    {
+        return util::logCompilerError(node->loc, format,
+                                      std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    void castWarning(ast::ASTNode* node, const std::string& format,
+                     Args&&... args) const
+    {
+        util::logCompilerWarning(node->loc, format,
+                                 std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    void castInfo(ast::ASTNode* node, const std::string& format,
+                  Args&&... args) const
+    {
+        util::logCompilerInfo(node->loc, format, std::forward<Args>(args)...);
+    }
 
 private:
     std::string name;

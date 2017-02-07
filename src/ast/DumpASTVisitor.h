@@ -10,6 +10,7 @@
 
 namespace ast
 {
+/// Dump the AST to stdout
 class DumpASTVisitor final : public Visitor
 {
 public:
@@ -30,17 +31,10 @@ public:
     DumpASTVisitor& operator=(const DumpASTVisitor&) = delete;
     DumpASTVisitor& operator=(DumpASTVisitor&&) = default;
 
-    template <typename... Args>
-    void log(const std::string& format, Args... args);
-    template <typename... Args>
-    void log(size_t ind, const std::string& format, Args... args);
-
-    template <typename T>
-    void start(T* root);
-    void finish();
-
-    /// Dump the AST
-    /// \param node Root node
+    /**
+     * Dump an AST
+     * @param node Root node, must be an ASTNode or derivative
+     */
     template <typename T>
     static void dump(T* node)
     {
@@ -50,6 +44,15 @@ public:
     }
 
 private:
+    template <typename T>
+    void start(T* root);
+    void finish();
+
+    template <typename... Args>
+    void log(const std::string& format, Args... args);
+    template <typename... Args>
+    void log(size_t ind, const std::string& format, Args... args);
+
     std::shared_ptr<spdlog::logger> astlogger;
 
 public:

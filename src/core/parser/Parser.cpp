@@ -177,8 +177,8 @@ namespace parser
         }
         ++it; // Skip semicolon
 
-        auto toImportObj =
-            createNode<ASTIdentifierExpression>(toImportIter, toImport);
+        auto toImportObj = createNode<ASTIdentifierExpression>(
+            toImportIter, std::move(toImport));
         auto stmt = createNode<ASTImportStatement>(
             iter, importType, std::move(toImportObj), isPath);
         ++it;
@@ -480,7 +480,8 @@ namespace parser
             return nullptr;
         }
 
-        auto name_ = createNode<ASTIdentifierExpression>(nameIter, name);
+        auto name_ =
+            createNode<ASTIdentifierExpression>(nameIter, std::move(name));
 
         // Type will be inferred by the code generator
         if(typen.empty())
@@ -497,7 +498,8 @@ namespace parser
             return def;
         }
 
-        auto typename_ = createNode<ASTIdentifierExpression>(typeIter, typen);
+        auto typename_ =
+            createNode<ASTIdentifierExpression>(typeIter, std::move(typen));
         auto def = createNode<ASTVariableDefinitionExpression>(
             iter, std::move(typename_), std::move(name_), std::move(init));
         def->isMutable = mut;
@@ -574,7 +576,8 @@ namespace parser
             ++it; // Skip '.'
         }
 
-        auto moduleName = createNode<ASTIdentifierExpression>(nameIter, name);
+        auto moduleName =
+            createNode<ASTIdentifierExpression>(nameIter, std::move(name));
         return createNode<ASTModuleStatement>(iter, std::move(moduleName));
     }
 
@@ -621,7 +624,7 @@ namespace parser
             return parseVariableDefinition();
         }
 
-        auto id = createNode<ASTIdentifierExpression>(iter, idName);
+        auto id = createNode<ASTIdentifierExpression>(iter, std::move(idName));
 
         // Member access
         if(it->type == TOKEN_OPERATORB_MEMBER)
@@ -649,7 +652,8 @@ namespace parser
             return parseExpression();
         };
 
-        auto varref = createNode<ASTVariableRefExpression>(iter, idName);
+        auto varref =
+            createNode<ASTVariableRefExpression>(iter, std::move(id->value));
         std::unique_ptr<ASTAssignmentExpression> assignment = nullptr;
         if(isAssignmentOperator())
         {
@@ -753,7 +757,8 @@ namespace parser
                 "Invalid cast: Expected identifier after '<', got '{}' instead",
                 it->value);
         }
-        auto type = createNode<ASTIdentifierExpression>(it, it->value);
+        auto idvalue = it->value;
+        auto type = createNode<ASTIdentifierExpression>(it, std::move(idvalue));
         ++it; // Skip identifier
 
         if(it->type != TOKEN_OPERATORB_GREATER)
@@ -909,7 +914,8 @@ namespace parser
                     "Invalid integer modifier: {}", lit->modifierInt.get()));
             }
             return createNode<ASTIntegerLiteralExpression>(
-                lit, val, createNode<ASTIdentifierExpression>(lit, type),
+                lit, val,
+                createNode<ASTIdentifierExpression>(lit, std::move(type)),
                 isSigned);
         }
         catch(std::invalid_argument& e)
@@ -955,7 +961,8 @@ namespace parser
                     "Invalid float modifier: {}", lit->modifierFloat.get()));
             }();
             return createNode<ASTFloatLiteralExpression>(
-                lit, val, createNode<ASTIdentifierExpression>(lit, type));
+                lit, val,
+                createNode<ASTIdentifierExpression>(lit, std::move(type)));
         }
         catch(std::invalid_argument& e)
         {
@@ -977,7 +984,8 @@ namespace parser
         const auto lit = it;
         ++it;
 
-        return createNode<ASTStringLiteralExpression>(lit, lit->value);
+        auto val = lit->value;
+        return createNode<ASTStringLiteralExpression>(lit, std::move(val));
     }
 
     std::unique_ptr<ASTCharLiteralExpression>
@@ -1269,8 +1277,8 @@ namespace parser
             util::logger->trace("Parsed import statement: importee: '{}', "
                                 "isPath: '{}', type: '{}'",
                                 import->importee->value, import->isPath,
-                                static_cast<int>(import->importType));
-            getAST().pushStatement(std::move(import));
+                                import->importType.get());
+            getAST().push(std::move(import));
         }
         else
         {
@@ -1284,7 +1292,7 @@ namespace parser
         {
             util::logger->trace("Parsed module statement: moduleName: '{}'",
                                 module->moduleName->value);
-            getAST().pushStatement(std::move(module));
+            getAST().push(std::move(module));
         }
         else
         {
@@ -1301,7 +1309,7 @@ namespace parser
                                 def->proto->name->value,
                                 def->proto->returnType->value,
                                 def->proto->params.size());
-            getAST().pushStatement(std::move(def));
+            getAST().push(std::move(def));
         }
         else
         {
@@ -1314,7 +1322,7 @@ namespace parser
         if(auto stmt = emptyStatement())
         {
             util::logger->trace("Parsed empty statement");
-            getAST().pushStatement(std::move(stmt));
+            getAST().push(std::move(stmt));
         }
         else
         {
@@ -1332,7 +1340,7 @@ namespace parser
                                 expr->var->typeInferred ? expr->var->type->value
                                                         : "(will be inferred)",
                                 expr->var->isMutable);
-            getAST().pushStatement(wrapExpression(std::move(expr)));
+            getAST().push(wrapExpression(std::move(expr)));
         }
         else
         {
@@ -1360,7 +1368,7 @@ namespace parser
                                 expr->var->typeInferred ? expr->var->type->value
                                                         : "(will be inferred)",
                                 expr->var->isMutable);
-            getAST().pushStatement(wrapExpression(std::move(expr)));
+            getAST().push(wrapExpression(std::move(expr)));
         }
         else if(it->type == TOKEN_KEYWORD_DEFINE)
         {
@@ -1377,7 +1385,7 @@ namespace parser
                                 def->proto->name->value,
                                 def->proto->returnType->value,
                                 def->proto->params.size());
-            getAST().pushStatement(std::move(def));
+            getAST().push(std::move(def));
         }
         else
         {
@@ -1496,8 +1504,10 @@ namespace parser
             return nullptr;
         }
 
-        auto typeExpr = createNode<ASTIdentifierExpression>(typeIter, typen);
-        auto nameExpr = createNode<ASTIdentifierExpression>(nameIter, name);
+        auto typeExpr =
+            createNode<ASTIdentifierExpression>(typeIter, std::move(typen));
+        auto nameExpr =
+            createNode<ASTIdentifierExpression>(nameIter, std::move(name));
         auto var = createNode<ASTVariableDefinitionExpression>(
             iter, std::move(typeExpr), std::move(nameExpr), std::move(init));
 
@@ -1515,7 +1525,9 @@ namespace parser
                                "identifier, got '{}' instead",
                                it->value);
         }
-        auto funcName = createNode<ASTIdentifierExpression>(it, it->value);
+        auto funcidvalue = it->value;
+        auto funcName =
+            createNode<ASTIdentifierExpression>(it, std::move(funcidvalue));
         ++it; // Skip identifier
 
         if(it->type != TOKEN_PUNCT_PAREN_OPEN)
@@ -1580,8 +1592,9 @@ namespace parser
                     "identifier in return type, got '{}' instead",
                     it->value);
             }
+            auto idvalue = it->value;
             auto returnType =
-                createNode<ASTIdentifierExpression>(it, it->value);
+                createNode<ASTIdentifierExpression>(it, std::move(idvalue));
             ++it; // Skip identifier
 
             auto fnName = funcName->value;

@@ -16,32 +16,36 @@ namespace ast
 class AST final
 {
 public:
+    /**
+     * AST constructor
+     * @param  f Source file of AST
+     */
     explicit AST(std::shared_ptr<util::File> f)
         : globalNode(std::make_unique<ASTBlockStatement>()), file(f)
     {
     }
 
-    /// Push a statement in the root node of the AST
-    void pushStatement(std::unique_ptr<ASTStatement> stmt)
+    /**
+     * Push a statement to the global node list
+     * @param node Node to push
+     */
+    void push(std::unique_ptr<ASTStatement> node)
     {
-        globalNode->nodes.push_back(std::move(stmt));
+        globalNode->nodes.push_back(std::move(node));
     }
 
-    /// Wrap the expression and push it in the AST
-    void pushExpression(std::unique_ptr<ASTExpression> expr)
-    {
-        auto stmt =
-            std::make_unique<ASTWrappedExpressionStatement>(std::move(expr));
-        pushStatement(std::move(stmt));
-    }
-
-    /// Get root node count
+    /**
+     * Get the amount of global nodes
+     * @return Global node count
+     */
     size_t countTopLevelNodes()
     {
         return globalNode->nodes.size();
     }
 
+    /// Global node
     std::unique_ptr<ASTBlockStatement> globalNode;
+    /// Source file of the tree
     std::shared_ptr<util::File> file;
 };
 } // namespace ast

@@ -11,14 +11,15 @@
 
 namespace ast
 {
+/// Integer literal
 class ASTIntegerLiteralExpression : public ASTExpression
 {
 public:
     ASTIntegerLiteralExpression(int64_t val,
                                 std::unique_ptr<ASTIdentifierExpression> pType,
                                 bool pIsSigned = true)
-        : ASTExpression(INTEGER_LITERAL_EXPR), value(val), isSigned(pIsSigned),
-          type(std::move(pType))
+        : ASTExpression(INTEGER_LITERAL_EXPR), type(std::move(pType)),
+          value(val), isSigned(pIsSigned)
     {
     }
 
@@ -28,17 +29,21 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    int64_t value;
-    bool isSigned;
+    /// Type of the literal
     std::unique_ptr<ASTIdentifierExpression> type;
+    /// Value of the literal
+    int64_t value;
+    /// Is a signed integer
+    bool isSigned;
 };
 
+/// Floating-point literal
 class ASTFloatLiteralExpression : public ASTExpression
 {
 public:
     ASTFloatLiteralExpression(double val,
                               std::unique_ptr<ASTIdentifierExpression> pType)
-        : ASTExpression(FLOAT_LITERAL_EXPR), value(val), type(std::move(pType))
+        : ASTExpression(FLOAT_LITERAL_EXPR), type(std::move(pType)), value(val)
     {
     }
 
@@ -48,16 +53,20 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    double value;
+    /// Type of the literal
     std::unique_ptr<ASTIdentifierExpression> type;
+    /// Value of the literal
+    double value;
 };
 
+/// String literal
 class ASTStringLiteralExpression : public ASTExpression
 {
 public:
-    explicit ASTStringLiteralExpression(const std::string& val)
-        : ASTExpression(STRING_LITERAL_EXPR), value(val),
-          type(std::make_unique<ASTIdentifierExpression>("string"))
+    explicit ASTStringLiteralExpression(std::string&& val)
+        : ASTExpression(STRING_LITERAL_EXPR),
+          type(std::make_unique<ASTIdentifierExpression>("string")),
+          value(std::move(val))
     {
     }
 
@@ -67,16 +76,19 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    const std::string& value;
+    /// Type of the literal
     std::unique_ptr<ASTIdentifierExpression> type;
+    /// Value of the literal
+    std::string value;
 };
 
+/// Character literal
 class ASTCharLiteralExpression : public ASTExpression
 {
 public:
     ASTCharLiteralExpression(char32_t val,
                              std::unique_ptr<ASTIdentifierExpression> pType)
-        : ASTExpression(CHAR_LITERAL_EXPR), value(val), type(std::move(pType))
+        : ASTExpression(CHAR_LITERAL_EXPR), type(std::move(pType)), value(val)
     {
     }
 
@@ -86,16 +98,19 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    char32_t value;
+    /// Type of the literal
     std::unique_ptr<ASTIdentifierExpression> type;
+    /// Value of the literal
+    char32_t value;
 };
 
+/// Boolean literal
 class ASTBoolLiteralExpression : public ASTExpression
 {
 public:
     explicit ASTBoolLiteralExpression(bool val)
-        : ASTExpression(BOOL_LITERAL_EXPR), value(val),
-          type(std::make_unique<ASTIdentifierExpression>("bool"))
+        : ASTExpression(BOOL_LITERAL_EXPR),
+          type(std::make_unique<ASTIdentifierExpression>("bool")), value(val)
     {
     }
 
@@ -105,10 +120,14 @@ public:
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
-    bool value;
+    /// Type of the literal
     std::unique_ptr<ASTIdentifierExpression> type;
+    /// Value of the literal
+    bool value;
 };
 
+/// None literal
+/// Unused
 class ASTNoneLiteralExpression : public ASTExpression
 {
 public:

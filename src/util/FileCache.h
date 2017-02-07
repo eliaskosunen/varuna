@@ -6,7 +6,6 @@
 
 #include "util/File.h"
 #include "util/Logger.h"
-#include "util/StreamReader.h"
 #include <utf8.h>
 #include <stdexcept>
 #include <string>
@@ -14,6 +13,7 @@
 
 namespace util
 {
+/// Storage of source files
 class FileCache
 {
 public:
@@ -21,6 +21,7 @@ public:
     {
     }
 
+    /// Get the entire cache
     auto& getCache()
     {
         return cache;
@@ -29,19 +30,47 @@ public:
     {
         return cache;
     }
-
+    /**
+     * Get a file by filename
+     * @param name Filename
+     * @return Shared pointer to file
+     */
     std::shared_ptr<File> getFile(const std::string& name) const;
+    /**
+     * Get the names of all files
+     * @return Name list
+     */
     std::vector<std::string> getFilenameList() const;
 
+    /**
+     * Get all files
+     * @return File list
+     */
     std::vector<std::shared_ptr<File>> getFiles() const;
 
-    std::vector<std::shared_ptr<File>>
-    getFilesByNames(const std::vector<std::string>& names) const;
+    /**
+     * Get list of files by filename
+     * @param names Vector of filenames
+     */
+    template <typename T>
+    std::vector<std::shared_ptr<File>> getFilesByNames(const T& names) const;
 
+    /**
+     * Add a file to the cache
+     * @param  file File
+     * @param  read Read the file
+     * @return      Success
+     */
     bool addFile(std::shared_ptr<File> file, bool read = true);
-    bool addFile(const std::string& name, bool read = true);
+    /**
+     * Add a file to the cache
+     * @param  name Filename
+     * @return      Success
+     */
+    bool addFile(const std::string& name);
 
 private:
+    /// The cache itself
     std::unordered_map<std::string, std::shared_ptr<File>> cache;
 };
 
@@ -77,8 +106,9 @@ inline std::vector<std::shared_ptr<File>> FileCache::getFiles() const
     return files;
 }
 
+template <typename T>
 inline std::vector<std::shared_ptr<File>>
-FileCache::getFilesByNames(const std::vector<std::string>& names) const
+FileCache::getFilesByNames(const T& names) const
 {
     std::vector<std::shared_ptr<File>> files;
     files.reserve(names.size());
@@ -115,9 +145,9 @@ inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
     cache.insert({file->getFilename(), file});
     return true;
 }
-inline bool FileCache::addFile(const std::string& name, bool read)
+inline bool FileCache::addFile(const std::string& name)
 {
     auto file = std::make_shared<File>(name);
-    return addFile(std::move(file), read);
+    return addFile(std::move(file), true);
 }
 } // namespace util

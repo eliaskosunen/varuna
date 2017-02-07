@@ -364,8 +364,8 @@ std::string FunctionType::paramVectorToString(const std::vector<Type*>& params,
 std::string FunctionType::functionTypeToString(Type* returnType,
                                                const std::vector<Type*>& params)
 {
-    return fmt::format("{}({})", returnType->getDecoratedName(),
-                       paramVectorToString(params, false));
+    return fmt::format("({}) -> {}", paramVectorToString(params, false),
+                       returnType->getDecoratedName());
 }
 
 llvm::DISubroutineType* FunctionType::createDebugFunctionType(

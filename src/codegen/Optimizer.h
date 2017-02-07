@@ -7,6 +7,7 @@
 #include "codegen/CodegenInfo.h"
 #include <memory>
 
+// Forward declarations to avoid inclusion of LLVM headers
 namespace llvm
 {
 class Module;
@@ -21,6 +22,7 @@ namespace legacy
 
 namespace codegen
 {
+// LLVM module optimizer
 class Optimizer
 {
 public:
@@ -33,21 +35,36 @@ public:
     Optimizer& operator=(const Optimizer&) = delete;
     Optimizer& operator=(Optimizer&&) = default;
 
-    /// Initialize optimizer passes
+    /**
+     * Initialize optimizer passes
+     */
     void init();
-    /// Run the passes
+    /**
+     * Run the initialized passes
+     */
     void run();
 
 private:
+    /**
+     * Initialize LLVM passes
+     */
     void initPasses();
+    /**
+     * Add LLVM passes based on optimization level
+     * @param tm Target machine
+     */
     void addPasses(llvm::TargetMachine* tm = nullptr);
+    /**
+     * Add LLVM LTO passes
+     */
     void addLinkPasses();
 
+    /// LLVM module
     llvm::Module* module;
     CodegenInfo info;
+    /// Function pass manager
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+    /// Module pass manager
     std::unique_ptr<llvm::legacy::PassManager> mpm;
-    uint8_t optLevel;
-    uint8_t sizeLevel;
 };
 } // namespace codegen

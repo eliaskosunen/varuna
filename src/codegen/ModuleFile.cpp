@@ -15,8 +15,8 @@ namespace codegen
                            llvm::Module* m, llvm::IRBuilder<>& b)
         : info(i), context(c), module(m), builder(b)
     {
-        auto pathparts = util::StringUtils::split(info.filename, '/');
-        auto nameparts = util::StringUtils::split(pathparts.back(), '.');
+        auto pathparts = util::stringutils::split(info.filename, '/');
+        auto nameparts = util::stringutils::split(pathparts.back(), '.');
         if(nameparts.back() != "va")
         {
             nameparts.push_back("vamod");

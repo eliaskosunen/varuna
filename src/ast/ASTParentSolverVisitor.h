@@ -10,13 +10,16 @@
 
 namespace ast
 {
+/// Solves the parents of ASTNdes
 class ASTParentSolverVisitor final : public Visitor
 {
 public:
     ASTParentSolverVisitor() = default;
 
-    /// Solve parents of ASTNodes
-    /// \param root Root node
+    /**
+     * Run the visitor
+     * @param root Pointer to ASTNode or similar, root node of the tree
+     */
     template <typename T>
     void run(T* root)
     {

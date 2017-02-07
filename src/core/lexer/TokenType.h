@@ -14,7 +14,7 @@ namespace lexer
 {
     using TokenTypeUnderlying = int32_t;
 
-    enum TokenType_t
+    enum _TokenType
     {
         TOKEN_UNDEFINED = -1,
         TOKEN_DEFAULT = 0,
@@ -125,6 +125,6 @@ namespace lexer
         TOKEN_EOF = std::numeric_limits<TokenTypeUnderlying>::max()
     };
 
-    using TokenType = util::SafeEnum<TokenType_t, TokenTypeUnderlying>;
+    using TokenType = util::SafeEnum<_TokenType, TokenTypeUnderlying>;
 } // namespace lexer
 } // namespace core

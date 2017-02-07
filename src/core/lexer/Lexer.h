@@ -33,9 +33,8 @@ namespace lexer
 
         explicit Lexer(std::shared_ptr<util::File> f)
             : warningsAsErrors(false), content(f->getContent()),
-              it(content.begin()), end(content.end()),
-              currentLocation(f->getFilename(), 1, 1), error(ERROR_NONE),
-              file(f)
+              it(content.begin()), end(content.end()), currentLocation(f, 1, 1),
+              error(ERROR_NONE), file(f)
         {
         }
 
@@ -119,7 +118,7 @@ namespace lexer
     inline void Lexer::lexerError(const util::string_t& format, Args&&... args)
     {
         error = ERROR_ERROR;
-        util::logCompilerError(file.get(), currentLocation, format,
+        util::logCompilerError(currentLocation, format,
                                std::forward<Args>(args)...);
     }
 
@@ -131,7 +130,7 @@ namespace lexer
         {
             error = ERROR_WARNING;
         }
-        util::logCompilerWarning(file.get(), currentLocation, format,
+        util::logCompilerWarning(currentLocation, format,
                                  std::forward<Args>(args)...);
     }
 
@@ -154,7 +153,7 @@ namespace lexer
 
     inline void Lexer::_next()
     {
-        it += 1;
+        it++;
         if(it != end)
         {
             if(*it == '\t')
