@@ -22,10 +22,12 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                CodegenInfo i)
     : context{c}, module(m), info{i}, builder(context), dbuilder(*m),
       dcu{dbuilder.createCompileUnit(
+          // Let's pretend for a moment that we're C
           llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
           util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
       dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())}
 {
+    // Create types
     types.insertTypeWithVariants<VoidType>(context, dbuilder, false);
     types.insertTypeWithVariants<IntType>(context, dbuilder, true);
     types.insertTypeWithVariants<Int8Type>(context, dbuilder, true);
@@ -46,12 +48,15 @@ bool CodegenVisitor::codegen(ast::AST* ast)
 {
     if(info.emitDebug)
     {
+        // Add DWARF version to the module
         module->addModuleFlag(llvm::Module::Warning, "Debug Info Version",
                               llvm::DEBUG_METADATA_VERSION);
     }
 
+    // Set source filename
     module->setSourceFileName(ast->file->getFilename());
 
+    // Codegen all children
     auto root = ast->globalNode.get();
     symbols.addBlock();
     for(auto& child : root->nodes)
@@ -64,7 +69,9 @@ bool CodegenVisitor::codegen(ast::AST* ast)
 
     auto exports = symbols.findExports();
 
+    // Only dump global symbols because all other symbols have been popped
     symbols.dump();
+
     symbols.removeTopBlock();
 
     stripInstructionsAfterTerminators();
@@ -72,6 +79,7 @@ bool CodegenVisitor::codegen(ast::AST* ast)
     dbuilder.finalize();
 
 #if USE_LLVM_MODULE_VERIFY
+    // Buggy, don't use
     util::logger->trace("Verifying module");
     if(!llvm::verifyModule(*module))
     {
@@ -92,11 +100,14 @@ void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
     {
         if(!node)
         {
+            // We're on function prologue, unset the location
+            // This way the debugger will skip it
             builder.SetCurrentDebugLocation(llvm::DebugLoc());
             return;
         }
 
         auto scope = [&]() -> llvm::DIScope* {
+            // Return DICompileUnit if no scopes are found
             if(dblocks.empty())
             {
                 return dcu;
@@ -118,36 +129,63 @@ void CodegenVisitor::writeExports()
     }
 
     auto filename = fmt::format("{}.vamod", info.file->getFilename());
+
+    throw std::logic_error("CodegenVisitor::writeExports is unimplemented");
 }
 
 void CodegenVisitor::stripInstructionsAfterTerminators()
 {
+    // Iterate every function
     for(auto& func : *module)
     {
+        // Iterate every BasicBlock
         for(auto& bb : func)
         {
-            bool termFound = false;
-            for(auto inst = bb.begin(); inst != bb.end();)
+            bool termFound = false; // Did we find a block terminator
+            // Iterate every instruction
+            for(auto inst = bb.begin(); inst != bb.end(); /* NO STEP */)
             {
                 if(!termFound && inst->isTerminator())
                 {
+                    // Current instruction is a terminator,
+                    // and no termination has been found
+                    // previously in this block
                     termFound = true;
+                    // Step to the next instruction and continue
+                    // This will not skip one instruction like it
+                    // normally would in for-loops, because the loop
+                    // has no step expression
                     ++inst;
                     continue;
                 }
+
+                // Terminator has been found in this block
                 if(termFound)
                 {
+                    // Remove the instruction
                     inst = inst->eraseFromParent();
                 }
                 else
                 {
+                    // Otherwise go to the next instruction
                     ++inst;
                 }
             }
+
+            // No terminator instruction has been found in this block
+            // Insert an 'unreachable'-instruction
+            // TODO: This might lead to unexpected bugs in generated code
             if(!termFound)
             {
+                // Save current insert point
+                auto insert = builder.GetInsertBlock();
+
+                // Add 'unreachable'
                 builder.SetInsertPoint(&bb);
                 builder.CreateUnreachable();
+
+                // Roll back to the previous insert point
+                builder.SetInsertPoint(insert);
             }
         }
     }
@@ -156,9 +194,15 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
 FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
                                              ast::ASTNode* node, bool logError)
 {
-    auto f = symbols.find(name, Type::FUNCTION, false);
+    // Find a symbol with a similar name
+    auto f = symbols.find(name, Type::FUNCTION);
     if(f)
     {
+        // Found one!
+        // SymbolTable::find() returns a Symbol*, but we need a FunctionSymbol*.
+        // Because we searched with Type::FUNCTION, it's guaranteed to actually
+        // be a FunctionSymbol.
+        // Therefore, a static_cast is safe
         auto func = static_cast<FunctionSymbol*>(f);
         assert(func->value->value);
         return func;
@@ -179,13 +223,15 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
     auto func = findFunction(name, nullptr, false);
     if(func)
     {
-        // Check for type
+        // Check if the types match
         if(func->value->type == type)
         {
+            // Declaration's already been done, no need to redo it.
             return func;
         }
         else
         {
+            // Function signatures don't match!
             return codegenError(proto,
                                 "Function declaration failed: Mismatching "
                                 "prototypes for similarly named functions: "
@@ -223,18 +269,18 @@ CodegenVisitor::createEntryBlockAlloca(llvm::Function* func, llvm::Type* type,
 ast::ASTFunctionPrototypeStatement*
 CodegenVisitor::getASTNodeFunction(ast::ASTNode* node) const
 {
+    // Use ASTNode::getFunction(), which was made for this
     auto f = node->getFunction();
     if(!f)
     {
         return nullptr;
     }
-
-    auto casted = dynamic_cast<ast::ASTFunctionDefinitionStatement*>(f);
-    return casted->proto.get();
+    return f->proto.get();
 }
 
 llvm::Constant* CodegenVisitor::createStringConstant(const char* str)
 {
+    // FIXME
     llvm::Constant* strConst = llvm::ConstantDataArray::getString(context, str);
     auto gvStr = new llvm::GlobalVariable(*module, strConst->getType(), true,
                                           llvm::GlobalValue::InternalLinkage,
@@ -247,18 +293,20 @@ llvm::Constant* CodegenVisitor::createStringConstant(const char* str)
     return strVal;
 }
 
-std::tuple<Type*, std::unique_ptr<TypedValue>>
+std::pair<Type*, std::unique_ptr<TypedValue>>
 CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
 {
+    // Define some lambdas for easier returning
     auto ret = [](Type* t, std::unique_ptr<TypedValue> i) {
-        return std::make_tuple(t, std::move(i));
+        return std::make_pair(t, std::move(i));
     };
-    auto err = [](std::nullptr_t n = nullptr) { return std::make_tuple(n, n); };
+    auto err = [](std::nullptr_t n = nullptr) { return std::make_pair(n, n); };
 
     // Initializer
     std::unique_ptr<TypedValue> init = nullptr;
     if(node->init->nodeType != ast::ASTNode::EMPTY_EXPR)
     {
+        // Only codegen if there actually is an initializer
         init = node->init->accept(this);
         if(!init)
         {
@@ -285,19 +333,21 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     // Type checks
     if(!type->isSized())
     {
+        // It needs to be sized
         return err(codegenError(node->type.get(),
                                 "Cannot create a variable of unsized type: {}",
                                 type->getDecoratedName()));
     }
     if(types.isDefinedUndecorated(node->name->value) != 0)
     {
+        // Cannot name variable as an already defined typename
         return err(codegenError(
             node->type.get(), "Cannot name variable as '{}': Reserved typename",
             node->name->value));
     }
 
-    // No initializer:
-    // Init as undefined
+    // If there's no initializer,
+    // the value is undef
     if(!init)
     {
         if(node->isMutable)

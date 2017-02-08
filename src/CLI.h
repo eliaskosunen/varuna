@@ -7,6 +7,7 @@
 #include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
 
+/// Command line interface
 class CLI final
 {
 public:

@@ -10,6 +10,11 @@
 #include "util/File.h"
 #include "util/ProgramOptions.h"
 
+/**
+ * Run a frontend, such as `core`
+ * @param  file File to run frontend on
+ * @return      AST generated from file
+ */
 template <class Frontend>
 inline std::unique_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
 {
@@ -30,6 +35,11 @@ inline std::unique_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
     return ast;
 }
 
+/**
+ * Run code generation on AST
+ * @param  ast AST to generate code of
+ * @return     Codegen class
+ */
 template <class Generator>
 inline std::unique_ptr<typename Generator::GeneratorClass>
 generate(std::shared_ptr<ast::AST> ast)

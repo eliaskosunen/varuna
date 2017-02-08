@@ -104,10 +104,12 @@ int CLI::run()
 
     if(licenseArg)
     {
+        // License requested, show it and quit
         showLicense();
         return 0;
     }
 
+    // Create Runner
     int threads = jobsArg;
     if(threads < 0)
     {
@@ -124,6 +126,7 @@ int CLI::run()
     }
     if(inputFilesArg.size() > 1)
     {
+        // TODO: Multiple input files
         util::logger->error("Only one input file is supported");
         return -1;
     }
@@ -134,6 +137,7 @@ int CLI::run()
     util::getProgramOptions().inputFilenames = std::move(filelist);
     util::getProgramOptions().outputFilename = std::move(outputFileArg);
 
+    // Int size
     int intSize = intSizeArg;
     if(intSize == 0)
     {
@@ -143,6 +147,7 @@ int CLI::run()
 
     util::getProgramOptions().emitDebug = debugArg;
 
+    // Run it
     if(!runner.run())
     {
         util::logger->info("Compilation failed");

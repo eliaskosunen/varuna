@@ -26,17 +26,26 @@
 
 namespace codegen
 {
+/// Visits the AST and generates code for it.
+/// The heart of codegen
 class CodegenVisitor final : public ast::Visitor
 {
 public:
     CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m, CodegenInfo i);
 
-    /// Visit AST
+    /**
+     * Visit the AST and generate code for it
+     * @param  ast AST to visit
+     * @return     Success
+     */
     bool codegen(ast::AST* ast);
 
-    /// Visit AST and get symbols
-    /// For importing modules
-    std::vector<std::unique_ptr<Symbol>> codegenImport(ast::AST* ast);
+    /**
+     * Visit the AST and get symbols to import
+     * @param  ast AST to visit
+     * @return     Symbol list
+     */
+    SymbolTable&& codegenImport(ast::AST* ast);
 
     /// Dump the module to stdout
     void dumpModule() const
@@ -45,6 +54,12 @@ public:
     }
 
 private:
+    /**
+     * Add current source location information to the module.
+     * Checks for '-g' itself.
+     * @param node Location to use, or nullptr to reset location information
+     * (e.g. for function prologues)
+     */
     void emitDebugLocation(ast::ASTNode* node);
 
     void writeExports();
@@ -56,6 +71,13 @@ private:
     /// Get a typed dummy value
     std::unique_ptr<TypedValue> getTypedDummyValue();
 
+    /**
+     * Log an error
+     * @param  node   Errorenous node
+     * @param  format Message format
+     * @param  args   Format arguments
+     * @return        nullptr
+     */
     template <typename... Args>
     std::nullptr_t codegenError(ast::ASTNode* node, const std::string& format,
                                 Args&&... args) const;
@@ -66,41 +88,93 @@ private:
     void codegenInfo(ast::ASTNode* node, const std::string& format,
                      Args&&... args) const;
 
-    /// Find a function by name
+    /**
+     * Find a function by name
+     * @param  name     Function name
+     * @param  node     Node that calls the function
+     * @param  logError Log the error
+     * @return          FunctionSymbol*, nullptr on error
+     */
     FunctionSymbol* findFunction(const std::string& name, ast::ASTNode* node,
                                  bool logError = true);
-    /// Get the prototype of the function of node
+
+    /**
+     * Get the ASTFunctionPrototypeStatement of an ASTNode.
+     * Searches parents recursively. Requires a ASTParentSolverVisitor run.
+     * @return ASTFunctionPrototypeStatement*, or nullptr on error
+     */
     ast::ASTFunctionPrototypeStatement*
     getASTNodeFunction(ast::ASTNode* node) const;
-    /// Declare function
+    /**
+     * Declare a function.
+     * Doesn't redeclare if a function with similar name and type is already
+     * declared.
+     * Generates code for the prototype.
+     * @param  type  FunctionType of function
+     * @param  name  Name of function
+     * @param  proto ASTFunctionPrototypeStatement of function
+     * @return       Created FunctionSymbol, or nullptr on error
+     */
     FunctionSymbol* declareFunction(FunctionType* type, const std::string& name,
                                     ast::ASTFunctionPrototypeStatement* proto);
 
-    /// Remove all instructions after block terminators
-    /// Also add 'unreachable'-instruction if no terminators are found
+    /**
+     * Remove all instructions after block terminators.
+     * Also add 'unreachable'-instruction if no terminators are found
+     */
     void stripInstructionsAfterTerminators();
 
     /// Create 'alloca'-instruction for variable
+    /**
+     * Create 'alloca'-instruction in the function entry block for a variable
+     * @param  func Function of variable
+     * @param  type Variable type
+     * @param  name Variable name
+     * @return      Alloca instruction, never nullptr
+     */
     llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
                                              llvm::Type* type,
                                              const std::string& name);
 
+    /**
+     * Create a static global string constant
+     * @param  str String contents
+     * @return     String constant, never nullptr
+     */
     llvm::Constant* createStringConstant(const char* str);
 
-    std::tuple<Type*, std::unique_ptr<TypedValue>>
+    /**
+     * Run type infersion on a variable definition based on its initializer.
+     * If type information is given otherwise in the definition, it is used
+     * instead.
+     * Generates code for the init expression.
+     * @param expr Variable definition
+     * @return Pair of Type (type of variable) and TypedValue (visited init
+     * expression). On error both members are nullptr.
+     */
+    std::pair<Type*, std::unique_ptr<TypedValue>>
     inferVariableDefType(ast::ASTVariableDefinitionExpression* expr);
 
+    /// LLVM context
     llvm::LLVMContext& context;
+    /// LLVM module
     llvm::Module* module;
     CodegenInfo info;
+    /// LLVM IR builder
     llvm::IRBuilder<> builder;
 
+    /// LLVM debug info builder
     llvm::DIBuilder dbuilder;
+    /// LLVM debug compilation unit
     llvm::DICompileUnit* dcu;
+    /// LLVM debug file
     llvm::DIFile* dfile;
+    /// LLVM debug scopes
     std::vector<llvm::DIScope*> dblocks;
 
+    /// Symbol table
     SymbolTable symbols;
+    /// Type table
     TypeTable types;
 
 public:
@@ -166,7 +240,7 @@ inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 {
     static auto t = types.findDecorated("int32");
     assert(t);
-    static auto v = llvm::Constant::getNullValue(t->type);
+    auto v = llvm::Constant::getNullValue(t->type);
     auto ret = std::make_unique<TypedValue>(t, v);
     return ret;
 }
@@ -176,11 +250,7 @@ inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
                                                    const std::string& format,
                                                    Args&&... args) const
 {
-    if(!node)
-    {
-        util::logger->error(format.c_str(), std::forward<Args>(args)...);
-        return nullptr;
-    }
+    assert(node);
     return util::logCompilerError(node->loc, format,
                                   std::forward<Args>(args)...);
 }
@@ -190,11 +260,7 @@ inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
                                            const std::string& format,
                                            Args&&... args) const
 {
-    if(!node)
-    {
-        util::logger->warn(format.c_str(), std::forward<Args>(args)...);
-        return;
-    }
+    assert(node);
     return util::logCompilerWarning(node->loc, format,
                                     std::forward<Args>(args)...);
 }
@@ -204,11 +270,7 @@ inline void CodegenVisitor::codegenInfo(ast::ASTNode* node,
                                         const std::string& format,
                                         Args&&... args) const
 {
-    if(!node)
-    {
-        util::logger->info(format.c_str(), std::forward<Args>(args)...);
-        return;
-    }
+    assert(node);
     return util::logCompilerInfo(node->loc, format,
                                  std::forward<Args>(args)...);
 }

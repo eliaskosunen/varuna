@@ -94,12 +94,19 @@ public:
         return list;
     }
 
+    auto&& consumeList()
+    {
+        return std::move(list);
+    }
+
     /**
      * Dump the symbol table to stdout
      */
     void dump() const;
 
     std::vector<Symbol*> findExports() const;
+
+    bool import(SymbolTable&& symbols);
 
 private:
     /// The table itself
@@ -316,5 +323,16 @@ inline void SymbolTable::dump() const
     }
     stlogger->set_pattern("DumpSymbolTable: %v");
     stlogger->trace("*** END SYMBOLTABLE DUMP ***");
+}
+
+inline bool SymbolTable::import(SymbolTable&& symbols)
+{
+    // TODO: Check for name collisions
+    auto slist = symbols.consumeList();
+    for(auto& s : slist)
+    {
+        list.push_back(std::move(s));
+    }
+    return true;
 }
 } // namespace codegen
