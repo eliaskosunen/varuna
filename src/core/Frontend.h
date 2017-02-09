@@ -18,7 +18,7 @@ public:
 
     std::unique_ptr<ast::AST> run();
 
-    constexpr const char* getIdentifier() const noexcept
+    const char* getIdentifier() const noexcept
     {
         return "Varuna Compiler Frontend";
     }

@@ -286,20 +286,13 @@ namespace parser
                                              std::move(body));
     }
 
-    std::tuple<std::unique_ptr<ASTExpression>, std::unique_ptr<ASTExpression>,
-               std::unique_ptr<ASTExpression>>
-    Parser::parseForCondition()
+    Parser::ForCondition Parser::parseForCondition()
     {
         // Parse the condition of a for statement
         // [ ( ] [init] , [end] , [step] [ ) ]
 
-        auto makeTuple = [](std::unique_ptr<ASTExpression> i,
-                            std::unique_ptr<ASTExpression> e,
-                            std::unique_ptr<ASTExpression> s) {
-            return std::make_tuple(std::move(i), std::move(e), std::move(s));
-        };
-        auto errorToTuple = [makeTuple](std::nullptr_t e) {
-            return makeTuple(e, e, e);
+        auto errorToTuple = [](std::nullptr_t e) {
+            return ForCondition{e, e, e};
         };
 
         if(it->type == TOKEN_PUNCT_PAREN_OPEN)
@@ -380,7 +373,7 @@ namespace parser
             ++it; // Skip ')'
         }
 
-        return makeTuple(std::move(init), std::move(end), std::move(step));
+        return {std::move(init), std::move(end), std::move(step)};
     }
 
     std::unique_ptr<ASTForStatement> Parser::parseForStatement()
@@ -395,8 +388,11 @@ namespace parser
         // TODO: Optimize
         // Not utilizing constructors
         // Not sure if possible in C++14
-        std::unique_ptr<ASTExpression> init, end, step;
-        std::tie(init, end, step) = parseForCondition();
+        ForCondition cond = parseForCondition();
+        if(!cond.init || !cond.cond || !cond.step)
+        {
+            return nullptr;
+        }
 
         // Parse statement
         std::unique_ptr<ASTStatement> block = parseStatement();
@@ -405,9 +401,9 @@ namespace parser
             return nullptr;
         }
 
-        return createNode<ASTForStatement>(iter, std::move(block),
-                                           std::move(init), std::move(end),
-                                           std::move(step));
+        return createNode<ASTForStatement>(
+            iter, std::move(block), std::move(cond.init), std::move(cond.cond),
+            std::move(cond.step));
     }
 
     std::unique_ptr<ASTVariableDefinitionExpression>

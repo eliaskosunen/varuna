@@ -8,4 +8,5 @@ file(GLOB src_sources CLI.cpp Runner.cpp)
 file(GLOB src_headers CLI.h Dispatcher.h Doc.h Runner.h)
 
 add_library(src ${src_sources} ${src_headers})
-target_link_libraries(src util ast core codegen util thirdparty)
+llvm_map_components_to_libnames(llvm_libs_src option)
+target_link_libraries(src ${llvm_libs_src} util ast core codegen util thirdparty)

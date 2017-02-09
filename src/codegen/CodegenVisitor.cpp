@@ -20,9 +20,11 @@ namespace codegen
 {
 CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                CodegenInfo i)
-    : context{c}, module(m), info{i}, builder(context), dbuilder(*m),
+    : context{c}, module(m), info(i), builder(context), dbuilder(*m),
       dcu{dbuilder.createCompileUnit(
           // Let's pretend for a moment that we're C
+          // That's of course very dumb,
+          // since we're definitely going to be more popular than C
           llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
           util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
       dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())}

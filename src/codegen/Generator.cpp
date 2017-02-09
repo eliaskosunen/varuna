@@ -11,8 +11,8 @@ Generator::Generator(std::shared_ptr<ast::AST> t) : ast(t), c{nullptr}
 {
     // Create CodegenInfo based on ProgramOptions
     const auto& opt = util::viewProgramOptions().getOptLevel();
-    CodegenInfo cinfo{t->file, std::get<0>(opt), std::get<1>(opt),
-                      util::viewProgramOptions().emitDebug};
+    CodegenInfo cinfo(t->file, std::get<0>(opt), std::get<1>(opt),
+                      util::viewProgramOptions().emitDebug);
 
     // Create code generator
     c = std::make_unique<GeneratorClass>(t, cinfo);

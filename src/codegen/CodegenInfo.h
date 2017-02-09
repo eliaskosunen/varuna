@@ -12,6 +12,14 @@ namespace codegen
 /// Information for Codegen, CodegenVisitor and Optimizer
 struct CodegenInfo
 {
+    CodegenInfo() = default;
+    CodegenInfo(std::shared_ptr<util::File> pFile, uint8_t pOptLevel,
+                uint8_t pSizeLevel, bool pEmitDebug)
+        : file(pFile), optLevel(pOptLevel), sizeLevel(pSizeLevel),
+          emitDebug(pEmitDebug)
+    {
+    }
+
     /**
      * Area any optimizations enabled
      * @return Enabled
@@ -22,7 +30,7 @@ struct CodegenInfo
     }
 
     /// File to generate code for
-    std::shared_ptr<util::File> file;
+    std::shared_ptr<util::File> file{nullptr};
     /// Optimization level (-O1, -O2, -O3)
     uint8_t optLevel{0};
     /// Size optimization level (-Os, -Oz)

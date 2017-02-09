@@ -21,6 +21,7 @@ namespace programinfo
             case Status::STABLE:
                 return fmt::format("{}.{}.{}", major, minor, patch);
             }
+            assert(false);
         }();
         return str;
     }

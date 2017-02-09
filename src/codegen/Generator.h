@@ -32,7 +32,7 @@ public:
      * Get generator identifier
      * @return Identifier
      */
-    constexpr const char* getIdentifier() const noexcept
+    const char* getIdentifier() const noexcept
     {
         return "Varuna Compiler Code Generator";
     }

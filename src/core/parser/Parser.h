@@ -95,10 +95,13 @@ namespace parser
         bool
         isBinOpRightAssociative(lexer::TokenVector::const_iterator op) const;
 
-        std::tuple<std::unique_ptr<ast::ASTExpression>,
-                   std::unique_ptr<ast::ASTExpression>,
-                   std::unique_ptr<ast::ASTExpression>>
-        parseForCondition();
+        struct ForCondition
+        {
+            std::unique_ptr<ast::ASTExpression> init;
+            std::unique_ptr<ast::ASTExpression> cond;
+            std::unique_ptr<ast::ASTExpression> step;
+        };
+        ForCondition parseForCondition();
 
         std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
         std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
