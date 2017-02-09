@@ -11,17 +11,13 @@ PointerAlignment: Left
 SpaceBeforeParens: Never
 TabWidth: 4
 IncludeCategories:
-    - Regex:    '^"fe/'
+    - Regex:    '^"'
       Priority: 1
-    - Regex:    '^"core/'
-      Priority: 2
-    - Regex:    '^"util/'
-      Priority: 3
     - Regex:    '^"(llvm|llvm-c|clang|clang-c)/'
-      Priority: 5
-    - Regex:    '^<(ctpl|doctest|spdlog|utf8)'
-      Priority: 6
-    - Regex:    '^</'
-      Priority: 7
-    - Regex:    '.\*'
+      Priority: 3
+    - Regex:    '^<(ctpl|doctest|spdlog|utf8|cereal)'
       Priority: 4
+    - Regex:    '^</'
+      Priority: 5
+    - Regex:    '.\*'
+      Priority: 2

@@ -18,7 +18,7 @@ namespace util
 /**
  * String utility functions
  */
-namespace StringUtils
+namespace stringutils
 {
     /**
      * Replace all occurences of needle with replacement in haystack
@@ -181,39 +181,38 @@ namespace StringUtils
         return ss.str();
     }
 
-    /**
-     * Split a string to a vector
-     * @param s     String to split
-     * @param delim Delimeter
-     * @param elems Element vector
-     * @author Evan Teran:
-     * http://stackoverflow.com/questions/236129/split-a-string-in-c
-     */
-    inline void split(const string_t& s, char_t delim,
-                      std::vector<string_t>& elems)
+    inline void split(const char* str, char_t delim,
+                      std::vector<string_t>& result)
     {
-        stringstream_t ss;
-        ss.str(s);
-        string_t item;
-        while(std::getline(ss, item, delim))
+        do
         {
-            elems.push_back(item);
-        }
+            const char* begin = str;
+
+            while(*str != delim && *str)
+            {
+                str++;
+            }
+
+            result.push_back(string_t(begin, str));
+        } while(*str++ != 0x0);
     }
 
-    /**
-     * Split a string to a vector
-     * @param  s     String to split
-     * @param  delim Delimeter
-     * @return       Element vector
-     * @author Evan Teran:
-     * http://stackoverflow.com/questions/236129/split-a-string-in-c
-     */
-    inline std::vector<string_t> split(const string_t& s, char_t delim)
+    inline std::vector<string_t> split(const char* str, char_t delim)
     {
-        std::vector<string_t> elems;
-        split(s, delim, elems);
-        return elems;
+        std::vector<string_t> result;
+        split(str, delim, result);
+        return result;
+    }
+
+    inline void split(const string_t& str, char_t delim,
+                      std::vector<string_t>& result)
+    {
+        split(str.c_str(), delim, result);
+    }
+
+    inline std::vector<string_t> split(const string_t& str, char_t delim)
+    {
+        return split(str.c_str(), delim);
     }
 
     inline bool isCharAlpha(char_t c)
@@ -287,5 +286,16 @@ namespace StringUtils
                 c > 127);
 #endif
     }
-} // namespace StringUtils
+
+    inline std::string createEmptyStringWithLength(size_t len)
+    {
+        std::string ret;
+        ret.reserve(len);
+        for(size_t i = 1; i <= len; ++i)
+        {
+            ret.push_back(' ');
+        }
+        return ret;
+    }
+} // namespace stringutils
 } // namespace util

@@ -4,45 +4,59 @@
 
 #pragma once
 
-/// The compiler itself
-namespace core
-{
 /// Abstract syntax tree
 namespace ast
 {
-}
 
-/// Code generation
+} // namespace ast
+
+/// Code generation AST -> LLVM IR
 namespace codegen
 {
-}
 
-/// Lexical analyzer
+} // namespace codegen
+
+/// Compiler frontend that produces an AST
+/// from source code
+namespace core
+{
+/// Lexical analyzer that produces tokens
+/// from source code
 namespace lexer
 {
-}
 
-/// Parser
+} // namespace lexer
+
+/// Parser that produces an AST
+/// from tokens
 namespace parser
 {
-}
-}
 
-/// Front-ends to the compiler
-namespace fe
-{
-/// An abstraction layer over core
-namespace app
-{
-}
+} // namespace parser
+} // namespace core
 
-/// CLI to app
-namespace cli
+/// Unit tests
+namespace tests
 {
-}
-}
 
-/// General utility classes and functions
+} // namespace tests
+
+/// Utility function
 namespace util
 {
-}
+/// Static information of the compiler
+namespace programinfo
+{
+    /// Version information
+    namespace version
+    {
+
+    } // namespace version
+} // namespace programinfo
+
+// String utilities
+namespace stringutils
+{
+
+} // namespace stringutils
+} // namespace util

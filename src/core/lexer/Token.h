@@ -7,6 +7,7 @@
 #include "core/lexer/TokenType.h"
 #include "util/Logger.h"
 #include "util/SafeEnum.h"
+#include "util/SourceLocation.h"
 #include <map>
 #include <string>
 
@@ -14,7 +15,7 @@ namespace core
 {
 namespace lexer
 {
-    enum TokenIntegerLiteralModifier_t
+    enum _TokenIntegerLiteralModifier
     {
         INTEGER_INT = 1,    // none
         INTEGER_INT8 = 2,   // i8
@@ -29,7 +30,7 @@ namespace lexer
         INTEGER_NONE = 0
     };
 
-    enum TokenFloatLiteralModifier_t
+    enum _TokenFloatLiteralModifier
     {
         FLOAT_FLOAT = 1,   // none
         FLOAT_F64 = 2,     // f64
@@ -39,7 +40,7 @@ namespace lexer
         FLOAT_NONE = 0
     };
 
-    enum TokenCharLiteralModifier_t
+    enum _TokenCharLiteralModifier
     {
         CHAR_CHAR = 1, // none
         CHAR_BYTE = 2, // b...
@@ -48,27 +49,10 @@ namespace lexer
     };
 
     using TokenIntegerLiteralModifier =
-        util::SafeEnum<TokenIntegerLiteralModifier_t>;
+        util::SafeEnum<_TokenIntegerLiteralModifier>;
     using TokenFloatLiteralModifier =
-        util::SafeEnum<TokenFloatLiteralModifier_t>;
-    using TokenCharLiteralModifier = util::SafeEnum<TokenCharLiteralModifier_t>;
-
-    struct SourceLocation
-    {
-        SourceLocation() = default;
-        SourceLocation(std::string f, uint64_t l) : file(std::move(f)), line(l)
-        {
-        }
-
-        std::string toString() const
-        {
-            // return fmt::format("{}:{}:{}", file, line, column);
-            return file + ":" + std::to_string(line);
-        }
-
-        std::string file{"undefined"};
-        uint64_t line{0};
-    };
+        util::SafeEnum<_TokenFloatLiteralModifier>;
+    using TokenCharLiteralModifier = util::SafeEnum<_TokenCharLiteralModifier>;
 
     struct Token final
     {
@@ -87,14 +71,14 @@ namespace lexer
         }
 
         static Token create(TokenType t, const std::string& val,
-                            SourceLocation loc = SourceLocation())
+                            util::SourceLocation loc)
         {
             Token tok(t, val);
             tok.loc = loc;
             return tok;
         }
 
-        SourceLocation loc;
+        util::SourceLocation loc;
 
         TokenType type;
         std::string value;

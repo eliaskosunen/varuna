@@ -8,21 +8,26 @@
 #include "util/Logger.h"
 #include <doctest.h>
 
-static core::lexer::TokenVector runLexer(const std::string& code)
+static auto getFile()
+{
+    static auto f = std::make_shared<util::File>(TEST_FILE);
+    return f;
+}
+
+static auto runLexer(const std::string& code)
 {
     using namespace core::lexer;
 
-    util::File f(TEST_FILE);
-    f.setContent(code);
-    Lexer l(&f);
+    getFile()->setContent(code);
+    Lexer l(getFile());
     return l.run();
 }
 
-static core::parser::Parser parse(const std::string& code)
+static auto parse(const std::string& code)
 {
     using namespace core::parser;
 
-    Parser p(runLexer(code));
+    Parser p(getFile(), runLexer(code));
     p.run();
     return p;
 }
@@ -38,6 +43,6 @@ TEST_CASE("Test parser")
         auto root = ast->globalNode.get();
 
         CHECK(root->nodes.size() == 0);
-        REQUIRE(!p.getError());
+        CHECK(!p.getError());
     }
 }

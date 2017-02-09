@@ -6,21 +6,8 @@
 
 module code;
 
-def putchar(ch: char): char;
-def getchar(): char;
+def fn(a: char, b: int, c: float) -> int;
 
-def asc(ch: char): int;
-def chr(num: int): char;
-
-def main(): int {
-    let ch = 'a';
-    let ch2 = 'ä';
-    let ch3 = '😂';
-    let bch = b'a';
-    putchar(ch3);
-    let ret = getchar();
-
-    let b = 0xfeo;
-
-    return asc(ret);
+def main() -> int {
+    return fn('a', 1, 2.0) + fn('b', -5, 3.14);
 }

@@ -3,6 +3,8 @@
 // See LICENSE for details
 
 #include "util/File.h"
+#include "util/Logger.h"
+#include "util/StringUtils.h"
 #include <utf8.h>
 #include <fstream>
 #include <sstream>
@@ -17,10 +19,8 @@ namespace util
 {
 bool File::readFile()
 {
-    if(!content.empty())
-    {
-        return true;
-    }
+    assert(content.empty());
+    assert(!contentValid);
     try
     {
         content = _readFile(filename);
@@ -43,6 +43,19 @@ void File::calculateChecksum()
 {
     throw std::logic_error(
         "util::FileCache::File::calculateChecksum() not implemented");
+}
+
+const std::string& File::getLine(uint32_t line)
+{
+    if(contentRows.empty())
+    {
+        // Copies the rows of the file to a vector
+        // We now have 2 copies of the contents
+        // This is BAAAAAAAAAAAAAAAD
+        // FIXME
+        stringutils::split(content, '\n', contentRows);
+    }
+    return contentRows.at(static_cast<size_t>(line - 1));
 }
 
 std::string File::_readFile(const std::string& fname)
@@ -86,10 +99,12 @@ std::string File::_readFile(const std::string& fname)
     catch(const std::ios_base::failure&)
     {
         std::string errmsg;
+
 #ifdef _MSC_VER
+        // Use strerror_s on MSVC
         char buf[80];
         strerror_s<80>(buf, errno);
-        errmsg = util::StringUtils::cstrToString(buf);
+        errmsg = util::stringutils::cstrToString(buf);
 #else
         errmsg = strerror(errno);
 #endif // defined _MSC_VER
@@ -97,7 +112,7 @@ std::string File::_readFile(const std::string& fname)
         util::logger->error("Error reading file: Error #{} (libc): {}", errno,
                             errmsg);
     }
-#endif
+#endif // HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
     throw std::runtime_error("File reading failed");
 }
 } // namespace util

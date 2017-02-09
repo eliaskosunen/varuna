@@ -15,6 +15,42 @@ namespace core
 {
 namespace lexer
 {
+    TokenVector Lexer::run()
+    {
+        TokenVector tokens;
+
+        while(true)
+        {
+            Token t = getNextToken();
+            if(getError())
+            {
+                break;
+            }
+            tokens.push_back(t);
+            util::logger->trace("Pushed new token: ({}): '{}'",
+                                t.typeToString(), t.value);
+            if(t.type == TOKEN_EOF)
+            {
+                util::logger->trace("Token is EOF, stop");
+                break;
+            }
+        }
+
+        if(tokens.empty())
+        {
+            lexerError("Empty token list");
+        }
+        /*if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
+        {
+            lexerWarning("Empty translation unit");
+        }*/
+        if(tokens.back().type != TOKEN_EOF && !getError())
+        {
+            lexerError("No EOF token found");
+        }
+        return tokens;
+    }
+
     Token Lexer::getNextToken()
     {
         util::char_t currentChar = *it;
@@ -36,23 +72,17 @@ namespace lexer
             std::to_string(currentChar), currentLocation.toString());
 
         // Skip any whitespace
-        while(util::StringUtils::isCharWhitespace(currentChar))
+        while(util::stringutils::isCharWhitespace(currentChar))
         {
-            util::logger->trace("Skipping whitespace");
+            util::logger->trace("Skipping whitespace: '{}'", currentChar);
 
-            if(it == end)
+            if(advance() == end)
             {
                 return createToken(TOKEN_EOF, "EOF");
             }
+            currentChar = *it;
 
-            currentChar = *advance();
-
-            if(it == end)
-            {
-                return createToken(TOKEN_EOF, "EOF");
-            }
-
-            return getNextToken();
+            // return getNextToken();
         }
 
         if(!lexComment())
@@ -61,22 +91,22 @@ namespace lexer
         }
         currentChar = *it;
         // Invalid character
-        if(util::StringUtils::isCharControlCharacter(currentChar) &&
-           !util::StringUtils::isCharWhitespace(currentChar))
+        if(util::stringutils::isCharControlCharacter(currentChar) &&
+           !util::stringutils::isCharWhitespace(currentChar))
         {
             fmt::MemoryWriter out;
             out << "'" << currentChar
-                << "', dec: " << util::StringUtils::charToString(currentChar)
+                << "', dec: " << util::stringutils::charToString(currentChar)
                 << " hex: " << fmt::hex(currentChar);
             lexerWarning("Unrecognized character: {}, skipped", out.str());
             advance();
             return createToken(TOKEN_DEFAULT,
-                               util::StringUtils::charToString(currentChar));
+                               util::stringutils::charToString(currentChar));
         }
 
         // Word: a keyword or an identifier
         // [a-zA-Z_][a-zA-Z_0-9]*
-        if(util::StringUtils::isValidIdentifierBeginningChar(currentChar))
+        if(util::stringutils::isValidIdentifierBeginningChar(currentChar))
         {
             if((currentChar == 'b' || currentChar == 'B') && peekNext() == '\'')
             {
@@ -94,7 +124,7 @@ namespace lexer
                 util::string_t buf;
                 buf.reserve(8);
                 buf.push_back(currentChar);
-                while(util::StringUtils::isValidIdentifierChar(*advance()))
+                while(util::stringutils::isValidIdentifierChar(*advance()))
                 {
                     buf.push_back(*it);
                 }
@@ -106,36 +136,39 @@ namespace lexer
 
         // Number literal
         // -?[0-9]([0-9\.]*)[dfulsboh]
-        if(util::StringUtils::isCharDigit(currentChar) ||
-           (currentChar == '.' && util::StringUtils::isCharDigit(*(it + 1))))
+        if(util::stringutils::isCharDigit(currentChar) ||
+           (currentChar == '.' && util::stringutils::isCharDigit(*(it + 1))))
         {
             util::string_t buf;
             buf.reserve(8);
             bool isFloatingPoint = (currentChar == '.');
-            enum IntegerLiteralBase_t
+            enum _IntegerLiteralBase
             {
                 BASE_DEC = 10,
                 BASE_BIN = 2,
                 BASE_OCT = 8,
                 BASE_HEX = 16
             };
-            using IntegerLiteralBase = util::SafeEnum<IntegerLiteralBase_t>;
+            using IntegerLiteralBase = util::SafeEnum<_IntegerLiteralBase>;
             IntegerLiteralBase base = BASE_DEC;
             if(currentChar == '0')
             {
                 if(*(it + 1) == 'x' || *(it + 1) == 'X')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_HEX;
                 }
                 else if(*(it + 1) == 'o' || *(it + 1) == 'O')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_OCT;
                 }
                 else if(*(it + 1) == 'b' || *(it + 1) == 'B')
                 {
-                    currentChar = *(it += 2);
+                    _next();
+                    currentChar = _getNext();
                     base = BASE_BIN;
                 }
             }
@@ -152,13 +185,13 @@ namespace lexer
                     switch(base.get())
                     {
                     case BASE_DEC:
-                        return util::StringUtils::isCharDigit(currentChar);
+                        return util::stringutils::isCharDigit(currentChar);
                     case BASE_BIN:
-                        return util::StringUtils::isCharBinDigit(currentChar);
+                        return util::stringutils::isCharBinDigit(currentChar);
                     case BASE_OCT:
-                        return util::StringUtils::isCharOctDigit(currentChar);
+                        return util::stringutils::isCharOctDigit(currentChar);
                     case BASE_HEX:
-                        return util::StringUtils::isCharHexDigit(currentChar);
+                        return util::stringutils::isCharHexDigit(currentChar);
                     }
                     throw std::logic_error(
                         fmt::format("Unknown integer case: {}", base.get()));
@@ -176,7 +209,7 @@ namespace lexer
                                         {"o", INTEGER_BYTE}}; // o = octet
                 auto mod = [&]() {
                     util::string_t modbuf;
-                    while(util::StringUtils::isCharAlnum(currentChar))
+                    while(util::stringutils::isCharAlnum(currentChar))
                     {
                         modbuf.push_back(currentChar);
                         auto modit = allowedModifiers.find(modbuf);
@@ -223,7 +256,7 @@ namespace lexer
                 };
             auto mod = [&]() {
                 util::string_t modbuf;
-                while(util::StringUtils::isCharAlnum(currentChar))
+                while(util::stringutils::isCharAlnum(currentChar))
                 {
                     modbuf.push_back(currentChar);
                     auto modit = allowedModifiers.find(modbuf);
@@ -277,10 +310,10 @@ namespace lexer
         }
 
         // Operator or punctuator
-        if(util::StringUtils::isCharPunctuation(currentChar))
+        if(util::stringutils::isCharPunctuation(currentChar))
         {
             util::string_t buf;
-            while(util::StringUtils::isCharPunctuation(currentChar))
+            while(util::stringutils::isCharPunctuation(currentChar))
             {
                 if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
                 {
@@ -292,7 +325,11 @@ namespace lexer
                     }
                 }
                 buf.push_back(currentChar);
-                currentChar = *advance();
+                if(_advance() != 0)
+                {
+                    break;
+                }
+                currentChar = *it;
             }
             Token t = getTokenFromOperator(buf);
             if(t.type == TOKEN_UNDEFINED)
@@ -304,49 +341,12 @@ namespace lexer
 
         fmt::MemoryWriter out;
         out << "'" << currentChar
-            << "', dec: " << util::StringUtils::charToString(currentChar)
+            << "', dec: " << util::stringutils::charToString(currentChar)
             << " hex: " << fmt::hex(currentChar);
         lexerWarning("Unrecognized token: {}", out.str());
         advance();
         return createToken(TOKEN_DEFAULT,
-                           util::StringUtils::charToString(currentChar));
-    }
-
-    TokenVector Lexer::run()
-    {
-        // Initialize variables
-        TokenVector tokens;
-
-        while(true)
-        {
-            Token t = getNextToken();
-            if(getError())
-            {
-                break;
-            }
-            tokens.push_back(t);
-            util::logger->trace("Pushed new token: ({}): '{}'",
-                                t.typeToString(), t.value);
-            if(t.type == TOKEN_EOF)
-            {
-                util::logger->trace("Token is EOF, stop");
-                break;
-            }
-        }
-
-        if(tokens.empty())
-        {
-            lexerError("Empty token list");
-        }
-        if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
-        {
-            lexerWarning("Empty translation unit");
-        }
-        if(tokens.back().type != TOKEN_EOF)
-        {
-            lexerError("No EOF token found");
-        }
-        return tokens;
+                           util::stringutils::charToString(currentChar));
     }
 
     bool Lexer::lexComment()
@@ -358,14 +358,25 @@ namespace lexer
             {
                 advance(); // Skip the both slashes
                 advance();
+
+                if(it == end)
+                {
+                    return false;
+                }
+
                 do
                 {
-                    if(it == end)
+                    auto a = _advance();
+                    if(a == 1)
+                    {
+                        break;
+                    }
+                    if(a == 2)
                     {
                         return false;
                     }
-                } while(*advance() != '\n');
-                advance(); // Skip '\n'
+                } while(true);
+                advance();
             }
             // Multi line comment: '/*'
             else if(peekNext() == '*')
@@ -479,7 +490,7 @@ namespace lexer
                 case 'x':
                 {
                     util::string_t hex;
-                    if(!util::StringUtils::isCharHexDigit(*rit))
+                    if(!util::stringutils::isCharHexDigit(*rit))
                     {
                         lexerWarning("Invalid hexadecimal escape sequence: The "
                                      "first character after an \\x should be a "
@@ -488,7 +499,7 @@ namespace lexer
                         continue;
                     }
                     hex.push_back(*rit);
-                    if(util::StringUtils::isCharHexDigit(*(rit + 1)))
+                    if(util::stringutils::isCharHexDigit(*(rit + 1)))
                     {
                         ++rit;
                         hex.push_back(*rit);
@@ -500,7 +511,7 @@ namespace lexer
                 case 'o':
                 {
                     util::string_t oct;
-                    if(!util::StringUtils::isCharOctDigit(*rit))
+                    if(!util::stringutils::isCharOctDigit(*rit))
                     {
                         lexerWarning("Invalid octal escape sequence: The first "
                                      "character after an \\o should be a "
@@ -509,11 +520,11 @@ namespace lexer
                         continue;
                     }
                     oct.push_back(*rit);
-                    if(util::StringUtils::isCharOctDigit(*(rit + 1)))
+                    if(util::stringutils::isCharOctDigit(*(rit + 1)))
                     {
                         ++rit;
                         oct.push_back(*rit);
-                        if(util::StringUtils::isCharOctDigit(*(rit + 1)))
+                        if(util::stringutils::isCharOctDigit(*(rit + 1)))
                         {
                             ++rit;
                             oct.push_back(*rit);
@@ -909,6 +920,10 @@ namespace lexer
         if(buf == ",")
         {
             return TOKEN_PUNCT_COMMA;
+        }
+        if(buf == "->")
+        {
+            return TOKEN_PUNCT_ARROW;
         }
 
         return TOKEN_UNDEFINED;

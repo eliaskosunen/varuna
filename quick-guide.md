@@ -104,21 +104,24 @@ Function call operator: `()`
 
 ```
 // Function declaration
-def function(param: int): int;
+def function(param: int) -> int;
 
 // Function definition
-def function2(): int {
+def function2() -> int {
     return 1;
 }
+
+// Omitting the return type means void
+def function3();
 ```
 
 ## Function calling
 
 ```
-def function(param: int): int;
-def function2(): void;
+def function(param: int) -> int;
+def function2();
 
-def callee(): bool {
+def callee() -> bool {
     let ret = function(1);
     function2();
     return true;

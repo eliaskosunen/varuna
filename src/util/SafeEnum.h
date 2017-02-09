@@ -10,58 +10,61 @@
 
 namespace util
 {
-template <typename Enum_t,
-          typename Underlying_t = typename std::underlying_type<Enum_t>::type>
+/// Typesafe enum type
+template <typename EnumT,
+          typename UnderlyingT = typename std::underlying_type<EnumT>::type>
 class SafeEnum
 {
 public:
-    using EnumType = Enum_t;
-    using UnderlyingType = Underlying_t;
+    using EnumType = EnumT;
+    using UnderlyingType = UnderlyingT;
 
     SafeEnum() = default;
-    /*implicit*/ SafeEnum(Enum_t flag) : flags(flag)
+    /*implicit*/ SafeEnum(EnumT flag) : flags(flag)
     {
     }
 
     SafeEnum(const SafeEnum&) = default;
     SafeEnum(SafeEnum&&) noexcept(
-        std::is_nothrow_move_constructible<Underlying_t>::value) = default;
+        std::is_nothrow_move_constructible<UnderlyingT>::value) = default;
 
     SafeEnum& operator=(const SafeEnum&) = default;
     SafeEnum& operator=(SafeEnum&&) noexcept(
-        std::is_nothrow_move_assignable<Underlying_t>::value) = default;
+        std::is_nothrow_move_assignable<UnderlyingT>::value) = default;
 
     ~SafeEnum() noexcept = default;
 
-    Underlying_t get() const
+    /// Get underlying value
+    UnderlyingT get() const
     {
         return flags;
     }
-    Underlying_t& getRef()
+    /// Get reference to the underlying value
+    UnderlyingT& getRef()
     {
         return flags;
     }
 
-    SafeEnum& operator|=(Enum_t add)
+    SafeEnum& operator|=(EnumT add)
     {
-        flags |= static_cast<Underlying_t>(add);
+        flags |= static_cast<UnderlyingT>(add);
         return *this;
     }
-    SafeEnum operator|(Enum_t add)
+    SafeEnum operator|(EnumT add)
     {
         SafeEnum result(*this);
-        result |= static_cast<Underlying_t>(add);
+        result |= static_cast<UnderlyingT>(add);
         return result;
     }
-    SafeEnum& operator&=(Enum_t mask)
+    SafeEnum& operator&=(EnumT mask)
     {
-        flags &= static_cast<Underlying_t>(mask);
+        flags &= static_cast<UnderlyingT>(mask);
         return *this;
     }
-    SafeEnum operator&(Enum_t mask)
+    SafeEnum operator&(EnumT mask)
     {
         SafeEnum result(*this);
-        result &= static_cast<Underlying_t>(mask);
+        result &= static_cast<UnderlyingT>(mask);
         return result;
     }
     SafeEnum operator~()
@@ -70,74 +73,89 @@ public:
         result.flags = ~result.flags;
         return result;
     }
-    SafeEnum& operator^=(Enum_t mask)
+    SafeEnum& operator^=(EnumT mask)
     {
-        flags ^= static_cast<Underlying_t>(mask);
+        flags ^= static_cast<UnderlyingT>(mask);
         return *this;
     }
-    SafeEnum operator^(Enum_t mask)
+    SafeEnum operator^(EnumT mask)
     {
         SafeEnum result(*this);
-        result ^= static_cast<Underlying_t>(mask);
+        result ^= static_cast<UnderlyingT>(mask);
         return result;
     }
 
+    /// Explicitly convertible to bool
     explicit operator bool() const
     {
         return flags != 0;
     }
 
-    bool operator==(const Enum_t& b) const
+    bool operator==(const EnumT& b) const
     {
-        return flags == static_cast<Underlying_t>(b);
+        return flags == static_cast<UnderlyingT>(b);
     }
-    bool operator!=(const Enum_t& b) const
+    bool operator!=(const EnumT& b) const
     {
         return !(*this == b);
     }
 
-    bool operator==(const SafeEnum<Enum_t, Underlying_t>& b) const
+    bool operator==(const SafeEnum<EnumT, UnderlyingT>& b) const
     {
         return flags == b.flags;
     }
-    bool operator!=(const SafeEnum<Enum_t, Underlying_t>& b) const
+    bool operator!=(const SafeEnum<EnumT, UnderlyingT>& b) const
     {
         return !(*this == b);
     }
 
-    friend std::ostream& operator<<(std::ostream& o, const Enum_t& t)
+    friend std::ostream& operator<<(std::ostream& o, const EnumT& t)
     {
-        o << static_cast<Underlying_t>(t);
+        o << static_cast<UnderlyingT>(t);
         return o;
     }
 
-    friend std::ostream&
-    operator<<(std::ostream& o, const util::SafeEnum<Enum_t, Underlying_t>& t)
+    friend std::ostream& operator<<(std::ostream& o,
+                                    const util::SafeEnum<EnumT, UnderlyingT>& t)
     {
         o << t.get();
         return o;
     }
 
-    bool isSet(Enum_t flag) const
+    /// Is a flag set
+    bool isSet(EnumT flag) const
     {
-        return (static_cast<Underlying_t>(flags) &
-                static_cast<Underlying_t>(flag)) !=
-               static_cast<Underlying_t>(0);
+        return (static_cast<UnderlyingT>(flags) &
+                static_cast<UnderlyingT>(flag)) != static_cast<UnderlyingT>(0);
     }
-    bool isNotSet(Enum_t flag) const
+    /// Is a flag not set
+    bool isNotSet(EnumT flag) const
     {
         return !isSet(flag);
     }
-    void set(Enum_t flag)
+    /// Set a flag
+    void set(EnumT flag)
     {
         flags |= flag;
     }
+    /// Reset all flags
     void reset()
     {
-        flags = static_cast<Enum_t>(0);
+        flags = static_cast<EnumT>(0);
+    }
+
+    /**
+     * Convert to other type.
+     * Unsafe, doesn't check if types are related
+     */
+    template <typename T>
+    T convert() const
+    {
+        return T{static_cast<typename T::EnumType>(get())};
     }
 
 protected:
-    Underlying_t flags{static_cast<Underlying_t>(0)};
+    /// Underlying flags
+    UnderlyingT flags{static_cast<UnderlyingT>(0)};
 };
 } // namespace util

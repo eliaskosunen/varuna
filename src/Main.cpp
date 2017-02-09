@@ -2,21 +2,27 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "fe/cli/CLI.h"
+#include "CLI.h"
 #include "util/Logger.h"
 #include <utf8.h>
 #include <cstdlib>
 #include <stdexcept>
 
+/// Clean up loggers
 static void cleanup()
 {
     util::dropLogger();
 }
 
+/**
+ * Log an exception
+ * @param msg Exception message
+ */
 static void logException(const std::string& msg)
 {
     if(util::logger)
     {
+        // util::logger is available, prioritize using it
         util::logger->critical(
             "An exception occured during program execution.");
         util::logger->info("Exception message: '{}'", msg);
@@ -24,6 +30,7 @@ static void logException(const std::string& msg)
     }
     else if(util::loggerBasic)
     {
+        // util::loggerBasic is available, use it if util::logger isn't
         util::loggerBasic->critical(
             "An exception occured during program execution.");
         util::loggerBasic->info("Exception message: '{}'", msg);
@@ -31,6 +38,7 @@ static void logException(const std::string& msg)
     }
     else
     {
+        // Fallback on C stdio
         fprintf(stderr, "An exception occured during program execution.\n");
         fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
         fprintf(stderr, "Program will be terminated.\n");
@@ -39,11 +47,17 @@ static void logException(const std::string& msg)
     }
 }
 
+/**
+ * Log an exception with an additional message
+ * @param msg           Exception message
+ * @param additionalMsg Additional message
+ */
 static void logException(const std::string& msg,
                          const std::string& additionalMsg)
 {
     if(util::logger)
     {
+        // util::logger is available, prioritize using it
         util::logger->critical(
             "An exception occured during program execution.");
         util::logger->info("Exception message: '{}'", msg);
@@ -52,6 +66,7 @@ static void logException(const std::string& msg,
     }
     else if(util::loggerBasic)
     {
+        // util::loggerBasic is available, use it if util::logger isn't
         util::loggerBasic->critical(
             "An exception occured during program execution.");
         util::loggerBasic->info("Exception message: '{}'", msg);
@@ -60,6 +75,7 @@ static void logException(const std::string& msg,
     }
     else
     {
+        // Fallback on C stdio
         fprintf(stderr, "An exception occured during program execution.\n");
         fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
         fprintf(stderr, "Additional message: '%s'\n", additionalMsg.c_str());
@@ -73,24 +89,25 @@ int main(int argc, char** argv)
 {
     try
     {
+        // Cleanup in the end
         const int atexitResult = std::atexit(cleanup);
         if(atexitResult != 0)
         {
             throw std::runtime_error("Failed to register cleanup function\n");
         }
 
+        // Initialize loggers
         util::initLogger();
 
-        fe::cli::CLI commandLineInterface(argc, argv);
+        // Run the CLI
+        CLI commandLineInterface(argc, argv);
         return commandLineInterface.run();
     }
+
+    // Handle various exceptions
     catch(const spdlog::spdlog_ex& e)
     {
-        fprintf(stderr, "An exception occured during program execution.\n");
-        fprintf(stderr, "Application logger threw an exception.\n");
-        fprintf(stderr, "Exception message: '%s'\n", e.what());
-        fprintf(stderr, "Program will be terminated.\n");
-        fflush(stderr);
+        logException(e.what());
     }
 
     catch(const utf8::invalid_code_point& e)
@@ -125,5 +142,7 @@ int main(int argc, char** argv)
     {
         logException(e.what());
     }
+
+    // Return -1 on exceptional circumstances
     return -1;
 }

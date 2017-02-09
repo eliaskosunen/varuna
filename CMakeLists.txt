@@ -5,12 +5,17 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+set(BUILD_TESTS "Build unit tests" ON)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CXX_STANDARD	"--std=c++14")
+	if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+		set(CXX_STANDARD	"--std=c++1y")
+	endif()
 
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wno-switch-default -Wundef -Wno-unused -Wno-date-time")
+		set(WARNINGS "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wno-switch-default -Wundef -Wno-unused -Wno-unused-parameter -Wno-date-time")
 	else()
 		set(WARNINGS "-Weverything -Wno-c++98-compat -Wno-padded -Wno-unused -Wno-unused-parameter -Wno-weak-vtables -Wno-exit-time-destructors -Wno-global-constructors -Wno-date-time")
 	endif()
@@ -54,7 +59,6 @@ endif()
 
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake")
 message(STATUS "LLVM include directory: ${LLVM_INCLUDE_DIRS}")
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -67,3 +71,8 @@ add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(third-party)
 add_subdirectory(src)
+
+file(GLOB main_sources src/Main.cpp)
+
+add_executable(varuna ${main_sources})
+target_link_libraries(varuna src)
