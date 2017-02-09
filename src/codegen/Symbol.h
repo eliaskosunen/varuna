@@ -24,37 +24,12 @@ public:
     }
 
     Symbol(const Symbol& other) = delete;
-    /*: value(other.value->clone()), // value is cloned
-      name(other.name), isExport(other.isExport)
-{
-}*/
     Symbol& operator=(const Symbol& other) = delete;
-    /*{
-        Symbol(other).swap(*this);
-        return *this;
-    }*/
 
-    Symbol(Symbol&& other) noexcept = default;
-    /*: value(std::move(other.value)), name(std::move(other.name)),
-      isExport(std::move(other.isExport))
-{
-    other.value = nullptr;
-    other.name = "";
-}*/
-    Symbol& operator=(Symbol&& other) noexcept = default;
-    /*{
-        Symbol(std::move(other)).swap(*this);
-        return *this;
-    }*/
+    Symbol(Symbol&& other) = default;
+    Symbol& operator=(Symbol&& other) = default;
 
     virtual ~Symbol() = default;
-
-    /*void swap(Symbol& other) noexcept
-    {
-        std::swap(value, other.value);
-        std::swap(name, other.name);
-        std::swap(isExport, other.isExport);
-    }*/
 
     /**
      * Get the type of the symbol
@@ -98,35 +73,12 @@ public:
     }
 
     FunctionSymbol(const FunctionSymbol& other) = delete;
-    /*: Symbol(other), proto(other.proto)
-{
-}*/
     FunctionSymbol& operator=(const FunctionSymbol& other) = delete;
-    /*{
-        FunctionSymbol(other).swap(*this);
-        return *this;
-    }*/
 
-    FunctionSymbol(FunctionSymbol&& other) noexcept = default;
-    /*: Symbol(std::move(other)), proto(std::move(other.proto))
-{
-    other.value = nullptr;
-    other.name = "";
-    other.proto = nullptr;
-}*/
-    FunctionSymbol& operator=(FunctionSymbol&& other) noexcept = default;
-    /*{
-        FunctionSymbol(std::move(other)).swap(*this);
-        return *this;
-    }*/
+    FunctionSymbol(FunctionSymbol&& other) = default;
+    FunctionSymbol& operator=(FunctionSymbol&& other) = default;
 
-    /*void swap(FunctionSymbol& other) noexcept
-    {
-        std::swap(value, other.value);
-        std::swap(name, other.name);
-        std::swap(isExport, other.isExport);
-        std::swap(proto, other.proto);
-    }*/
+    ~FunctionSymbol() = default;
 
     bool isFunction() const override
     {
