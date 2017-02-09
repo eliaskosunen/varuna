@@ -9,5 +9,5 @@ module code;
 def fn(a: char, b: int, c: float) -> int;
 
 def main() -> int {
-    return fn('a', 1, 2.0);
+    return fn('a', 1, 2.0) + fn('b', -5, 3.14);
 }

@@ -178,14 +178,15 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
             if(!termFound)
             {
                 // Save current insert point
-                auto insert = builder.GetInsertBlock();
+                auto insertBlock = builder.GetInsertBlock();
+                auto insertPoint = builder.GetInsertPoint();
 
                 // Add 'unreachable'
                 builder.SetInsertPoint(&bb);
                 builder.CreateUnreachable();
 
                 // Roll back to the previous insert point
-                builder.SetInsertPoint(insert);
+                builder.SetInsertPoint(insertBlock, insertPoint);
             }
         }
     }
