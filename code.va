@@ -6,8 +6,24 @@
 
 module code;
 
-def fn(a: char, b: int, c: float) -> int;
+def chr(ch: int) -> char;
+def asc(num: char) -> int;
+
+def putchar(ch: char) -> char;
+def getchar() -> char;
+
+def pi() -> float;
+def e() -> float;
 
 def main() -> int {
-    return fn('a', 1, 2.0) + fn('b', -5, 3.14);
+    let ch = asc(getchar());
+    if ch < 20 {
+        return 1;
+    }
+    let num = cast<float>(ch) * 2.0 * pi() / e();
+    var counter = 1;
+    for var i = 0, i < cast<int>(num), i += 1 {
+        counter *= asc(getchar());
+    }
+    return counter;
 }

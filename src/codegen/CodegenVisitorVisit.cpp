@@ -404,11 +404,11 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
         return nullptr;
     }
 
-    emitDebugLocation(node);
-
     // Create alloca instruction
-    llvm::Function* func = builder.GetInsertBlock()->getParent();
+    auto func = builder.GetInsertBlock()->getParent();
     auto alloca = createEntryBlockAlloca(func, type->type, node->name->value);
+
+    emitDebugLocation(node);
 
     if(info.emitDebug)
     {
@@ -428,6 +428,27 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
     auto var = std::make_unique<Symbol>(
         std::make_unique<TypedValue>(type, alloca), node->name->value);
     symbols.getTop().insert(std::make_pair(node->name->value, std::move(var)));
+
+    // Add LLVM invariant_start intrinsic
+    // This marks the variable as immutable for better optimizations
+    if(!node->isMutable)
+    {
+#if 0
+        auto intr = llvm::Intrinsic::getDeclaration(
+            module, llvm::Intrinsic::invariant_start,
+            {llvm::Type::getInt64Ty(context),
+             llvm::Type::getInt8PtrTy(context)});
+
+        auto dataLayout = llvm::DataLayout(module);
+        auto size = dataLayout.getTypeSizeInBits(type->type);
+
+        auto call = llvm::CallInst::Create(
+            intr,
+            {llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), size),
+             builder.CreateLoad(alloca)});
+        builder.Insert(call);
+#endif
+    }
 
     return std::make_unique<TypedValue>(type, init->value);
 }

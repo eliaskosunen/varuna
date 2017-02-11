@@ -264,6 +264,7 @@ llvm::AllocaInst*
 CodegenVisitor::createEntryBlockAlloca(llvm::Function* func, llvm::Type* type,
                                        const std::string& name)
 {
+    emitDebugLocation(nullptr);
     llvm::IRBuilder<> tmp(&func->getEntryBlock(),
                           func->getEntryBlock().begin());
     return tmp.CreateAlloca(type, nullptr, name.c_str());
