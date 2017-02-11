@@ -26,26 +26,15 @@ bool Runner::run()
         util::logger->trace("Added file to cache: '{}'", file);
     }
 
-    std::vector<std::future<std::shared_ptr<ast::AST>>> frontendResults;
+    std::vector<std::future<bool>> results;
     for(const auto& f : fileCache->getFiles())
     {
-        frontendResults.push_back(runFrontend(f));
+        results.push_back(runFile(f).get());
     }
 
-    std::vector<std::future<std::unique_ptr<codegen::Codegen>>> codegenResults;
-    for(auto&& fres : frontendResults)
+    for(auto&& res : results)
     {
-        auto r = fres.get();
-        if(!r)
-        {
-            return false;
-        }
-        codegenResults.push_back(runCodegen(std::move(r)));
-    }
-
-    for(auto&& cres : codegenResults)
-    {
-        auto r = cres.get();
+        auto r = res.get();
         if(!r)
         {
             return false;
@@ -55,32 +44,44 @@ bool Runner::run()
     return true;
 }
 
-std::future<std::shared_ptr<ast::AST>>
-Runner::runFrontend(std::shared_ptr<util::File> f)
+std::future<std::future<bool>> Runner::runFile(std::shared_ptr<util::File> f)
 {
     auto file = f;
-    return pool->push([file](int) {
+    return pool->push([this, file](int) {
         util::logger->info("Running file: '{}'", file->getFilename());
+
         auto r = frontend<core::Frontend>(file);
-        return std::shared_ptr<ast::AST>{std::move(r)};
+        if(!r)
+        {
+            return failedTask();
+        }
+
+        util::logger->debug("Shutting down frontend, launching code generator");
+        auto ast = std::shared_ptr<ast::AST>{std::move(r)};
+        return runCodegen(ast);
     });
 }
-std::future<std::unique_ptr<codegen::Codegen>>
-Runner::runCodegen(std::shared_ptr<ast::AST> t)
+
+std::future<bool> Runner::runCodegen(std::shared_ptr<ast::AST> a)
 {
-    auto ast = t;
-    return pool->push([ast](int) {
+    auto ast = a;
+    return pool->push([ast](int) -> bool {
         auto c = generate<codegen::Generator>(ast);
         if(!c)
         {
             util::logger->info(
                 "Code generation of file '{}' failed, terminating\n",
                 ast->file->getFilename());
-            return c;
+            return false;
         }
         util::logger->info("File '{}' compiled successfully",
                            ast->file->getFilename());
         c->write();
-        return c;
+        return c != nullptr;
     });
+}
+
+std::future<bool> Runner::failedTask()
+{
+    return pool->push([](int) -> bool { return false; });
 }

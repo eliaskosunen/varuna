@@ -6,24 +6,20 @@
 
 module code;
 
-def chr(ch: int) -> char;
-def asc(num: char) -> int;
+def puts(s: string) -> bool;
 
-def putchar(ch: char) -> char;
-def getchar() -> char;
+def func(s: string) -> string;
 
-def pi() -> float;
-def e() -> float;
+def main() {
+    var str = "test";
+    let str2 = func(str);
+    let str3 = func("test2");
+    let str4 = func("åäö");
 
-def main() -> int {
-    let ch = asc(getchar());
-    if ch < 20 {
-        return 1;
-    }
-    let num = cast<float>(ch) * 2.0 * pi() / e();
-    var counter = 1;
-    for var i = 0, i < cast<int>(num), i += 1 {
-        counter *= asc(getchar());
-    }
-    return counter;
+    puts(str);
+    puts(str2);
+    puts(str3);
+    puts(str4);
+
+    str = str2;
 }

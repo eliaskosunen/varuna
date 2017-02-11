@@ -981,6 +981,11 @@ namespace parser
         ++it;
 
         auto val = lit->value;
+        if(!utf8::is_valid(val.begin(), val.end()))
+        {
+            return parserError("String literal contains invalid UTF-8: '{}'",
+                               val);
+        }
         return createNode<ASTStringLiteralExpression>(lit, std::move(val));
     }
 

@@ -907,9 +907,32 @@ CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
 {
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
+    emitDebugLocation(node);
+
+    auto t = types.findDecorated(node->type->value);
+    assert(t);
+
+    auto stringLen = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context),
+                                            node->value.length());
+
+    auto stringConst =
+        llvm::ConstantDataArray::getString(context, node->value, false);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *module, stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+    // auto stringPtr = builder.CreateGlobalStringPtr(node->value, ".str");
+
+    auto stringFatPtr = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(t->type), stringLen, stringPtr, nullptr);
+    assert(stringFatPtr);
+
+    return std::make_unique<TypedValue>(t, stringFatPtr, TypedValue::LVALUE,
+                                        false);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTCharLiteralExpression* node)

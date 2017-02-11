@@ -653,9 +653,43 @@ std::unique_ptr<TypedValue> StringTypeOperation::assignmentOperation(
     std::vector<TypedValue*> operands) const
 {
     assert(operands.size() == 2);
-    return operationError(node,
-                          "No assignment operations for '{}' are supported",
-                          operands[0]->type->getDecoratedName());
+
+    assert(operands[0]->cat != TypedValue::STMTVALUE);
+    if(operands[0]->cat == TypedValue::RVALUE)
+    {
+        return operationError(node, "Cannot assign to an rvalue");
+    }
+    if(!operands[0]->isMutable)
+    {
+        return operationError(node, "Cannot assign to immutable lhs");
+    }
+
+    auto lhs = operands[0];
+    auto rhs = [&]() -> std::unique_ptr<TypedValue> {
+        if(op != util::OPERATORA_SIMPLE)
+        {
+            return operationError(
+                node, "Unsupported assignment operator for '{}': {}",
+                lhs->type->getDecoratedName(), op.get());
+        }
+        else
+        {
+            return std::make_unique<TypedValue>(*operands[1]);
+        }
+    }();
+
+    assert(lhs);
+    if(!rhs)
+    {
+        return nullptr;
+    }
+
+    auto lhsload = llvm::cast<llvm::LoadInst>(lhs->value);
+    auto lhsval = lhsload->getPointerOperand();
+    auto rhsval = rhs->value;
+
+    builder.CreateStore(rhsval, lhsval);
+    return std::make_unique<TypedValue>(*lhs);
 }
 std::unique_ptr<TypedValue> StringTypeOperation::unaryOperation(
     ast::ASTNode* node, llvm::IRBuilder<>& builder, util::OperatorType op,

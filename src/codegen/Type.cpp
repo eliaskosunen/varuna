@@ -270,8 +270,8 @@ StringType::StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&)
     : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
            llvm::StructType::create(
                c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)},
-               "string_t", true),
-           nullptr, "string_t")
+               "string"),
+           nullptr, "string")
 {
 }
 

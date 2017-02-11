@@ -16,10 +16,9 @@ public:
     bool run();
 
 private:
-    std::future<std::shared_ptr<ast::AST>>
-    runFrontend(std::shared_ptr<util::File> f);
-    std::future<std::unique_ptr<codegen::Codegen>>
-    runCodegen(std::shared_ptr<ast::AST> t);
+    std::future<std::future<bool>> runFile(std::shared_ptr<util::File> f);
+    std::future<bool> runCodegen(std::shared_ptr<ast::AST> a);
+    std::future<bool> failedTask();
 
     std::unique_ptr<util::ThreadPool> pool;
     std::unique_ptr<util::FileCache> fileCache;
