@@ -86,14 +86,12 @@ namespace parser
         bool isUnaryOperator(util::OperatorType op) const;
         bool isBinaryOperator() const;
         bool isAssignmentOperator() const;
-        bool isAssignmentOperator(lexer::TokenVector::const_iterator op) const;
+        bool isAssignmentOperator(util::OperatorType op) const;
         bool isOperator() const;
         int getBinOpPrecedence() const;
-        int getBinOpPrecedence(lexer::TokenVector::const_iterator op) const;
         int getBinOpPrecedence(util::OperatorType t) const;
         bool isBinOpRightAssociative() const;
-        bool
-        isBinOpRightAssociative(lexer::TokenVector::const_iterator op) const;
+        bool isBinOpRightAssociative(util::OperatorType op) const;
 
         struct ForCondition
         {

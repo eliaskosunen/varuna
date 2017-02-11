@@ -1106,7 +1106,9 @@ namespace parser
             }
             else if(isBinaryOperator())
             {
-                if(it == beginExprIt || getBinOpPrecedence(it - 1) >= 0)
+                if(it == beginExprIt ||
+                   getBinOpPrecedence(
+                       (it - 1)->type.convert<util::OperatorType>()) >= 0)
                 {
                     if(it->type == TOKEN_OPERATORB_ADD)
                     {
@@ -1157,10 +1159,20 @@ namespace parser
                         auto lhs = std::move(operands.top());
                         operands.pop();
 
-                        auto expr = createNode<ASTBinaryExpression>(
-                            beginExprIt, std::move(lhs), std::move(rhs),
-                            operators.top());
-                        operands.push(std::move(expr));
+                        if(isAssignmentOperator(operators.top()))
+                        {
+                            auto expr = createNode<ASTAssignmentExpression>(
+                                beginExprIt, std::move(lhs), std::move(rhs),
+                                operators.top());
+                            operands.push(std::move(expr));
+                        }
+                        else
+                        {
+                            auto expr = createNode<ASTBinaryExpression>(
+                                beginExprIt, std::move(lhs), std::move(rhs),
+                                operators.top());
+                            operands.push(std::move(expr));
+                        }
 
                         operators.pop();
                         if(operators.empty())
@@ -1248,10 +1260,20 @@ namespace parser
                 auto lhs = std::move(operands.top());
                 operands.pop();
 
-                auto expr = createNode<ASTBinaryExpression>(
-                    beginExprIt, std::move(lhs), std::move(rhs),
-                    operators.top());
-                operands.push(std::move(expr));
+                if(isAssignmentOperator(operators.top()))
+                {
+                    auto expr = createNode<ASTAssignmentExpression>(
+                        beginExprIt, std::move(lhs), std::move(rhs),
+                        operators.top());
+                    operands.push(std::move(expr));
+                }
+                else
+                {
+                    auto expr = createNode<ASTBinaryExpression>(
+                        beginExprIt, std::move(lhs), std::move(rhs),
+                        operators.top());
+                    operands.push(std::move(expr));
+                }
 
                 operators.pop();
             }
@@ -1718,12 +1740,7 @@ namespace parser
 
     int Parser::getBinOpPrecedence() const
     {
-        return getBinOpPrecedence(it);
-    }
-
-    int Parser::getBinOpPrecedence(lexer::TokenVector::const_iterator op) const
-    {
-        return getBinOpPrecedence(op->type.convert<util::OperatorType>());
+        return getBinOpPrecedence(it->type.convert<util::OperatorType>());
     }
 
     int Parser::getBinOpPrecedence(util::OperatorType t) const
@@ -1754,14 +1771,15 @@ namespace parser
         case TOKEN_OPERATORB_MOD:
         case TOKEN_OPERATORB_REM:
             return 100;
-        case TOKEN_OPERATORB_POW:
+
+        case TOKEN_OPERATORA_SIMPLE:
+        case TOKEN_OPERATORA_ADD:
+        case TOKEN_OPERATORA_SUB:
+        case TOKEN_OPERATORA_MUL:
+        case TOKEN_OPERATORA_DIV:
+        case TOKEN_OPERATORA_MOD:
+        case TOKEN_OPERATORA_MOVE:
             return 110;
-
-        case TOKEN_OPERATORB_MEMBER:
-            return 120;
-
-        case TOKEN_OPERATORB_INSTOF:
-            return 130;
 
         default:
             return -1;
@@ -1770,15 +1788,14 @@ namespace parser
 
     bool Parser::isAssignmentOperator() const
     {
-        return isAssignmentOperator(it);
+        return isAssignmentOperator(it->type.convert<util::OperatorType>());
     }
 
-    bool
-    Parser::isAssignmentOperator(lexer::TokenVector::const_iterator op) const
+    bool Parser::isAssignmentOperator(util::OperatorType op) const
     {
         using namespace lexer;
 
-        switch(op->type.get())
+        switch(op.get())
         {
         case TOKEN_OPERATORA_SIMPLE:
         case TOKEN_OPERATORA_ADD:
@@ -1795,13 +1812,12 @@ namespace parser
 
     bool Parser::isBinOpRightAssociative() const
     {
-        return isBinOpRightAssociative(it);
+        return isBinOpRightAssociative(it->type.convert<util::OperatorType>());
     }
 
-    bool
-    Parser::isBinOpRightAssociative(lexer::TokenVector::const_iterator op) const
+    bool Parser::isBinOpRightAssociative(util::OperatorType op) const
     {
-        switch(op->type.get())
+        switch(op.get())
         {
         case TOKEN_OPERATORB_POW:
             return true;

@@ -51,7 +51,7 @@ bool Frontend::runParser()
     {
         util::logger->debug("Parsing failed");
         util::logger->info("Parsing of file '{}' failed, terminating\n",
-                           tokens[0].loc.file);
+                           file->getFilename());
         return false;
     }
     ast = p.retrieveAST();

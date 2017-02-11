@@ -30,20 +30,20 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
       dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())}
 {
     // Create types
-    types.insertTypeWithVariants<VoidType>(context, dbuilder, false);
-    types.insertTypeWithVariants<IntType>(context, dbuilder, true);
-    types.insertTypeWithVariants<Int8Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<Int16Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<Int32Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<Int64Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<FloatType>(context, dbuilder, true);
-    types.insertTypeWithVariants<F32Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<F64Type>(context, dbuilder, true);
-    types.insertTypeWithVariants<BoolType>(context, dbuilder, true);
-    types.insertTypeWithVariants<CharType>(context, dbuilder, true);
-    types.insertTypeWithVariants<ByteCharType>(context, dbuilder, true);
-    types.insertTypeWithVariants<ByteType>(context, dbuilder, true);
-    types.insertTypeWithVariants<StringType>(context, dbuilder, true);
+    types.insertTypeWithVariants<VoidType>(context, dbuilder);
+    types.insertTypeWithVariants<IntType>(context, dbuilder);
+    types.insertTypeWithVariants<Int8Type>(context, dbuilder);
+    types.insertTypeWithVariants<Int16Type>(context, dbuilder);
+    types.insertTypeWithVariants<Int32Type>(context, dbuilder);
+    types.insertTypeWithVariants<Int64Type>(context, dbuilder);
+    types.insertTypeWithVariants<FloatType>(context, dbuilder);
+    types.insertTypeWithVariants<F32Type>(context, dbuilder);
+    types.insertTypeWithVariants<F64Type>(context, dbuilder);
+    types.insertTypeWithVariants<BoolType>(context, dbuilder);
+    types.insertTypeWithVariants<CharType>(context, dbuilder);
+    types.insertTypeWithVariants<ByteCharType>(context, dbuilder);
+    types.insertTypeWithVariants<ByteType>(context, dbuilder);
+    types.insertTypeWithVariants<StringType>(context, dbuilder);
 }
 
 bool CodegenVisitor::codegen(ast::AST* ast)
@@ -252,8 +252,9 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
     }
 
     // Add symbol to current scope
-    auto var =
-        std::make_unique<FunctionSymbol>(type, accept->value, name, proto);
+    auto val = std::make_unique<TypedValue>(type, accept->value,
+                                            TypedValue::STMTVALUE, false);
+    auto var = std::make_unique<FunctionSymbol>(std::move(val), name, proto);
     var->isExport = proto->isExport;
     auto varptr = var.get();
     symbols.getTop().insert(std::make_pair(name, std::move(var)));
@@ -322,15 +323,11 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     Type* type = nullptr;
     if(node->typeInferred)
     {
-        type = types.find(init->type->getName(), node->isMutable
-                                                     ? TypeTable::FIND_MUTABLE
-                                                     : TypeTable::FIND_DEFAULT);
+        type = types.find(init->type->getName());
     }
     else
     {
-        type = types.find(node->type->value, node->isMutable
-                                                 ? TypeTable::FIND_MUTABLE
-                                                 : TypeTable::FIND_DEFAULT);
+        type = types.find(node->type->value);
     }
     assert(type);
 
@@ -365,8 +362,9 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
                 node, "Useless variable: Uninitialized immutable variable: {}",
                 node->name->value);
         }
-        init = std::make_unique<TypedValue>(type,
-                                            llvm::UndefValue::get(type->type));
+        init = std::make_unique<TypedValue>(
+            type, llvm::UndefValue::get(type->type), TypedValue::RVALUE,
+            node->isMutable);
         if(!init)
         {
             return err();
@@ -375,7 +373,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
 
     // Check init type
     if(!init->type->isSameOrImplicitlyCastable(node->init.get(), builder,
-                                               init->value, type))
+                                               init.get(), type))
     {
         return err(codegenError(
             node->init.get(), "Invalid init nodeession: Cannot assign {} to {}",

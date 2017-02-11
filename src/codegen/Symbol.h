@@ -14,12 +14,8 @@ namespace codegen
 class Symbol
 {
 public:
-    Symbol(std::unique_ptr<TypedValue> pValue, std::string pName)
-        : value(std::move(pValue)), name(std::move(pName))
-    {
-    }
-    Symbol(Type* t, llvm::Value* v, std::string pName)
-        : value(std::make_unique<TypedValue>(t, v)), name(std::move(pName))
+    Symbol(std::unique_ptr<TypedValue> pValue, std::string pName, bool mut)
+        : value(std::move(pValue)), name(std::move(pName)), isMutable(mut)
     {
     }
 
@@ -56,6 +52,16 @@ public:
     std::string name;
     /// Is exported
     bool isExport{false};
+    /// Is mutable
+    bool isMutable{false};
+
+protected:
+    Symbol(Type* t, llvm::Value* v, std::string pName,
+           TypedValue::ValueCategory cat, bool mut)
+        : value(std::make_unique<TypedValue>(t, v, cat, mut)),
+          name(std::move(pName)), isMutable(mut)
+    {
+    }
 };
 
 class FunctionSymbol : public Symbol
@@ -63,14 +69,15 @@ class FunctionSymbol : public Symbol
 public:
     FunctionSymbol(std::unique_ptr<TypedValue> pValue, std::string pName,
                    ast::ASTFunctionPrototypeStatement* pProto)
-        : Symbol(std::move(pValue), std::move(pName)), proto(pProto)
+        : Symbol(std::move(pValue), std::move(pName), false), proto(pProto)
     {
     }
-    FunctionSymbol(Type* t, llvm::Value* v, std::string pName,
+    /*FunctionSymbol(Type* t, llvm::Value* v, std::string pName,
                    ast::ASTFunctionPrototypeStatement* pProto)
-        : Symbol(t, v, std::move(pName)), proto(pProto)
+        : Symbol(t, v, std::move(pName), TypedValue::STMTVALUE, false),
+          proto(pProto)
     {
-    }
+    }*/
 
     FunctionSymbol(const FunctionSymbol& other) = delete;
     FunctionSymbol& operator=(const FunctionSymbol& other) = delete;

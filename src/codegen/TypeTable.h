@@ -17,8 +17,7 @@ public:
 
     enum _FindFlags : uint32_t
     {
-        FIND_DEFAULT = 0,
-        FIND_MUTABLE = 1 << 0
+        FIND_DEFAULT = 0
     };
     using FindFlags = util::SafeEnum<_FindFlags, uint32_t>;
 
@@ -44,15 +43,13 @@ public:
     size_t isDefinedLLVM(llvm::Type* type) const;
 
     template <typename T>
-    Type* insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder,
-                     bool mut = false);
+    Type* insertType(llvm::LLVMContext& context, llvm::DIBuilder& dbuilder);
 
     Type* insertType(std::unique_ptr<Type> type);
 
     template <typename T>
     void insertTypeWithVariants(llvm::LLVMContext& context,
-                                llvm::DIBuilder& dbuilder,
-                                bool mutableAllowed = true);
+                                llvm::DIBuilder& dbuilder);
 
     auto& getList()
     {
@@ -69,9 +66,9 @@ private:
 
 template <typename T>
 inline Type* TypeTable::insertType(llvm::LLVMContext& context,
-                                   llvm::DIBuilder& dbuilder, bool mut)
+                                   llvm::DIBuilder& dbuilder)
 {
-    auto t = std::make_unique<T>(this, context, dbuilder, mut);
+    auto t = std::make_unique<T>(this, context, dbuilder);
     auto ptr = t.get();
     list.push_back(std::move(t));
     return ptr;
@@ -84,16 +81,9 @@ inline Type* TypeTable::insertType(std::unique_ptr<Type> type)
 }
 template <typename T>
 inline void TypeTable::insertTypeWithVariants(llvm::LLVMContext& context,
-                                              llvm::DIBuilder& dbuilder,
-                                              bool mutableAllowed)
+                                              llvm::DIBuilder& dbuilder)
 {
-    auto t = insertType<T>(context, dbuilder);
-    t->dtype =
-        dbuilder.createQualifiedType(llvm::dwarf::DW_TAG_const_type, t->dtype);
-    if(mutableAllowed)
-    {
-        insertType<T>(context, dbuilder, true);
-    }
+    insertType<T>(context, dbuilder);
 }
 
 inline size_t TypeTable::isDefined(const std::string& name,
@@ -119,18 +109,6 @@ inline Type* TypeTable::find(const std::string& name,
 {
     auto p = [&](const std::unique_ptr<Type>& t) {
         if(t->getName() != name)
-        {
-            return false;
-        }
-        if(flags.isSet(FIND_MUTABLE))
-        {
-            if(t->isMutable)
-            {
-                return true;
-            }
-            return false;
-        }
-        if(t->isMutable)
         {
             return false;
         }
@@ -216,18 +194,6 @@ inline const Type* TypeTable::find(const std::string& name,
 {
     auto p = [&](const std::unique_ptr<Type>& t) {
         if(t->getName() != name)
-        {
-            return false;
-        }
-        if(flags.isSet(FIND_MUTABLE))
-        {
-            if(t->isMutable)
-            {
-                return true;
-            }
-            return false;
-        }
-        if(t->isMutable)
         {
             return false;
         }

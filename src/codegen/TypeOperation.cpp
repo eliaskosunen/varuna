@@ -45,7 +45,12 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::assignmentOperation(
 {
     assert(operands.size() == 2);
 
-    if(!operands[0]->type->isMutable)
+    assert(operands[0]->cat != TypedValue::STMTVALUE);
+    if(operands[0]->cat == TypedValue::RVALUE)
+    {
+        return operationError(node, "Cannot assign to an rvalue");
+    }
+    if(!operands[0]->isMutable)
     {
         return operationError(node, "Cannot assign to immutable lhs");
     }
@@ -119,7 +124,8 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::unaryOperation(
     assert(operands.size() == 1);
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(operands[0]->type, v);
+        return std::make_unique<TypedValue>(
+            operands[0]->type, v, TypedValue::RVALUE, operands[0]->isMutable);
     };
 
     switch(op.get())
@@ -128,8 +134,8 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::unaryOperation(
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
-        return operands[0]->type->cast(node, builder, Type::CAST,
-                                       operands[0]->value, t);
+        return operands[0]->type->cast(node, builder, Type::CAST, operands[0],
+                                       t);
     }
     case util::OPERATORU_MINUS:
         return ret(builder.CreateNeg(operands[0]->value, "negtmp"));
@@ -158,12 +164,14 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::binaryOperation(
 
     auto t = operands[0]->type;
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(t, v);
+        return std::make_unique<TypedValue>(t, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
     auto comp = [&](llvm::Value* v) {
         auto boolt = type->typeTable->findDecorated("bool");
         assert(boolt);
-        return std::make_unique<TypedValue>(boolt, v);
+        return std::make_unique<TypedValue>(boolt, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
     switch(op.get())
     {
@@ -222,7 +230,12 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::assignmentOperation(
 {
     assert(operands.size() == 2);
 
-    if(!operands[0]->type->isMutable)
+    assert(operands[0]->cat != TypedValue::STMTVALUE);
+    if(operands[0]->cat == TypedValue::RVALUE)
+    {
+        return operationError(node, "Cannot assign to an rvalue");
+    }
+    if(!operands[0]->isMutable)
     {
         return operationError(node, "Cannot assign to immutable lhs");
     }
@@ -287,7 +300,8 @@ std::unique_ptr<TypedValue> CharacterTypeOperation::binaryOperation(
     auto comp = [&](llvm::Value* v) {
         auto boolt = type->typeTable->findDecorated("bool");
         assert(boolt);
-        return std::make_unique<TypedValue>(boolt, v);
+        return std::make_unique<TypedValue>(boolt, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
 
     if(op == util::OPERATORB_EQ)
@@ -319,7 +333,12 @@ std::unique_ptr<TypedValue> BoolTypeOperation::assignmentOperation(
 {
     assert(operands.size() == 2);
 
-    if(!operands[0]->type->isMutable)
+    assert(operands[0]->cat != TypedValue::STMTVALUE);
+    if(operands[0]->cat == TypedValue::RVALUE)
+    {
+        return operationError(node, "Cannot assign to an rvalue");
+    }
+    if(!operands[0]->isMutable)
     {
         return operationError(node, "Cannot assign to immutable lhs");
     }
@@ -365,7 +384,8 @@ std::unique_ptr<TypedValue> BoolTypeOperation::unaryOperation(
     assert(operands.size() == 1);
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(operands[0]->type, v);
+        return std::make_unique<TypedValue>(
+            operands[0]->type, v, TypedValue::RVALUE, operands[0]->isMutable);
     };
 
     switch(op.get())
@@ -394,7 +414,8 @@ std::unique_ptr<TypedValue> BoolTypeOperation::binaryOperation(
     auto comp = [&](llvm::Value* v) {
         auto boolt = type->typeTable->findDecorated("bool");
         assert(boolt);
-        return std::make_unique<TypedValue>(boolt, v);
+        return std::make_unique<TypedValue>(boolt, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
     switch(op.get())
     {
@@ -466,7 +487,12 @@ std::unique_ptr<TypedValue> FPTypeOperation::assignmentOperation(
 {
     assert(operands.size() == 2);
 
-    if(!operands[0]->type->isMutable)
+    assert(operands[0]->cat != TypedValue::STMTVALUE);
+    if(operands[0]->cat == TypedValue::RVALUE)
+    {
+        return operationError(node, "Cannot assign to an rvalue");
+    }
+    if(!operands[0]->isMutable)
     {
         return operationError(node, "Cannot assign to immutable lhs");
     }
@@ -525,7 +551,8 @@ FPTypeOperation::unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
     assert(operands.size() == 1);
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(operands[0]->type, v);
+        return std::make_unique<TypedValue>(
+            operands[0]->type, v, TypedValue::RVALUE, operands[0]->isMutable);
     };
 
     switch(op.get())
@@ -534,8 +561,8 @@ FPTypeOperation::unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
     {
         auto t = type->typeTable->findDecorated("int");
         assert(t);
-        return operands[0]->type->cast(node, builder, Type::CAST,
-                                       operands[0]->value, t);
+        return operands[0]->type->cast(node, builder, Type::CAST, operands[0],
+                                       t);
     }
     case util::OPERATORU_MINUS:
         return ret(builder.CreateFNeg(operands[0]->value, "negtmp"));
@@ -561,12 +588,14 @@ FPTypeOperation::binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
 
     auto t = operands[0]->type;
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(t, v);
+        return std::make_unique<TypedValue>(t, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
     auto comp = [&](llvm::Value* v) {
         auto boolt = type->typeTable->findDecorated("bool");
         assert(boolt);
-        return std::make_unique<TypedValue>(boolt, v);
+        return std::make_unique<TypedValue>(boolt, v, TypedValue::RVALUE,
+                                            operands[0]->isMutable);
     };
     switch(op.get())
     {
@@ -711,7 +740,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
         auto arg = operands[i];
 
         auto p = calleetype->params[i - 1];
-        if(!arg->type->isSameOrImplicitlyCastable(node, builder, arg->value, p))
+        if(!arg->type->isSameOrImplicitlyCastable(node, builder, arg, p))
         {
             return operationError(node, "Invalid function call: Cannot convert "
                                         "parameter {} from {} to {}",
@@ -739,6 +768,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
     }
 
     auto retType = calleetype->returnType;
-    return std::make_unique<TypedValue>(retType, call);
+    return std::make_unique<TypedValue>(retType, call, TypedValue::RVALUE,
+                                        false);
 }
 } // namespace codegen

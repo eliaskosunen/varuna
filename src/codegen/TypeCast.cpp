@@ -10,11 +10,11 @@ namespace codegen
 {
 std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
                                                llvm::IRBuilder<>& builder,
-                                               llvm::Value* val, Type* to) const
+                                               TypedValue* val, Type* to) const
 {
     if(basicEqual(to))
     {
-        return std::make_unique<TypedValue>(to, val);
+        return val->clone();
     }
     return castError(node, "Invalid implicit cast: Cannot convert from "
                            "{} to {} implicitly (kinds: {} and {})",
@@ -24,7 +24,7 @@ std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
                                            llvm::IRBuilder<>& builder,
-                                           CastType c, llvm::Value* val,
+                                           CastType c, TypedValue* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
@@ -37,7 +37,7 @@ std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
                                                llvm::IRBuilder<>& builder,
-                                               CastType c, llvm::Value* val,
+                                               CastType c, TypedValue* val,
                                                Type* to) const
 {
     if(c == IMPLICIT)
@@ -46,7 +46,8 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
     }
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(to, v);
+        return std::make_unique<TypedValue>(to, v, TypedValue::RVALUE,
+                                            val->isMutable);
     };
 
     switch(to->kind)
@@ -57,17 +58,19 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
     case INT32:
     case INT64:
     case BYTE:
-        return ret(builder.CreateIntCast(val, to->type, true, "casttmp"));
+        return ret(
+            builder.CreateIntCast(val->value, to->type, true, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
     case FLOAT:
     case F32:
     case F64:
-        return ret(builder.CreateSIToFP(val, to->type, "casttmp"));
+        return ret(builder.CreateSIToFP(val->value, to->type, "casttmp"));
     default:
         if(c == BITCAST)
         {
-            auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
+            auto bitcast =
+                builder.CreateBitCast(val->value, to->type, "casttmp");
             if(!bitcast)
             {
                 return castError(
@@ -84,7 +87,7 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
                                            llvm::IRBuilder<>& builder,
-                                           CastType c, llvm::Value* val,
+                                           CastType c, TypedValue* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
@@ -93,7 +96,8 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
     }
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(to, v);
+        return std::make_unique<TypedValue>(to, v, TypedValue::RVALUE,
+                                            val->isMutable);
     };
 
     switch(to->kind)
@@ -104,17 +108,19 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
     case INT32:
     case INT64:
     case BYTE:
-        return ret(builder.CreateICmpNE(val, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
     case FLOAT:
     case F32:
     case F64:
         return ret(builder.CreateFCmpONE(
-            val, llvm::ConstantFP::get(typeTable->find("float")->type, 0.0),
+            val->value,
+            llvm::ConstantFP::get(typeTable->find("float")->type, 0.0),
             "casttmp"));
     default:
         if(c == BITCAST)
         {
-            auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
+            auto bitcast =
+                builder.CreateBitCast(val->value, to->type, "casttmp");
             if(!bitcast)
             {
                 return castError(
@@ -131,7 +137,7 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
                                                 llvm::IRBuilder<>& builder,
-                                                CastType c, llvm::Value* val,
+                                                CastType c, TypedValue* val,
                                                 Type* to) const
 {
     if(c == IMPLICIT)
@@ -140,12 +146,13 @@ std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
     }
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(to, v);
+        return std::make_unique<TypedValue>(to, v, TypedValue::RVALUE,
+                                            val->isMutable);
     };
 
     if(c == BITCAST)
     {
-        auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
+        auto bitcast = builder.CreateBitCast(val->value, to->type, "casttmp");
         if(!bitcast)
         {
             return castError(node,
@@ -160,7 +167,7 @@ std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
                                            llvm::IRBuilder<>& builder,
-                                           CastType c, llvm::Value* val,
+                                           CastType c, TypedValue* val,
                                            Type* to) const
 {
     if(c == IMPLICIT)
@@ -169,7 +176,8 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
     }
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(to, v);
+        return std::make_unique<TypedValue>(to, v, TypedValue::RVALUE,
+                                            val->isMutable);
     };
 
     switch(to->kind)
@@ -179,13 +187,15 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
     case INT16:
     case INT32:
     case INT64:
-        return ret(builder.CreateIntCast(val, to->type, false, "casttmp"));
+        return ret(
+            builder.CreateIntCast(val->value, to->type, false, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
     default:
         if(c == BITCAST)
         {
-            auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
+            auto bitcast =
+                builder.CreateBitCast(val->value, to->type, "casttmp");
             if(!bitcast)
             {
                 return castError(
@@ -201,7 +211,7 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
                                          llvm::IRBuilder<>& builder, CastType c,
-                                         llvm::Value* val, Type* to) const
+                                         TypedValue* val, Type* to) const
 {
     if(c == IMPLICIT)
     {
@@ -209,7 +219,8 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
     }
 
     auto ret = [&](llvm::Value* v) {
-        return std::make_unique<TypedValue>(to, v);
+        return std::make_unique<TypedValue>(to, v, TypedValue::RVALUE,
+                                            val->isMutable);
     };
 
     switch(to->kind)
@@ -219,13 +230,14 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
     case INT16:
     case INT32:
     case INT64:
-        return ret(builder.CreateFPToSI(val, to->type, "casttmp"));
+        return ret(builder.CreateFPToSI(val->value, to->type, "casttmp"));
     case BYTE:
-        return ret(builder.CreateFPToUI(val, to->type, "casttmp"));
+        return ret(builder.CreateFPToUI(val->value, to->type, "casttmp"));
     default:
         if(c == BITCAST)
         {
-            auto bitcast = builder.CreateBitCast(val, to->type, "casttmp");
+            auto bitcast =
+                builder.CreateBitCast(val->value, to->type, "casttmp");
             if(!bitcast)
             {
                 return castError(
@@ -242,7 +254,7 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
                                              llvm::IRBuilder<>& builder,
-                                             CastType c, llvm::Value* val,
+                                             CastType c, TypedValue* val,
                                              Type* to) const
 {
     if(c == IMPLICIT)
@@ -255,7 +267,7 @@ std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
 
 std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
                                                llvm::IRBuilder<>& builder,
-                                               CastType c, llvm::Value* val,
+                                               CastType c, TypedValue* val,
                                                Type* to) const
 {
     if(c == IMPLICIT)

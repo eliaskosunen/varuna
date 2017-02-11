@@ -53,7 +53,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->condition.get(), builder,
-                                     Type::IMPLICIT, cond->value, boolt);
+                                     Type::IMPLICIT, cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -179,7 +179,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->end.get(), builder, Type::IMPLICIT,
-                                     cond->value, boolt);
+                                     cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -279,7 +279,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->condition.get(), builder,
-                                     Type::IMPLICIT, cond->value, boolt);
+                                     Type::IMPLICIT, cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -348,8 +348,8 @@ CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
     {
         return codegenError(node, "Undefined symbol: '{}'", node->value);
     }
-    return std::make_unique<TypedValue>(symbol->getType(),
-                                        symbol->value->value);
+    return std::make_unique<TypedValue>(symbol->getType(), symbol->value->value,
+                                        TypedValue::LVALUE, symbol->isMutable);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
@@ -367,7 +367,8 @@ CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
     auto load = builder.CreateLoad(var->getType()->type, var->value->value,
                                    node->value.c_str());
     assert(load);
-    return std::make_unique<TypedValue>(var->getType(), load);
+    return std::make_unique<TypedValue>(var->getType(), load,
+                                        TypedValue::LVALUE, var->isMutable);
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression* node)
 {
@@ -390,7 +391,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression* node)
     }
 
     // Perform the cast
-    return castee->type->cast(node, builder, Type::CAST, castee->value, t);
+    return castee->type->cast(node, builder, Type::CAST, castee.get(), t);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
@@ -425,8 +426,11 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
     builder.CreateStore(init->value, alloca);
 
     // Define symbol
-    auto var = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, alloca), node->name->value);
+    auto val = std::make_unique<TypedValue>(type, alloca, TypedValue::LVALUE,
+                                            node->isMutable);
+    auto valclone = val->clone();
+    auto var = std::make_unique<Symbol>(std::move(val), node->name->value,
+                                        node->isMutable);
     symbols.getTop().insert(std::make_pair(node->name->value, std::move(var)));
 
     // Add LLVM invariant_start intrinsic
@@ -450,7 +454,7 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
 #endif
     }
 
-    return std::make_unique<TypedValue>(type, init->value);
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
@@ -510,13 +514,16 @@ CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
     }
 
     // Create symbol
-    auto var = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, gvar), node->var->name->value);
+    auto val = std::make_unique<TypedValue>(type, gvar, TypedValue::LVALUE,
+                                            node->var->isMutable);
+    auto valclone = val->clone();
+    auto var = std::make_unique<Symbol>(std::move(val), node->var->name->value,
+                                        node->var->isMutable);
     var->isExport = node->isExport;
     symbols.getTop().insert(
         std::make_pair(node->var->name->value, std::move(var)));
 
-    return std::make_unique<TypedValue>(type, init->value);
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTSubscriptExpression* node)
@@ -590,12 +597,15 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     }
 
     // Declare symbol
-    auto variable = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, alloca), var->name->value);
+    auto val =
+        std::make_unique<TypedValue>(type, alloca, TypedValue::LVALUE, false);
+    auto valclone = val->clone();
+    auto variable =
+        std::make_unique<Symbol>(std::move(val), var->name->value, false);
     symbols.getTop().insert(
         std::make_pair(var->name->value, std::move(variable)));
 
-    return std::make_unique<TypedValue>(type, alloca);
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
@@ -714,7 +724,8 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     // just declare and exit
     if(node->isDecl)
     {
-        return std::make_unique<TypedValue>(functionType, llvmfunc);
+        return std::make_unique<TypedValue>(functionType, llvmfunc,
+                                            TypedValue::STMTVALUE, true);
     }
 
     auto entry = llvm::BasicBlock::Create(context, "entry", llvmfunc);
@@ -818,7 +829,8 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     {
         dblocks.pop_back();
     }
-    return std::make_unique<TypedValue>(functionType, llvmfunc);
+    return std::make_unique<TypedValue>(functionType, llvmfunc,
+                                        TypedValue::STMTVALUE, false);
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
 {
@@ -843,7 +855,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
     auto retType = types.findDecorated(f->returnType->value);
     assert(retType);
     if(!ret->type->isSameOrImplicitlyCastable(node->returnValue.get(), builder,
-                                              ret->value, retType))
+                                              ret.get(), retType))
     {
         // Types don't match
         codegenInfo(node->getFunction()->proto->returnType.get(),
@@ -864,18 +876,21 @@ CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* node)
     auto t = types.findDecorated(node->type->value);
     assert(t);
 
-    return std::make_unique<TypedValue>(t, [&t, &node]() {
-        if(node->isSigned)
-        {
-            // Unsigned overflow is defined and
-            // ConstantInt::get takes a uint64_t,
-            // so we could use it even for signed integers,
-            // but I think it's cleaner this way
-            return llvm::ConstantInt::getSigned(t->type, node->value);
-        }
-        return llvm::ConstantInt::get(
-            t->type, static_cast<uint64_t>(node->value), false);
-    }());
+    return std::make_unique<TypedValue>(
+        t,
+        [&t, &node]() {
+            if(node->isSigned)
+            {
+                // Unsigned overflow is defined and
+                // ConstantInt::get takes a uint64_t,
+                // so we could use it even for signed integers,
+                // but I think it's cleaner this way
+                return llvm::ConstantInt::getSigned(t->type, node->value);
+            }
+            return llvm::ConstantInt::get(
+                t->type, static_cast<uint64_t>(node->value), false);
+        }(),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
@@ -886,7 +901,8 @@ CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
     assert(t);
 
     return std::make_unique<TypedValue>(
-        t, llvm::ConstantFP::get(t->type, node->value));
+        t, llvm::ConstantFP::get(t->type, node->value), TypedValue::RVALUE,
+        true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
@@ -904,7 +920,8 @@ CodegenVisitor::visit(ast::ASTCharLiteralExpression* node)
     assert(t);
 
     return std::make_unique<TypedValue>(
-        t, llvm::ConstantInt::get(t->type, node->value, false));
+        t, llvm::ConstantInt::get(t->type, node->value, false),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTBoolLiteralExpression* node)
@@ -915,7 +932,8 @@ CodegenVisitor::visit(ast::ASTBoolLiteralExpression* node)
     assert(t);
     return std::make_unique<TypedValue>(
         t, node->value ? llvm::ConstantInt::getTrue(context)
-                       : llvm::ConstantInt::getFalse(context));
+                       : llvm::ConstantInt::getFalse(context),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTNoneLiteralExpression* node)
