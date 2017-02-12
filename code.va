@@ -6,11 +6,13 @@
 
 module code;
 
+import more;
+
 def puts(s: string) -> bool;
 
 def func(s: string) -> string;
 
-def main() {
+def main() -> int {
     var str = "test";
     let str2 = func(str);
     let str3 = func("test2");
@@ -22,4 +24,6 @@ def main() {
     puts(str4);
 
     str = str2;
+
+    return morefunc(2);
 }

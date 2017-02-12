@@ -21,3 +21,5 @@ Makefile
 Makefile*
 *.cmake*
 cmake/
+*.ll
+*.vamod

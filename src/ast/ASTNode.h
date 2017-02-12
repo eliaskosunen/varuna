@@ -80,6 +80,8 @@ public:
     virtual void accept(DumpASTVisitor* v, size_t ind = 0) = 0;
     virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
     virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
+    virtual std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) = 0;
 
     /// NodeType of this ASTNode
     NodeType nodeType{NODE};

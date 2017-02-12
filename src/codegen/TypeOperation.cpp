@@ -796,10 +796,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
         return builder.CreateCall(calleeval->getFunctionType(), calleeval, args,
                                   "calltmp");
     }();
-    if(!call)
-    {
-        return nullptr;
-    }
+    assert(call);
 
     auto retType = calleetype->returnType;
     return std::make_unique<TypedValue>(retType, call, TypedValue::RVALUE,

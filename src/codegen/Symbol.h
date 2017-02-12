@@ -7,6 +7,7 @@
 #include "ast/ASTFunctionStatement.h"
 #include "codegen/Type.h"
 #include "codegen/TypedValue.h"
+#include "util/SourceLocation.h"
 
 namespace codegen
 {
@@ -14,8 +15,10 @@ namespace codegen
 class Symbol
 {
 public:
-    Symbol(std::unique_ptr<TypedValue> pValue, std::string pName, bool mut)
-        : value(std::move(pValue)), name(std::move(pName)), isMutable(mut)
+    Symbol(util::SourceLocation l, std::unique_ptr<TypedValue> pValue,
+           std::string pName, bool mut)
+        : value(std::move(pValue)), name(std::move(pName)), isMutable(mut),
+          loc(l)
     {
     }
 
@@ -26,6 +29,13 @@ public:
     Symbol& operator=(Symbol&& other) = default;
 
     virtual ~Symbol() = default;
+
+    virtual std::unique_ptr<Symbol> clone()
+    {
+        auto s = std::make_unique<Symbol>(loc, value->clone(), name, isMutable);
+        s->isExport = isExport;
+        return s;
+    }
 
     /**
      * Get the type of the symbol
@@ -54,12 +64,14 @@ public:
     bool isExport{false};
     /// Is mutable
     bool isMutable{false};
+    /// Defined in
+    util::SourceLocation loc;
 
 protected:
-    Symbol(Type* t, llvm::Value* v, std::string pName,
+    Symbol(util::SourceLocation l, Type* t, llvm::Value* v, std::string pName,
            TypedValue::ValueCategory cat, bool mut)
         : value(std::make_unique<TypedValue>(t, v, cat, mut)),
-          name(std::move(pName)), isMutable(mut)
+          name(std::move(pName)), isMutable(mut), loc(l)
     {
     }
 };
@@ -67,17 +79,20 @@ protected:
 class FunctionSymbol : public Symbol
 {
 public:
-    FunctionSymbol(std::unique_ptr<TypedValue> pValue, std::string pName,
+    FunctionSymbol(util::SourceLocation l, std::unique_ptr<TypedValue> pValue,
+                   std::string pName,
                    ast::ASTFunctionPrototypeStatement* pProto)
-        : Symbol(std::move(pValue), std::move(pName), false), proto(pProto)
+        : Symbol(l, std::move(pValue), std::move(pName), false), proto(pProto)
     {
     }
-    /*FunctionSymbol(Type* t, llvm::Value* v, std::string pName,
-                   ast::ASTFunctionPrototypeStatement* pProto)
-        : Symbol(t, v, std::move(pName), TypedValue::STMTVALUE, false),
-          proto(pProto)
+
+    std::unique_ptr<Symbol> clone() override
     {
-    }*/
+        auto s =
+            std::make_unique<FunctionSymbol>(loc, value->clone(), name, proto);
+        s->isExport = isExport;
+        return std::move(s);
+    }
 
     FunctionSymbol(const FunctionSymbol& other) = delete;
     FunctionSymbol& operator=(const FunctionSymbol& other) = delete;

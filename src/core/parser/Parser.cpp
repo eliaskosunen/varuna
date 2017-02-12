@@ -106,8 +106,8 @@ namespace parser
 
         // Parse import type
         // Options:
-        // 	* module
-        // 	* package
+        //  * module
+        //  * package
         // Not required
         ASTImportStatement::ImportType importType =
             ASTImportStatement::UNSPECIFIED;

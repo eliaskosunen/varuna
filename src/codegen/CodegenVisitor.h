@@ -40,13 +40,6 @@ public:
      */
     bool codegen(ast::AST* ast);
 
-    /**
-     * Visit the AST and get symbols to import
-     * @param  ast AST to visit
-     * @return     Symbol list
-     */
-    SymbolTable&& codegenImport(ast::AST* ast);
-
     /// Dump the module to stdout
     void dumpModule() const
     {
@@ -62,7 +55,10 @@ private:
      */
     void emitDebugLocation(ast::ASTNode* node);
 
-    void writeExports();
+    std::string getModuleFilename() const;
+    std::string getModuleFilename(const std::string& moduleName) const;
+
+    void writeExports(std::unique_ptr<SymbolTable> exports);
 
     /// Create a new void-typed value
     std::unique_ptr<TypedValue> createVoidVal(llvm::Value* v = nullptr);
@@ -70,6 +66,8 @@ private:
     llvm::Value* getDummyValue();
     /// Get a typed dummy value
     std::unique_ptr<TypedValue> getTypedDummyValue();
+
+    bool importModule(ast::ASTImportStatement* import);
 
     /**
      * Log an error
@@ -105,6 +103,7 @@ private:
      */
     ast::ASTFunctionPrototypeStatement*
     getASTNodeFunction(ast::ASTNode* node) const;
+
     /**
      * Declare a function.
      * Doesn't redeclare if a function with similar name and type is already
@@ -137,13 +136,6 @@ private:
                                              const std::string& name);
 
     /**
-     * Create a static global string constant
-     * @param  str String contents
-     * @return     String constant, never nullptr
-     */
-    llvm::Constant* createStringConstant(const char* str);
-
-    /**
      * Run type infersion on a variable definition based on its initializer.
      * If type information is given otherwise in the definition, it is used
      * instead.
@@ -173,9 +165,9 @@ private:
     std::vector<llvm::DIScope*> dblocks;
 
     /// Symbol table
-    SymbolTable symbols;
+    std::unique_ptr<SymbolTable> symbols;
     /// Type table
-    TypeTable types;
+    std::unique_ptr<TypeTable> types;
 
 public:
     std::unique_ptr<TypedValue> visit(ast::ASTNode* node) = delete;
@@ -226,7 +218,7 @@ public:
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::createVoidVal(llvm::Value* v)
 {
-    static auto t = types.findDecorated("void");
+    static auto t = types->findDecorated("void");
     assert(t);
     return std::make_unique<TypedValue>(t, v, TypedValue::STMTVALUE, false);
 }
@@ -238,7 +230,7 @@ inline llvm::Value* CodegenVisitor::getDummyValue()
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 {
-    static auto t = types.findDecorated("int32");
+    static auto t = types->findDecorated("int32");
     assert(t);
     auto v = llvm::Constant::getNullValue(t->type);
     auto ret = std::make_unique<TypedValue>(t, v, TypedValue::STMTVALUE, false);

@@ -11,8 +11,10 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
+#include "codegen/ModuleFile.h"
 #include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
+#include "util/StringUtils.h"
 
 #define USE_LLVM_MODULE_VERIFY 0
 
@@ -27,23 +29,25 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
           // since we're definitely going to be more popular than C
           llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
           util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
-      dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())}
+      dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())},
+      symbols{std::make_unique<SymbolTable>()},
+      types{std::make_unique<TypeTable>()}
 {
     // Create types
-    types.insertTypeWithVariants<VoidType>(context, dbuilder);
-    types.insertTypeWithVariants<IntType>(context, dbuilder);
-    types.insertTypeWithVariants<Int8Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int16Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int32Type>(context, dbuilder);
-    types.insertTypeWithVariants<Int64Type>(context, dbuilder);
-    types.insertTypeWithVariants<FloatType>(context, dbuilder);
-    types.insertTypeWithVariants<F32Type>(context, dbuilder);
-    types.insertTypeWithVariants<F64Type>(context, dbuilder);
-    types.insertTypeWithVariants<BoolType>(context, dbuilder);
-    types.insertTypeWithVariants<CharType>(context, dbuilder);
-    types.insertTypeWithVariants<ByteCharType>(context, dbuilder);
-    types.insertTypeWithVariants<ByteType>(context, dbuilder);
-    types.insertTypeWithVariants<StringType>(context, dbuilder);
+    types->insertTypeWithVariants<VoidType>(context, dbuilder);
+    types->insertTypeWithVariants<IntType>(context, dbuilder);
+    types->insertTypeWithVariants<Int8Type>(context, dbuilder);
+    types->insertTypeWithVariants<Int16Type>(context, dbuilder);
+    types->insertTypeWithVariants<Int32Type>(context, dbuilder);
+    types->insertTypeWithVariants<Int64Type>(context, dbuilder);
+    types->insertTypeWithVariants<FloatType>(context, dbuilder);
+    types->insertTypeWithVariants<F32Type>(context, dbuilder);
+    types->insertTypeWithVariants<F64Type>(context, dbuilder);
+    types->insertTypeWithVariants<BoolType>(context, dbuilder);
+    types->insertTypeWithVariants<CharType>(context, dbuilder);
+    types->insertTypeWithVariants<ByteCharType>(context, dbuilder);
+    types->insertTypeWithVariants<ByteType>(context, dbuilder);
+    types->insertTypeWithVariants<StringType>(context, dbuilder);
 }
 
 bool CodegenVisitor::codegen(ast::AST* ast)
@@ -60,7 +64,7 @@ bool CodegenVisitor::codegen(ast::AST* ast)
 
     // Codegen all children
     auto root = ast->globalNode.get();
-    symbols.addBlock();
+    symbols->addBlock();
     for(auto& child : root->nodes)
     {
         if(!child->accept(this))
@@ -69,12 +73,13 @@ bool CodegenVisitor::codegen(ast::AST* ast)
         }
     }
 
-    auto exports = symbols.findExports();
+    auto exports = symbols->findExports();
+    writeExports(std::move(exports));
 
     // Only dump global symbols because all other symbols have been popped
-    symbols.dump();
+    symbols->dump();
 
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
 
     stripInstructionsAfterTerminators();
 
@@ -122,7 +127,7 @@ void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
     }
 }
 
-void CodegenVisitor::writeExports()
+void CodegenVisitor::writeExports(std::unique_ptr<SymbolTable> exports)
 {
     if(util::viewProgramOptions().outputFilename == "stdout")
     {
@@ -130,9 +135,10 @@ void CodegenVisitor::writeExports()
         return;
     }
 
-    auto filename = fmt::format("{}.vamod", info.file->getFilename());
-
-    throw std::logic_error("CodegenVisitor::writeExports is unimplemented");
+    auto filename = getModuleFilename(module->getName());
+    ModuleFile mod(filename);
+    mod.write(ModuleFile::ModuleFileSymbolTable::createFromSymbolTable(
+        std::move(exports)));
 }
 
 void CodegenVisitor::stripInstructionsAfterTerminators()
@@ -198,7 +204,7 @@ FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
                                              ast::ASTNode* node, bool logError)
 {
     // Find a symbol with a similar name
-    auto f = symbols.find(name, Type::FUNCTION);
+    auto f = symbols->find(name, Type::FUNCTION);
     if(f)
     {
         // Found one!
@@ -254,10 +260,11 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
     // Add symbol to current scope
     auto val = std::make_unique<TypedValue>(type, accept->value,
                                             TypedValue::STMTVALUE, false);
-    auto var = std::make_unique<FunctionSymbol>(std::move(val), name, proto);
+    auto var = std::make_unique<FunctionSymbol>(proto->loc, std::move(val),
+                                                name, proto);
     var->isExport = proto->isExport;
     auto varptr = var.get();
-    symbols.getTop().insert(std::make_pair(name, std::move(var)));
+    symbols->getTop().insert(std::make_pair(name, std::move(var)));
     return varptr;
 }
 
@@ -283,19 +290,19 @@ CodegenVisitor::getASTNodeFunction(ast::ASTNode* node) const
     return f->proto.get();
 }
 
-llvm::Constant* CodegenVisitor::createStringConstant(const char* str)
+bool CodegenVisitor::importModule(ast::ASTImportStatement* import)
 {
-    // FIXME
-    llvm::Constant* strConst = llvm::ConstantDataArray::getString(context, str);
-    auto gvStr = new llvm::GlobalVariable(*module, strConst->getType(), true,
-                                          llvm::GlobalValue::InternalLinkage,
-                                          nullptr, ".str");
-    gvStr->setAlignment(1);
-    gvStr->setInitializer(strConst);
-
-    llvm::Constant* strVal =
-        llvm::ConstantExpr::getGetElementPtr(strConst->getType(), gvStr, {});
-    return strVal;
+    auto moduleName = getModuleFilename(import->importee->value);
+    ModuleFile mod(moduleName);
+    auto tree = mod.read().toAST();
+    for(auto& node : tree->globalNode->nodes)
+    {
+        if(!node->accept(this))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::pair<Type*, std::unique_ptr<TypedValue>>
@@ -323,11 +330,11 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     Type* type = nullptr;
     if(node->typeInferred)
     {
-        type = types.find(init->type->getName());
+        type = types->find(init->type->getName());
     }
     else
     {
-        type = types.find(node->type->value);
+        type = types->find(node->type->value);
     }
     assert(type);
 
@@ -339,7 +346,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
                                 "Cannot create a variable of unsized type: {}",
                                 type->getDecoratedName()));
     }
-    if(types.isDefinedUndecorated(node->name->value) != 0)
+    if(types->isDefinedUndecorated(node->name->value) != 0)
     {
         // Cannot name variable as an already defined typename
         return err(codegenError(
@@ -381,7 +388,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     }
 
     // Check for existing similarly named symbol
-    if(symbols.find(node->name->value, nullptr, false))
+    if(symbols->find(node->name->value, nullptr, false))
     {
         return err(
             codegenError(node->name.get(),
@@ -390,5 +397,32 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     }
 
     return ret(type, std::move(init));
+}
+
+std::string CodegenVisitor::getModuleFilename() const
+{
+    return getModuleFilename(info.file->getFilename());
+}
+std::string
+CodegenVisitor::getModuleFilename(const std::string& moduleName) const
+{
+    std::string modulefile;
+    auto pathparts = util::stringutils::split(moduleName, '/');
+    auto nameparts = util::stringutils::split(pathparts.back(), '.');
+    if(nameparts.back() != "va")
+    {
+        nameparts.push_back("vamod");
+    }
+    else
+    {
+        nameparts.back() = "vamod";
+    }
+    std::for_each(nameparts.begin(), nameparts.end(),
+                  [&](const std::string& p) {
+                      modulefile.append(p);
+                      modulefile.push_back('.');
+                  });
+    modulefile.pop_back();
+    return modulefile;
 }
 } // namespace codegen

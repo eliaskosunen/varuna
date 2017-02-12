@@ -25,8 +25,8 @@ public:
     ~ASTExpression() override = default;
 
     void accept(DumpASTVisitor* v, size_t ind = 0) override;
-    virtual std::unique_ptr<codegen::TypedValue>
-    accept(codegen::CodegenVisitor* v);
+    std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) override;
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 

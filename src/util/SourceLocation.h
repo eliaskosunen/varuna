@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/File.h"
+#include <cereal.h>
 #include <spdlog.h>
 
 namespace util
@@ -29,5 +30,11 @@ struct SourceLocation
     uint32_t line{0};
     /// Column
     uint32_t col{0};
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(file), CEREAL_NVP(line), CEREAL_NVP(col));
+    }
 };
 }

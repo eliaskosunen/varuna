@@ -23,7 +23,7 @@ class TypeTable;
 class Type
 {
 public:
-    enum Kind
+    enum _Kind
     {
         VOID,
         INT,
@@ -47,6 +47,8 @@ public:
         CAST,
         BITCAST
     };
+
+    using Kind = util::SafeEnum<_Kind>;
 
     Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
          llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n);

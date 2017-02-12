@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/Logger.h"
+#include <cereal.h>
 #include <ostream>
 #include <type_traits>
 
@@ -152,6 +153,12 @@ public:
     T convert() const
     {
         return T{static_cast<typename T::EnumType>(get())};
+    }
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(flags));
     }
 
 protected:

@@ -19,7 +19,7 @@ std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
     return castError(node, "Invalid implicit cast: Cannot convert from "
                            "{} to {} implicitly (kinds: {} and {})",
                      getDecoratedName(), to->getDecoratedName(), kind,
-                     to->kind);
+                     to->kind.get());
 }
 
 std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
@@ -50,7 +50,7 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
                                             val->isMutable);
     };
 
-    switch(to->kind)
+    switch(to->kind.get())
     {
     case INT:
     case INT8:
@@ -100,7 +100,7 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
                                             val->isMutable);
     };
 
-    switch(to->kind)
+    switch(to->kind.get())
     {
     case INT:
     case INT8:
@@ -180,7 +180,7 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
                                             val->isMutable);
     };
 
-    switch(to->kind)
+    switch(to->kind.get())
     {
     case INT:
     case INT8:
@@ -223,7 +223,7 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
                                             val->isMutable);
     };
 
-    switch(to->kind)
+    switch(to->kind.get())
     {
     case INT:
     case INT8:
