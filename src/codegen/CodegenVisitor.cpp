@@ -28,19 +28,17 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
           // That's of course very dumb,
           // since we're definitely going to be more popular than C
           llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
-          util::programinfo::getIdentifier(), info.optEnabled(), "", 0)},
+          util::programinfo::getIdentifier(), info.optEnabled(), "", 1)},
       dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())},
       symbols{std::make_unique<SymbolTable>()},
       types{std::make_unique<TypeTable>()}
 {
     // Create types
     types->insertTypeWithVariants<VoidType>(context, dbuilder);
-    types->insertTypeWithVariants<IntType>(context, dbuilder);
     types->insertTypeWithVariants<Int8Type>(context, dbuilder);
     types->insertTypeWithVariants<Int16Type>(context, dbuilder);
     types->insertTypeWithVariants<Int32Type>(context, dbuilder);
     types->insertTypeWithVariants<Int64Type>(context, dbuilder);
-    types->insertTypeWithVariants<FloatType>(context, dbuilder);
     types->insertTypeWithVariants<F32Type>(context, dbuilder);
     types->insertTypeWithVariants<F64Type>(context, dbuilder);
     types->insertTypeWithVariants<BoolType>(context, dbuilder);

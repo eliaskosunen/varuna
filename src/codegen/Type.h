@@ -26,13 +26,11 @@ public:
     enum _Kind
     {
         VOID,
-        INT,
         INT8,
         INT16,
         INT32,
         INT64,
         BOOL,
-        FLOAT,
         F32,
         F64,
         BYTE,
@@ -208,21 +206,7 @@ public:
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
 
-    size_t getIntSize() const noexcept
-    {
-        assert(util::viewProgramOptions().intSize % 8 == 0);
-        assert(util::viewProgramOptions().intSize <= 64);
-        assert(util::viewProgramOptions().intSize >= 8);
-        return util::viewProgramOptions().intSize;
-    }
-
     size_t width;
-};
-
-class IntType : public IntegralType
-{
-public:
-    IntType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class Int8Type : public IntegralType
@@ -326,12 +310,6 @@ public:
     bool isFloatingPoint() const override;
 
     size_t width;
-};
-
-class FloatType : public FPType
-{
-public:
-    FloatType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class F32Type : public FPType

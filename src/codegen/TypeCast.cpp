@@ -52,7 +52,6 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
 
     switch(to->kind.get())
     {
-    case INT:
     case INT8:
     case INT16:
     case INT32:
@@ -62,7 +61,6 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
             builder.CreateIntCast(val->value, to->type, true, "casttmp"));
     case BOOL:
         return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
-    case FLOAT:
     case F32:
     case F64:
         return ret(builder.CreateSIToFP(val->value, to->type, "casttmp"));
@@ -102,14 +100,12 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
 
     switch(to->kind.get())
     {
-    case INT:
     case INT8:
     case INT16:
     case INT32:
     case INT64:
     case BYTE:
         return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
-    case FLOAT:
     case F32:
     case F64:
         return ret(builder.CreateFCmpONE(
@@ -182,7 +178,6 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
 
     switch(to->kind.get())
     {
-    case INT:
     case INT8:
     case INT16:
     case INT32:
@@ -225,7 +220,6 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
 
     switch(to->kind.get())
     {
-    case INT:
     case INT8:
     case INT16:
     case INT32:

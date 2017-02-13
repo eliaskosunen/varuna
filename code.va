@@ -6,24 +6,14 @@
 
 module code;
 
+import cmath;
+import cstdio;
 import more;
 
-def puts(s: string) -> bool;
+def chr(c: i32) -> char;
+def asc(n: char) -> i32;
 
-def func(s: string) -> string;
-
-def main() -> int {
-    var str = "test";
-    let str2 = func(str);
-    let str3 = func("test2");
-    let str4 = func("åäö");
-
-    puts(str);
-    puts(str2);
-    puts(str3);
-    puts(str4);
-
-    str = str2;
-
-    return morefunc(2);
+def main() -> i32 {
+    putchar('A');
+    return asc(getchar()) + morefunc(gets("foo"));
 }

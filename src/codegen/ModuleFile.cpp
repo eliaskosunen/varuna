@@ -8,7 +8,16 @@
 #include "codegen/CodegenVisitor.h"
 #include "codegen/Symbol.h"
 #include "codegen/TypeTable.h"
+#include "util/Compatibility.h"
 #include <fstream>
+
+#if VARUNA_DEBUG
+#define INPUT_ARCHIVE cereal::XMLInputArchive
+#define OUTPUT_ARCHIVE cereal::XMLOutputArchive
+#else
+#define INPUT_ARCHIVE cereal::BinaryInputArchive
+#define OUTPUT_ARCHIVE cereal::BinaryOutputArchive
+#endif
 
 namespace codegen
 {
@@ -27,7 +36,7 @@ ModuleFile::ModuleFileSymbolTable ModuleFile::read()
             "Failed to open module file '{}' for reading", modulefile));
     }
 
-    cereal::BinaryInputArchive archive(is);
+    INPUT_ARCHIVE archive(is);
 
     ModuleFileSymbolTable data;
     archive(data);
@@ -46,7 +55,7 @@ void ModuleFile::write(ModuleFile::ModuleFileSymbolTable&& symbols)
             "Failed to open module file '{}' for writing", modulefile));
     }
 
-    cereal::BinaryOutputArchive archive(os);
+    OUTPUT_ARCHIVE archive(os);
     archive(symbols);
 }
 

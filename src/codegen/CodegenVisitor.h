@@ -230,7 +230,7 @@ inline llvm::Value* CodegenVisitor::getDummyValue()
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 {
-    static auto t = types->findDecorated("int32");
+    static auto t = types->findDecorated("i32");
     assert(t);
     auto v = llvm::Constant::getNullValue(t->type);
     auto ret = std::make_unique<TypedValue>(t, v, TypedValue::STMTVALUE, false);

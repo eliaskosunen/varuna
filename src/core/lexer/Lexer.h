@@ -72,6 +72,13 @@ namespace lexer
         bool warningsAsErrors;
 
     private:
+        enum LexCommentReturn
+        {
+            COMMENT_EOF,
+            COMMENT_FOUND,
+            COMMENT_NONE
+        };
+
         TokenType getTokenTypeFromWord(const util::string_t& buf) const;
         Token getTokenFromWord(const util::string_t& buf) const;
         Token createToken(TokenType type, const util::string_t& val) const;
@@ -101,7 +108,7 @@ namespace lexer
         util::char_t peekPrevious() const;
         util::char_t peekPassed(std::ptrdiff_t n) const;
 
-        bool lexComment();
+        LexCommentReturn lexComment();
 
         util::string_t content;
         ContentIterator it;
@@ -182,25 +189,6 @@ namespace lexer
             return end;
         }
         _next();
-        if(!lexComment())
-        {
-            return it;
-        }
-
-        if(*it == '\r')
-        {
-            if((it + 1) != end && peekNext() != '\n')
-            {
-                // Error message formatting would go out of bounds
-                // if we did it
-                // Throwing instead
-                // TODO: better solution
-                throw std::runtime_error("Unexpected CR (carriage return) "
-                                         "without a trailing LF (line feed)");
-            }
-            util::logger->trace("Found \\r, skipping.");
-            _next();
-        }
 
         if(*it == '\n')
         {
@@ -219,18 +207,6 @@ namespace lexer
         if(it == end)
         {
             return 2;
-        }
-
-        if(*it == '\r')
-        {
-            if(peekNext() != '\n')
-            {
-                lexerWarning("Unexpected CR (carriage return) "
-                             "without a trailing LF (line feed)");
-                newline();
-                return 1;
-            }
-            _next(); // Skip '\r'
         }
 
         if(*it == '\n')

@@ -22,12 +22,14 @@ enum OptimizationLevel
     OPT_Oz      ///< -Oz
     // OPT_Omax    ///< -O3 + lto
 };
-/// Size of 'int'
-enum IntSize
+
+enum OutputType
 {
-    INTSIZE_VOIDPTR = 0, ///< Pointer sized
-    INTSIZE_32 = 32,     ///< 32 bits
-    INTSIZE_64 = 64      ///< 64 bits
+    EMIT_AST,
+    EMIT_LLVM_IR,
+    EMIT_LLVM_BC,
+    EMIT_ASM,
+    EMIT_OBJ
 };
 
 /// Program options
@@ -41,10 +43,10 @@ struct ProgramOptions
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     /// Optimization level
     OptimizationLevel optLevel{OPT_O2};
-    /// Integer size in bits
-    size_t intSize{0};
     /// Emit debugging symbols
     bool emitDebug{false};
+    /// Output
+    OutputType output{EMIT_LLVM_IR};
 
     /**
      * Get speed and size optimization levels from optLevel

@@ -6,11 +6,11 @@
 
 module more;
 
-export def morefunc(a: string) -> int {
+export def morefunc(a: string) -> i32 {
 	return 12;
 }
 
 //export let global = 1;
 
-def internal() -> int;
+def internal() -> i32;
 let private = 2;

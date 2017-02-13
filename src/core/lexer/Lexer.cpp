@@ -56,49 +56,58 @@ namespace lexer
         util::char_t currentChar = *it;
         util::loggerBasic->trace("");
 
-        if(it == end)
+        while(true)
         {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-
-        if(!lexComment())
-        {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-        currentChar = *it;
-
-        util::logger->trace(
-            "Getting next token. Current character: '{}', on {}",
-            std::to_string(currentChar), currentLocation.toString());
-
-        // Skip any whitespace
-        while(util::stringutils::isCharWhitespace(currentChar))
-        {
-            util::logger->trace("Skipping whitespace: '{}'", currentChar);
-
-            if(advance() == end)
+            util::logger->trace("In loop");
+            if(it == end)
             {
                 return createToken(TOKEN_EOF, "EOF");
             }
+
+            bool match = false;
             currentChar = *it;
+            if(util::stringutils::isCharWhitespace(currentChar))
+            {
+                util::logger->trace("Skipping whitespace: '{}'", currentChar);
 
-            // return getNextToken();
+                if(advance() == end)
+                {
+                    return createToken(TOKEN_EOF, "EOF");
+                }
+
+                currentChar = *it;
+                util::logger->trace("currentChar after advancing: '{}'",
+                                    currentChar);
+
+                match = true;
+            }
+
+            auto comment = lexComment();
+            if(comment == COMMENT_EOF)
+            {
+                return createToken(TOKEN_EOF, "EOF");
+            }
+            if(comment == COMMENT_FOUND)
+            {
+                match = true;
+            }
+
+            if(!match)
+            {
+                break;
+            }
         }
 
-        if(!lexComment())
-        {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-        currentChar = *it;
+        util::logger->trace(
+            "Getting next token. Current character: '{}', on {}", currentChar,
+            currentLocation.toString());
+
         // Invalid character
         if(util::stringutils::isCharControlCharacter(currentChar) &&
            !util::stringutils::isCharWhitespace(currentChar))
         {
-            fmt::MemoryWriter out;
-            out << "'" << currentChar
-                << "', dec: " << util::stringutils::charToString(currentChar)
-                << " hex: " << fmt::hex(currentChar);
-            lexerWarning("Unrecognized character: {}, skipped", out.str());
+            lexerWarning("Unrecognized character: '{}' ({}), skipped",
+                         currentChar, static_cast<int32_t>(currentChar));
             advance();
             return createToken(TOKEN_DEFAULT,
                                util::stringutils::charToString(currentChar));
@@ -201,7 +210,7 @@ namespace lexer
             if(!isFloatingPoint)
             {
                 Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-                std::unordered_map<std::string, decltype(INTEGER_INT)>
+                std::unordered_map<std::string, decltype(INTEGER_NONE)>
                     allowedModifiers = {{"i64", INTEGER_INT64},
                                         {"i32", INTEGER_INT32},
                                         {"i16", INTEGER_INT16},
@@ -229,7 +238,7 @@ namespace lexer
                 }
                 if(t.modifierInt == INTEGER_NONE)
                 {
-                    t.modifierInt |= INTEGER_INT;
+                    t.modifierInt |= INTEGER_INT32;
                 }
 
                 if(base == BASE_BIN)
@@ -248,12 +257,11 @@ namespace lexer
             }
 
             Token t = createToken(TOKEN_LITERAL_FLOAT, buf);
-            std::unordered_map<std::string, decltype(FLOAT_FLOAT)>
-                allowedModifiers = {
-                    {"f32", FLOAT_F32},
-                    {"f64", FLOAT_F64},
-                    {"d", FLOAT_DECIMAL},
-                };
+            std::unordered_map<std::string, decltype(FLOAT_NONE)>
+                allowedModifiers = {{"f32", FLOAT_F32},
+                                    {"f64", FLOAT_F64},
+                                    {"d", FLOAT_DECIMAL},
+                                    {"l", FLOAT_LONG}};
             auto mod = [&]() {
                 util::string_t modbuf;
                 while(util::stringutils::isCharAlnum(currentChar))
@@ -276,7 +284,7 @@ namespace lexer
             }
             if(t.modifierFloat == FLOAT_NONE)
             {
-                t.modifierFloat |= FLOAT_FLOAT;
+                t.modifierFloat |= FLOAT_F64;
             }
             if(base != BASE_DEC)
             {
@@ -339,44 +347,46 @@ namespace lexer
             return t;
         }
 
-        fmt::MemoryWriter out;
-        out << "'" << currentChar
-            << "', dec: " << util::stringutils::charToString(currentChar)
-            << " hex: " << fmt::hex(currentChar);
-        lexerWarning("Unrecognized token: {}", out.str());
+        lexerWarning("Unrecognized token: '{}' ({})", currentChar,
+                     static_cast<int32_t>(currentChar));
         advance();
         return createToken(TOKEN_DEFAULT,
                            util::stringutils::charToString(currentChar));
     }
 
-    bool Lexer::lexComment()
+    Lexer::LexCommentReturn Lexer::lexComment()
     {
         if(*it == '/')
         {
             // Single line comment: '//'
             if(peekNext() == '/')
             {
+                util::logger->trace("Single-line comment");
                 advance(); // Skip the both slashes
                 advance();
 
                 if(it == end)
                 {
-                    return false;
+                    return COMMENT_EOF;
                 }
 
-                do
+                while(true)
                 {
                     auto a = _advance();
                     if(a == 1)
                     {
+                        util::logger->trace(
+                            "Single-line comment ended with line break");
                         break;
                     }
                     if(a == 2)
                     {
-                        return false;
+                        util::logger->trace(
+                            "Single-line comment ended with EOF");
+                        return COMMENT_EOF;
                     }
-                } while(true);
-                advance();
+                }
+                return COMMENT_FOUND;
             }
             // Multi line comment: '/*'
             else if(peekNext() == '*')
@@ -390,7 +400,7 @@ namespace lexer
                     if(it == end)
                     {
                         lexerWarning("Unclosed multi-line comment");
-                        return false;
+                        return COMMENT_EOF;
                     }
                     if(*it == '/' && peekNext() == '*')
                     {
@@ -408,9 +418,10 @@ namespace lexer
                     }
                     advance();
                 }
+                return COMMENT_FOUND;
             }
         }
-        return true;
+        return COMMENT_NONE;
     }
 
     util::string_t Lexer::lexStringLiteral(bool isChar)
@@ -424,8 +435,8 @@ namespace lexer
             util::char_t prev = peekPrevious();
             util::char_t next = peekNext();
             util::logger->trace(
-                "Current character: '{}', prev: '{}', next: '{}'",
-                std::to_string(currentChar), prev, next);
+                "Current character: '{}', prev: '{}', next: '{}'", currentChar,
+                prev, next);
 
             // Current char is a newline
             // String doesn't end, terminate

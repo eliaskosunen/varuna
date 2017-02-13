@@ -83,17 +83,6 @@ std::unique_ptr<TypedValue> IntegralType::zeroInit()
     return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
-IntType::IntType(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder)
-    : IntegralType(
-          list, getIntSize(), INT, c,
-          llvm::Type::getIntNTy(c, static_cast<unsigned int>(getIntSize())),
-          dbuilder.createBasicType("int", getIntSize(), getIntSize(),
-                                   llvm::dwarf::DW_ATE_signed),
-          "int")
-{
-}
-
 Int8Type::Int8Type(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
     : IntegralType(
@@ -107,8 +96,8 @@ Int16Type::Int16Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 16, INT16, c, llvm::Type::getInt16Ty(c),
-          dbuilder.createBasicType("int16", 16, 16, llvm::dwarf::DW_ATE_signed),
-          "int16")
+          dbuilder.createBasicType("i16", 16, 16, llvm::dwarf::DW_ATE_signed),
+          "i16")
 {
 }
 
@@ -116,8 +105,8 @@ Int32Type::Int32Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 32, INT32, c, llvm::Type::getInt32Ty(c),
-          dbuilder.createBasicType("int32", 32, 32, llvm::dwarf::DW_ATE_signed),
-          "int32")
+          dbuilder.createBasicType("i32", 32, 32, llvm::dwarf::DW_ATE_signed),
+          "i32")
 {
 }
 
@@ -125,8 +114,8 @@ Int64Type::Int64Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 64, INT64, c, llvm::Type::getInt64Ty(c),
-          dbuilder.createBasicType("int64", 64, 64, llvm::dwarf::DW_ATE_signed),
-          "int64")
+          dbuilder.createBasicType("i64", 64, 64, llvm::dwarf::DW_ATE_signed),
+          "i64")
 {
 }
 
@@ -241,15 +230,6 @@ std::unique_ptr<TypedValue> FPType::zeroInit()
     return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
-FloatType::FloatType(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder)
-    : FPType(
-          list, 32, FLOAT, c, llvm::Type::getFloatTy(c),
-          dbuilder.createBasicType("float", 32, 32, llvm::dwarf::DW_ATE_float),
-          "float")
-{
-}
-
 F32Type::F32Type(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder)
     : FPType(list, 32, F32, c, llvm::Type::getFloatTy(c),
@@ -260,7 +240,7 @@ F32Type::F32Type(TypeTable* list, llvm::LLVMContext& c,
 
 F64Type::F64Type(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder)
-    : FPType(list, 64, F64, c, llvm::Type::getFloatTy(c),
+    : FPType(list, 64, F64, c, llvm::Type::getDoubleTy(c),
              dbuilder.createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float),
              "f64")
 {

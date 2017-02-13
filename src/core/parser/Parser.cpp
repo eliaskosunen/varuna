@@ -89,7 +89,7 @@ namespace parser
 
             // Unsupported top-level token
             default:
-                parserError(it - 1, "'{}' is not allowed as a top-level token",
+                parserError(it, "'{}' is not allowed as a top-level token",
                             it->value);
                 return;
             }
@@ -849,19 +849,9 @@ namespace parser
             int64_t val = std::stoll(lit->value, nullptr, base);
             std::string type;
             bool isSigned = true;
-            if(lit->modifierInt.isSet(INTEGER_INT))
+            if(lit->modifierInt.isSet(INTEGER_INT8))
             {
-                type = "int";
-                if(val > std::numeric_limits<int32_t>::max() ||
-                   val < std::numeric_limits<int32_t>::min())
-                {
-                    throw std::out_of_range(
-                        fmt::format("'{}' cannot fit into int", lit->value));
-                }
-            }
-            else if(lit->modifierInt.isSet(INTEGER_INT8))
-            {
-                type = "int8";
+                type = "i8";
                 if(val > std::numeric_limits<int8_t>::max() ||
                    val < std::numeric_limits<int8_t>::min())
                 {
@@ -871,7 +861,7 @@ namespace parser
             }
             else if(lit->modifierInt.isSet(INTEGER_INT16))
             {
-                type = "int16";
+                type = "i16";
                 if(val > std::numeric_limits<int16_t>::max() ||
                    val < std::numeric_limits<int16_t>::min())
                 {
@@ -881,7 +871,7 @@ namespace parser
             }
             else if(lit->modifierInt.isSet(INTEGER_INT32))
             {
-                type = "int32";
+                type = "i32";
                 if(val > std::numeric_limits<int32_t>::max() ||
                    val < std::numeric_limits<int32_t>::min())
                 {
@@ -891,7 +881,7 @@ namespace parser
             }
             else if(lit->modifierInt.isSet(INTEGER_INT64))
             {
-                type = "int64";
+                type = "i64";
             }
             else if(lit->modifierInt.isSet(INTEGER_BYTE))
             {
@@ -947,11 +937,6 @@ namespace parser
                 {
                     return std::make_tuple<double, std::string>(
                         static_cast<double>(std::stof(lit->value)), "f32");
-                }
-                if(lit->modifierFloat.isSet(FLOAT_FLOAT))
-                {
-                    return std::make_tuple<double, std::string>(
-                        std::stod(lit->value), "float");
                 }
                 throw std::invalid_argument(fmt::format(
                     "Invalid float modifier: {}", lit->modifierFloat.get()));

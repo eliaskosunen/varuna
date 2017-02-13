@@ -79,19 +79,20 @@ int CLI::run()
     cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
                                         cl::value_desc("file"), cl::Positional,
                                         cl::cat(cat));
-    // 'int' size
-    cl::opt<util::IntSize> intSizeArg(
-        "fint-size", cl::desc("Size of type 'int' (Default: 0)"),
-        cl::init(util::INTSIZE_VOIDPTR),
-        cl::values(
-            clEnumValN(util::INTSIZE_VOIDPTR, "0",
-                       "32 or 64 bits depending on the CPU architecture"),
-            clEnumValN(util::INTSIZE_32, "32", "32 bits"),
-            clEnumValN(util::INTSIZE_64, "64", "64 bits"), nullptr),
-        cl::cat(cat));
     // Debugging symbols
     cl::opt<bool> debugArg("g", cl::desc("Emit debugging symbols"),
                            cl::init(false), cl::cat(cat));
+    // Output
+    cl::opt<util::OutputType> outputArg(
+        "emit", cl::desc("Output type"), cl::init(util::EMIT_LLVM_IR),
+        cl::cat(cat),
+        cl::values(clEnumValN(util::EMIT_AST, "ast", "Abstract Syntax Tree"),
+                   clEnumValN(util::EMIT_LLVM_IR, "llvm-ir",
+                              "LLVM Intermediate Representation"),
+                   clEnumValN(util::EMIT_LLVM_BC, "llvm-bc", "LLVM Bytecode"),
+                   clEnumValN(util::EMIT_ASM, "asm", "Native assembly"),
+                   clEnumValN(util::EMIT_OBJ, "obj", "Native object format"),
+                   nullptr));
 
     cl::HideUnrelatedOptions(cat);
     cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
@@ -136,14 +137,6 @@ int CLI::run()
     }
     util::getProgramOptions().inputFilenames = std::move(filelist);
     util::getProgramOptions().outputFilename = std::move(outputFileArg);
-
-    // Int size
-    int intSize = intSizeArg;
-    if(intSize == 0)
-    {
-        intSize = sizeof(void*) * 8;
-    }
-    util::getProgramOptions().intSize = static_cast<size_t>(intSize);
 
     util::getProgramOptions().emitDebug = debugArg;
 
