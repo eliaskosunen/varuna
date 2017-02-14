@@ -70,7 +70,6 @@ public:
     void visit(ASTEmptyExpression* node, size_t ind = 0);
     void visit(ASTIdentifierExpression* node, size_t ind = 0);
     void visit(ASTVariableRefExpression* node, size_t ind = 0);
-    void visit(ASTCastExpression* node, size_t ind = 0);
     void visit(ASTVariableDefinitionExpression* node, size_t ind = 0);
     void visit(ASTGlobalVariableDefinitionExpression* node, size_t ind = 0);
     void visit(ASTSubscriptExpression* node, size_t ind = 0);
@@ -97,6 +96,7 @@ public:
     void visit(ASTEmptyStatement* node, size_t ind = 0);
     void visit(ASTBlockStatement* node, size_t ind = 0);
     void visit(ASTWrappedExpressionStatement* node, size_t ind = 0);
+    void visit(ASTAliasStatement* node, size_t ind = 0);
 };
 
 template <typename... Args>

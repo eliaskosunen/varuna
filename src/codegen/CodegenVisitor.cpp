@@ -31,7 +31,7 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
           util::programinfo::getIdentifier(), info.optEnabled(), "", 1)},
       dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())},
       symbols{std::make_unique<SymbolTable>()},
-      types{std::make_unique<TypeTable>()}
+      types{std::make_unique<TypeTable>(module)}
 {
     // Create types
     types->insertTypeWithVariants<VoidType>(context, dbuilder);
@@ -46,6 +46,7 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
     types->insertTypeWithVariants<ByteCharType>(context, dbuilder);
     types->insertTypeWithVariants<ByteType>(context, dbuilder);
     types->insertTypeWithVariants<StringType>(context, dbuilder);
+    types->insertTypeWithVariants<CStringType>(context, dbuilder);
 }
 
 bool CodegenVisitor::codegen(ast::AST* ast)
@@ -111,17 +112,8 @@ void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
             return;
         }
 
-        auto scope = [&]() -> llvm::DIScope* {
-            // Return DICompileUnit if no scopes are found
-            if(dblocks.empty())
-            {
-                return dcu;
-            }
-            return dblocks.back();
-        }();
-
-        builder.SetCurrentDebugLocation(
-            llvm::DebugLoc::get(node->loc.line, node->loc.col, scope));
+        builder.SetCurrentDebugLocation(llvm::DebugLoc::get(
+            node->loc.line, node->loc.col, getTopDebugScope()));
     }
 }
 
@@ -292,7 +284,24 @@ bool CodegenVisitor::importModule(ast::ASTImportStatement* import)
 {
     auto moduleName = getModuleFilename(import->importee->value);
     ModuleFile mod(moduleName);
-    auto tree = mod.read().toAST();
+    auto tree = [&]() -> decltype(mod.read().toAST()) {
+        try
+        {
+            auto t = mod.read();
+            return t.toAST();
+        }
+        catch(const std::exception& e)
+        {
+            codegenError(import, "Invalid import: {}", e.what());
+            codegenInfo(import, "Did you forget to compile the importee "
+                                "module?");
+            return nullptr;
+        }
+    }();
+    if(!tree)
+    {
+        return false;
+    }
     for(auto& node : tree->globalNode->nodes)
     {
         if(!node->accept(this))
@@ -352,28 +361,10 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
             node->name->value));
     }
 
-    // If there's no initializer,
-    // the value is undef
+    // If there's no initializer, zero-initialize
     if(!init)
     {
-        if(node->isMutable)
-        {
-            codegenWarning(node, "Uninitialized variable: {}",
-                           node->name->value);
-        }
-        else
-        {
-            codegenWarning(
-                node, "Useless variable: Uninitialized immutable variable: {}",
-                node->name->value);
-        }
-        init = std::make_unique<TypedValue>(
-            type, llvm::UndefValue::get(type->type), TypedValue::RVALUE,
-            node->isMutable);
-        if(!init)
-        {
-            return err();
-        }
+        init = type->zeroInit();
     }
 
     // Check init type
@@ -422,5 +413,14 @@ CodegenVisitor::getModuleFilename(const std::string& moduleName) const
                   });
     modulefile.pop_back();
     return modulefile;
+}
+
+llvm::DIScope* CodegenVisitor::getTopDebugScope() const
+{
+    if(dblocks.empty())
+    {
+        return dcu;
+    }
+    return dblocks.back();
 }
 } // namespace codegen

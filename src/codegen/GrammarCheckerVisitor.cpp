@@ -60,10 +60,6 @@ bool GrammarCheckerVisitor::visit(ast::ASTVariableRefExpression*)
 {
     return true;
 }
-bool GrammarCheckerVisitor::visit(ast::ASTCastExpression*)
-{
-    return true;
-}
 bool GrammarCheckerVisitor::visit(ast::ASTVariableDefinitionExpression* node)
 {
     /*if(node->type->value == "void")
@@ -180,5 +176,9 @@ bool GrammarCheckerVisitor::visit(ast::ASTBlockStatement* node)
 bool GrammarCheckerVisitor::visit(ast::ASTWrappedExpressionStatement* node)
 {
     return node->expr->accept(this);
+}
+bool GrammarCheckerVisitor::visit(ast::ASTAliasStatement* node)
+{
+    return true;
 }
 } // namespace codegen

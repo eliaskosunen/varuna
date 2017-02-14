@@ -86,13 +86,6 @@ void ASTParentSolverVisitor::visit(ASTVariableRefExpression* node,
 {
     node->parent = parent;
 }
-void ASTParentSolverVisitor::visit(ASTCastExpression* node, ASTNode* parent)
-{
-    node->parent = parent;
-
-    node->type->accept(this, node);
-    node->castee->accept(this, node);
-}
 void ASTParentSolverVisitor::visit(ASTVariableDefinitionExpression* node,
                                    ASTNode* parent)
 {
@@ -262,6 +255,13 @@ void ASTParentSolverVisitor::visit(ASTWrappedExpressionStatement* node,
 
     node->expr->accept(this, node);
 }
+void ASTParentSolverVisitor::visit(ASTAliasStatement* node, ASTNode* parent)
+{
+    node->parent = parent;
+
+    node->alias->accept(this, node);
+    node->aliasee->accept(this, node);
+}
 } // namespace ast
 
 void ast::ASTExpression::accept(ast::ASTParentSolverVisitor* v, ast::ASTNode* p)
@@ -316,11 +316,6 @@ void ast::ASTIdentifierExpression::accept(ast::ASTParentSolverVisitor* v,
 }
 void ast::ASTVariableRefExpression::accept(ast::ASTParentSolverVisitor* v,
                                            ast::ASTNode* p)
-{
-    return v->visit(this, p);
-}
-void ast::ASTCastExpression::accept(ast::ASTParentSolverVisitor* v,
-                                    ast::ASTNode* p)
 {
     return v->visit(this, p);
 }
@@ -435,6 +430,11 @@ void ast::ASTBlockStatement::accept(ast::ASTParentSolverVisitor* v,
 }
 void ast::ASTWrappedExpressionStatement::accept(ast::ASTParentSolverVisitor* v,
                                                 ast::ASTNode* p)
+{
+    return v->visit(this, p);
+}
+void ast::ASTAliasStatement::accept(ast::ASTParentSolverVisitor* v,
+                                    ast::ASTNode* p)
 {
     return v->visit(this, p);
 }

@@ -37,6 +37,7 @@ public:
         CHAR,
         BCHAR,
         STRING,
+        CSTRING,
         FUNCTION
     };
     enum CastType
@@ -86,7 +87,7 @@ public:
     }
 
     /// Get type operations
-    TypeOperationBase* getOperations() const;
+    virtual TypeOperationBase* getOperations() const;
 
     /// Are types completely equal
     /// e.g. Same mutability
@@ -327,7 +328,26 @@ public:
 class StringType : public Type
 {
 public:
-    StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&);
+    StringType(TypeTable* list, llvm::LLVMContext& c,
+               llvm::DIBuilder& dbuilder);
+
+    static llvm::StructType* getLLVMStringType(llvm::LLVMContext& c);
+
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
+                                     TypedValue* val, Type* to) const override;
+
+    std::unique_ptr<TypedValue> zeroInit() override;
+
+    bool isIntegral() const override;
+    bool isFloatingPoint() const override;
+};
+
+class CStringType : public Type
+{
+public:
+    CStringType(TypeTable* list, llvm::LLVMContext& c,
+                llvm::DIBuilder& dbuilder);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
@@ -369,5 +389,25 @@ public:
 
     Type* returnType;
     std::vector<Type*> params;
+};
+
+class AliasType : public Type
+{
+public:
+    AliasType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
+              const std::string& pAliasName, Type* pUnderlying);
+
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
+                                     TypedValue* val, Type* to) const override;
+
+    std::unique_ptr<TypedValue> zeroInit() override;
+
+    bool isIntegral() const override;
+    bool isFloatingPoint() const override;
+
+    TypeOperationBase* getOperations() const override;
+
+    Type* underlying;
 };
 } // namespace codegen

@@ -58,10 +58,6 @@ bool ast::ASTVariableRefExpression::accept(codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
 }
-bool ast::ASTCastExpression::accept(codegen::GrammarCheckerVisitor* v)
-{
-    return v->visit(this);
-}
 bool ast::ASTVariableDefinitionExpression::accept(
     codegen::GrammarCheckerVisitor* v)
 {
@@ -154,6 +150,10 @@ bool ast::ASTBlockStatement::accept(codegen::GrammarCheckerVisitor* v)
 }
 bool ast::ASTWrappedExpressionStatement::accept(
     codegen::GrammarCheckerVisitor* v)
+{
+    return v->visit(this);
+}
+bool ast::ASTAliasStatement::accept(codegen::GrammarCheckerVisitor* v)
 {
     return v->visit(this);
 }

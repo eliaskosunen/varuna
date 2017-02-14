@@ -259,6 +259,19 @@ std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
     return castError(node, "Invalid cast: Cannot cast string");
 }
 
+std::unique_ptr<TypedValue> CStringType::cast(ast::ASTNode* node,
+                                              llvm::IRBuilder<>& builder,
+                                              CastType c, TypedValue* val,
+                                              Type* to) const
+{
+    if(c == IMPLICIT)
+    {
+        return implicitCast(node, builder, val, to);
+    }
+
+    return castError(node, "Invalid cast: Cannot cast string");
+}
+
 std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
                                                llvm::IRBuilder<>& builder,
                                                CastType c, TypedValue* val,
@@ -270,5 +283,13 @@ std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
     }
 
     return castError(node, "Invalid cast: Cannot cast function");
+}
+
+std::unique_ptr<TypedValue> AliasType::cast(ast::ASTNode* node,
+                                            llvm::IRBuilder<>& builder,
+                                            CastType c, TypedValue* val,
+                                            Type* to) const
+{
+    return underlying->cast(node, builder, c, val, to);
 }
 } // namespace codegen

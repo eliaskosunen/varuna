@@ -117,6 +117,7 @@ namespace lexer
         // [a-zA-Z_][a-zA-Z_0-9]*
         if(util::stringutils::isValidIdentifierBeginningChar(currentChar))
         {
+            // bchar
             if((currentChar == 'b' || currentChar == 'B') && peekNext() == '\'')
             {
                 advance(); // Skip 'b'
@@ -125,6 +126,19 @@ namespace lexer
                 {
                     Token t = createToken(TOKEN_LITERAL_CHAR, buf);
                     t.modifierChar = CHAR_BYTE;
+                    return t;
+                }
+            }
+            // cstring
+            else if((currentChar == 'c' || currentChar == 'C') &&
+                    peekNext() == '"')
+            {
+                advance(); // Skip 'c'
+                util::string_t buf = lexStringLiteral(false);
+                if(!getError())
+                {
+                    Token t = createToken(TOKEN_LITERAL_STRING, buf);
+                    t.modifierString = STRING_C;
                     return t;
                 }
             }
@@ -297,11 +311,11 @@ namespace lexer
         // ".+"
         if(currentChar == '"')
         {
-            util::string_t buf = lexStringLiteral();
+            util::string_t buf = lexStringLiteral(false);
             if(!getError())
             {
                 Token t = createToken(TOKEN_LITERAL_STRING, buf);
-                t.modifierChar = CHAR_CHAR;
+                t.modifierString = STRING_STRING;
                 return t;
             }
         }
@@ -313,7 +327,9 @@ namespace lexer
             util::string_t buf = lexStringLiteral(true);
             if(!getError())
             {
-                return createToken(TOKEN_LITERAL_CHAR, buf);
+                Token t = createToken(TOKEN_LITERAL_CHAR, buf);
+                t.modifierChar = CHAR_CHAR;
+                return t;
             }
         }
 
@@ -594,6 +610,7 @@ namespace lexer
             {"foreach", TOKEN_KEYWORD_FOREACH},
             {"return", TOKEN_KEYWORD_RETURN},
             {"cast", TOKEN_KEYWORD_CAST},
+            {"use", TOKEN_KEYWORD_USE},
 
             {"let", TOKEN_KEYWORD_LET},
             {"mut", TOKEN_KEYWORD_MUT},
@@ -606,7 +623,7 @@ namespace lexer
             {"or", TOKEN_OPERATORB_OR},
             {"not", TOKEN_OPERATORU_NOT},
             {"rem", TOKEN_OPERATORB_REM},
-        };
+            {"as", TOKEN_OPERATORB_AS}};
 
         auto find = words.find(buf);
         if(find == words.end())

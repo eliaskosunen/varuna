@@ -40,7 +40,7 @@ enum _OperatorType
     OPERATORB_MEMBER, // a.b
 
     OPERATORB_OF,     // List of String
-    OPERATORB_AS,     // foreach(list as String elem)
+    OPERATORB_AS,     // 12 as i16
     OPERATORB_INSTOF, // a instanceof T
 
     OPERATORU_INC = 600, // a++

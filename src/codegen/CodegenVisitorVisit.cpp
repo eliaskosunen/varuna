@@ -37,7 +37,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
     symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -132,7 +132,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -259,7 +259,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
 
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -373,29 +373,6 @@ CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
     return std::make_unique<TypedValue>(var->getType(), load,
                                         TypedValue::LVALUE, var->isMutable);
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression* node)
-{
-    emitDebugLocation(node);
-
-    // Codegen castee
-    auto castee = node->castee->accept(this);
-    if(!castee)
-    {
-        return nullptr;
-    }
-
-    // Find type to be casted in
-    auto t = types->findDecorated(node->type->value);
-    if(!t)
-    {
-        return codegenError(node->type.get(),
-                            "Invalid cast: Undefined typename: '{}'",
-                            node->type->value);
-    }
-
-    // Perform the cast
-    return castee->type->cast(node, builder, Type::CAST, castee.get(), t);
-}
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
 {
@@ -416,13 +393,14 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
 
     if(info.emitDebug)
     {
-        auto d = dbuilder.createAutoVariable(dblocks.back(), node->name->value,
-                                             dfile, node->loc.line, type->dtype,
-                                             false);
-        dbuilder.insertDeclare(
-            alloca, d, dbuilder.createExpression(),
-            llvm::DebugLoc::get(node->loc.line, node->loc.col, dblocks.back()),
-            builder.GetInsertBlock());
+        auto d = dbuilder.createAutoVariable(
+            getTopDebugScope(), node->name->value, dfile, node->loc.line,
+            type->dtype, false);
+        dbuilder.insertDeclare(alloca, d, dbuilder.createExpression(),
+                               llvm::DebugLoc::get(node->loc.line,
+                                                   node->loc.col,
+                                                   getTopDebugScope()),
+                               builder.GetInsertBlock());
     }
 
     // Store the initializer value
@@ -916,6 +894,23 @@ CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
     auto t = types->findDecorated(node->type->value);
     assert(t);
 
+    if(node->type->value == "cstring")
+    {
+        auto stringConst =
+            llvm::ConstantDataArray::getString(context, node->value, true);
+        auto stringGlobal = new llvm::GlobalVariable(
+            *module, stringConst->getType(), true,
+            llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+        auto indexConst =
+            llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+        std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+        auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+            stringConst->getType(), stringGlobal, indexList, true);
+
+        return std::make_unique<TypedValue>(t, stringPtr, TypedValue::LVALUE,
+                                            false);
+    }
+
     auto stringLen = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context),
                                             node->value.length());
 
@@ -982,6 +977,42 @@ CodegenVisitor::visit(ast::ASTBinaryExpression* node)
         return nullptr;
     }
 
+    // Cast expression
+    if(node->oper == util::OPERATORB_AS)
+    {
+        // Check rhs validity
+        auto rhs = [&]() -> ast::ASTIdentifierExpression* {
+            if(node->rhs->nodeType == ast::ASTNode::IDENTIFIER_EXPR)
+            {
+                return static_cast<ast::ASTIdentifierExpression*>(
+                    node->rhs.get());
+            }
+            if(node->rhs->nodeType == ast::ASTNode::VARIABLE_REF_EXPR)
+            {
+                return static_cast<ast::ASTVariableRefExpression*>(
+                    node->rhs.get());
+            }
+            return codegenError(node->rhs.get(),
+                                "Invalid cast expression target type");
+        }();
+        if(!rhs)
+        {
+            return nullptr;
+        }
+
+        // Find type to be casted in
+        auto t = types->findDecorated(rhs->value);
+        if(!t)
+        {
+            return codegenError(node->rhs.get(),
+                                "Invalid cast: Undefined typename: '{}'",
+                                rhs->value);
+        }
+
+        // Perform the cast
+        return lhs->type->cast(node, builder, Type::CAST, lhs.get(), t);
+    }
+
     // Codegen rhs
     auto rhs = node->rhs->accept(this);
     if(!rhs)
@@ -1040,6 +1071,28 @@ CodegenVisitor::visit(ast::ASTArbitraryOperandExpression* node)
 {
     emitDebugLocation(node);
 
+    assert(node->operands.size() >= 1);
+    if(node->operands[0]->nodeType == ast::ASTNode::IDENTIFIER_EXPR &&
+       node->operands.size() == 2)
+    {
+        auto t = types->find(
+            static_cast<ast::ASTIdentifierExpression*>(node->operands[0].get())
+                ->value);
+        // Constructor syntac
+        // e.g. let foo = i16(10);
+        //              ---^
+        // Currently used as cast
+        if(t)
+        {
+            auto param = node->operands[1]->accept(this);
+            if(!param)
+            {
+                return nullptr;
+            }
+            return param->type->cast(node, builder, Type::CAST, param.get(), t);
+        }
+    }
+
     // Codegen operands
     // Need a vector of owned TypedValues to avoid lifetime issues
     std::vector<std::unique_ptr<TypedValue>> operandsOwned;
@@ -1081,7 +1134,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
     symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -1112,5 +1165,34 @@ std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTWrappedExpressionStatement* node)
 {
     return node->expr->accept(this);
+}
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTAliasStatement* node)
+{
+    auto aliasee = types->find(node->aliasee->value);
+    if(!aliasee)
+    {
+        return codegenError(node->aliasee.get(), "Undefined typename: '{}'",
+                            node->aliasee->value);
+    }
+
+    if(types->isDefined(node->alias->value))
+    {
+        return codegenError(node->alias.get(),
+                            "Cannot overload alias: Type already exists: '{}'",
+                            node->alias->value);
+    }
+
+    auto type = types->insertType(std::make_unique<AliasType>(
+        types.get(), context, dbuilder, node->alias->value, aliasee));
+    if(!type)
+    {
+        return nullptr;
+    }
+    auto castedType = static_cast<AliasType*>(type);
+    type->dtype = dbuilder.createTypedef(castedType->underlying->dtype,
+                                         node->alias->value, dfile,
+                                         node->loc.line, getTopDebugScope());
+
+    return getTypedDummyValue();
 }
 } // namespace codegen

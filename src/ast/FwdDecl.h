@@ -15,7 +15,6 @@ class ASTArbitraryOperandExpression;
 class ASTAssignmentExpression;
 class ASTBinaryExpression;
 class ASTBoolLiteralExpression;
-class ASTCastExpression;
 class ASTCharLiteralExpression;
 class ASTEmptyExpression;
 class ASTFloatLiteralExpression;
@@ -32,6 +31,7 @@ class ASTVariableDefinitionExpression;
 class ASTGlobalVariableDefinitionExpression;
 
 class ASTStatement;
+class ASTAliasStatement;
 class ASTBlockStatement;
 class ASTEmptyStatement;
 class ASTForeachStatement;

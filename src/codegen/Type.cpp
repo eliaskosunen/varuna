@@ -246,13 +246,17 @@ F64Type::F64Type(TypeTable* list, llvm::LLVMContext& c,
 {
 }
 
-StringType::StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&)
+StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
-           llvm::StructType::create(
-               c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)},
-               "string"),
-           nullptr, "string")
+           getLLVMStringType(c), nullptr, "string")
 {
+}
+
+llvm::StructType* StringType::getLLVMStringType(llvm::LLVMContext& c)
+{
+    return llvm::StructType::create(
+        c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)}, "string");
 }
 
 bool StringType::isIntegral() const
@@ -266,7 +270,64 @@ bool StringType::isFloatingPoint() const
 
 std::unique_ptr<TypedValue> StringType::zeroInit()
 {
-    return nullptr;
+    auto stringLen = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), 0);
+    auto stringConst = llvm::ConstantDataArray::getString(context, "", false);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *typeTable->getModule(), stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+
+    auto val = llvm::ConstantStruct::get(llvm::cast<llvm::StructType>(type),
+                                         stringLen, stringPtr, nullptr);
+
+    /*auto val = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(type),
+        llvm::ConstantInt::get(type->getInt64Ty(type->getContext()), 0),
+        llvm::ConstantInt::get(type->getInt8PtrTy(type->getContext()), 0),
+        nullptr);*/
+    return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
+}
+
+CStringType::CStringType(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder)
+    : Type(list, std::make_unique<CStringTypeOperation>(this), CSTRING, c,
+           llvm::Type::getInt8PtrTy(c), nullptr, "cstring")
+{
+}
+
+bool CStringType::isIntegral() const
+{
+    return false;
+}
+bool CStringType::isFloatingPoint() const
+{
+    return false;
+}
+
+std::unique_ptr<TypedValue> CStringType::zeroInit()
+{
+    auto stringConst = llvm::ConstantDataArray::getString(context, "", true);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *typeTable->getModule(), stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+
+    auto val = stringPtr;
+
+    /*auto val = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(type),
+        llvm::ConstantInt::get(type->getInt64Ty(type->getContext()), 0),
+        llvm::ConstantInt::get(type->getInt8PtrTy(type->getContext()), 0),
+        nullptr);*/
+    return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
 }
 
 FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
@@ -357,6 +418,33 @@ llvm::DISubroutineType* FunctionType::createDebugFunctionType(
 
     return dbuilder->createSubroutineType(
         dbuilder->getOrCreateTypeArray(elementTypes));
+}
+
+AliasType::AliasType(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, const std::string& pAliasName,
+                     Type* pUnderlying)
+    : Type(list, nullptr, pUnderlying->kind, c, pUnderlying->type, nullptr,
+           pAliasName),
+      underlying(pUnderlying)
+{
+}
+
+bool AliasType::isIntegral() const
+{
+    return underlying->isIntegral();
+}
+bool AliasType::isFloatingPoint() const
+{
+    return underlying->isFloatingPoint();
+    ;
+}
+std::unique_ptr<TypedValue> AliasType::zeroInit()
+{
+    return underlying->zeroInit();
+}
+TypeOperationBase* AliasType::getOperations() const
+{
+    return underlying->getOperations();
 }
 
 } // namespace codegen

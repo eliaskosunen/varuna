@@ -112,6 +112,8 @@ namespace parser
         std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
         std::unique_ptr<ast::ASTReturnStatement> parseReturnStatement();
 
+        std::unique_ptr<ast::ASTAliasStatement> parseAliasStatement();
+
         std::unique_ptr<ast::ASTIntegerLiteralExpression>
         parseIntegerLiteralExpression();
         std::unique_ptr<ast::ASTFloatLiteralExpression>
@@ -132,7 +134,6 @@ namespace parser
         parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
         std::unique_ptr<ast::ASTSubscriptExpression>
         parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
-        std::unique_ptr<ast::ASTCastExpression> parseCastExpression();
         std::unique_ptr<ast::ASTExpression>
         parsePrimary(bool tolerateUnrecognized = false);
         std::unique_ptr<ast::ASTExpression> parseExpression();
@@ -143,6 +144,7 @@ namespace parser
         void handleEmptyStatement();
         void handleGlobalVariable();
         void handleExport();
+        void handleUse();
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();

@@ -86,6 +86,10 @@ namespace parser
             case TOKEN_KEYWORD_EXPORT:
                 handleExport();
                 break;
+            // Alias
+            case TOKEN_KEYWORD_USE:
+                handleUse();
+                break;
 
             // Unsupported top-level token
             default:
@@ -605,20 +609,57 @@ namespace parser
         return createNode<ASTReturnStatement>(iter, std::move(expr));
     }
 
+    std::unique_ptr<ASTAliasStatement> Parser::parseAliasStatement()
+    {
+        // 'use' alias '=' aliasee ';'
+
+        const auto iter = it;
+        ++it; // Skip 'use'
+
+        if(it->type != TOKEN_IDENTIFIER)
+        {
+            return parserError(
+                "Expected identifier after 'use', got '{}' instead", it->value);
+        }
+        auto aliasName = it->value;
+        auto alias =
+            createNode<ASTIdentifierExpression>(it, std::move(aliasName));
+        ++it; // Skip alias
+
+        if(it->type != TOKEN_OPERATORA_SIMPLE)
+        {
+            return parserError(
+                "Expected '=' after identifier, got '{}' instead", it->value);
+        }
+        ++it; // Skip '='
+
+        if(it->type != TOKEN_IDENTIFIER)
+        {
+            return parserError(
+                "Expected identifier after '=', got '{}' instead", it->value);
+        }
+        auto aliaseeName = it->value;
+        auto aliasee =
+            createNode<ASTIdentifierExpression>(it, std::move(aliaseeName));
+        ++it; // Skip aliasee
+
+        if(it->type != TOKEN_PUNCT_SEMICOLON)
+        {
+            return parserError(
+                "Expected ';' after use statement, got '{}' instead",
+                it->value);
+        }
+        ++it; // Skip ';'
+
+        return createNode<ASTAliasStatement>(iter, std::move(alias),
+                                             std::move(aliasee));
+    }
+
     std::unique_ptr<ASTExpression> Parser::parseIdentifierExpression()
     {
         std::string idName = it->value;
         const auto iter = it;
         ++it; // Skip identifier
-
-        // If there is an identifier or 'mut' after the
-        // identifier,
-        // it's a variable definition
-        if(it->type == TOKEN_IDENTIFIER || it->type == TOKEN_KEYWORD_MUT)
-        {
-            --it; // Roll back to the previous identifier, which is the typename
-            return parseVariableDefinition();
-        }
 
         auto id = createNode<ASTIdentifierExpression>(iter, std::move(idName));
 
@@ -643,31 +684,7 @@ namespace parser
             return parseFunctionCallExpression(std::move(id));
         }
 
-        auto parseAssignment = [&]() -> std::unique_ptr<ASTExpression> {
-            ++it; // Skip assignment operator
-            return parseExpression();
-        };
-
-        auto varref =
-            createNode<ASTVariableRefExpression>(iter, std::move(id->value));
-        std::unique_ptr<ASTAssignmentExpression> assignment = nullptr;
-        if(isAssignmentOperator())
-        {
-            auto op = it;
-            auto rhs = parseAssignment();
-            if(!rhs)
-            {
-                return nullptr;
-            }
-            assignment = createNode<ASTAssignmentExpression>(
-                op, std::move(varref), std::move(rhs),
-                op->type.convert<util::OperatorType>());
-        }
-        if(!assignment)
-        {
-            return std::move(varref);
-        }
-        return std::move(assignment);
+        return createNode<ASTVariableRefExpression>(iter, std::move(id->value));
     }
 
     std::unique_ptr<ast::ASTArbitraryOperandExpression>
@@ -734,59 +751,6 @@ namespace parser
                                                   std::move(subscr));
     }
 
-    std::unique_ptr<ASTCastExpression> Parser::parseCastExpression()
-    {
-        const auto iter = it;
-        ++it; // Skip 'cast'
-
-        if(it->type != TOKEN_OPERATORB_LESS)
-        {
-            return parserError(
-                "Invalid cast: Expected '<' after 'cast', got '{}' instead",
-                it->value);
-        }
-        ++it; // Skip '<'
-
-        if(it->type != TOKEN_IDENTIFIER)
-        {
-            return parserError(
-                "Invalid cast: Expected identifier after '<', got '{}' instead",
-                it->value);
-        }
-        auto idvalue = it->value;
-        auto type = createNode<ASTIdentifierExpression>(it, std::move(idvalue));
-        ++it; // Skip identifier
-
-        if(it->type != TOKEN_OPERATORB_GREATER)
-        {
-            return parserError(
-                "Invalid cast: Expected '>' after identifier, got '{}' instead",
-                it->value);
-        }
-        ++it; // Skip '>'
-
-        if(it->type != TOKEN_PUNCT_PAREN_OPEN)
-        {
-            return parserError(
-                "Invalid cast: Expected '(' after '>', got '{}' instead",
-                it->value);
-        }
-        ++it; // Skip '('
-
-        auto castee = parseExpression();
-
-        if(it->type != TOKEN_PUNCT_PAREN_CLOSE)
-        {
-            return parserError(
-                "Invalid cast: Expected ')' after identifier, got '{}' instead",
-                it->value);
-        }
-        ++it; // Skip ')'
-
-        return createNode<ASTCastExpression>(iter, std::move(castee),
-                                             std::move(type));
-    }
-
     std::unique_ptr<ASTExpression>
     Parser::parsePrimary(bool tolerateUnrecognized)
     {
@@ -810,9 +774,8 @@ namespace parser
         case TOKEN_LITERAL_TRUE:
             return parseTrueLiteralExpression();
         case TOKEN_KEYWORD_VAR:
+        case TOKEN_KEYWORD_LET:
             return parseVariableDefinition();
-        case TOKEN_KEYWORD_CAST:
-            return parseCastExpression();
         default:
             if(tolerateUnrecognized)
             {
@@ -971,7 +934,15 @@ namespace parser
             return parserError("String literal contains invalid UTF-8: '{}'",
                                val);
         }
-        return createNode<ASTStringLiteralExpression>(lit, std::move(val));
+        auto type = std::make_unique<ASTIdentifierExpression>([&]() {
+            if(lit->modifierString.isSet(STRING_C))
+            {
+                return "cstring";
+            }
+            return "string";
+        }());
+        return createNode<ASTStringLiteralExpression>(lit, std::move(val),
+                                                      std::move(type));
     }
 
     std::unique_ptr<ASTCharLiteralExpression>
@@ -1402,6 +1373,21 @@ namespace parser
         }
     }
 
+    void Parser::handleUse()
+    {
+        if(auto stmt = parseAliasStatement())
+        {
+            util::logger->trace(
+                "Parsed alias statement: alias: '{}', aliasee: '{}'",
+                stmt->alias->value, stmt->aliasee->value);
+            getAST().push(std::move(stmt));
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     std::unique_ptr<ASTStatement> Parser::parseStatement()
     {
         switch(it->type.get())
@@ -1416,12 +1402,23 @@ namespace parser
         case TOKEN_KEYWORD_RETURN:
             return parseReturnStatement();
 
-        case TOKEN_KEYWORD_VAR:
         case TOKEN_KEYWORD_LET:
-        case TOKEN_KEYWORD_MUT:
+        {
+            auto expr = parseVariableDefinition();
+            if(!expr)
+            {
+                return nullptr;
+            }
+            auto stmt = wrapExpression(std::move(expr));
+            if(!stmt)
+            {
+                return nullptr;
+            }
+            return std::move(stmt);
+        }
         case TOKEN_IDENTIFIER:
         {
-            auto expr = parseIdentifierExpression();
+            auto expr = parseVariableDefinition();
             if(!expr)
             {
                 return nullptr;
@@ -1770,6 +1767,9 @@ namespace parser
         case TOKEN_OPERATORA_MOD:
         case TOKEN_OPERATORA_MOVE:
             return 110;
+
+        case TOKEN_OPERATORB_AS:
+            return 120;
 
         default:
             return -1;

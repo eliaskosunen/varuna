@@ -52,6 +52,7 @@ namespace lexer
         TOKEN_KEYWORD_LET,
         TOKEN_KEYWORD_MUT,
         TOKEN_KEYWORD_CAST,
+        TOKEN_KEYWORD_USE,
 
         TOKEN_IDENTIFIER = 200,
 

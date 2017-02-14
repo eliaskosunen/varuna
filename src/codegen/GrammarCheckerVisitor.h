@@ -56,7 +56,6 @@ public:
     bool visit(ast::ASTEmptyExpression* node);
     bool visit(ast::ASTIdentifierExpression* node);
     bool visit(ast::ASTVariableRefExpression* node);
-    bool visit(ast::ASTCastExpression* node);
     bool visit(ast::ASTVariableDefinitionExpression* node);
     bool visit(ast::ASTGlobalVariableDefinitionExpression* node);
     bool visit(ast::ASTSubscriptExpression* node);
@@ -83,5 +82,6 @@ public:
     bool visit(ast::ASTEmptyStatement* node);
     bool visit(ast::ASTBlockStatement* node);
     bool visit(ast::ASTWrappedExpressionStatement* node);
+    bool visit(ast::ASTAliasStatement* node);
 };
 } // namespace codegen

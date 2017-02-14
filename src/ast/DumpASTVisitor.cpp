@@ -63,10 +63,6 @@ void ASTVariableRefExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
-void ASTCastExpression::accept(DumpASTVisitor* v, size_t ind)
-{
-    v->visit(this, ind);
-}
 void ASTVariableDefinitionExpression::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
@@ -160,6 +156,10 @@ void ASTWrappedExpressionStatement::accept(DumpASTVisitor* v, size_t ind)
 {
     v->visit(this, ind);
 }
+void ASTAliasStatement::accept(DumpASTVisitor* v, size_t ind)
+{
+    v->visit(this, ind);
+}
 
 void DumpASTVisitor::visit(ASTStatement* /*unused*/, size_t ind)
 {
@@ -239,14 +239,6 @@ void DumpASTVisitor::visit(ASTIdentifierExpression* node, size_t ind)
 void DumpASTVisitor::visit(ASTVariableRefExpression* node, size_t ind)
 {
     log(ind, "ASTVariableRefExpression: {}", node->value);
-}
-void DumpASTVisitor::visit(ASTCastExpression* node, size_t ind)
-{
-    log(ind, "ASTCastExpression:");
-    log(ind + 1, "Type:");
-    node->type->accept(this, ind + 2);
-    log(ind + 1, "Castee:");
-    node->castee->accept(this, ind + 2);
 }
 void DumpASTVisitor::visit(ASTVariableDefinitionExpression* node, size_t ind)
 {
@@ -417,5 +409,11 @@ void DumpASTVisitor::visit(ASTWrappedExpressionStatement* node, size_t ind)
 {
     log(ind, "ASTWrappedExpressionStatement:");
     node->expr->accept(this, ind + 1);
+}
+void DumpASTVisitor::visit(ASTAliasStatement* node, size_t ind)
+{
+    log(ind, "ASTAliasStatement:");
+    log(ind + 1, "Alias: '{}'", node->alias->value);
+    log(ind + 1, "Aliasee: '{}'", node->aliasee->value);
 }
 } // namespace ast

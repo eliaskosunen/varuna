@@ -47,17 +47,28 @@ namespace lexer
         CHAR_NONE = 0
     };
 
+    enum _TokenStringLiteralModifier
+    {
+        STRING_STRING = 1, // none
+        STRING_C = 2,      // c...
+
+        STRING_NONE = 0
+    };
+
     using TokenIntegerLiteralModifier =
         util::SafeEnum<_TokenIntegerLiteralModifier>;
     using TokenFloatLiteralModifier =
         util::SafeEnum<_TokenFloatLiteralModifier>;
     using TokenCharLiteralModifier = util::SafeEnum<_TokenCharLiteralModifier>;
+    using TokenStringLiteralModifier =
+        util::SafeEnum<_TokenStringLiteralModifier>;
 
     struct Token final
     {
         explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
             : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
-              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE)
+              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE),
+              modifierString(STRING_NONE)
         {
         }
 
@@ -85,6 +96,7 @@ namespace lexer
         TokenIntegerLiteralModifier modifierInt;
         TokenFloatLiteralModifier modifierFloat;
         TokenCharLiteralModifier modifierChar;
+        TokenStringLiteralModifier modifierString;
     };
 } // namespace lexer
 } // namespace core

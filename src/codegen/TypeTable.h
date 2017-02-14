@@ -13,7 +13,9 @@ namespace codegen
 class TypeTable
 {
 public:
-    TypeTable() = default;
+    TypeTable(llvm::Module* m) : module(m)
+    {
+    }
 
     enum _FindFlags : uint32_t
     {
@@ -60,8 +62,14 @@ public:
         return list;
     }
 
+    auto getModule()
+    {
+        return module;
+    }
+
 private:
     std::vector<std::unique_ptr<Type>> list;
+    llvm::Module* module;
 };
 
 template <typename T>

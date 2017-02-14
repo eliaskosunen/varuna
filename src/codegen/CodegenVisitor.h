@@ -55,6 +55,8 @@ private:
      */
     void emitDebugLocation(ast::ASTNode* node);
 
+    llvm::DIScope* getTopDebugScope() const;
+
     std::string getModuleFilename() const;
     std::string getModuleFilename(const std::string& moduleName) const;
 
@@ -184,7 +186,6 @@ public:
     std::unique_ptr<TypedValue> visit(ast::ASTEmptyExpression* node);
     std::unique_ptr<TypedValue> visit(ast::ASTIdentifierExpression* node);
     std::unique_ptr<TypedValue> visit(ast::ASTVariableRefExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTCastExpression* node);
     std::unique_ptr<TypedValue>
     visit(ast::ASTVariableDefinitionExpression* expr);
     std::unique_ptr<TypedValue>
@@ -214,6 +215,7 @@ public:
     std::unique_ptr<TypedValue> visit(ast::ASTEmptyStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* node);
     std::unique_ptr<TypedValue> visit(ast::ASTWrappedExpressionStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::ASTAliasStatement* node);
 };
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::createVoidVal(llvm::Value* v)

@@ -70,11 +70,6 @@ ast::ASTVariableRefExpression::accept(codegen::CodegenVisitor* v)
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTCastExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
 ast::ASTVariableDefinitionExpression::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
@@ -185,6 +180,11 @@ ast::ASTBlockStatement::accept(codegen::CodegenVisitor* v)
 }
 std::unique_ptr<codegen::TypedValue>
 ast::ASTWrappedExpressionStatement::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::ASTAliasStatement::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }

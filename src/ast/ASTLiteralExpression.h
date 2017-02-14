@@ -63,9 +63,9 @@ public:
 class ASTStringLiteralExpression : public ASTExpression
 {
 public:
-    explicit ASTStringLiteralExpression(std::string&& val)
-        : ASTExpression(STRING_LITERAL_EXPR),
-          type(std::make_unique<ASTIdentifierExpression>("string")),
+    ASTStringLiteralExpression(std::string&& val,
+                               std::unique_ptr<ASTIdentifierExpression> pType)
+        : ASTExpression(STRING_LITERAL_EXPR), type(std::move(pType)),
           value(std::move(val))
     {
     }
