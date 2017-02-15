@@ -26,6 +26,12 @@ A quick guide can be found from quick-guide.md
 
 ## Usage
 
+The compiler compiles a Varuna source file (or *module*) to
+a native object file `.o` (or optionally some other format) and
+a Varuna module file `.vamod` (used for importing).
+
+### Command line usage
+
 ```
 OVERVIEW: Varuna Compiler
 USAGE: varuna [subcommand] [options] Input file list
@@ -41,16 +47,19 @@ Generic Options:
 Varuna compiler options:
 
   Optimization level
-    -O0        - No optimizations
+    -O0        - No optimizations (default)
     -O1        - Enable trivial optimizations
-    -O2        - Enable default optimizations
+    -O2        - Enable more optimizations
     -O3        - Enable expensive optimizations
     -Os        - Enable size optimizations
     -Oz        - Enable maximum size optimizations
-  -fint-size   - Size of type 'int' (Default: 0)
-    =0         -   32 or 64 bits depending on the CPU architecture
-    =32        -   32 bits
-    =64        -   64 bits
+  -emit        - Output type
+    =none      -   Emit nothing
+    =ast       -   Abstract Syntax Tree
+    =llvm-ir   -   LLVM Intermediate Representation '.ll'
+    =llvm-bc   -   LLVM Bytecode '.bc'
+    =asm       -   Native assembly '.s'
+    =obj       -   Native object format '.o' (default)
   -g           - Emit debugging symbols
   -j=<threads> - Number of worker threads to use (Default: 1)
   -license     - Print license and copyright information

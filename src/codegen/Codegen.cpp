@@ -5,8 +5,10 @@
 #include "codegen/Codegen.h"
 #include "codegen/GrammarCheckerVisitor.h"
 #include "util/ProgramOptions.h"
+#include "util/StringUtils.h"
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
+#include <fstream>
 
 namespace codegen
 {
@@ -80,7 +82,15 @@ bool Codegen::finish()
 
 void Codegen::write()
 {
-    if(util::viewProgramOptions().outputFilename == "stdout")
+    const auto output = util::viewProgramOptions().output;
+
+    if(output == util::EMIT_NONE)
+    {
+        util::logger->info("Emitting nothing");
+        return;
+    }
+
+    if(util::viewProgramOptions().outputFilename == "-")
     {
         // If output file set to stdout,
         // dump the module there
@@ -90,10 +100,53 @@ void Codegen::write()
         return;
     }
 
-    // Create a file stream
-    auto filename = util::viewProgramOptions().outputFilename;
+    auto filename = [&](util::OutputType type) {
+        auto filenameWithoutEnding = [&](
+            const std::string& f = util::viewProgramOptions().outputFilename) {
+            auto filenameParts = util::stringutils::split(f, '.');
+            if(filenameParts.size() > 1)
+            {
+                filenameParts.pop_back();
+            }
+
+            return util::stringutils::join(filenameParts, '.');
+        };
+
+        static const std::unordered_map<util::OutputType, std::string>
+            filenameEndings{
+                {util::EMIT_NONE, ""},       {util::EMIT_AST, ""},
+                {util::EMIT_LLVM_IR, ".ll"}, {util::EMIT_LLVM_BC, ".bc"},
+                {util::EMIT_OBJ, ".o"},      {util::EMIT_ASM, ".s"}};
+
+        if(util::viewProgramOptions().outputFilename.empty())
+        {
+            return filenameWithoutEnding(
+                       util::viewProgramOptions().inputFilenames[0])
+                .append(filenameEndings.find(type)->second);
+        }
+        if(type == output)
+        {
+            return util::viewProgramOptions().outputFilename;
+        }
+        return filenameWithoutEnding().append(
+            filenameEndings.find(type)->second);
+    };
+
+    util::logger->trace("EMIT_AST: {}", filename(util::EMIT_AST));
+    util::logger->trace("EMIT_LLVM_IR: {}", filename(util::EMIT_LLVM_IR));
+    util::logger->trace("EMIT_LLVM_BC: {}", filename(util::EMIT_LLVM_BC));
+    util::logger->trace("EMIT_OBJ: {}", filename(util::EMIT_OBJ));
+    util::logger->trace("EMIT_ASM: {}", filename(util::EMIT_ASM));
+    util::logger->trace("output: {}", output);
+
+    if(output == util::EMIT_AST)
+    {
+        throw std::logic_error("EMIT_AST in Codegen::write()");
+    }
+
     std::error_code ec;
-    llvm::raw_fd_ostream os(filename, ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
+                            llvm::sys::fs::F_None);
 
     // Throw on error
     if(ec)
@@ -104,5 +157,51 @@ void Codegen::write()
 
     // Write the module to the stream
     module->print(os, nullptr);
+
+    if(output == util::EMIT_LLVM_IR)
+    {
+        util::logger->info("Wrote LLVM IR in '{}'",
+                           filename(util::EMIT_LLVM_IR));
+        return;
+    }
+
+    if(output == util::EMIT_LLVM_BC)
+    {
+        // FIXME: system(3) is BAD
+        // Especially with UNSANITIZED input
+        const auto retAs = std::system(fmt::format("llvm-as-3.9 -o {} {}",
+                                                   filename(util::EMIT_LLVM_BC),
+                                                   filename(util::EMIT_LLVM_IR))
+                                           .c_str());
+        std::remove(filename(util::EMIT_LLVM_IR).c_str());
+        if(retAs != 0)
+        {
+            throw std::runtime_error("llvm-as-3.9 failed");
+        }
+        util::logger->info("Wrote LLVM BC in '{}'",
+                           filename(util::EMIT_LLVM_BC));
+        return;
+    }
+
+    // FIXME: system(3) is BAD
+    // Especially with UNSANITIZED input
+    auto outputType = [&]() {
+        if(output == util::EMIT_OBJ)
+        {
+            return "obj";
+        }
+        return "asm";
+    }();
+    const auto retLlc =
+        std::system(fmt::format("llc-3.9 -filetype={} -o {} {}", outputType,
+                                filename(output), filename(util::EMIT_LLVM_IR))
+                        .c_str());
+    std::remove(filename(util::EMIT_LLVM_IR).c_str());
+    if(retLlc != 0)
+    {
+        throw std::runtime_error("llc-3.9 failed");
+    }
+
+    util::logger->info("Wrote {} in '{}'", outputType, filename(output));
 }
 } // namespace codegen

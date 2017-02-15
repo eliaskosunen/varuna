@@ -7,19 +7,6 @@
 #include <string>
 #include <vector>
 
-TEST_CASE("stringutils tests")
-{
-    using namespace util;
-
-    CHECK(stringutils::replaceAllCopy("foo", "o", "a") == "faa");
-    CHECK(stringutils::ltrimCopy("   foo") == "foo");
-    CHECK(stringutils::rtrimCopy("foo   ") == "foo");
-    CHECK(stringutils::trimCopy("  foo  ") == "foo");
-    CHECK(stringutils::trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
-    CHECK(stringutils::cstrToString("foo") == "foo");
-    CHECK(stringutils::charToString('a') == "a");
-}
-
 template <typename T>
 void testIsChar(T&& f, std::vector<util::char_t>&& is,
                 std::vector<util::char_t>&& isnot)
@@ -51,21 +38,43 @@ void testIsChar(T&& f, std::vector<util::char_t>&& is,
     }
 }
 
-TEST_CASE("stringutils isCharSomething")
+TEST_CASE("stringutils")
 {
     using namespace util::stringutils;
 
-    testIsChar(isCharAlpha, {'a', 'b', 'c', 'd', 'e', 'f', 'q', 'w', 'r', 't',
-                             'y', 'z', 'A', 'Y', 'Y', 'L', 'M', 'A', 'O'},
-               {'0', '1', '2', '8', '9', '-', '+', '_', 0x0, ' '});
-    testIsChar(isCharDigit, {'0', '1', '2', '8', '9'},
-               {'a', 'z', 'A', 'Z', '[', '-', '%'});
-    testIsChar(isCharAlnum, {'a', 'z', 'A', 'Z', '0', '9', 'y', 'E', 's', '4'},
-               {'-', '_', '\'', ']'});
-    testIsChar(isCharHexDigit, {'0', '1', '5', '9', 'a', 'f', 'A', 'F'},
-               {'G', 'g', '-', '&'});
-    testIsChar(isCharOctDigit, {'0', '1', '7'}, {'8', '9', 'a', 'Z', 'f'});
-    testIsChar(isCharBinDigit, {'0', '1'}, {'2', '9', 'A', 'z', '.'});
-    testIsChar(isCharWhitespace, {' ', '\t', '\n', '\r'},
-               {'A', 'Z', 'a', 'z', '0', '9', '#', '$'});
+    CHECK(replaceAllCopy("foo", "o", "a") == "faa");
+    CHECK(ltrimCopy("   foo") == "foo");
+    CHECK(rtrimCopy("foo   ") == "foo");
+    CHECK(trimCopy("  foo  ") == "foo");
+    CHECK(trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
+    CHECK(cstrToString("foo") == "foo");
+    CHECK(charToString('a') == "a");
+
+    SUBCASE("isCharSomething")
+    {
+        testIsChar(isCharAlpha,
+                   {'a', 'b', 'c', 'd', 'e', 'f', 'q', 'w', 'r', 't', 'y', 'z',
+                    'A', 'Y', 'Y', 'L', 'M', 'A', 'O'},
+                   {'0', '1', '2', '8', '9', '-', '+', '_', 0x0, ' '});
+        testIsChar(isCharDigit, {'0', '1', '2', '8', '9'},
+                   {'a', 'z', 'A', 'Z', '[', '-', '%'});
+        testIsChar(isCharAlnum,
+                   {'a', 'z', 'A', 'Z', '0', '9', 'y', 'E', 's', '4'},
+                   {'-', '_', '\'', ']'});
+        testIsChar(isCharHexDigit, {'0', '1', '5', '9', 'a', 'f', 'A', 'F'},
+                   {'G', 'g', '-', '&'});
+        testIsChar(isCharOctDigit, {'0', '1', '7'}, {'8', '9', 'a', 'Z', 'f'});
+        testIsChar(isCharBinDigit, {'0', '1'}, {'2', '9', 'A', 'z', '.'});
+        testIsChar(isCharWhitespace, {' ', '\t', '\n', '\r'},
+                   {'A', 'Z', 'a', 'z', '0', '9', '#', '$'});
+    }
+
+    SUBCASE("createEmptyStringWithLength")
+    {
+        const auto s = createEmptyStringWithLength(10);
+        CHECK(s.length() == 10);
+        CHECK(s.at(0) == ' ');
+        CHECK(s.at(3) == ' ');
+        CHECK(s.at(8) == ' ');
+    }
 }

@@ -176,14 +176,14 @@ std::unique_ptr<TypedValue> IntegralTypeOperation::binaryOperation(
     switch(op.get())
     {
     case util::OPERATORB_ADD:
-        return ret(builder.CreateAdd(operands[0]->value, operands[1]->value,
-                                     "addtmp", true, true));
+        return ret(builder.CreateNSWAdd(operands[0]->value, operands[1]->value,
+                                        "addtmp"));
     case util::OPERATORB_SUB:
-        return ret(builder.CreateSub(operands[0]->value, operands[1]->value,
-                                     "subtmp", true, true));
+        return ret(builder.CreateNSWSub(operands[0]->value, operands[1]->value,
+                                        "subtmp"));
     case util::OPERATORB_MUL:
-        return ret(builder.CreateMul(operands[0]->value, operands[1]->value,
-                                     "multmp", true, true));
+        return ret(builder.CreateNSWMul(operands[0]->value, operands[1]->value,
+                                        "multmp"));
     case util::OPERATORB_DIV:
         return ret(builder.CreateSDiv(operands[0]->value, operands[1]->value,
                                       "divtmp"));
@@ -825,7 +825,7 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
     }
 
     auto callee = operands[0];
-    auto calleetype = dynamic_cast<FunctionType*>(callee->type);
+    auto calleetype = static_cast<FunctionType*>(callee->type);
     assert(calleetype);
     auto calleeval = llvm::cast<llvm::Function>(callee->value);
 

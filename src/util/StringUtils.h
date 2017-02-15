@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cctype>
 #include <functional>
+#include <iomanip>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -287,15 +288,29 @@ namespace stringutils
 #endif
     }
 
-    inline std::string createEmptyStringWithLength(size_t len)
+    inline string_t createEmptyStringWithLength(size_t len)
     {
-        std::string ret;
-        ret.reserve(len);
-        for(size_t i = 1; i <= len; ++i)
-        {
-            ret.push_back(' ');
-        }
-        return ret;
+        stringstream_t ss;
+        ss.fill(' ');
+        ss << std::setw(static_cast<int>(len)) << ' ';
+        return ss.str();
+    }
+
+    template <typename ForwardIterator>
+    string_t join(ForwardIterator begin, ForwardIterator end, char_t glue)
+    {
+        stringstream_t ss;
+        std::for_each(begin, end,
+                      [&](const std::string& p) { ss << p << glue; });
+        string_t str = ss.str();
+        str.pop_back();
+        return str;
+    }
+
+    template <typename Container>
+    string_t join(const Container& parts, char_t glue)
+    {
+        return join(parts.begin(), parts.end(), glue);
     }
 } // namespace stringutils
 } // namespace util

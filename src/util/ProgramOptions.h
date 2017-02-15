@@ -25,11 +25,12 @@ enum OptimizationLevel
 
 enum OutputType
 {
-    EMIT_AST,
-    EMIT_LLVM_IR,
-    EMIT_LLVM_BC,
-    EMIT_ASM,
-    EMIT_OBJ
+    EMIT_NONE = 0,
+    EMIT_AST = 1 << 0,
+    EMIT_LLVM_IR = 1 << 1,
+    EMIT_LLVM_BC = 1 << 2,
+    EMIT_ASM = 1 << 3,
+    EMIT_OBJ = 1 << 4
 };
 
 /// Program options
@@ -38,7 +39,7 @@ struct ProgramOptions
     /// Input file list
     std::vector<std::string> inputFilenames{};
     /// Output filename
-    std::string outputFilename{""};
+    std::string outputFilename{"-"};
     /// Logging level
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     /// Optimization level
@@ -46,7 +47,9 @@ struct ProgramOptions
     /// Emit debugging symbols
     bool emitDebug{false};
     /// Output
-    OutputType output{EMIT_LLVM_IR};
+    OutputType output{EMIT_OBJ};
+    /// Argument string
+    std::string args{""};
 
     /**
      * Get speed and size optimization levels from optLevel
@@ -70,9 +73,11 @@ struct ProgramOptions
             o = 3;
             break;
         case OPT_Os:
+            o = 2;
             s = 1;
             break;
         case OPT_Oz:
+            o = 2;
             s = 2;
             break;
         }

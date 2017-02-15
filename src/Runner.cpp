@@ -5,6 +5,7 @@
 #include "Runner.h"
 #include "codegen/Generator.h"
 #include "core/Frontend.h"
+#include "util/ProgramOptions.h"
 
 Runner::Runner(int threads)
     : pool(std::make_unique<util::ThreadPool>(threads)),
@@ -58,6 +59,17 @@ std::future<std::future<bool>> Runner::runFile(std::shared_ptr<util::File> f)
 
         util::logger->debug("Shutting down frontend, launching code generator");
         auto ast = std::shared_ptr<ast::AST>{std::move(r)};
+
+        if(util::viewProgramOptions().output == util::EMIT_AST)
+        {
+            util::logger->info("File '{}' compiled successfully",
+                               ast->file->getFilename());
+
+            auto dumper = ast::DumpASTVisitor(false, true);
+            dumper.dump(ast->globalNode.get());
+            return successTask();
+        }
+
         return runCodegen(ast);
     });
 }
@@ -79,6 +91,11 @@ std::future<bool> Runner::runCodegen(std::shared_ptr<ast::AST> a)
         c->write();
         return c != nullptr;
     });
+}
+
+std::future<bool> Runner::successTask()
+{
+    return pool->push([](int) -> bool { return true; });
 }
 
 std::future<bool> Runner::failedTask()

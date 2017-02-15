@@ -5,8 +5,10 @@
 #include "CLI.h"
 #include "Runner.h"
 #include "util/MathUtils.h"
+#include "util/StringUtils.h"
 #include <llvm/Config/llvm-config.h>
 #include <llvm/Support/CommandLine.h>
+#include <iterator>
 
 static const std::string ver =
     fmt::format("{} (LLVM version: {}) Build date: {}",
@@ -21,6 +23,9 @@ int CLI::run()
 {
     using namespace llvm;
 
+    util::getProgramOptions().args =
+        util::stringutils::join(argv + 1, argv + argc, ' ');
+
     cl::SetVersionPrinter(&showVersion);
 
     // Specify options
@@ -28,11 +33,11 @@ int CLI::run()
 
     // Optimization level
     cl::opt<util::OptimizationLevel> optArg(
-        cl::desc("Optimization level"), cl::init(util::OPT_O2),
+        cl::desc("Optimization level"), cl::init(util::OPT_O0),
         cl::values(
-            clEnumValN(util::OPT_O0, "O0", "No optimizations"),
+            clEnumValN(util::OPT_O0, "O0", "No optimizations (default)"),
             clEnumValN(util::OPT_O1, "O1", "Enable trivial optimizations"),
-            clEnumValN(util::OPT_O2, "O2", "Enable default optimizations"),
+            clEnumValN(util::OPT_O2, "O2", "Enable more optimizations"),
             clEnumValN(util::OPT_O3, "O3", "Enable expensive optimizations"),
             clEnumValN(util::OPT_Os, "Os", "Enable size optimizations"),
             clEnumValN(util::OPT_Oz, "Oz", "Enable maximum size optimizations"),
@@ -74,7 +79,7 @@ int CLI::run()
         cl::init(false), cl::cat(cat));
     // Output file
     cl::opt<std::string> outputFileArg("o", cl::desc("Output file"),
-                                       cl::init("stdout"), cl::cat(cat));
+                                       cl::init(""), cl::cat(cat));
     // Input files
     cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
                                         cl::value_desc("file"), cl::Positional,
@@ -84,15 +89,17 @@ int CLI::run()
                            cl::init(false), cl::cat(cat));
     // Output
     cl::opt<util::OutputType> outputArg(
-        "emit", cl::desc("Output type"), cl::init(util::EMIT_LLVM_IR),
-        cl::cat(cat),
-        cl::values(clEnumValN(util::EMIT_AST, "ast", "Abstract Syntax Tree"),
-                   clEnumValN(util::EMIT_LLVM_IR, "llvm-ir",
-                              "LLVM Intermediate Representation"),
-                   clEnumValN(util::EMIT_LLVM_BC, "llvm-bc", "LLVM Bytecode"),
-                   clEnumValN(util::EMIT_ASM, "asm", "Native assembly"),
-                   clEnumValN(util::EMIT_OBJ, "obj", "Native object format"),
-                   nullptr));
+        "emit", cl::desc("Output type"), cl::init(util::EMIT_OBJ), cl::cat(cat),
+        cl::values(
+            clEnumValN(util::EMIT_NONE, "none", "Emit nothing"),
+            clEnumValN(util::EMIT_AST, "ast", "Abstract Syntax Tree"),
+            clEnumValN(util::EMIT_LLVM_IR, "llvm-ir",
+                       "LLVM Intermediate Representation '.ll'"),
+            clEnumValN(util::EMIT_LLVM_BC, "llvm-bc", "LLVM Bytecode '.bc'"),
+            clEnumValN(util::EMIT_ASM, "asm", "Native assembly '.s'"),
+            clEnumValN(util::EMIT_OBJ, "obj",
+                       "Native object format '.o' (default)"),
+            nullptr));
 
     cl::HideUnrelatedOptions(cat);
     cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
@@ -135,8 +142,10 @@ int CLI::run()
     {
         filelist.push_back(std::move(f));
     }
+
     util::getProgramOptions().inputFilenames = std::move(filelist);
     util::getProgramOptions().outputFilename = std::move(outputFileArg);
+    util::getProgramOptions().output = std::move(outputArg);
 
     util::getProgramOptions().emitDebug = debugArg;
 

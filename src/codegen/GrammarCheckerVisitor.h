@@ -20,12 +20,6 @@ public:
     template <typename T>
     bool run(T root)
     {
-        auto castedRoot = dynamic_cast<ast::ASTNode*>(root);
-        if(!castedRoot)
-        {
-            throw std::invalid_argument(
-                "Invalid root node given to GrammarCheckerVisitor");
-        }
         return root->accept(this);
     }
 

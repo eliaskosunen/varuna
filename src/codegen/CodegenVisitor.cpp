@@ -51,12 +51,9 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
 
 bool CodegenVisitor::codegen(ast::AST* ast)
 {
-    if(info.emitDebug)
-    {
-        // Add DWARF version to the module
-        module->addModuleFlag(llvm::Module::Warning, "Debug Info Version",
-                              llvm::DEBUG_METADATA_VERSION);
-    }
+    module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 3);
+    module->addModuleFlag(llvm::Module::Error, "Debug Info Version",
+                          llvm::DEBUG_METADATA_VERSION);
 
     // Set source filename
     module->setSourceFileName(ast->file->getFilename());
@@ -395,7 +392,6 @@ std::string CodegenVisitor::getModuleFilename() const
 std::string
 CodegenVisitor::getModuleFilename(const std::string& moduleName) const
 {
-    std::string modulefile;
     auto pathparts = util::stringutils::split(moduleName, '/');
     auto nameparts = util::stringutils::split(pathparts.back(), '.');
     if(nameparts.back() != "va")
@@ -406,13 +402,7 @@ CodegenVisitor::getModuleFilename(const std::string& moduleName) const
     {
         nameparts.back() = "vamod";
     }
-    std::for_each(nameparts.begin(), nameparts.end(),
-                  [&](const std::string& p) {
-                      modulefile.append(p);
-                      modulefile.push_back('.');
-                  });
-    modulefile.pop_back();
-    return modulefile;
+    return util::stringutils::join(nameparts, '.');
 }
 
 llvm::DIScope* CodegenVisitor::getTopDebugScope() const

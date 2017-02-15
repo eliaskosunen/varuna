@@ -11,7 +11,9 @@
 #include "util/Compatibility.h"
 #include <fstream>
 
-#if VARUNA_DEBUG
+#define ALWAYS_USE_BINARY_MODULE 1
+
+#if VARUNA_DEBUG && !ALWAYS_USE_BINARY_MODULE
 #define INPUT_ARCHIVE cereal::XMLInputArchive
 #define OUTPUT_ARCHIVE cereal::XMLOutputArchive
 #else

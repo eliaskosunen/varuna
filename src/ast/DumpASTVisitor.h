@@ -14,33 +14,35 @@ namespace ast
 class DumpASTVisitor final : public Visitor
 {
 public:
-    DumpASTVisitor() : astlogger(util::createLogger(false, "dumpast_logger"))
+    DumpASTVisitor(bool pVerbose = true, bool pUseError = false)
+        : astlogger(util::createLogger(false, "dumpast_logger")),
+          verbose(pVerbose), useError(pUseError)
     {
-        astlogger->set_pattern("DumpAST: %v");
-        astlogger->flush_on(spdlog::level::warn);
-    }
-
-    ~DumpASTVisitor() override
-    {
-        spdlog::drop("DumpAST");
+        if(verbose)
+        {
+            astlogger->set_pattern("DumpAST: %v");
+        }
+        else
+        {
+            astlogger->set_pattern("%v");
+        }
+        astlogger->flush_on(spdlog::level::err);
     }
 
     DumpASTVisitor(const DumpASTVisitor&) = delete;
-    DumpASTVisitor(DumpASTVisitor&&) = default;
-
     DumpASTVisitor& operator=(const DumpASTVisitor&) = delete;
+    DumpASTVisitor(DumpASTVisitor&&) = default;
     DumpASTVisitor& operator=(DumpASTVisitor&&) = default;
 
-    /**
-     * Dump an AST
-     * @param node Root node, must be an ASTNode or derivative
-     */
-    template <typename T>
-    static void dump(T* node)
+    ~DumpASTVisitor() noexcept
     {
-        auto dumpAST = std::make_unique<DumpASTVisitor>();
-        dumpAST->start<T>(node);
-        dumpAST->finish();
+        finish();
+    }
+
+    template <typename T>
+    void dump(T* root)
+    {
+        start(root);
     }
 
 private:
@@ -54,6 +56,8 @@ private:
     void log(size_t ind, const std::string& format, Args... args);
 
     std::shared_ptr<spdlog::logger> astlogger;
+    bool verbose{true};
+    bool useError{false};
 
 public:
     void visit(ASTNode* node, size_t ind = 0);
@@ -102,7 +106,14 @@ public:
 template <typename... Args>
 inline void DumpASTVisitor::log(const std::string& format, Args... args)
 {
-    astlogger->debug(format.c_str(), args...);
+    if(useError)
+    {
+        astlogger->error(format.c_str(), args...);
+    }
+    else
+    {
+        astlogger->debug(format.c_str(), args...);
+    }
 }
 
 template <typename... Args>
@@ -129,20 +140,20 @@ inline void DumpASTVisitor::log(size_t ind, const std::string& format,
 template <typename T>
 inline void DumpASTVisitor::start(T* root)
 {
-    util::loggerBasic->trace("");
-    log("*** AST DUMP ***");
-    auto castedRoot = dynamic_cast<ASTNode*>(root);
-    if(!castedRoot)
+    if(verbose)
     {
-        throw std::invalid_argument(
-            "Invalid root node given to DumpASTVisitor");
+        util::loggerBasic->trace("");
+        log("*** AST DUMP ***");
     }
     root->accept(this);
 }
 
 inline void DumpASTVisitor::finish()
 {
-    log("*** FINISHED AST DUMP ***");
+    if(verbose)
+    {
+        log("*** FINISHED AST DUMP ***");
+    }
     astlogger->flush();
 }
 } // namespace ast

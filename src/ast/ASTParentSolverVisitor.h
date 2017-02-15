@@ -23,12 +23,6 @@ public:
     template <typename T>
     void run(T* root)
     {
-        auto castedRoot = dynamic_cast<ASTNode*>(root);
-        if(!castedRoot)
-        {
-            throw std::invalid_argument(
-                "Invalid root node given to ASTParentSolverVisitor");
-        }
         root->accept(this, nullptr);
     }
 

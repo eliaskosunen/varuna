@@ -18,6 +18,7 @@ public:
 private:
     std::future<std::future<bool>> runFile(std::shared_ptr<util::File> f);
     std::future<bool> runCodegen(std::shared_ptr<ast::AST> a);
+    std::future<bool> successTask();
     std::future<bool> failedTask();
 
     std::unique_ptr<util::ThreadPool> pool;
