@@ -58,21 +58,22 @@ matrix:
           env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9 COMPILER_APT=g++-4.9
           compiler: gcc
 
-        # xcode
-        # 8
-        - os: osx
-          env: TESTS=ON LLVM_VERSION=default
-          osx_image: xcode8
-        # 7.3
-        - os: osx
-          env: TESTS=ON LLVM_VERSION=default
-          osx_image: xcode8
+        allow_failures:
+            # xcode
+            # 8
+            - os: osx
+              env: TESTS=ON LLVM_VERSION=default
+              osx_image: xcode8
+            # 7.3
+            - os: osx
+              env: TESTS=ON LLVM_VERSION=default
+              osx_image: xcode8
 
-        # Different LLVM version
-        # 3.8
-        - os: linux
-          env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
-          compiler: clang
+            # Different LLVM version
+            # 3.8
+            - os: linux
+              env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
+              compiler: clang
 
 install:
     - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
@@ -83,7 +84,7 @@ install:
     - |
         if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
             CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz"
-            mkdir cmake && travis_retry --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+            mkdir -p cmake && travis_retry --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
             export PATH=${DEPS_DIR}/cmake/bin:${PATH}
         else
             if ! brew ls --version cmake &> /dev/null; then brew install cmake; fi
