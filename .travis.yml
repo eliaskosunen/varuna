@@ -79,19 +79,19 @@ install:
     - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
     - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
 
-    - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.9; fi
+    - if [ "${LLVM_VERSION}" == "default" ]; then LLVM_VERSION=3.9; fi
 
     - |
-        if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+        if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! -d "cmake" ]; then
             CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz"
-            mkdir -p cmake && travis_retry --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+            mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
             export PATH=${DEPS_DIR}/cmake/bin:${PATH}
         else
             if ! brew ls --version cmake &> /dev/null; then brew install cmake; fi
         fi
 
     - |
-        if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+        if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main"
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main"
@@ -108,4 +108,4 @@ script:
     - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} ..
     - make -j2
     - cd ..
-    - if [[ "${TESTS}" == "ON" ]]; then valgrind ./bin/tests ; fi
+    - if [ "${TESTS}" == "ON" ]; then valgrind ./bin/tests ; fi
