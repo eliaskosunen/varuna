@@ -27,6 +27,8 @@ cache:
         - ${TRAVIS_BUILD_DIR}/deps/cmake
 
 matrix:
+    allow_failures:
+        - os: osx
     exclude:
         - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
     include:
@@ -57,23 +59,21 @@ matrix:
         - os: linux
           env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9 COMPILER_APT=g++-4.9
           compiler: gcc
+        # xcode
+        # 8
+        - os: osx
+          env: TESTS=ON LLVM_VERSION=default
+          osx_image: xcode8
+        # 7.3
+        - os: osx
+          env: TESTS=ON LLVM_VERSION=default
+          osx_image: xcode8
 
-        allow_failures:
-            # xcode
-            # 8
-            - os: osx
-              env: TESTS=ON LLVM_VERSION=default
-              osx_image: xcode8
-            # 7.3
-            - os: osx
-              env: TESTS=ON LLVM_VERSION=default
-              osx_image: xcode8
-
-            # Different LLVM version
-            # 3.8
-            - os: linux
-              env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
-              compiler: clang
+        # Different LLVM version
+        # 3.8
+        - os: linux
+          env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
+          compiler: clang
 
 install:
     - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
