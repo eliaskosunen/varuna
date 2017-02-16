@@ -25,6 +25,9 @@ addons:
 matrix:
     allow_failures:
         - os: osx
+        - env: COMPILER_CXX=g++-4.9
+        - env: LLVM_VERSION=3.8
+        - env: LLVM_VERSION=3.7
     exclude:
         - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
     include:
@@ -36,6 +39,10 @@ matrix:
         # 3.8
         - os: linux
           env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
+          compiler: clang
+        # 3.7
+        - os: linux
+          env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7 COMPILER_APT=clang-3.7
           compiler: clang
         # 3.6
         - os: linux
@@ -51,8 +58,12 @@ matrix:
         - os: linux
           env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5 COMPILER_APT=g++-5
           compiler: gcc
+        # 4.9
+        - os: linux
+          env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9 COMPILER_APT=g++-4.9
+          compiler: gcc
 
-        # xcode
+        # xcode (osx)
         # 8
         - os: osx
           env: TESTS=ON LLVM_VERSION=default
@@ -60,12 +71,20 @@ matrix:
         # 7.3
         - os: osx
           env: TESTS=ON LLVM_VERSION=default
-          osx_image: xcode8
+          osx_image: xcode7.3
+        # 6.4
+        - os: osx
+          env: TESTS=ON LLVM_VERSION=default
+          osx_image: xcode6.4
 
         # Different LLVM version
         # 3.8
         - os: linux
           env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8 COMPILER_APT=clang-3.8
+          compiler: clang
+        # 3.7
+        - os: linux
+          env: TESTS=ON LLVM_VERSION=3.7 COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7 COMPILER_APT=clang-3.7
           compiler: clang
 
 install:
@@ -86,6 +105,7 @@ install:
     - |
         if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main"
+            sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.7 main"
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
             sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main"
             wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
@@ -98,7 +118,13 @@ script:
     - cd ${TRAVIS_BUILD_DIR}
     - mkdir build
     - cd build
-    - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} ..
+    - |
+        if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+            cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} ..
+        else
+            cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} ..
+        fi
+    -
     - make -j2
     - cd ..
     - if [ "${TESTS}" == "ON" ]; then valgrind ./bin/tests ; fi
