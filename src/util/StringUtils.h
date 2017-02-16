@@ -5,10 +5,11 @@
 #pragma once
 
 #include "util/String.h"
+#include <spdlog.h>
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <functional>
-#include <iomanip>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -290,18 +291,15 @@ namespace stringutils
 
     inline string_t createEmptyStringWithLength(size_t len)
     {
-        stringstream_t ss;
-        ss.fill(' ');
-        ss << std::setw(static_cast<int>(len)) << ' ';
-        return ss.str();
+        assert(len >= 1);
+        return fmt::format("{:>" + std::to_string(len) + "}", " ");
     }
 
     template <typename ForwardIterator>
     string_t join(ForwardIterator begin, ForwardIterator end, char_t glue)
     {
         stringstream_t ss;
-        std::for_each(begin, end,
-                      [&](const std::string& p) { ss << p << glue; });
+        std::for_each(begin, end, [&](const auto& p) { ss << p << glue; });
         string_t str = ss.str();
         str.pop_back();
         return str;

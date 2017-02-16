@@ -80,6 +80,15 @@ bool Codegen::finish()
     return true;
 }
 
+struct OutputTypeHash
+{
+    template <typename T>
+    size_t operator()(T t) const
+    {
+        return static_cast<size_t>(t);
+    }
+};
+
 void Codegen::write()
 {
     const auto output = util::viewProgramOptions().output;
@@ -112,7 +121,8 @@ void Codegen::write()
             return util::stringutils::join(filenameParts, '.');
         };
 
-        static const std::unordered_map<util::OutputType, std::string>
+        static const std::unordered_map<util::OutputType, std::string,
+                                        OutputTypeHash>
             filenameEndings{
                 {util::EMIT_NONE, ""},       {util::EMIT_AST, ""},
                 {util::EMIT_LLVM_IR, ".ll"}, {util::EMIT_LLVM_BC, ".bc"},
