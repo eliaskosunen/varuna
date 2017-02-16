@@ -82,10 +82,12 @@ install:
     - if [ "${LLVM_VERSION}" == "default" ]; then LLVM_VERSION=3.9; fi
 
     - |
-        if [ "${TRAVIS_OS_NAME}" == "linux" ] && [ ! -d "cmake" ]; then
-            CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz"
-            mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-            export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+        if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+            if [ ! -d "cmake" ]; then
+                CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz"
+                mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+                export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+            fi
         else
             if ! brew ls --version cmake &> /dev/null; then brew install cmake; fi
         fi
