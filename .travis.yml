@@ -2,9 +2,6 @@ sudo: required
 dist: precise
 language: cpp
 
-os:
-    - linux
-
 git:
     depth: 5
 
@@ -124,7 +121,6 @@ script:
         else
             cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} ..
         fi
-    -
     - make -j2
     - cd ..
     - if [ "${TESTS}" == "ON" ]; then valgrind ./bin/tests ; fi
