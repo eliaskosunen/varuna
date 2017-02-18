@@ -6,12 +6,17 @@
 
 #include "ast/AST.h"
 #include "ast/ASTFunctionStatement.h"
+#include "util/Compatibility.h"
 #include "util/Logger.h"
 #include "util/OperatorType.h"
 #include "util/ProgramOptions.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
 #include <tuple>
+
+#if VARUNA_MSVC
+#undef VOID // defined in winnt.h as void
+#endif
 
 namespace codegen
 {

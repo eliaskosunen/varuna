@@ -6,10 +6,11 @@
 
 #ifdef _MSC_VER
 
-#pragma warning(push, 3)
-#pragma warning(disable : 4514 4711)
+#pragma warning(push, 0)
 
 #endif
+
+#define CEREAL_THREAD_SAFE 1
 
 #include "cereal/archives/binary.hpp"
 #include "cereal/archives/json.hpp"

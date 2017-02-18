@@ -10,10 +10,18 @@
 #include <llvm/Support/CommandLine.h>
 #include <iterator>
 
+#ifdef VARUNA_DEBUG
+#define VARUNA_BUILD_TYPE_STRING " DEBUG"
+#else
+#define VARUNA_BUILD_TYPE_STRING ""
+#endif
+
 static const std::string ver =
-    fmt::format("{} (LLVM version: {}) Build date: {}",
+    fmt::format("{} (LLVM version: {}) Build date: {}{}",
                 util::programinfo::version::toString(), LLVM_VERSION_STRING,
-                util::programinfo::getBuildDate());
+                util::programinfo::getBuildDate(), VARUNA_BUILD_TYPE_STRING);
+
+#undef VARUNA_BUILD_TYPE_STRING
 
 CLI::CLI(int pArgc, char** pArgv) : argc(pArgc), argv(pArgv)
 {
@@ -23,8 +31,15 @@ int CLI::run()
 {
     using namespace llvm;
 
-    util::getProgramOptions().args =
-        util::stringutils::join(argv + 1, argv + argc, ' ');
+    if(argc <= 1)
+    {
+        util::getProgramOptions().args = "";
+    }
+    else
+    {
+        util::getProgramOptions().args =
+            util::stringutils::join(argv + 1, argv + argc, ' ');
+    }
 
     cl::SetVersionPrinter(&showVersion);
 
@@ -100,6 +115,16 @@ int CLI::run()
             clEnumValN(util::EMIT_OBJ, "obj",
                        "Native object format '.o' (default)"),
             nullptr));
+    // LLVM binary location
+    cl::opt<std::string> llvmDirArg("llvm-dir",
+                                    cl::desc("LLVM binary directory"),
+                                    cl::init(""), cl::cat(cat));
+    // LLVM llvm-as name
+    cl::opt<std::string> llvmAsArg("llvm-as", cl::desc("LLVM 'llvm-as' binary"),
+                                   cl::init("llvm-as"), cl::cat(cat));
+    // LLVM llvm-as name
+    cl::opt<std::string> llvmLlcArg("llvm-llc", cl::desc("LLVM 'llc' binary"),
+                                    cl::init("llc"), cl::cat(cat));
 
     cl::HideUnrelatedOptions(cat);
     cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
@@ -148,6 +173,10 @@ int CLI::run()
     util::getProgramOptions().output = std::move(outputArg);
 
     util::getProgramOptions().emitDebug = debugArg;
+
+    util::getProgramOptions().llvmBinDir = std::move(llvmDirArg);
+    util::getProgramOptions().llvmAsBin = std::move(llvmAsArg);
+    util::getProgramOptions().llvmLlcBin = std::move(llvmLlcArg);
 
     // Run it
     if(!runner.run())

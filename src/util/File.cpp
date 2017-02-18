@@ -2,6 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
+#include "util/Compatibility.h"
 #include "util/File.h"
 #include "util/Logger.h"
 #include "util/StringUtils.h"
@@ -100,14 +101,14 @@ std::string File::_readFile(const std::string& fname)
     {
         std::string errmsg;
 
-#ifdef _MSC_VER
+#if VARUNA_MSVC
         // Use strerror_s on MSVC
         char buf[80];
         strerror_s<80>(buf, errno);
         errmsg = util::stringutils::cstrToString(buf);
 #else
         errmsg = strerror(errno);
-#endif // defined _MSC_VER
+#endif // VARUNA_MSVC
 
         util::logger->error("Error reading file: Error #{} (libc): {}", errno,
                             errmsg);

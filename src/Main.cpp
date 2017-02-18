@@ -39,11 +39,11 @@ static void logException(const std::string& msg)
     else
     {
         // Fallback on C stdio
-        fprintf(stderr, "An exception occured during program execution.\n");
-        fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        fprintf(stderr, "Program will be terminated.\n");
-        fprintf(stderr, "No loggers available for message delivery.\n");
-        fflush(stderr);
+        std::fprintf(stderr, "An exception occured during program execution.\n");
+        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
+        std::fprintf(stderr, "Program will be terminated.\n");
+        std::fprintf(stderr, "No loggers available for message delivery.\n");
+        std::fflush(stderr);
     }
 }
 
@@ -76,14 +76,22 @@ static void logException(const std::string& msg,
     else
     {
         // Fallback on C stdio
-        fprintf(stderr, "An exception occured during program execution.\n");
-        fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        fprintf(stderr, "Additional message: '%s'\n", additionalMsg.c_str());
-        fprintf(stderr, "Program will be terminated.\n");
-        fprintf(stderr, "No loggers available for message delivery.\n");
-        fflush(stderr);
+        std::fprintf(stderr, "An exception occured during program execution.\n");
+        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
+        std::fprintf(stderr, "Additional message: '%s'\n", additionalMsg.c_str());
+        std::fprintf(stderr, "Program will be terminated.\n");
+        std::fprintf(stderr, "No loggers available for message delivery.\n");
+        std::fflush(stderr);
     }
 }
+
+#define BREAK_AFTER_EXECUTION 1
+
+#if BREAK_AFTER_EXECUTION
+#define MAIN_RETURN(expr) { const auto val = expr; std::fprintf(stderr, "Press RETURN to continue..."); std::getchar(); return val; }
+#else
+#define MAIN_RETURN(expr) return expr;
+#endif
 
 int main(int argc, char** argv)
 {
@@ -101,7 +109,7 @@ int main(int argc, char** argv)
 
         // Run the CLI
         CLI commandLineInterface(argc, argv);
-        return commandLineInterface.run();
+        MAIN_RETURN(commandLineInterface.run());
     }
 
     // Handle various exceptions
@@ -144,5 +152,5 @@ int main(int argc, char** argv)
     }
 
     // Return -1 on exceptional circumstances
-    return -1;
+    MAIN_RETURN(-1);
 }

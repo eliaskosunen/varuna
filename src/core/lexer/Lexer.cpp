@@ -242,7 +242,11 @@ namespace lexer
                             allowedModifiers.erase(modit);
                             modbuf.clear();
                         }
-                        currentChar = *advance();
+                        if(advance() == end)
+                        {
+                            break;
+                        }
+                        currentChar = *it;
                     }
                     return modbuf;
                 }();

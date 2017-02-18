@@ -116,11 +116,11 @@ private:
 inline bool SymbolTable::isDefined(const std::string& name,
                                    Type::Kind kind) const
 {
-    return find(name, kind);
+    return find(name, kind) != nullptr;
 }
 inline bool SymbolTable::isDefined(const std::string& name, Type* type) const
 {
-    return find(name, type);
+    return find(name, type) != nullptr;
 }
 
 inline void SymbolTable::addBlock()

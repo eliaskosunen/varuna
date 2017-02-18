@@ -80,7 +80,6 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
-    llvm_unreachable("Logic error in IntegralType::cast");
 }
 
 std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
@@ -128,7 +127,6 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
-    llvm_unreachable("Logic error in BoolType::cast");
 }
 
 std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
@@ -243,7 +241,6 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
                          getDecoratedName(), to->getDecoratedName());
     }
-    llvm_unreachable("Logic error in FPType::cast");
 }
 
 std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
