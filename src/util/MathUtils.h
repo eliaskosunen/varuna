@@ -75,20 +75,4 @@ inline std::size_t numDigits(int32_t x)
     }
     return 10;
 }
-
-template <>
-inline std::size_t numDigits(char n)
-{
-    static char x[256] = {0};
-    if(x[0] == 0)
-    {
-        for(char c = 1; c != 0; c++)
-        {
-            x[static_cast<std::size_t>(c)] =
-                static_cast<char>(numDigits(static_cast<int32_t>(c)));
-        }
-        x[0] = 1;
-    }
-    return static_cast<std::size_t>(x[static_cast<std::size_t>(n)]);
-}
 }

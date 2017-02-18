@@ -4,6 +4,8 @@
 
 #include "codegen/Codegen.h"
 #include "codegen/GrammarCheckerVisitor.h"
+#include "util/Process.h"
+#include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
 #include "util/StringUtils.h"
 #include <llvm/Support/FileSystem.h>
@@ -149,24 +151,28 @@ void Codegen::write()
     util::logger->trace("EMIT_ASM: {}", filename(util::EMIT_ASM));
     util::logger->trace("output: {}", output);
 
+    util::logger->trace("cwd: {}", util::getCurrentDirectory());
+
     if(output == util::EMIT_AST)
     {
         throw std::logic_error("EMIT_AST in Codegen::write()");
     }
 
-    std::error_code ec;
-    llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
-                            llvm::sys::fs::F_None);
-
-    // Throw on error
-    if(ec)
     {
-        throw std::runtime_error(
-            fmt::format("Failed to open output file: {}", ec.message()));
-    }
+        std::error_code ec;
+        llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
+                                llvm::sys::fs::F_None);
 
-    // Write the module to the stream
-    module->print(os, nullptr);
+        // Throw on error
+        if(ec)
+        {
+            throw std::runtime_error(
+                fmt::format("Failed to open output file: {}", ec.message()));
+        }
+
+        // Write the module to the stream
+        module->print(os, nullptr);
+    }
 
     if(output == util::EMIT_LLVM_IR)
     {
@@ -177,16 +183,23 @@ void Codegen::write()
 
     if(output == util::EMIT_LLVM_BC)
     {
-        // FIXME: system(3) is BAD
-        // Especially with UNSANITIZED input
-        const auto retAs = std::system(fmt::format("llvm-as-3.9 -o {} {}",
-                                                   filename(util::EMIT_LLVM_BC),
-                                                   filename(util::EMIT_LLVM_IR))
-                                           .c_str());
-        std::remove(filename(util::EMIT_LLVM_IR).c_str());
-        if(retAs != 0)
+        auto as = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                              util::viewProgramOptions().llvmAsBin);
+        auto asArgs = fmt::format("-o {} {}", filename(util::EMIT_LLVM_BC),
+                                  filename(util::EMIT_LLVM_IR));
+        util::logger->debug("Running {} {}", as, asArgs);
+        auto p = util::Process(as, asArgs);
+        if(!p.spawn())
         {
-            throw std::runtime_error("llvm-as-3.9 failed");
+            std::remove(filename(util::EMIT_LLVM_IR).c_str());
+            throw std::runtime_error(fmt::format(
+                "llvm-as ({} {}) failed: {}", as, asArgs, p.getErrorString()));
+        }
+        std::remove(filename(util::EMIT_LLVM_IR).c_str());
+        if(p.getReturnValue() != 0)
+        {
+            throw std::runtime_error(
+                fmt::format("llvm-as ({} {}) failed", as, asArgs));
         }
         util::logger->info("Wrote LLVM BC in '{}'",
                            filename(util::EMIT_LLVM_BC));
@@ -202,16 +215,24 @@ void Codegen::write()
         }
         return "asm";
     }();
-    const auto retLlc =
-        std::system(fmt::format("llc-3.9 -filetype={} -o {} {}", outputType,
-                                filename(output), filename(util::EMIT_LLVM_IR))
-                        .c_str());
-    std::remove(filename(util::EMIT_LLVM_IR).c_str());
-    if(retLlc != 0)
+    auto llc = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                           util::viewProgramOptions().llvmLlcBin);
+    auto llcArgs = fmt::format("-filetype={} -o {} {}", outputType,
+                               filename(output), filename(util::EMIT_LLVM_IR));
+    util::logger->debug("Running {} {}", llc, llcArgs);
+    auto p = util::Process(llc, llcArgs);
+    if(!p.spawn())
     {
-        throw std::runtime_error("llc-3.9 failed");
+        std::remove(filename(util::EMIT_LLVM_IR).c_str());
+        throw std::runtime_error(fmt::format("llc ({} {}) failed: {}", llc,
+                                             llcArgs, p.getErrorString()));
     }
-
+    std::remove(filename(util::EMIT_LLVM_IR).c_str());
+    if(p.getReturnValue() != 0)
+    {
+        throw std::runtime_error(
+            fmt::format("llc ({} {}) failed", llc, llcArgs));
+    }
     util::logger->info("Wrote {} in '{}'", outputType, filename(output));
 }
 } // namespace codegen

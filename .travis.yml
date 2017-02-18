@@ -20,6 +20,7 @@ addons:
             - ubuntu-toolchain-r-test
 
 matrix:
+    fast_finish: true
     allow_failures:
         - os: osx
         - env: COMPILER_CXX=g++-4.9

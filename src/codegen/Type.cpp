@@ -331,7 +331,7 @@ std::unique_ptr<TypedValue> CStringType::zeroInit()
 }
 
 FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
-                           llvm::DIBuilder& dbuilder, Type* pReturnType,
+                           llvm::DIBuilder&, Type* pReturnType,
                            std::vector<Type*> pParams)
     : Type(list, std::make_unique<FunctionTypeOperation>(this), FUNCTION, c,
            getLLVMFunctionType(pReturnType, pParams), nullptr,

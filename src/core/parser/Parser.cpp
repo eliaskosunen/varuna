@@ -415,24 +415,14 @@ namespace parser
     {
         // Variable definition syntax:
         // let [ qualifiers ] name [ : type ] [ = init-expression ] ;
-        // var [ qualifiers ] name [ : type ] [ = init-expression ] ;
 
         const auto iter = it;
 
         bool mut = false;
-        if(it->type == TOKEN_KEYWORD_VAR)
-        {
-            mut = true;
-        }
-        ++it; // Skip 'let' / 'var'
+        ++it; // Skip 'let'
 
         if(it->type == TOKEN_KEYWORD_MUT)
         {
-            if(mut)
-            {
-                return parserError(
-                    "Unexpected 'mut' after 'var' in variable definition");
-            }
             mut = true;
             ++it; // Skip 'mut'
         }
@@ -1418,7 +1408,7 @@ namespace parser
         }
         case TOKEN_IDENTIFIER:
         {
-            auto expr = parseVariableDefinition();
+            auto expr = parseIdentifierExpression();
             if(!expr)
             {
                 return nullptr;

@@ -113,7 +113,7 @@ inline size_t TypeTable::isDefinedLLVM(llvm::Type* type) const
 }
 
 inline Type* TypeTable::find(const std::string& name,
-                             TypeTable::FindFlags flags, bool logError)
+                             TypeTable::FindFlags, bool logError)
 {
     auto p = [&](const std::unique_ptr<Type>& t) {
         if(t->getName() != name)
@@ -197,7 +197,7 @@ inline std::vector<Type*> TypeTable::findLLVM(llvm::Type* type, bool logError)
 }
 
 inline const Type* TypeTable::find(const std::string& name,
-                                   TypeTable::FindFlags flags,
+                                   TypeTable::FindFlags /*unused*/,
                                    bool logError) const
 {
     auto p = [&](const std::unique_ptr<Type>& t) {

@@ -6,15 +6,14 @@
 
 module code;
 
-def chr(c: i32) -> char;
-def asc(n: char) -> i32;
-
 def getchar() -> char;
+def putchar(ch: char) -> char;
 
 use int = i32;
 
 def main() -> i32 {
     let foo = 1;
     let bar = foo as int;
-    return i32(bar + int(asc(getchar())));
+	putchar('a');
+    return i32(bar + foo as int);
 }

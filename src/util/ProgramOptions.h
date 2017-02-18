@@ -50,6 +50,12 @@ struct ProgramOptions
     OutputType output{EMIT_OBJ};
     /// Argument string
     std::string args{""};
+    /// LLVM binary directory
+    std::string llvmBinDir{""};
+    /// llvm-as binary
+    std::string llvmAsBin{""};
+    /// llc binary
+    std::string llvmLlcBin{""};
 
     /**
      * Get speed and size optimization levels from optLevel

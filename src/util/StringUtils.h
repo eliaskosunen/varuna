@@ -298,6 +298,10 @@ namespace stringutils
     template <typename ForwardIterator>
     string_t join(ForwardIterator begin, ForwardIterator end, char_t glue)
     {
+		if (begin == end)
+		{
+			return{};
+		}
         stringstream_t ss;
         std::for_each(begin, end, [&](const auto& p) { ss << p << glue; });
         string_t str = ss.str();
