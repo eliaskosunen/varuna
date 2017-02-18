@@ -51,7 +51,7 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
 
 bool CodegenVisitor::codegen(ast::AST* ast)
 {
-    //module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 3);
+    // module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 3);
     module->addModuleFlag(llvm::Module::Error, "Debug Info Version",
                           llvm::DEBUG_METADATA_VERSION);
 

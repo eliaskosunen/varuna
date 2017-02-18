@@ -102,4 +102,4 @@ private:
 
 #include <cereal_archives.h>
 
-//CEREAL_REGISTER_TYPE(codegen::ModuleFile::ModuleFileFunctionSymbol)
+// CEREAL_REGISTER_TYPE(codegen::ModuleFile::ModuleFileFunctionSymbol)

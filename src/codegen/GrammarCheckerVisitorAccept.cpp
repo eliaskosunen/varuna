@@ -2,6 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
+#include "codegen/GrammarCheckerVisitor.h"
 #include "ast/ASTControlStatement.h"
 #include "ast/ASTExpression.h"
 #include "ast/ASTFunctionStatement.h"
@@ -10,7 +11,6 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
-#include "codegen/GrammarCheckerVisitor.h"
 
 bool ast::ASTExpression::accept(codegen::GrammarCheckerVisitor* v)
 {

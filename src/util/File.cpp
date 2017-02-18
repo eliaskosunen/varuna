@@ -2,8 +2,8 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "util/Compatibility.h"
 #include "util/File.h"
+#include "util/Compatibility.h"
 #include "util/Logger.h"
 #include "util/StringUtils.h"
 #include <utf8.h>

@@ -39,7 +39,8 @@ static void logException(const std::string& msg)
     else
     {
         // Fallback on C stdio
-        std::fprintf(stderr, "An exception occured during program execution.\n");
+        std::fprintf(stderr,
+                     "An exception occured during program execution.\n");
         std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
         std::fprintf(stderr, "Program will be terminated.\n");
         std::fprintf(stderr, "No loggers available for message delivery.\n");
@@ -76,9 +77,11 @@ static void logException(const std::string& msg,
     else
     {
         // Fallback on C stdio
-        std::fprintf(stderr, "An exception occured during program execution.\n");
+        std::fprintf(stderr,
+                     "An exception occured during program execution.\n");
         std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        std::fprintf(stderr, "Additional message: '%s'\n", additionalMsg.c_str());
+        std::fprintf(stderr, "Additional message: '%s'\n",
+                     additionalMsg.c_str());
         std::fprintf(stderr, "Program will be terminated.\n");
         std::fprintf(stderr, "No loggers available for message delivery.\n");
         std::fflush(stderr);
@@ -88,7 +91,13 @@ static void logException(const std::string& msg,
 #define BREAK_AFTER_EXECUTION 1
 
 #if BREAK_AFTER_EXECUTION
-#define MAIN_RETURN(expr) { const auto val = expr; std::fprintf(stderr, "Press RETURN to continue..."); const auto c = std::getchar(); return val; }
+#define MAIN_RETURN(expr)                                                      \
+    {                                                                          \
+        const auto val = expr;                                                 \
+        std::fprintf(stderr, "Press RETURN to continue...");                   \
+        const auto c = std::getchar();                                         \
+        return val;                                                            \
+    }
 #else
 #define MAIN_RETURN(expr) return expr;
 #endif
