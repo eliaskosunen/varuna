@@ -88,7 +88,7 @@ static void logException(const std::string& msg,
 #define BREAK_AFTER_EXECUTION 1
 
 #if BREAK_AFTER_EXECUTION
-#define MAIN_RETURN(expr) { const auto val = expr; std::fprintf(stderr, "Press RETURN to continue..."); std::getchar(); return val; }
+#define MAIN_RETURN(expr) { const auto val = expr; std::fprintf(stderr, "Press RETURN to continue..."); const auto c = std::getchar(); return val; }
 #else
 #define MAIN_RETURN(expr) return expr;
 #endif

@@ -139,5 +139,15 @@ bool Process::_spawn()
 }
 #else
 
+std::string Process::getErrorString()
+{
+    throw std::logic_error("Process::getErrorString() is unimplemented");
+}
+
+bool Process::_spawn()
+{
+    throw std::logic_error("Process::_spawn() is unimplemented");
+}
+
 #endif // VARUNA_MSVC
 } // namespace util
