@@ -20,12 +20,6 @@ public:
     template <typename T>
     bool run(T root)
     {
-        auto castedRoot = dynamic_cast<ast::ASTNode*>(root);
-        if(!castedRoot)
-        {
-            throw std::invalid_argument(
-                "Invalid root node given to GrammarCheckerVisitor");
-        }
         return root->accept(this);
     }
 
@@ -56,7 +50,6 @@ public:
     bool visit(ast::ASTEmptyExpression* node);
     bool visit(ast::ASTIdentifierExpression* node);
     bool visit(ast::ASTVariableRefExpression* node);
-    bool visit(ast::ASTCastExpression* node);
     bool visit(ast::ASTVariableDefinitionExpression* node);
     bool visit(ast::ASTGlobalVariableDefinitionExpression* node);
     bool visit(ast::ASTSubscriptExpression* node);
@@ -83,5 +76,6 @@ public:
     bool visit(ast::ASTEmptyStatement* node);
     bool visit(ast::ASTBlockStatement* node);
     bool visit(ast::ASTWrappedExpressionStatement* node);
+    bool visit(ast::ASTAliasStatement* node);
 };
 } // namespace codegen

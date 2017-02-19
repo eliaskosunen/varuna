@@ -22,12 +22,21 @@ enum OptimizationLevel
     OPT_Oz      ///< -Oz
     // OPT_Omax    ///< -O3 + lto
 };
-/// Size of 'int'
-enum IntSize
+
+enum OutputType
 {
-    INTSIZE_VOIDPTR = 0, ///< Pointer sized
-    INTSIZE_32 = 32,     ///< 32 bits
-    INTSIZE_64 = 64      ///< 64 bits
+    EMIT_NONE = 0,
+    EMIT_AST = 1 << 0,
+    EMIT_LLVM_IR = 1 << 1,
+    EMIT_LLVM_BC = 1 << 2,
+    EMIT_ASM = 1 << 3,
+    EMIT_OBJ = 1 << 4
+};
+
+enum X86AsmSyntax
+{
+    X86_ATT,
+    X86_INTEL
 };
 
 /// Program options
@@ -36,21 +45,33 @@ struct ProgramOptions
     /// Input file list
     std::vector<std::string> inputFilenames{};
     /// Output filename
-    std::string outputFilename{""};
+    std::string outputFilename{"-"};
     /// Logging level
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     /// Optimization level
     OptimizationLevel optLevel{OPT_O2};
-    /// Integer size in bits
-    size_t intSize{0};
     /// Emit debugging symbols
     bool emitDebug{false};
+    /// Output
+    OutputType output{EMIT_OBJ};
+    /// Argument string
+    std::string args{""};
+    /// LLVM binary directory
+    std::string llvmBinDir{""};
+    /// llvm-as binary
+    std::string llvmAsBin{""};
+    /// llc binary
+    std::string llvmLlcBin{""};
+    /// opt binary
+    std::string llvmOptBin{""};
+    /// x86 asm syntax
+    X86AsmSyntax x86asm{X86_ATT};
 
     /**
      * Get speed and size optimization levels from optLevel
      * @return Speed and size levels
      */
-    std::pair<uint8_t, uint8_t> getOptLevel() const noexcept
+    std::pair<uint8_t, uint8_t> getOptLevel() const
     {
         uint8_t o = 0;
         uint8_t s = 0;
@@ -68,14 +89,35 @@ struct ProgramOptions
             o = 3;
             break;
         case OPT_Os:
+            o = 2;
             s = 1;
             break;
         case OPT_Oz:
+            o = 2;
             s = 2;
             break;
         }
 
         return {o, s};
+    }
+
+    std::string optLevelToString() const
+    {
+        uint8_t o, s;
+        std::tie(o, s) = getOptLevel();
+        if(o == 0 && s == 0)
+        {
+            return "-O0";
+        }
+        if(s == 0)
+        {
+            return fmt::format("-O{}", o);
+        }
+        if(s == 1)
+        {
+            return "-Os";
+        }
+        return "-Oz";
     }
 };
 

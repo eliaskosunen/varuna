@@ -51,13 +51,17 @@ bool Frontend::runParser()
     {
         util::logger->debug("Parsing failed");
         util::logger->info("Parsing of file '{}' failed, terminating\n",
-                           tokens[0].loc.file);
+                           file->getFilename());
         return false;
     }
     ast = p.retrieveAST();
     util::logger->debug("Parsing finished\n");
 
-    ast::DumpASTVisitor::dump<ast::ASTBlockStatement>(ast->globalNode.get());
+    {
+        auto dumper = ast::DumpASTVisitor();
+        dumper.dump(ast->globalNode.get());
+    }
+
     return true;
 }
 } // namespace core

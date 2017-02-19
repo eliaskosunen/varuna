@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cereal.h>
 #include <cassert>
 #include <stdexcept>
 #include <string>
@@ -17,8 +18,8 @@ class File
 public:
     using Checksum_t = uint64_t;
 
-    explicit File(std::string pFilename)
-        : filename(std::move(pFilename)), checksum(0), contentValid(false)
+    File() = default;
+    explicit File(std::string pFilename) : filename(std::move(pFilename))
     {
     }
 
@@ -71,20 +72,31 @@ public:
     void setContent(const std::string& c);
     void setContent(std::string&& c);
 
+    bool isValid() const
+    {
+        return contentValid;
+    }
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(filename));
+    }
+
 private:
     /// Actually read the file
     std::string _readFile(const std::string& fname);
 
     /// Filename
-    std::string filename;
+    std::string filename{"[undefined]"};
     /// File contents
-    std::string content;
+    std::string content{""};
     /// Rows of the file
     std::vector<std::string> contentRows;
     /// File checksum
-    Checksum_t checksum;
+    Checksum_t checksum{0};
     /// Are file contents usable
-    bool contentValid;
+    bool contentValid{false};
 };
 
 inline const std::string& File::getFilename() const

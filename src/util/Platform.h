@@ -7,8 +7,18 @@
 #define VALUE_TO_STRING(x) #x
 #define VALUE(x) VALUE_TO_STRING(x)
 
-#if(defined(DEBUG) || defined(_DEBUG)) && !defined(NDEBUG) && !defined(_NDEBUG)
-#define VARUNA_DEBUG 1
+#ifdef _MSC_VER
+#define VARUNA_MSVC 1
 #else
-#define VARUNA_RELEASE 1
+#define VARUNA_MSVC 0
 #endif
+
+#if VARUNA_MSVC
+#if defined(UNICODE) || defined(_UNICODE)
+#define VARUNA_MSVC_UNICODE 1
+#else
+#define VARUNA_MSVC_UNICODE 0
+#endif // defined (UNICODE)
+#else
+#define VARUNA_MSVC_UNICODE 0
+#endif // VARUNA_MSVC

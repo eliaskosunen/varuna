@@ -26,8 +26,8 @@ public:
     ~ASTStatement() override = default;
 
     void accept(DumpASTVisitor* v, size_t ind = 0) override;
-    virtual std::unique_ptr<codegen::TypedValue>
-    accept(codegen::CodegenVisitor* v);
+    std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) override;
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
@@ -96,5 +96,26 @@ public:
 
     /// Expression inside the statement
     std::unique_ptr<ASTExpression> expr;
+};
+
+/// Aliasing statement
+class ASTAliasStatement : public ASTStatement
+{
+public:
+    ASTAliasStatement(std::unique_ptr<ASTIdentifierExpression> pAlias,
+                      std::unique_ptr<ASTIdentifierExpression> pAliasee)
+        : ASTStatement(ALIAS_STMT), alias(std::move(pAlias)),
+          aliasee(std::move(pAliasee))
+    {
+    }
+
+    void accept(DumpASTVisitor* v, size_t ind = 0) override;
+    std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) override;
+    void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
+    bool accept(codegen::GrammarCheckerVisitor* v) override;
+
+    std::unique_ptr<ASTIdentifierExpression> alias;
+    std::unique_ptr<ASTIdentifierExpression> aliasee;
 };
 } // namespace ast

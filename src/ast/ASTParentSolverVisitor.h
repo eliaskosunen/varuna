@@ -23,12 +23,6 @@ public:
     template <typename T>
     void run(T* root)
     {
-        auto castedRoot = dynamic_cast<ASTNode*>(root);
-        if(!castedRoot)
-        {
-            throw std::invalid_argument(
-                "Invalid root node given to ASTParentSolverVisitor");
-        }
         root->accept(this, nullptr);
     }
 
@@ -46,7 +40,6 @@ public:
     void visit(ASTEmptyExpression* node, ASTNode* parent);
     void visit(ASTIdentifierExpression* node, ASTNode* parent);
     void visit(ASTVariableRefExpression* node, ASTNode* parent);
-    void visit(ASTCastExpression* node, ASTNode* parent);
     void visit(ASTVariableDefinitionExpression* node, ASTNode* parent);
     void visit(ASTGlobalVariableDefinitionExpression* node, ASTNode* parent);
     void visit(ASTSubscriptExpression* node, ASTNode* parent);
@@ -73,5 +66,6 @@ public:
     void visit(ASTEmptyStatement* node, ASTNode* parent);
     void visit(ASTBlockStatement* node, ASTNode* parent);
     void visit(ASTWrappedExpressionStatement* node, ASTNode* parent);
+    void visit(ASTAliasStatement* node, ASTNode* parent);
 };
 } // namespace ast

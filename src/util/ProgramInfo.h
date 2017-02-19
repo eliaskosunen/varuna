@@ -9,6 +9,15 @@
 #include <stdexcept>
 #include <string>
 
+#if VARUNA_MSVC
+#define WIN32_LEAN_AND_MEAN
+#include <direct.h>
+#define GETCWD _getcwd
+#else
+#include <unistd.h>
+#define GETCWD getcwd
+#endif
+
 namespace util
 {
 namespace programinfo
@@ -43,4 +52,17 @@ namespace programinfo
     /// Program build date
     const std::string& getBuildDate();
 } // namespace programinfo
+
+inline std::string getCurrentDirectory()
+{
+    char buf[FILENAME_MAX];
+    char* result = GETCWD(buf, sizeof(buf));
+    if(!result)
+    {
+        return {};
+    }
+    return result;
+}
 } // namespace util
+
+#undef GETCWD

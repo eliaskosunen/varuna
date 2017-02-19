@@ -5,7 +5,9 @@
 #pragma once
 
 #include "util/String.h"
+#include <spdlog.h>
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <functional>
 #include <locale>
@@ -287,15 +289,33 @@ namespace stringutils
 #endif
     }
 
-    inline std::string createEmptyStringWithLength(size_t len)
+    inline string_t createEmptyStringWithLength(size_t len)
     {
-        std::string ret;
-        ret.reserve(len);
-        for(size_t i = 1; i <= len; ++i)
+        if(len == 0)
         {
-            ret.push_back(' ');
+            return {};
         }
-        return ret;
+        return fmt::format("{:>" + std::to_string(len) + "}", " ");
+    }
+
+    template <typename ForwardIterator>
+    string_t join(ForwardIterator begin, ForwardIterator end, char_t glue)
+    {
+        if(begin == end)
+        {
+            return {};
+        }
+        stringstream_t ss;
+        std::for_each(begin, end, [&](const auto& p) { ss << p << glue; });
+        string_t str = ss.str();
+        str.pop_back();
+        return str;
+    }
+
+    template <typename Container>
+    string_t join(const Container& parts, char_t glue)
+    {
+        return join(parts.begin(), parts.end(), glue);
     }
 } // namespace stringutils
 } // namespace util

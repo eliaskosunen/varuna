@@ -17,25 +17,24 @@ namespace lexer
 {
     enum _TokenIntegerLiteralModifier
     {
-        INTEGER_INT = 1,    // none
-        INTEGER_INT8 = 2,   // i8
-        INTEGER_INT16 = 4,  // i16
-        INTEGER_INT32 = 8,  // i32
-        INTEGER_INT64 = 16, // i64
-        INTEGER_BYTE = 32,  // b
-        INTEGER_BIN = 64,   // 0b...
-        INTEGER_OCT = 128,  // 0o...
-        INTEGER_HEX = 256,  // 0x...
+        INTEGER_INT32 = 1, // none, i32
+        INTEGER_INT8 = 2,  // i8
+        INTEGER_INT16 = 4, // i16
+        INTEGER_INT64 = 8, // i64
+        INTEGER_BYTE = 16, // b
+        INTEGER_BIN = 32,  // 0b...
+        INTEGER_OCT = 64,  // 0o...
+        INTEGER_HEX = 128, // 0x...
 
         INTEGER_NONE = 0
     };
 
     enum _TokenFloatLiteralModifier
     {
-        FLOAT_FLOAT = 1,   // none
-        FLOAT_F64 = 2,     // f64
-        FLOAT_F32 = 4,     // f32
-        FLOAT_DECIMAL = 8, // d
+        FLOAT_F64 = 1,     // f64
+        FLOAT_F32 = 2,     // f32
+        FLOAT_DECIMAL = 4, // d
+        FLOAT_LONG = 8,    // l
 
         FLOAT_NONE = 0
     };
@@ -48,17 +47,28 @@ namespace lexer
         CHAR_NONE = 0
     };
 
+    enum _TokenStringLiteralModifier
+    {
+        STRING_STRING = 1, // none
+        STRING_C = 2,      // c...
+
+        STRING_NONE = 0
+    };
+
     using TokenIntegerLiteralModifier =
         util::SafeEnum<_TokenIntegerLiteralModifier>;
     using TokenFloatLiteralModifier =
         util::SafeEnum<_TokenFloatLiteralModifier>;
     using TokenCharLiteralModifier = util::SafeEnum<_TokenCharLiteralModifier>;
+    using TokenStringLiteralModifier =
+        util::SafeEnum<_TokenStringLiteralModifier>;
 
     struct Token final
     {
         explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
             : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
-              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE)
+              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE),
+              modifierString(STRING_NONE)
         {
         }
 
@@ -86,6 +96,7 @@ namespace lexer
         TokenIntegerLiteralModifier modifierInt;
         TokenFloatLiteralModifier modifierFloat;
         TokenCharLiteralModifier modifierChar;
+        TokenStringLiteralModifier modifierString;
     };
 } // namespace lexer
 } // namespace core

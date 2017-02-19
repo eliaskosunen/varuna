@@ -10,9 +10,8 @@
 namespace codegen
 {
 Type::Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Type::Kind k,
-           llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n,
-           bool mut)
-    : typeTable(list), context(c), type(t), dtype(d), kind(k), isMutable(mut),
+           llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n)
+    : typeTable(list), context(c), type(t), dtype(d), kind(k),
       name(std::move(n)), operations(std::move(op))
 {
 }
@@ -21,7 +20,7 @@ Type::~Type() noexcept = default;
 
 bool Type::isSameOrImplicitlyCastable(ast::ASTNode* node,
                                       llvm::IRBuilder<>& builder,
-                                      llvm::Value* val, Type* to) const
+                                      TypedValue* val, Type* to) const
 {
     if(basicEqual(to))
     {
@@ -37,10 +36,9 @@ TypeOperationBase* Type::getOperations() const
     return operations.get();
 }
 
-VoidType::VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
-                   bool mut)
+VoidType::VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&)
     : Type(list, std::make_unique<VoidTypeOperation>(this), VOID, c,
-           llvm::Type::getVoidTy(c), nullptr, "void", mut)
+           llvm::Type::getVoidTy(c), nullptr, "void")
 {
 }
 
@@ -64,9 +62,8 @@ std::unique_ptr<TypedValue> VoidType::zeroInit()
 
 IntegralType::IntegralType(TypeTable* list, size_t w, Kind k,
                            llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
-                           const std::string& n, bool mut)
-    : Type(list, std::make_unique<IntegralTypeOperation>(this), k, c, t, d, n,
-           mut),
+                           const std::string& n)
+    : Type(list, std::make_unique<IntegralTypeOperation>(this), k, c, t, d, n),
       width(w)
 {
 }
@@ -83,62 +80,51 @@ bool IntegralType::isFloatingPoint() const
 std::unique_ptr<TypedValue> IntegralType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
-    return std::make_unique<TypedValue>(this, val);
-}
-
-IntType::IntType(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder, bool mut)
-    : IntegralType(
-          list, getIntSize(), INT, c,
-          llvm::Type::getIntNTy(c, static_cast<unsigned int>(getIntSize())),
-          dbuilder.createBasicType("int", getIntSize(), getIntSize(),
-                                   llvm::dwarf::DW_ATE_signed),
-          "int", mut)
-{
+    return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
 Int8Type::Int8Type(TypeTable* list, llvm::LLVMContext& c,
-                   llvm::DIBuilder& dbuilder, bool mut)
+                   llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 8, INT8, c, llvm::Type::getInt8Ty(c),
           dbuilder.createBasicType("int8", 8, 8, llvm::dwarf::DW_ATE_signed),
-          "int8", mut)
+          "int8")
 {
 }
 
 Int16Type::Int16Type(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder, bool mut)
+                     llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 16, INT16, c, llvm::Type::getInt16Ty(c),
-          dbuilder.createBasicType("int16", 16, 16, llvm::dwarf::DW_ATE_signed),
-          "int16", mut)
+          dbuilder.createBasicType("i16", 16, 16, llvm::dwarf::DW_ATE_signed),
+          "i16")
 {
 }
 
 Int32Type::Int32Type(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder, bool mut)
+                     llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 32, INT32, c, llvm::Type::getInt32Ty(c),
-          dbuilder.createBasicType("int32", 32, 32, llvm::dwarf::DW_ATE_signed),
-          "int32", mut)
+          dbuilder.createBasicType("i32", 32, 32, llvm::dwarf::DW_ATE_signed),
+          "i32")
 {
 }
 
 Int64Type::Int64Type(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder, bool mut)
+                     llvm::DIBuilder& dbuilder)
     : IntegralType(
           list, 64, INT64, c, llvm::Type::getInt64Ty(c),
-          dbuilder.createBasicType("int64", 64, 64, llvm::dwarf::DW_ATE_signed),
-          "int64", mut)
+          dbuilder.createBasicType("i64", 64, 64, llvm::dwarf::DW_ATE_signed),
+          "i64")
 {
 }
 
 BoolType::BoolType(TypeTable* list, llvm::LLVMContext& c,
-                   llvm::DIBuilder& dbuilder, bool mut)
+                   llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<BoolTypeOperation>(this), BOOL, c,
            llvm::Type::getInt1Ty(c),
            dbuilder.createBasicType("bool", 1, 1, llvm::dwarf::DW_ATE_boolean),
-           "bool", mut)
+           "bool")
 {
 }
 
@@ -154,14 +140,13 @@ bool BoolType::isFloatingPoint() const
 std::unique_ptr<TypedValue> BoolType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
-    return std::make_unique<TypedValue>(this, val);
+    return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
 CharacterType::CharacterType(TypeTable* list, size_t w, Kind k,
                              llvm::LLVMContext& c, llvm::Type* t,
-                             llvm::DIType* d, const std::string& n, bool mut)
-    : Type(list, std::make_unique<CharacterTypeOperation>(this), k, c, t, d, n,
-           mut),
+                             llvm::DIType* d, const std::string& n)
+    : Type(list, std::make_unique<CharacterTypeOperation>(this), k, c, t, d, n),
       width(w)
 {
 }
@@ -178,33 +163,33 @@ bool CharacterType::isFloatingPoint() const
 std::unique_ptr<TypedValue> CharacterType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
-    return std::make_unique<TypedValue>(this, val);
+    return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
 CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
-                   llvm::DIBuilder& dbuilder, bool mut)
+                   llvm::DIBuilder& dbuilder)
     : CharacterType(list, 32, CHAR, c, llvm::Type::getInt32Ty(c),
                     dbuilder.createBasicType("char", 32, 32,
                                              llvm::dwarf::DW_ATE_unsigned_char),
-                    "char", mut)
+                    "char")
 {
 }
 
 ByteCharType::ByteCharType(TypeTable* list, llvm::LLVMContext& c,
-                           llvm::DIBuilder& dbuilder, bool mut)
+                           llvm::DIBuilder& dbuilder)
     : CharacterType(list, 8, BCHAR, c, llvm::Type::getInt8Ty(c),
                     dbuilder.createBasicType("bchar", 8, 8,
                                              llvm::dwarf::DW_ATE_unsigned_char),
-                    "bchar", mut)
+                    "bchar")
 {
 }
 
 ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,
-                   llvm::DIBuilder& dbuilder, bool mut)
+                   llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<ByteTypeOperation>(this), BYTE, c,
            llvm::Type::getInt8Ty(c),
            dbuilder.createBasicType("byte", 8, 8, llvm::dwarf::DW_ATE_unsigned),
-           "byte", mut)
+           "byte")
 {
 }
 
@@ -220,12 +205,12 @@ bool ByteType::isFloatingPoint() const
 std::unique_ptr<TypedValue> ByteType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
-    return std::make_unique<TypedValue>(this, val);
+    return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
 FPType::FPType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
-               llvm::Type* t, llvm::DIType* d, const std::string& n, bool mut)
-    : Type(list, std::make_unique<FPTypeOperation>(this), k, c, t, d, n, mut),
+               llvm::Type* t, llvm::DIType* d, const std::string& n)
+    : Type(list, std::make_unique<FPTypeOperation>(this), k, c, t, d, n),
       width(w)
 {
 }
@@ -242,42 +227,36 @@ bool FPType::isFloatingPoint() const
 std::unique_ptr<TypedValue> FPType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
-    return std::make_unique<TypedValue>(this, val);
-}
-
-FloatType::FloatType(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder, bool mut)
-    : FPType(
-          list, 32, FLOAT, c, llvm::Type::getFloatTy(c),
-          dbuilder.createBasicType("float", 32, 32, llvm::dwarf::DW_ATE_float),
-          "float", mut)
-{
+    return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
 }
 
 F32Type::F32Type(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder, bool mut)
+                 llvm::DIBuilder& dbuilder)
     : FPType(list, 32, F32, c, llvm::Type::getFloatTy(c),
              dbuilder.createBasicType("f32", 32, 32, llvm::dwarf::DW_ATE_float),
-             "f32", mut)
+             "f32")
 {
 }
 
 F64Type::F64Type(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder, bool mut)
-    : FPType(list, 64, F64, c, llvm::Type::getFloatTy(c),
+                 llvm::DIBuilder& dbuilder)
+    : FPType(list, 64, F64, c, llvm::Type::getDoubleTy(c),
              dbuilder.createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float),
-             "f64", mut)
+             "f64")
 {
 }
 
-StringType::StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
-                       bool mut)
+StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
+                       llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
-           llvm::StructType::create(
-               c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)},
-               "string_t", true),
-           nullptr, "string_t", mut)
+           getLLVMStringType(c), nullptr, "string")
 {
+}
+
+llvm::StructType* StringType::getLLVMStringType(llvm::LLVMContext& c)
+{
+    return llvm::StructType::create(
+        c, {llvm::Type::getInt64Ty(c), llvm::Type::getInt8PtrTy(c)}, "string");
 }
 
 bool StringType::isIntegral() const
@@ -291,11 +270,68 @@ bool StringType::isFloatingPoint() const
 
 std::unique_ptr<TypedValue> StringType::zeroInit()
 {
-    return nullptr;
+    auto stringLen = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), 0);
+    auto stringConst = llvm::ConstantDataArray::getString(context, "", false);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *typeTable->getModule(), stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+
+    auto val = llvm::ConstantStruct::get(llvm::cast<llvm::StructType>(type),
+                                         stringLen, stringPtr, nullptr);
+
+    /*auto val = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(type),
+        llvm::ConstantInt::get(type->getInt64Ty(type->getContext()), 0),
+        llvm::ConstantInt::get(type->getInt8PtrTy(type->getContext()), 0),
+        nullptr);*/
+    return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
+}
+
+CStringType::CStringType(TypeTable* list, llvm::LLVMContext& c,
+                         llvm::DIBuilder& dbuilder)
+    : Type(list, std::make_unique<CStringTypeOperation>(this), CSTRING, c,
+           llvm::Type::getInt8PtrTy(c), nullptr, "cstring")
+{
+}
+
+bool CStringType::isIntegral() const
+{
+    return false;
+}
+bool CStringType::isFloatingPoint() const
+{
+    return false;
+}
+
+std::unique_ptr<TypedValue> CStringType::zeroInit()
+{
+    auto stringConst = llvm::ConstantDataArray::getString(context, "", true);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *typeTable->getModule(), stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+
+    auto val = stringPtr;
+
+    /*auto val = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(type),
+        llvm::ConstantInt::get(type->getInt64Ty(type->getContext()), 0),
+        llvm::ConstantInt::get(type->getInt8PtrTy(type->getContext()), 0),
+        nullptr);*/
+    return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
 }
 
 FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
-                           llvm::DIBuilder& dbuilder, Type* pReturnType,
+                           llvm::DIBuilder&, Type* pReturnType,
                            std::vector<Type*> pParams)
     : Type(list, std::make_unique<FunctionTypeOperation>(this), FUNCTION, c,
            getLLVMFunctionType(pReturnType, pParams), nullptr,
@@ -382,6 +418,33 @@ llvm::DISubroutineType* FunctionType::createDebugFunctionType(
 
     return dbuilder->createSubroutineType(
         dbuilder->getOrCreateTypeArray(elementTypes));
+}
+
+AliasType::AliasType(TypeTable* list, llvm::LLVMContext& c,
+                     llvm::DIBuilder& dbuilder, const std::string& pAliasName,
+                     Type* pUnderlying)
+    : Type(list, nullptr, pUnderlying->kind, c, pUnderlying->type, nullptr,
+           pAliasName),
+      underlying(pUnderlying)
+{
+}
+
+bool AliasType::isIntegral() const
+{
+    return underlying->isIntegral();
+}
+bool AliasType::isFloatingPoint() const
+{
+    return underlying->isFloatingPoint();
+    ;
+}
+std::unique_ptr<TypedValue> AliasType::zeroInit()
+{
+    return underlying->zeroInit();
+}
+TypeOperationBase* AliasType::getOperations() const
+{
+    return underlying->getOperations();
 }
 
 } // namespace codegen

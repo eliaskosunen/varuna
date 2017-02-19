@@ -1,42 +1,217 @@
-sudo: required
+# Based on:
+# https://github.com/boostorg/hana/blob/master/.travis.yml
+# https://github.com/onqtam/doctest/blob/master/.travis.yml
+# https://github.com/ChaiScript/ChaiScript/blob/master/.travis.yml
+
+sudo: false
 dist: precise
 language: cpp
 
-os:
-    - linux
-
 git:
-    depth: 5
+  depth: 5
+
+branches:
+  except: /pr\/.*/
 
 env:
-    matrix:
-        - COMPILER=g++-4.9 PACKAGE=g++-4.9 COMPILER_C=gcc-4.9 LLVM_VERSION=3.9
-        - COMPILER=g++-5 PACKAGE=g++-5 COMPILER_C=gcc-5 LLVM_VERSION=3.9
-        - COMPILER=g++-6 PACKAGE=g++-6 COMPILER_C=gcc-6 LLVM_VERSION=3.9
-        - COMPILER=clang++-3.6 PACKAGE=clang-3.6 COMPILER_C=clang-3.6 LLVM_VERSION=3.9
-        - COMPILER=clang++-3.8 PACKAGE=clang-3.8 COMPILER_C=clang-3.8 LLVM_VERSION=3.9
-        - COMPILER=clang++-3.9 PACKAGE=clang-3.9 COMPILER_C=clang-3.9 LLVM_VERSION=3.9
+  matrix:
+    - TRAVIS_EMPTY_JOB_WORKAROUND=true
 
-before_install:
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main"
-    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main"
-    - sudo add-apt-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main"
-    - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+addons:
+  apt:
+    sources: &apt_sources
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.6
+      - llvm-toolchain-precise-3.7
+      - llvm-toolchain-precise-3.8
+      - llvm-toolchain-precise-3.9
+
+os: linux
+compiler: clang
+
+matrix:
+  exclude:
+    - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
+  include:
+    # Clang 3.9
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
+      compiler: clang
+      addons: &clang_39
+        apt:
+          packages: ["clang-3.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+    # Clang 3.8
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
+      compiler: clang
+      addons: &clang_38
+        apt:
+          packages: ["clang-3.8", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+    # Clang 3.7
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
+      compiler: clang
+      addons: &clang_37
+        apt:
+          packages: ["clang-3.7", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+    # Clang 3.6
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.6 COMPILER_C=clang-3.6
+      compiler: clang
+      addons: &clang_36
+        apt:
+          packages: ["clang-3.6", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+
+    # GCC 6
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
+      compiler: gcc
+      addons: &gcc6
+        apt:
+          packages: ["g++-6", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+    # GCC 5
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
+      compiler: gcc
+      addons: &gcc5
+        apt:
+          packages: ["g++-5", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+
+  allow_failures:
+    # GCC 4.9
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
+      compiler: gcc
+      addons: &gcc49
+        apt:
+          packages: ["g++-4.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+
+    # Xcode 8.2 Clang
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      osx_image: xcode8.2
+    # Xcode 7.3 Clang
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      osx_image: xcode7.3
+    # Xcode 6.4 Clang
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      osx_image: xcode6.4
+
+    # OSX GCC 6
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
+      compiler: gcc
+      osx_image: beta-xcode6.3
+    # OSX GCC 5
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
+      compiler: gcc
+      osx_image: beta-xcode6.3
+    # OSX GCC 4.9
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
+      compiler: gcc
+      osx_image: beta-xcode6.3
+    # OSX LLVM-GCC
+    - os: osx
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
+      compiler: gcc
+
+    # LLVM 3.8 (Clang 3.8)
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
+      compiler: clang
+      addons: &llvm38
+        apt:
+          packages: ["clang-3.8", "libllvm3.8", "llvm-3.8", "llvm-3.8-dev", "valgrind"]
+          sources: *apt_sources
+    # LLVM 3.7 (Clang 3.7)
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=3.7 COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
+      compiler: clang
+      addons: &llvm37
+        apt:
+          packages: ["clang-3.7", "libllvm3.7", "llvm-3.7", "llvm-3.7-dev", "valgrind"]
+          sources: *apt_sources
+
+    # coverage
+    - os: linux
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6 COVERALLS_SERVICE_NAME=travis-ci
+      compiler: gcc
+      addons: &cov
+        apt:
+          packages: ["g++-6", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "lcov", "curl"]
+          sources: *apt_sources
 
 install:
-    - mkdir cmake && cd cmake
-    - curl -sSL https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.sh -o install-cmake.sh
-    - chmod +x install-cmake.sh
-    - sudo ./install-cmake.sh --prefix=/usr/local --skip-license
-    - cd ..
-    - sudo apt-get update -qq
-    - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install ${PACKAGE} libllvm${LLVM_VERSION} llvm-${LLVM_VERSION} llvm-${LLVM_VERSION}-dev
+  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  - if [ "${LLVM_VERSION}" == "default" ]; then LLVM_VERSION=3.9; fi
+
+  # Install a recent CMake
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz"
+      mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      if ! brew ls --version cmake &> /dev/null; then brew install cmake; fi
+    fi
+
+  - cd ${TRAVIS_BUILD_DIR}
+
+  # Install stuff with homebrew under OSX
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      brew update
+      brew install valgrind
+
+      # CMake
+      if brew list -1 | grep -q "^cmake\$"; then
+        brew outdated cmake || brew upgrade cmake
+      else
+        brew install cmake
+      fi
+
+      # GCC
+      if [ "${COMPILER_CXX}" == "g++-6" ]; then
+        brew install gcc6
+      fi
+      if [ "${COMPILER_CXX}" == "g++-5" ]; then
+        brew install gcc5
+      fi
+      if [ "${COMPILER_CXX}" == "g++-4.9" ]; then
+        brew install gcc4.9
+      fi
+    fi
+
+before_script:
+  - ${COMPILER_CXX} --version
 
 script:
-    - mkdir build
-    - cd build
-    - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_C_COMPILER=$COMPILER_C -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} ..
-    - make -j2
-    - cd ..
-    - ./bin/tests
+  - mkdir build && cd build
+
+  # Coverage
+  - |
+    if [ "${COVERALLS_SERVICE_NAME}" == "travis-ci" ]; then
+      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+      make -k -j2 && make coveralls
+      exit
+    fi
+
+  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+  - make -j2
+  - cd ..
+  - if [ "${TESTS}" == "ON" ]; then valgrind ./bin/tests ; fi

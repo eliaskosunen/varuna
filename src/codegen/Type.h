@@ -6,12 +6,17 @@
 
 #include "ast/AST.h"
 #include "ast/ASTFunctionStatement.h"
+#include "util/Compatibility.h"
 #include "util/Logger.h"
 #include "util/OperatorType.h"
 #include "util/ProgramOptions.h"
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/IRBuilder.h>
 #include <tuple>
+
+#if VARUNA_MSVC
+#undef VOID // defined in winnt.h as void
+#endif
 
 namespace codegen
 {
@@ -23,22 +28,21 @@ class TypeTable;
 class Type
 {
 public:
-    enum Kind
+    enum _Kind
     {
         VOID,
-        INT,
         INT8,
         INT16,
         INT32,
         INT64,
         BOOL,
-        FLOAT,
         F32,
         F64,
         BYTE,
         CHAR,
         BCHAR,
         STRING,
+        CSTRING,
         FUNCTION
     };
     enum CastType
@@ -48,9 +52,10 @@ public:
         BITCAST
     };
 
+    using Kind = util::SafeEnum<_Kind>;
+
     Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
-         llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n,
-         bool mut = false);
+         llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n);
     Type(const Type& t) = default;
     Type& operator=(const Type& t) = default;
     Type(Type&&) = default;
@@ -59,12 +64,12 @@ public:
 
     virtual std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                              llvm::IRBuilder<>& builder,
-                                             CastType c, llvm::Value* val,
+                                             CastType c, TypedValue* val,
                                              Type* to) const = 0;
 
     bool isSameOrImplicitlyCastable(ast::ASTNode* node,
-                                    llvm::IRBuilder<>& builder,
-                                    llvm::Value* val, Type* to) const;
+                                    llvm::IRBuilder<>& builder, TypedValue* val,
+                                    Type* to) const;
 
     virtual bool isSized() const
     {
@@ -83,15 +88,11 @@ public:
     /// Get complete name of type
     std::string getDecoratedName() const
     {
-        if(isMutable)
-        {
-            return fmt::format("{} mut", name);
-        }
         return name;
     }
 
     /// Get type operations
-    TypeOperationBase* getOperations() const;
+    virtual TypeOperationBase* getOperations() const;
 
     /// Are types completely equal
     /// e.g. Same mutability
@@ -145,12 +146,11 @@ public:
     llvm::Type* type;
     llvm::DIType* dtype;
     Kind kind;
-    bool isMutable{false};
 
 protected:
     std::unique_ptr<TypedValue> implicitCast(ast::ASTNode* node,
                                              llvm::IRBuilder<>& builder,
-                                             llvm::Value* val, Type* to) const;
+                                             TypedValue* val, Type* to) const;
 
     template <typename... Args>
     std::nullptr_t castError(ast::ASTNode* node, const std::string& format,
@@ -184,12 +184,11 @@ private:
 class VoidType : public Type
 {
 public:
-    VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
-             bool mut = false);
+    VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -202,73 +201,52 @@ class IntegralType : public Type
 {
 public:
     IntegralType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
-                 llvm::Type* t, llvm::DIType* d, const std::string& n,
-                 bool mut = false);
+                 llvm::Type* t, llvm::DIType* d, const std::string& n);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
 
-    size_t getIntSize() const noexcept
-    {
-        assert(util::viewProgramOptions().intSize % 8 == 0);
-        assert(util::viewProgramOptions().intSize <= 64);
-        assert(util::viewProgramOptions().intSize >= 8);
-        return util::viewProgramOptions().intSize;
-    }
-
     size_t width;
-};
-
-class IntType : public IntegralType
-{
-public:
-    IntType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-            bool mut = false);
 };
 
 class Int8Type : public IntegralType
 {
 public:
-    Int8Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-             bool mut = false);
+    Int8Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class Int16Type : public IntegralType
 {
 public:
-    Int16Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-              bool mut = false);
+    Int16Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class Int32Type : public IntegralType
 {
 public:
-    Int32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-              bool mut = false);
+    Int32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class Int64Type : public IntegralType
 {
 public:
-    Int64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-              bool mut = false);
+    Int64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class BoolType : public Type
 {
 public:
-    BoolType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-             bool mut = false);
+    BoolType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -280,12 +258,11 @@ class CharacterType : public Type
 {
 public:
     CharacterType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
-                  llvm::Type* t, llvm::DIType* d, const std::string& n,
-                  bool mut = false);
+                  llvm::Type* t, llvm::DIType* d, const std::string& n);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -298,26 +275,24 @@ public:
 class CharType : public CharacterType
 {
 public:
-    CharType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-             bool mut = false);
+    CharType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class ByteCharType : public CharacterType
 {
 public:
     ByteCharType(TypeTable* list, llvm::LLVMContext& c,
-                 llvm::DIBuilder& dbuilder, bool mut = false);
+                 llvm::DIBuilder& dbuilder);
 };
 
 class ByteType : public Type
 {
 public:
-    ByteType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-             bool mut = false);
+    ByteType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -329,12 +304,11 @@ class FPType : public Type
 {
 public:
     FPType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
-           llvm::Type* t, llvm::DIType* d, const std::string& n,
-           bool mut = false);
+           llvm::Type* t, llvm::DIType* d, const std::string& n);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -344,36 +318,45 @@ public:
     size_t width;
 };
 
-class FloatType : public FPType
-{
-public:
-    FloatType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-              bool mut = false);
-};
-
 class F32Type : public FPType
 {
 public:
-    F32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-            bool mut = false);
+    F32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class F64Type : public FPType
 {
 public:
-    F64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
-            bool mut = false);
+    F64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 };
 
 class StringType : public Type
 {
 public:
-    StringType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&,
-               bool mut = false);
+    StringType(TypeTable* list, llvm::LLVMContext& c,
+               llvm::DIBuilder& dbuilder);
+
+    static llvm::StructType* getLLVMStringType(llvm::LLVMContext& c);
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
+
+    std::unique_ptr<TypedValue> zeroInit() override;
+
+    bool isIntegral() const override;
+    bool isFloatingPoint() const override;
+};
+
+class CStringType : public Type
+{
+public:
+    CStringType(TypeTable* list, llvm::LLVMContext& c,
+                llvm::DIBuilder& dbuilder);
+
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -402,7 +385,7 @@ public:
 
     std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
                                      llvm::IRBuilder<>& builder, CastType c,
-                                     llvm::Value* val, Type* to) const override;
+                                     TypedValue* val, Type* to) const override;
 
     std::unique_ptr<TypedValue> zeroInit() override;
 
@@ -411,5 +394,25 @@ public:
 
     Type* returnType;
     std::vector<Type*> params;
+};
+
+class AliasType : public Type
+{
+public:
+    AliasType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
+              const std::string& pAliasName, Type* pUnderlying);
+
+    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+                                     llvm::IRBuilder<>& builder, CastType c,
+                                     TypedValue* val, Type* to) const override;
+
+    std::unique_ptr<TypedValue> zeroInit() override;
+
+    bool isIntegral() const override;
+    bool isFloatingPoint() const override;
+
+    TypeOperationBase* getOperations() const override;
+
+    Type* underlying;
 };
 } // namespace codegen

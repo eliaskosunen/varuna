@@ -10,8 +10,12 @@
 
 #endif
 
-#include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
+#define CEREAL_THREAD_SAFE 1
+
+#include "cereal/archives/binary.hpp"
+#include "cereal/archives/json.hpp"
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/archives/xml.hpp"
 
 #ifdef _MSC_VER
 

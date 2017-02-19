@@ -25,8 +25,8 @@ public:
     ~ASTExpression() override = default;
 
     void accept(DumpASTVisitor* v, size_t ind = 0) override;
-    virtual std::unique_ptr<codegen::TypedValue>
-    accept(codegen::CodegenVisitor* v);
+    std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) override;
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
 
@@ -102,26 +102,6 @@ public:
     accept(codegen::CodegenVisitor* v) override;
     void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
     bool accept(codegen::GrammarCheckerVisitor* v) override;
-};
-
-class ASTCastExpression : public ASTExpression
-{
-public:
-    ASTCastExpression(std::unique_ptr<ASTExpression> pCastee,
-                      std::unique_ptr<ASTIdentifierExpression> pType)
-        : ASTExpression(CAST_EXPR), type(std::move(pType)),
-          castee(std::move(pCastee))
-    {
-    }
-
-    void accept(DumpASTVisitor* v, size_t ind = 0) override;
-    std::unique_ptr<codegen::TypedValue>
-    accept(codegen::CodegenVisitor* v) override;
-    void accept(ASTParentSolverVisitor* v, ASTNode* p) override;
-    bool accept(codegen::GrammarCheckerVisitor* v) override;
-
-    std::unique_ptr<ASTIdentifierExpression> type;
-    std::unique_ptr<ASTExpression> castee;
 };
 
 class ASTVariableDefinitionExpression : public ASTExpression

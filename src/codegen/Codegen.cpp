@@ -4,9 +4,13 @@
 
 #include "codegen/Codegen.h"
 #include "codegen/GrammarCheckerVisitor.h"
+#include "util/Process.h"
+#include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
+#include "util/StringUtils.h"
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
+#include <fstream>
 
 namespace codegen
 {
@@ -78,31 +82,213 @@ bool Codegen::finish()
     return true;
 }
 
+struct OutputTypeHash
+{
+    template <typename T>
+    size_t operator()(T t) const
+    {
+        return static_cast<size_t>(t);
+    }
+};
+
 void Codegen::write()
 {
-    if(util::viewProgramOptions().outputFilename == "stdout")
+    const auto output = util::viewProgramOptions().output;
+    const auto writeStdout = util::viewProgramOptions().outputFilename == "-";
+
+    if(output == util::EMIT_NONE)
     {
-        // If output file set to stdout,
-        // dump the module there
-        util::loggerBasic->error("*** MODULE DUMP ***\n");
-        codegen->dumpModule();
-        util::loggerBasic->error("\n*** END MODULE DUMP ***");
+        util::logger->info("Emitting nothing");
         return;
     }
 
-    // Create a file stream
-    auto filename = util::viewProgramOptions().outputFilename;
-    std::error_code ec;
-    llvm::raw_fd_ostream os(filename, ec, llvm::sys::fs::F_None);
+    auto filename = [&](util::OutputType type) {
+        auto filenameWithoutEnding = [&](
+            const std::string& f = util::viewProgramOptions().outputFilename) {
+            auto filenameParts = util::stringutils::split(f, '.');
+            if(filenameParts.size() > 1)
+            {
+                filenameParts.pop_back();
+            }
 
-    // Throw on error
-    if(ec)
+            return util::stringutils::join(filenameParts, '.');
+        };
+
+        static const std::unordered_map<util::OutputType, std::string,
+                                        OutputTypeHash>
+            filenameEndings{
+                {util::EMIT_NONE, ""},       {util::EMIT_AST, ""},
+                {util::EMIT_LLVM_IR, ".ll"}, {util::EMIT_LLVM_BC, ".bc"},
+                {util::EMIT_OBJ, ".o"},      {util::EMIT_ASM, ".s"}};
+
+        if(util::viewProgramOptions().outputFilename.empty() || writeStdout)
+        {
+            return filenameWithoutEnding(
+                       util::viewProgramOptions().inputFilenames[0])
+                .append(filenameEndings.find(type)->second);
+        }
+        if(type == output)
+        {
+            return util::viewProgramOptions().outputFilename;
+        }
+        return filenameWithoutEnding().append(
+            filenameEndings.find(type)->second);
+    };
+
+    util::logger->trace("EMIT_AST: {}", filename(util::EMIT_AST));
+    util::logger->trace("EMIT_LLVM_IR: {}", filename(util::EMIT_LLVM_IR));
+    util::logger->trace("EMIT_LLVM_BC: {}", filename(util::EMIT_LLVM_BC));
+    util::logger->trace("EMIT_OBJ: {}", filename(util::EMIT_OBJ));
+    util::logger->trace("EMIT_ASM: {}", filename(util::EMIT_ASM));
+    util::logger->trace("output: {}", output);
+
+    util::logger->trace("cwd: {}", util::getCurrentDirectory());
+
+    if(output == util::EMIT_AST)
     {
-        throw std::runtime_error(
-            fmt::format("Failed to open output file: {}", ec.message()));
+        throw std::logic_error("EMIT_AST in Codegen::write()");
     }
 
-    // Write the module to the stream
-    module->print(os, nullptr);
+    {
+        if(output == util::EMIT_LLVM_IR)
+        {
+            if(writeStdout)
+            {
+                // If output file set to stdout,
+                // dump the module there
+                util::loggerBasic->error("*** MODULE DUMP ***\n");
+                codegen->dumpModule();
+                util::loggerBasic->error("\n*** END MODULE DUMP ***");
+                return;
+            }
+        }
+
+        std::error_code ec;
+        llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
+                                llvm::sys::fs::F_None);
+
+        // Throw on error
+        if(ec)
+        {
+            throw std::runtime_error(
+                fmt::format("Failed to open output file: {}", ec.message()));
+        }
+
+        // Write the module to the stream
+        module->print(os, nullptr);
+    }
+
+#if 0
+    {
+        auto opt = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                               util::viewProgramOptions().llvmOptBin);
+        auto optArgs = fmt::format(
+            "-o {} -S -disable-inlining -disable-opt -verify{} {}",
+            filename(util::EMIT_LLVM_IR),
+            util::viewProgramOptions().emitDebug ? "" : " -strip-debug",
+            filename(util::EMIT_LLVM_IR));
+        util::logger->debug("Running {} {}", opt, optArgs);
+        auto p = util::Process(opt, optArgs);
+        if(!p.spawn())
+        {
+            std::remove(filename(util::EMIT_LLVM_IR).c_str());
+            throw std::runtime_error(fmt::format("opt ({} {}) failed: {}", opt,
+                                                 optArgs, p.getErrorString()));
+        }
+        if(p.getReturnValue() != 0)
+        {
+            throw std::runtime_error(
+                fmt::format("opt ({} {}) failed", opt, optArgs));
+        }
+    }
+#endif
+
+    if(output == util::EMIT_LLVM_IR)
+    {
+        util::logger->info("Wrote LLVM IR in '{}'",
+                           filename(util::EMIT_LLVM_IR));
+        return;
+    }
+
+    if(output == util::EMIT_LLVM_BC)
+    {
+        const auto as =
+            fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                        util::viewProgramOptions().llvmAsBin);
+        const auto asArgs = fmt::format(
+            "-o {} {}", writeStdout ? "-" : filename(util::EMIT_LLVM_BC),
+            filename(util::EMIT_LLVM_IR), writeStdout ? " -f" : "");
+        util::logger->debug("Running {} {}", as, asArgs);
+        auto p = util::Process(as, asArgs);
+        if(!p.spawn())
+        {
+            std::remove(filename(util::EMIT_LLVM_IR).c_str());
+            throw std::runtime_error(fmt::format(
+                "llvm-as ({} {}) failed: {}", as, asArgs, p.getErrorString()));
+        }
+        std::remove(filename(util::EMIT_LLVM_IR).c_str());
+        if(p.getReturnValue() != 0)
+        {
+            throw std::runtime_error(
+                fmt::format("llvm-as ({} {}) failed", as, asArgs));
+        }
+
+        if(!writeStdout)
+        {
+            util::logger->info("Wrote LLVM BC in '{}'",
+                               filename(util::EMIT_LLVM_BC));
+        }
+        return;
+    }
+
+    auto outputType = [&]() {
+        if(output == util::EMIT_OBJ)
+        {
+            return "obj";
+        }
+        return "asm";
+    }();
+    const auto llc = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                                 util::viewProgramOptions().llvmLlcBin);
+    const auto llcArgs = [&]() {
+        const auto x86 = []() {
+            const auto x86asm = util::viewProgramOptions().x86asm;
+            if(x86asm == util::X86_ATT)
+            {
+                return "att";
+            }
+            return "intel";
+        }();
+        const auto optStr = []() -> std::string {
+            auto o = util::viewProgramOptions().getOptLevel();
+            if(std::get<1>(o) == 0 && std::get<0>(o) > 0)
+            {
+                return " " + util::viewProgramOptions().optLevelToString();
+            }
+            return "";
+        }();
+        return fmt::format("-filetype={} -o {} {} --x86-asm-syntax={}{}",
+                           outputType, writeStdout ? "-" : filename(output),
+                           filename(util::EMIT_LLVM_IR), x86, optStr);
+    }();
+
+    util::logger->debug("Running {} {}", llc, llcArgs);
+    auto p = util::Process(llc, llcArgs);
+    if(!p.spawn())
+    {
+        std::remove(filename(util::EMIT_LLVM_IR).c_str());
+        throw std::runtime_error(fmt::format("llc ({} {}) failed: {}", llc,
+                                             llcArgs, p.getErrorString()));
+    }
+    std::remove(filename(util::EMIT_LLVM_IR).c_str());
+    if(p.getReturnValue() != 0)
+    {
+        throw std::runtime_error(
+            fmt::format("llc ({} {}) failed", llc, llcArgs));
+    }
+    if(!writeStdout)
+    {
+        util::logger->info("Wrote {} in '{}'", outputType, filename(output));
+    }
 }
 } // namespace codegen

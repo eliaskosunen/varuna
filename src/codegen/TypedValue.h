@@ -11,16 +11,26 @@ namespace codegen
 {
 struct TypedValue
 {
-    TypedValue(Type* t, llvm::Value* v) : type(t), value(v)
+    enum ValueCategory
+    {
+        STMTVALUE = 0,
+        LVALUE = 1 << 0,
+        RVALUE = 1 << 1
+    };
+
+    TypedValue(Type* t, llvm::Value* v, ValueCategory c, bool mut)
+        : type(t), value(v), cat(c), isMutable(mut)
     {
     }
 
     std::unique_ptr<TypedValue> clone() const
     {
-        return std::make_unique<TypedValue>(type, value);
+        return std::make_unique<TypedValue>(type, value, cat, isMutable);
     }
 
     Type* type;
     llvm::Value* value;
+    ValueCategory cat;
+    bool isMutable;
 };
 } // namespace codegen

@@ -48,6 +48,24 @@ std::string formatCompilerMessage(SourceLocation loc)
     // _a for fmt::arg
     using namespace fmt::literals;
 
+    if(!loc.file)
+    {
+        throw std::logic_error("Invalid source location: invalid file");
+    }
+    if(loc.line == 0 || loc.col == 0)
+    {
+        throw std::logic_error(
+            fmt::format("Invalid source location: {}", loc.toString()));
+    }
+    if(!loc.file->isValid())
+    {
+        if(!loc.file->readFile())
+        {
+            throw std::runtime_error(
+                "Unable to format error message: Source file reading failed");
+        }
+    }
+
     // Get error and previous line content
     const auto& lineContent = loc.file->getLine(loc.line);
     const auto& prevLineContent = [&]() {

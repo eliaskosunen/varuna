@@ -43,16 +43,17 @@ public:
         GLOBAL_VARIABLE_DEFINITION_EXPR,
 
         STMT = 100,
+        ALIAS_STMT,
         BLOCK_STMT,
         EMPTY_STMT,
         FOREACH_STMT,
-        FOR_STMT,
-        FUNCTION_DEF_STMT = 105,
+        FOR_STMT = 105,
+        FUNCTION_DEF_STMT,
         FUNCTION_PARAMETER,
         FUNCTION_PROTO_STMT,
         IF_STMT,
-        IMPORT_STMT,
-        MODULE_STMT = 110,
+        IMPORT_STMT = 110,
+        MODULE_STMT,
         RETURN_STMT,
         WHILE_STMT,
         WRAPPED_EXPR_STMT
@@ -80,6 +81,8 @@ public:
     virtual void accept(DumpASTVisitor* v, size_t ind = 0) = 0;
     virtual void accept(ASTParentSolverVisitor* v, ASTNode* p) = 0;
     virtual bool accept(codegen::GrammarCheckerVisitor* v) = 0;
+    virtual std::unique_ptr<codegen::TypedValue>
+    accept(codegen::CodegenVisitor* v) = 0;
 
     /// NodeType of this ASTNode
     NodeType nodeType{NODE};

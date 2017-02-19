@@ -247,6 +247,31 @@ public:
                        std::vector<TypedValue*> operands) const override;
 };
 
+class CStringTypeOperation : public TypeOperationBase
+{
+public:
+    CStringTypeOperation(CStringType* pType) : TypeOperationBase(pType)
+    {
+    }
+
+    std::unique_ptr<TypedValue>
+    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+                        util::OperatorType op,
+                        std::vector<TypedValue*> operands) const override;
+    std::unique_ptr<TypedValue>
+    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+                   util::OperatorType op,
+                   std::vector<TypedValue*> operands) const override;
+    std::unique_ptr<TypedValue>
+    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+                    util::OperatorType op,
+                    std::vector<TypedValue*> operands) const override;
+    std::unique_ptr<TypedValue>
+    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+                       util::OperatorType op,
+                       std::vector<TypedValue*> operands) const override;
+};
+
 class FunctionTypeOperation : public TypeOperationBase
 {
 public:

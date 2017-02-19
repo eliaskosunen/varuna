@@ -26,43 +26,65 @@ A quick guide can be found from quick-guide.md
 
 ## Usage
 
+The compiler compiles a Varuna source file (or *module*) to
+a native object file `.o` (or optionally some other format) and
+a Varuna module file `.vamod` (used for importing).
+
+### Command line usage
+
 ```
 OVERVIEW: Varuna Compiler
 USAGE: varuna [subcommand] [options] Input file list
 
 OPTIONS:
 
-Generic Options:
-
-  -help        - Display available options (-help-hidden for more)
-  -help-list   - Display list of available options (-help-list-hidden for more)
-  -version     - Display the version of this program
-
-Varuna compiler options:
+Code generation options:
 
   Optimization level
-    -O0        - No optimizations
-    -O1        - Enable trivial optimizations
-    -O2        - Enable default optimizations
-    -O3        - Enable expensive optimizations
-    -Os        - Enable size optimizations
-    -Oz        - Enable maximum size optimizations
-  -fint-size   - Size of type 'int' (Default: 0)
-    =0         -   32 or 64 bits depending on the CPU architecture
-    =32        -   32 bits
-    =64        -   64 bits
-  -g           - Emit debugging symbols
-  -j=<threads> - Number of worker threads to use (Default: 1)
-  -license     - Print license and copyright information
-  -logging     - Logging level
-    =trace     -   Internal trace messages
-    =debug     -   Internal debugging messages
-    =info      -   Default logging level
-    =warning   -   Log only warnings or greater
-    =error     -   Log only errors or greater
-    =critical  -   Log only critical messages
-    =off       -   Disable all log messages
-  -o=<string>  - Output file
+    -O0              - No optimizations (default)
+    -O1              - Enable trivial optimizations
+    -O2              - Enable more optimizations
+    -O3              - Enable expensive optimizations
+    -Os              - Enable size optimizations
+    -Oz              - Enable maximum size optimizations
+  -emit              - Output type
+    =none            -   Emit nothing
+    =ast             -   Abstract Syntax Tree
+    =llvm-ir         -   LLVM Intermediate Representation '.ll'
+    =llvm-bc         -   LLVM Bytecode '.bc'
+    =asm             -   Native assembly '.s'
+    =obj             -   Native object format '.o' (default)
+  -g                 - Emit debugging symbols
+  -x86-asm-syntax    - Emitted x86 assembly syntax
+    =att             -   AT&T assembly syntax
+    =intel           -   Intel assembly syntax
+
+General compiler options:
+
+  -j=<threads>       - Number of worker threads to use (Default: 1)
+  -license           - Print license and copyright information
+  -logging           - Logging level
+    =trace           -   Internal trace messages
+    =debug           -   Internal debugging messages
+    =info            -   Default logging level
+    =warning         -   Log only warnings or greater
+    =error           -   Log only errors or greater
+    =critical        -   Log only critical messages
+    =off             -   Disable all log messages
+  -o=<string>        - Output file
+
+Generic Options:
+
+  -help              - Display available options (-help-hidden for more)
+  -help-list         - Display list of available options (-help-list-hidden for more)
+  -version           - Display the version of this program
+
+LLVM options:
+
+  -llvm-as=<string>  - LLVM 'llvm-as' binary
+  -llvm-dir=<string> - LLVM binary directory
+  -llvm-llc=<string> - LLVM 'llc' binary
+  -llvm-opt=<string> - LLVM 'opt' binary
 ```
 
 ## Building

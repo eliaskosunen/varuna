@@ -104,9 +104,9 @@ public:
      */
     void dump() const;
 
-    std::vector<Symbol*> findExports() const;
+    std::unique_ptr<SymbolTable> findExports() const;
 
-    bool import(SymbolTable&& symbols);
+    bool import(std::unique_ptr<SymbolTable> symbols);
 
 private:
     /// The table itself
@@ -116,11 +116,11 @@ private:
 inline bool SymbolTable::isDefined(const std::string& name,
                                    Type::Kind kind) const
 {
-    return find(name, kind);
+    return find(name, kind) != nullptr;
 }
 inline bool SymbolTable::isDefined(const std::string& name, Type* type) const
 {
-    return find(name, type);
+    return find(name, type) != nullptr;
 }
 
 inline void SymbolTable::addBlock()
@@ -131,7 +131,6 @@ inline void SymbolTable::addBlock()
 }
 inline void SymbolTable::removeTopBlock()
 {
-    getTop().clear();
     list.pop_back();
 }
 
@@ -140,16 +139,18 @@ inline void SymbolTable::clear()
     list.clear();
 }
 
-inline std::vector<Symbol*> SymbolTable::findExports() const
+inline std::unique_ptr<SymbolTable> SymbolTable::findExports() const
 {
-    std::vector<Symbol*> found;
+    auto found = std::make_unique<SymbolTable>();
     for(const auto& block : list)
     {
+        found->addBlock();
         for(const auto& symbol : block)
         {
             if(symbol.second->isExport)
             {
-                found.push_back(symbol.second.get());
+                found->getTop().insert(
+                    std::make_pair(symbol.first, symbol.second->clone()));
             }
         }
     }
@@ -325,14 +326,34 @@ inline void SymbolTable::dump() const
     stlogger->trace("*** END SYMBOLTABLE DUMP ***");
 }
 
-inline bool SymbolTable::import(SymbolTable&& symbols)
+inline bool SymbolTable::import(std::unique_ptr<SymbolTable> symbols)
 {
-    // TODO: Check for name collisions
-    auto slist = symbols.consumeList();
-    for(auto& s : slist)
+    auto slist = symbols->consumeList();
+    if(slist.size() > 1)
     {
-        list.push_back(std::move(s));
+        util::logger->warn(
+            "Import has more than one scope, only importing the top one");
     }
+    if(slist.size() == 0)
+    {
+        return true;
+    }
+    assert(list.size() >= 1);
+    for(auto& s : slist[0])
+    {
+        if(find(s.first))
+        {
+            util::logger->error("Name conflict: Imported name '{}' can already "
+                                "be found in this scope",
+                                s.first);
+            return false;
+        }
+        // FIXME: Try to do this once and not for each element
+        list[0].insert(std::move(s));
+    }
+    // Not possible, tries to copy elements instead of moving
+    // list[0].insert(slist[0].begin(), slist[0].end());
+
     return true;
 }
 } // namespace codegen

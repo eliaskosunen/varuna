@@ -6,8 +6,22 @@
 
 module code;
 
-def fn(a: char, b: int, c: float) -> int;
+def getchar() -> char;
+def putchar(ch: char) -> char;
 
-def main() -> int {
-    return fn('a', 1, 2.0) + fn('b', -5, 3.14);
+def main() -> i32 {
+    let constant = 1;
+    let mut variable = 2;
+    //var removed = 3;
+
+    //constant = 4;
+    variable = 5;
+    //removed = 6;
+
+    for ,variable <= 10, variable += 1
+    {
+        putchar('a');
+    }
+
+    return constant + variable;
 }

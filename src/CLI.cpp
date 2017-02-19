@@ -5,13 +5,23 @@
 #include "CLI.h"
 #include "Runner.h"
 #include "util/MathUtils.h"
+#include "util/StringUtils.h"
 #include <llvm/Config/llvm-config.h>
 #include <llvm/Support/CommandLine.h>
+#include <iterator>
+
+#ifdef VARUNA_DEBUG
+#define VARUNA_BUILD_TYPE_STRING " DEBUG"
+#else
+#define VARUNA_BUILD_TYPE_STRING ""
+#endif
 
 static const std::string ver =
-    fmt::format("{} (LLVM version: {}) Build date: {}",
+    fmt::format("{} (LLVM version: {}) Build date: {}{}",
                 util::programinfo::version::toString(), LLVM_VERSION_STRING,
-                util::programinfo::getBuildDate());
+                util::programinfo::getBuildDate(), VARUNA_BUILD_TYPE_STRING);
+
+#undef VARUNA_BUILD_TYPE_STRING
 
 CLI::CLI(int pArgc, char** pArgv) : argc(pArgc), argv(pArgv)
 {
@@ -21,23 +31,35 @@ int CLI::run()
 {
     using namespace llvm;
 
+    if(argc <= 1)
+    {
+        util::getProgramOptions().args = "";
+    }
+    else
+    {
+        util::getProgramOptions().args =
+            util::stringutils::join(argv + 1, argv + argc, ' ');
+    }
+
     cl::SetVersionPrinter(&showVersion);
 
     // Specify options
-    cl::OptionCategory cat("Varuna compiler options");
+    cl::OptionCategory catGeneral("General compiler options");
+    cl::OptionCategory catCodegen("Code generation options");
+    cl::OptionCategory catLLVM("LLVM options");
 
     // Optimization level
     cl::opt<util::OptimizationLevel> optArg(
-        cl::desc("Optimization level"), cl::init(util::OPT_O2),
+        cl::desc("Optimization level"), cl::init(util::OPT_O0),
         cl::values(
-            clEnumValN(util::OPT_O0, "O0", "No optimizations"),
+            clEnumValN(util::OPT_O0, "O0", "No optimizations (default)"),
             clEnumValN(util::OPT_O1, "O1", "Enable trivial optimizations"),
-            clEnumValN(util::OPT_O2, "O2", "Enable default optimizations"),
+            clEnumValN(util::OPT_O2, "O2", "Enable more optimizations"),
             clEnumValN(util::OPT_O3, "O3", "Enable expensive optimizations"),
             clEnumValN(util::OPT_Os, "Os", "Enable size optimizations"),
             clEnumValN(util::OPT_Oz, "Oz", "Enable maximum size optimizations"),
             nullptr),
-        cl::cat(cat));
+        cl::cat(catCodegen));
     // Logging level
     cl::opt<spdlog::level::level_enum> logArg(
         "logging", cl::desc("Logging level"), cl::init(spdlog::level::info),
@@ -63,37 +85,69 @@ int CLI::run()
                               spdlog::level::to_str(spdlog::level::off),
                               "Disable all log messages"),
                    nullptr),
-        cl::cat(cat));
+        cl::cat(catGeneral));
     // Jobs
     cl::opt<int> jobsArg(
         "j", cl::desc("Number of worker threads to use (Default: 1)"),
-        cl::value_desc("threads"), cl::init(1), cl::cat(cat));
+        cl::value_desc("threads"), cl::init(1), cl::cat(catGeneral));
     // License
     cl::opt<bool> licenseArg(
         "license", cl::desc("Print license and copyright information"),
-        cl::init(false), cl::cat(cat));
+        cl::init(false), cl::cat(catGeneral));
     // Output file
     cl::opt<std::string> outputFileArg("o", cl::desc("Output file"),
-                                       cl::init("stdout"), cl::cat(cat));
+                                       cl::init(""), cl::cat(catGeneral));
     // Input files
     cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
                                         cl::value_desc("file"), cl::Positional,
-                                        cl::cat(cat));
-    // 'int' size
-    cl::opt<util::IntSize> intSizeArg(
-        "fint-size", cl::desc("Size of type 'int' (Default: 0)"),
-        cl::init(util::INTSIZE_VOIDPTR),
-        cl::values(
-            clEnumValN(util::INTSIZE_VOIDPTR, "0",
-                       "32 or 64 bits depending on the CPU architecture"),
-            clEnumValN(util::INTSIZE_32, "32", "32 bits"),
-            clEnumValN(util::INTSIZE_64, "64", "64 bits"), nullptr),
-        cl::cat(cat));
+                                        cl::cat(catGeneral));
     // Debugging symbols
     cl::opt<bool> debugArg("g", cl::desc("Emit debugging symbols"),
-                           cl::init(false), cl::cat(cat));
+                           cl::init(false), cl::cat(catCodegen));
+    // Output
+    cl::opt<util::OutputType> outputArg(
+        "emit", cl::desc("Output type"), cl::init(util::EMIT_OBJ),
+        cl::cat(catCodegen),
+        cl::values(
+            clEnumValN(util::EMIT_NONE, "none", "Emit nothing"),
+            clEnumValN(util::EMIT_AST, "ast", "Abstract Syntax Tree"),
+            clEnumValN(util::EMIT_LLVM_IR, "llvm-ir",
+                       "LLVM Intermediate Representation '.ll'"),
+            clEnumValN(util::EMIT_LLVM_BC, "llvm-bc", "LLVM Bytecode '.bc'"),
+            clEnumValN(util::EMIT_ASM, "asm", "Native assembly '.s'"),
+            clEnumValN(util::EMIT_OBJ, "obj",
+                       "Native object format '.o' (default)"),
+            nullptr));
+    // LLVM binary location
+    cl::opt<std::string> llvmDirArg("llvm-dir",
+                                    cl::desc("LLVM binary directory"),
+                                    cl::init(""), cl::cat(catLLVM));
+    // LLVM llvm-as name
+    cl::opt<std::string> llvmAsArg("llvm-as", cl::desc("LLVM 'llvm-as' binary"),
+                                   cl::init("llvm-as"), cl::cat(catLLVM));
+    // LLVM llc name
+    cl::opt<std::string> llvmLlcArg("llvm-llc", cl::desc("LLVM 'llc' binary"),
+                                    cl::init("llc"), cl::cat(catLLVM));
+    // LLVM opt name
+    cl::opt<std::string> llvmOptArg("llvm-opt", cl::desc("LLVM 'opt' binary"),
+                                    cl::init("opt"), cl::cat(catLLVM));
+    // x86 asm syntax
+    auto map = cl::getRegisteredOptions();
+    map["x86-asm-syntax"]->setArgStr("llvm-x86-asm-syntax");
+    cl::opt<util::X86AsmSyntax> x86AsmArg(
+        "x86-asm-syntax", cl::desc("Emitted x86 assembly syntax"),
+        cl::init(util::X86_ATT),
+        cl::values(
+            clEnumValN(util::X86_ATT, "att", "AT&T assembly syntax"),
+            clEnumValN(util::X86_INTEL, "intel", "Intel assembly syntax"),
+            nullptr),
+        cl::cat(catCodegen));
 
-    cl::HideUnrelatedOptions(cat);
+    {
+        auto arr = std::vector<const decltype(catGeneral)*>{
+            &catGeneral, &catCodegen, &catLLVM};
+        cl::HideUnrelatedOptions(arr);
+    }
     cl::ParseCommandLineOptions(argc, argv, "Varuna Compiler");
 
     // Process arguments
@@ -134,18 +188,19 @@ int CLI::run()
     {
         filelist.push_back(std::move(f));
     }
+
     util::getProgramOptions().inputFilenames = std::move(filelist);
     util::getProgramOptions().outputFilename = std::move(outputFileArg);
-
-    // Int size
-    int intSize = intSizeArg;
-    if(intSize == 0)
-    {
-        intSize = sizeof(void*) * 8;
-    }
-    util::getProgramOptions().intSize = static_cast<size_t>(intSize);
+    util::getProgramOptions().output = std::move(outputArg);
 
     util::getProgramOptions().emitDebug = debugArg;
+
+    util::getProgramOptions().llvmBinDir = std::move(llvmDirArg);
+    util::getProgramOptions().llvmAsBin = std::move(llvmAsArg);
+    util::getProgramOptions().llvmLlcBin = std::move(llvmLlcArg);
+    util::getProgramOptions().llvmOptBin = std::move(llvmOptArg);
+
+    util::getProgramOptions().x86asm = x86AsmArg;
 
     // Run it
     if(!runner.run())

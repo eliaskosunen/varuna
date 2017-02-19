@@ -62,6 +62,24 @@ TEST_CASE("Test lexer")
 
             CHECK(v.at(0).type == TOKEN_LITERAL_INTEGER);
         }
+
+        SUBCASE("Comments #2")
+        {
+            f->setContent(R"(// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// stdlib.va
+// Varuna Standard Library
+
+// C Standard Library
+// ctype)");
+            Lexer l(f);
+            v = l.run();
+
+            CHECK(v.size() == 1);
+            CHECK(!l.getError());
+        }
     }
 
     SUBCASE("Line counting")
@@ -147,7 +165,7 @@ TEST_CASE("Test lexer")
             }
 
             CHECK(v.at(0).value == "123");
-            CHECK(v.at(0).modifierInt.get() == INTEGER_INT);
+            CHECK(v.at(0).modifierInt.get() == INTEGER_INT32);
 
             CHECK(v.at(1).value == "9999999");
             CHECK(v.at(1).modifierInt.isSet(INTEGER_INT32));
@@ -196,9 +214,8 @@ TEST_CASE("Test lexer")
 
             CHECK(v.at(0).value == "3.1415926535");
             CHECK(v.at(0).modifierFloat.isNotSet(FLOAT_F32));
-            CHECK(v.at(0).modifierFloat.isNotSet(FLOAT_F64));
             CHECK(v.at(0).modifierFloat.isNotSet(FLOAT_DECIMAL));
-            CHECK(v.at(0).modifierFloat.isSet(FLOAT_FLOAT));
+            CHECK(v.at(0).modifierFloat.isSet(FLOAT_F64));
 
             CHECK(v.at(1).value == "12.34");
             CHECK(v.at(1).modifierFloat.isSet(FLOAT_F32));
@@ -206,7 +223,7 @@ TEST_CASE("Test lexer")
 
             CHECK(v.at(2).value == "42.0");
             CHECK(v.at(2).modifierFloat.isSet(FLOAT_F64));
-            CHECK(v.at(2).modifierFloat.isNotSet(FLOAT_FLOAT));
+            CHECK(v.at(2).modifierFloat.isNotSet(FLOAT_F32));
 
             CHECK(v.at(3).value == "39.99");
             CHECK(v.at(3).modifierFloat.isSet(FLOAT_DECIMAL));

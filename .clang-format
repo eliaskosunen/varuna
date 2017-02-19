@@ -13,7 +13,7 @@ TabWidth: 4
 IncludeCategories:
     - Regex:    '^"'
       Priority: 1
-    - Regex:    '^"(llvm|llvm-c|clang|clang-c)/'
+    - Regex:    '^<(llvm|llvm-c|clang|clang-c)/'
       Priority: 3
     - Regex:    '^<(ctpl|doctest|spdlog|utf8|cereal)'
       Priority: 4

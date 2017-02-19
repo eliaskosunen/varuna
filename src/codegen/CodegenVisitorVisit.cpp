@@ -34,10 +34,10 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
     emitDebugLocation(node);
 
     // Add a new scope
-    symbols.addBlock();
+    symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -49,11 +49,11 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
         return nullptr;
     }
 
-    auto boolt = types.find("bool");
+    auto boolt = types->find("bool");
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->condition.get(), builder,
-                                     Type::IMPLICIT, cond->value, boolt);
+                                     Type::IMPLICIT, cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
@@ -62,9 +62,9 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
 
     llvm::Function* func = builder.GetInsertBlock()->getParent();
 
-    auto thenBB = llvm::BasicBlock::Create(context, "then", func);
-    auto elseBB = llvm::BasicBlock::Create(context, "else");
-    auto mergeBB = llvm::BasicBlock::Create(context, "ifcont");
+    auto thenBB = llvm::BasicBlock::Create(context, "if.then", func);
+    auto elseBB = llvm::BasicBlock::Create(context, "if.else");
+    auto mergeBB = llvm::BasicBlock::Create(context, "if.merge");
 
     // Is there an else-block
     bool elseExists = node->elseBlock->nodeType != ast::ASTNode::EMPTY_STMT;
@@ -118,7 +118,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
     {
         dblocks.pop_back();
     }
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
 
     return createVoidVal(mergeBB);
 }
@@ -129,10 +129,10 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     emitDebugLocation(node);
 
     // Push a new scope
-    symbols.addBlock();
+    symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -154,7 +154,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Loop init expression:
     // for INIT,,
-    auto loopInitBB = llvm::BasicBlock::Create(context, "loopinit", func);
+    auto loopInitBB = llvm::BasicBlock::Create(context, "for.init", func);
     builder.CreateBr(loopInitBB);
     builder.SetInsertPoint(loopInitBB);
 
@@ -166,7 +166,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Loop condition:
     // for ,COND,
-    auto loopCondBB = llvm::BasicBlock::Create(context, "loopcond", func);
+    auto loopCondBB = llvm::BasicBlock::Create(context, "for.cond", func);
     builder.SetInsertPoint(loopCondBB);
 
     auto cond = node->end->accept(this);
@@ -175,18 +175,18 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
         return nullptr;
     }
 
-    auto boolt = types.find("bool");
+    auto boolt = types->find("bool");
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->end.get(), builder, Type::IMPLICIT,
-                                     cond->value, boolt);
+                                     cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
     }
 
     // Loop body
-    auto loopBodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+    auto loopBodyBB = llvm::BasicBlock::Create(context, "for.body", func);
     builder.SetInsertPoint(loopBodyBB);
 
     auto body = node->block->accept(this);
@@ -201,7 +201,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Step expression:
     // for ,,STEP
-    auto loopStepBB = llvm::BasicBlock::Create(context, "loopstep", func);
+    auto loopStepBB = llvm::BasicBlock::Create(context, "for.step", func);
     builder.SetInsertPoint(loopStepBB);
 
     auto step = node->step->accept(this);
@@ -211,7 +211,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     }
 
     // Loop merge
-    auto loopEndBB = llvm::BasicBlock::Create(context, "loopend", func);
+    auto loopEndBB = llvm::BasicBlock::Create(context, "for.merge", func);
 
     // Loop init always branches to condition
     builder.SetInsertPoint(loopInitBB);
@@ -238,7 +238,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     {
         dblocks.pop_back();
     }
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
 
     return getTypedDummyValue();
 }
@@ -255,17 +255,17 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
 
     // Push a new scope
     emitDebugLocation(node);
-    symbols.addBlock();
+    symbols->addBlock();
 
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
 
     // Condition
-    auto condBB = llvm::BasicBlock::Create(context, "loopcond", func);
+    auto condBB = llvm::BasicBlock::Create(context, "while.cond", func);
     builder.CreateBr(condBB);
     builder.SetInsertPoint(condBB);
 
@@ -275,18 +275,18 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
         return nullptr;
     }
 
-    auto boolt = types.find("bool");
+    auto boolt = types->find("bool");
     assert(boolt);
     // Condition has to be implicitly castable to bool
     auto boolcond = cond->type->cast(node->condition.get(), builder,
-                                     Type::IMPLICIT, cond->value, boolt);
+                                     Type::IMPLICIT, cond.get(), boolt);
     if(!boolcond)
     {
         return nullptr;
     }
 
     // Body
-    auto bodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+    auto bodyBB = llvm::BasicBlock::Create(context, "while.body", func);
     builder.SetInsertPoint(bodyBB);
 
     auto body = node->block->accept(this);
@@ -298,7 +298,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     auto bodyInsertBlock = builder.GetInsertBlock();
     auto bodyInsertPoint = builder.GetInsertPoint();
 
-    auto endBB = llvm::BasicBlock::Create(context, "loopend", func);
+    auto endBB = llvm::BasicBlock::Create(context, "while.merge", func);
 
     // Condition has a conditional branch:
     // true: branch to body
@@ -317,15 +317,18 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     {
         dblocks.pop_back();
     }
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
 
     return getTypedDummyValue();
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTImportStatement* node)
 {
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
+    auto table = importModule(node);
+    if(!table)
+    {
+        return nullptr;
+    }
+    return getTypedDummyValue();
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTModuleStatement* node)
 {
@@ -343,13 +346,13 @@ CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
     emitDebugLocation(node);
 
     // Find symbol
-    auto symbol = symbols.find(node->value);
+    auto symbol = symbols->find(node->value);
     if(!symbol)
     {
         return codegenError(node, "Undefined symbol: '{}'", node->value);
     }
-    return std::make_unique<TypedValue>(symbol->getType(),
-                                        symbol->value->value);
+    return std::make_unique<TypedValue>(symbol->getType(), symbol->value->value,
+                                        TypedValue::LVALUE, symbol->isMutable);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
@@ -357,7 +360,7 @@ CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
     emitDebugLocation(node);
 
     // Find symbol
-    auto var = symbols.find(node->value);
+    auto var = symbols->find(node->value);
     if(!var)
     {
         return codegenError(node, "Undefined variable: '{}'", node->value);
@@ -367,30 +370,8 @@ CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
     auto load = builder.CreateLoad(var->getType()->type, var->value->value,
                                    node->value.c_str());
     assert(load);
-    return std::make_unique<TypedValue>(var->getType(), load);
-}
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTCastExpression* node)
-{
-    emitDebugLocation(node);
-
-    // Codegen castee
-    auto castee = node->castee->accept(this);
-    if(!castee)
-    {
-        return nullptr;
-    }
-
-    // Find type to be casted in
-    auto t = types.findDecorated(node->type->value);
-    if(!t)
-    {
-        return codegenError(node->type.get(),
-                            "Invalid cast: Undefined typename: '{}'",
-                            node->type->value);
-    }
-
-    // Perform the cast
-    return castee->type->cast(node, builder, Type::CAST, castee->value, t);
+    return std::make_unique<TypedValue>(var->getType(), load,
+                                        TypedValue::LVALUE, var->isMutable);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
@@ -404,32 +385,57 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
         return nullptr;
     }
 
-    emitDebugLocation(node);
-
     // Create alloca instruction
-    llvm::Function* func = builder.GetInsertBlock()->getParent();
+    auto func = builder.GetInsertBlock()->getParent();
     auto alloca = createEntryBlockAlloca(func, type->type, node->name->value);
+
+    emitDebugLocation(node);
 
     if(info.emitDebug)
     {
-        auto d = dbuilder.createAutoVariable(dblocks.back(), node->name->value,
-                                             dfile, node->loc.line, type->dtype,
-                                             false);
-        dbuilder.insertDeclare(
-            alloca, d, dbuilder.createExpression(),
-            llvm::DebugLoc::get(node->loc.line, node->loc.col, dblocks.back()),
-            builder.GetInsertBlock());
+        auto d = dbuilder.createAutoVariable(
+            getTopDebugScope(), node->name->value, dfile, node->loc.line,
+            type->dtype, false);
+        dbuilder.insertDeclare(alloca, d, dbuilder.createExpression(),
+                               llvm::DebugLoc::get(node->loc.line,
+                                                   node->loc.col,
+                                                   getTopDebugScope()),
+                               builder.GetInsertBlock());
     }
 
     // Store the initializer value
     builder.CreateStore(init->value, alloca);
 
     // Define symbol
-    auto var = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, alloca), node->name->value);
-    symbols.getTop().insert(std::make_pair(node->name->value, std::move(var)));
+    auto val = std::make_unique<TypedValue>(type, alloca, TypedValue::LVALUE,
+                                            node->isMutable);
+    auto valclone = val->clone();
+    auto var = std::make_unique<Symbol>(node->loc, std::move(val),
+                                        node->name->value, node->isMutable);
+    symbols->getTop().insert(std::make_pair(node->name->value, std::move(var)));
 
-    return std::make_unique<TypedValue>(type, init->value);
+    // Add LLVM invariant_start intrinsic
+    // This marks the variable as immutable for better optimizations
+    if(!node->isMutable)
+    {
+#if 0
+        auto intr = llvm::Intrinsic::getDeclaration(
+            module, llvm::Intrinsic::invariant_start,
+            {llvm::Type::getInt64Ty(context),
+             llvm::Type::getInt8PtrTy(context)});
+
+        auto dataLayout = llvm::DataLayout(module);
+        auto size = dataLayout.getTypeSizeInBits(type->type);
+
+        auto call = llvm::CallInst::Create(
+            intr,
+            {llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), size),
+             builder.CreateLoad(alloca)});
+        builder.Insert(call);
+#endif
+    }
+
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
@@ -489,13 +495,17 @@ CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
     }
 
     // Create symbol
-    auto var = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, gvar), node->var->name->value);
+    auto val = std::make_unique<TypedValue>(type, gvar, TypedValue::LVALUE,
+                                            node->var->isMutable);
+    auto valclone = val->clone();
+    auto var =
+        std::make_unique<Symbol>(node->loc, std::move(val),
+                                 node->var->name->value, node->var->isMutable);
     var->isExport = node->isExport;
-    symbols.getTop().insert(
+    symbols->getTop().insert(
         std::make_pair(node->var->name->value, std::move(var)));
 
-    return std::make_unique<TypedValue>(type, init->value);
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTSubscriptExpression* node)
@@ -526,7 +536,7 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     const auto var = node->var.get();
 
     // Find type
-    auto type = types.findDecorated(var->type->value);
+    auto type = types->findDecorated(var->type->value);
     if(!type)
     {
         return codegenError(var->type.get(), "Undefined typename: '{}'",
@@ -543,7 +553,7 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     }
 
     // Parameter name cannot be a typename
-    if(types.isDefinedUndecorated(var->name->value) != 0)
+    if(types->isDefinedUndecorated(var->name->value) != 0)
     {
         return codegenError(
             var->name.get(),
@@ -569,18 +579,21 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     }
 
     // Declare symbol
-    auto variable = std::make_unique<Symbol>(
-        std::make_unique<TypedValue>(type, alloca), var->name->value);
-    symbols.getTop().insert(
+    auto val =
+        std::make_unique<TypedValue>(type, alloca, TypedValue::LVALUE, false);
+    auto valclone = val->clone();
+    auto variable = std::make_unique<Symbol>(node->loc, std::move(val),
+                                             var->name->value, false);
+    symbols->getTop().insert(
         std::make_pair(var->name->value, std::move(variable)));
 
-    return std::make_unique<TypedValue>(type, alloca);
+    return valclone;
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
 {
     // Find return type
-    auto rt = types.findDecorated(node->returnType->value);
+    auto rt = types->findDecorated(node->returnType->value);
     if(!rt)
     {
         return codegenError(node->returnType.get(), "Undefined typename: '{}'",
@@ -594,7 +607,7 @@ CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
     params.reserve(node->params.size());
     for(const auto& param : node->params)
     {
-        auto t = types.findDecorated(param->var->type->value);
+        auto t = types->findDecorated(param->var->type->value);
         if(!t)
         {
             return codegenError(param->var->type.get(),
@@ -647,7 +660,7 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     const auto name = proto->name->value;
 
     // Find return type
-    auto returnType = types.findDecorated(proto->returnType->value);
+    auto returnType = types->findDecorated(proto->returnType->value);
     if(!returnType)
     {
         return codegenError(proto->returnType.get(), "Undefined typename: '{}'",
@@ -658,7 +671,7 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     std::vector<Type*> paramTypes;
     for(const auto& p : proto->params)
     {
-        auto t = types.findDecorated(p->var->type->value);
+        auto t = types->findDecorated(p->var->type->value);
         if(!t)
         {
             return codegenError(p->var->type.get(), "Undefined typename: '{}'",
@@ -668,15 +681,15 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     }
 
     // Find function type
-    auto functionTypeBase = types.findDecorated(
+    auto functionTypeBase = types->findDecorated(
         FunctionType::functionTypeToString(returnType, paramTypes));
     if(!functionTypeBase)
     {
         // If none was found, create it
-        auto ft = std::make_unique<FunctionType>(&types, context, dbuilder,
+        auto ft = std::make_unique<FunctionType>(types.get(), context, dbuilder,
                                                  returnType, paramTypes);
         functionTypeBase = ft.get();
-        types.insertType(std::move(ft));
+        types->insertType(std::move(ft));
     }
     auto functionType = static_cast<FunctionType*>(functionTypeBase);
 
@@ -693,7 +706,8 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     // just declare and exit
     if(node->isDecl)
     {
-        return std::make_unique<TypedValue>(functionType, llvmfunc);
+        return std::make_unique<TypedValue>(functionType, llvmfunc,
+                                            TypedValue::STMTVALUE, true);
     }
 
     auto entry = llvm::BasicBlock::Create(context, "entry", llvmfunc);
@@ -716,7 +730,7 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     }
 
     // Push scope
-    symbols.addBlock();
+    symbols->addBlock();
 
     {
         // Codegen params
@@ -751,7 +765,7 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     {
         // On failure, remove function and pop scope
         llvmfunc->eraseFromParent();
-        symbols.removeTopBlock();
+        symbols->removeTopBlock();
         if(info.emitDebug)
         {
             dblocks.pop_back();
@@ -782,7 +796,7 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
         util::logger->trace("Invalid function dump:");
         llvmfunc->dump();
         llvmfunc->eraseFromParent();
-        symbols.removeTopBlock();
+        symbols->removeTopBlock();
         if(info.emitDebug)
         {
             dblocks.pop_back();
@@ -792,12 +806,13 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
 #endif
 
     // Pop scope
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
     if(info.emitDebug)
     {
         dblocks.pop_back();
     }
-    return std::make_unique<TypedValue>(functionType, llvmfunc);
+    return std::make_unique<TypedValue>(functionType, llvmfunc,
+                                        TypedValue::STMTVALUE, false);
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
 {
@@ -819,10 +834,10 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
 
     // Find function and check if types match
     auto f = getASTNodeFunction(node);
-    auto retType = types.findDecorated(f->returnType->value);
+    auto retType = types->findDecorated(f->returnType->value);
     assert(retType);
     if(!ret->type->isSameOrImplicitlyCastable(node->returnValue.get(), builder,
-                                              ret->value, retType))
+                                              ret.get(), retType))
     {
         // Types don't match
         codegenInfo(node->getFunction()->proto->returnType.get(),
@@ -840,61 +855,107 @@ CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* node)
     emitDebugLocation(node);
 
     // Find integer type
-    auto t = types.findDecorated(node->type->value);
+    auto t = types->findDecorated(node->type->value);
     assert(t);
 
-    return std::make_unique<TypedValue>(t, [&t, &node]() {
-        if(node->isSigned)
-        {
-            // Unsigned overflow is defined and
-            // ConstantInt::get takes a uint64_t,
-            // so we could use it even for signed integers,
-            // but I think it's cleaner this way
-            return llvm::ConstantInt::getSigned(t->type, node->value);
-        }
-        return llvm::ConstantInt::get(
-            t->type, static_cast<uint64_t>(node->value), false);
-    }());
+    return std::make_unique<TypedValue>(
+        t,
+        [&t, &node]() {
+            if(node->isSigned)
+            {
+                // Unsigned overflow is defined and
+                // ConstantInt::get takes a uint64_t,
+                // so we could use it even for signed integers,
+                // but I think it's cleaner this way
+                return llvm::ConstantInt::getSigned(t->type, node->value);
+            }
+            return llvm::ConstantInt::get(
+                t->type, static_cast<uint64_t>(node->value), false);
+        }(),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
 {
     emitDebugLocation(node);
 
-    auto t = types.findDecorated(node->type->value);
+    auto t = types->findDecorated(node->type->value);
     assert(t);
 
     return std::make_unique<TypedValue>(
-        t, llvm::ConstantFP::get(t->type, node->value));
+        t, llvm::ConstantFP::get(t->type, node->value), TypedValue::RVALUE,
+        true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
 {
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
+    emitDebugLocation(node);
+
+    auto t = types->findDecorated(node->type->value);
+    assert(t);
+
+    if(node->type->value == "cstring")
+    {
+        auto stringConst =
+            llvm::ConstantDataArray::getString(context, node->value, true);
+        auto stringGlobal = new llvm::GlobalVariable(
+            *module, stringConst->getType(), true,
+            llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+        auto indexConst =
+            llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+        std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+        auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+            stringConst->getType(), stringGlobal, indexList, true);
+
+        return std::make_unique<TypedValue>(t, stringPtr, TypedValue::LVALUE,
+                                            false);
+    }
+
+    auto stringLen = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context),
+                                            node->value.length());
+
+    auto stringConst =
+        llvm::ConstantDataArray::getString(context, node->value, false);
+    auto stringGlobal = new llvm::GlobalVariable(
+        *module, stringConst->getType(), true,
+        llvm::GlobalValue::InternalLinkage, stringConst, ".str");
+    auto indexConst =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    std::vector<llvm::Constant*> indexList = {indexConst, indexConst};
+    auto stringPtr = llvm::ConstantExpr::getGetElementPtr(
+        stringConst->getType(), stringGlobal, indexList, true);
+    // auto stringPtr = builder.CreateGlobalStringPtr(node->value, ".str");
+
+    auto stringFatPtr = llvm::ConstantStruct::get(
+        llvm::cast<llvm::StructType>(t->type), stringLen, stringPtr, nullptr);
+    assert(stringFatPtr);
+
+    return std::make_unique<TypedValue>(t, stringFatPtr, TypedValue::LVALUE,
+                                        false);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTCharLiteralExpression* node)
 {
     emitDebugLocation(node);
 
-    auto t = types.findDecorated(node->type->value);
+    auto t = types->findDecorated(node->type->value);
     assert(t);
 
     return std::make_unique<TypedValue>(
-        t, llvm::ConstantInt::get(t->type, node->value, false));
+        t, llvm::ConstantInt::get(t->type, node->value, false),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTBoolLiteralExpression* node)
 {
     emitDebugLocation(node);
 
-    auto t = types.findDecorated("bool");
+    auto t = types->findDecorated("bool");
     assert(t);
     return std::make_unique<TypedValue>(
         t, node->value ? llvm::ConstantInt::getTrue(context)
-                       : llvm::ConstantInt::getFalse(context));
+                       : llvm::ConstantInt::getFalse(context),
+        TypedValue::RVALUE, true);
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTNoneLiteralExpression* node)
@@ -914,6 +975,42 @@ CodegenVisitor::visit(ast::ASTBinaryExpression* node)
     if(!lhs)
     {
         return nullptr;
+    }
+
+    // Cast expression
+    if(node->oper == util::OPERATORB_AS)
+    {
+        // Check rhs validity
+        auto rhs = [&]() -> ast::ASTIdentifierExpression* {
+            if(node->rhs->nodeType == ast::ASTNode::IDENTIFIER_EXPR)
+            {
+                return static_cast<ast::ASTIdentifierExpression*>(
+                    node->rhs.get());
+            }
+            if(node->rhs->nodeType == ast::ASTNode::VARIABLE_REF_EXPR)
+            {
+                return static_cast<ast::ASTVariableRefExpression*>(
+                    node->rhs.get());
+            }
+            return codegenError(node->rhs.get(),
+                                "Invalid cast expression target type");
+        }();
+        if(!rhs)
+        {
+            return nullptr;
+        }
+
+        // Find type to be casted in
+        auto t = types->findDecorated(rhs->value);
+        if(!t)
+        {
+            return codegenError(node->rhs.get(),
+                                "Invalid cast: Undefined typename: '{}'",
+                                rhs->value);
+        }
+
+        // Perform the cast
+        return lhs->type->cast(node, builder, Type::CAST, lhs.get(), t);
     }
 
     // Codegen rhs
@@ -974,6 +1071,28 @@ CodegenVisitor::visit(ast::ASTArbitraryOperandExpression* node)
 {
     emitDebugLocation(node);
 
+    assert(node->operands.size() >= 1);
+    if(node->operands[0]->nodeType == ast::ASTNode::IDENTIFIER_EXPR &&
+       node->operands.size() == 2)
+    {
+        auto t = types->find(
+            static_cast<ast::ASTIdentifierExpression*>(node->operands[0].get())
+                ->value);
+        // Constructor syntac
+        // e.g. let foo = i16(10);
+        //              ---^
+        // Currently used as cast
+        if(t)
+        {
+            auto param = node->operands[1]->accept(this);
+            if(!param)
+            {
+                return nullptr;
+            }
+            return param->type->cast(node, builder, Type::CAST, param.get(), t);
+        }
+    }
+
     // Codegen operands
     // Need a vector of owned TypedValues to avoid lifetime issues
     std::vector<std::unique_ptr<TypedValue>> operandsOwned;
@@ -1012,10 +1131,10 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
     emitDebugLocation(node);
 
     // Push scope
-    symbols.addBlock();
+    symbols->addBlock();
     if(info.emitDebug)
     {
-        auto d = dbuilder.createLexicalBlock(dblocks.back(), dfile,
+        auto d = dbuilder.createLexicalBlock(getTopDebugScope(), dfile,
                                              node->loc.line, 0);
         dblocks.push_back(d);
     }
@@ -1027,7 +1146,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
         {
             // Not necessary,
             // execution will be stopped
-            // symbols.removeTopBlock();
+            // symbols->removeTopBlock();
 
             return nullptr;
         }
@@ -1038,7 +1157,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
     {
         dblocks.pop_back();
     }
-    symbols.removeTopBlock();
+    symbols->removeTopBlock();
 
     return getTypedDummyValue();
 }
@@ -1046,5 +1165,34 @@ std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ASTWrappedExpressionStatement* node)
 {
     return node->expr->accept(this);
+}
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTAliasStatement* node)
+{
+    auto aliasee = types->find(node->aliasee->value);
+    if(!aliasee)
+    {
+        return codegenError(node->aliasee.get(), "Undefined typename: '{}'",
+                            node->aliasee->value);
+    }
+
+    if(types->isDefined(node->alias->value))
+    {
+        return codegenError(node->alias.get(),
+                            "Cannot overload alias: Type already exists: '{}'",
+                            node->alias->value);
+    }
+
+    auto type = types->insertType(std::make_unique<AliasType>(
+        types.get(), context, dbuilder, node->alias->value, aliasee));
+    if(!type)
+    {
+        return nullptr;
+    }
+    auto castedType = static_cast<AliasType*>(type);
+    type->dtype = dbuilder.createTypedef(castedType->underlying->dtype,
+                                         node->alias->value, dfile,
+                                         node->loc.line, getTopDebugScope());
+
+    return getTypedDummyValue();
 }
 } // namespace codegen

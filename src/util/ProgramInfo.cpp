@@ -3,6 +3,7 @@
 // See LICENSE for details
 
 #include "util/ProgramInfo.h"
+#include <llvm/Support/ErrorHandling.h>
 #include <spdlog.h>
 
 namespace util
@@ -21,7 +22,7 @@ namespace programinfo
             case Status::STABLE:
                 return fmt::format("{}.{}.{}", major, minor, patch);
             }
-            assert(false);
+            llvm_unreachable("Invalid status");
         }();
         return str;
     }

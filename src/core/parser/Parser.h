@@ -86,14 +86,12 @@ namespace parser
         bool isUnaryOperator(util::OperatorType op) const;
         bool isBinaryOperator() const;
         bool isAssignmentOperator() const;
-        bool isAssignmentOperator(lexer::TokenVector::const_iterator op) const;
+        bool isAssignmentOperator(util::OperatorType op) const;
         bool isOperator() const;
         int getBinOpPrecedence() const;
-        int getBinOpPrecedence(lexer::TokenVector::const_iterator op) const;
         int getBinOpPrecedence(util::OperatorType t) const;
         bool isBinOpRightAssociative() const;
-        bool
-        isBinOpRightAssociative(lexer::TokenVector::const_iterator op) const;
+        bool isBinOpRightAssociative(util::OperatorType op) const;
 
         struct ForCondition
         {
@@ -113,6 +111,8 @@ namespace parser
         parseGlobalVariableDefinition();
         std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
         std::unique_ptr<ast::ASTReturnStatement> parseReturnStatement();
+
+        std::unique_ptr<ast::ASTAliasStatement> parseAliasStatement();
 
         std::unique_ptr<ast::ASTIntegerLiteralExpression>
         parseIntegerLiteralExpression();
@@ -134,7 +134,6 @@ namespace parser
         parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
         std::unique_ptr<ast::ASTSubscriptExpression>
         parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
-        std::unique_ptr<ast::ASTCastExpression> parseCastExpression();
         std::unique_ptr<ast::ASTExpression>
         parsePrimary(bool tolerateUnrecognized = false);
         std::unique_ptr<ast::ASTExpression> parseExpression();
@@ -145,6 +144,7 @@ namespace parser
         void handleEmptyStatement();
         void handleGlobalVariable();
         void handleExport();
+        void handleUse();
 
         std::unique_ptr<ast::ASTStatement> parseStatement();
         std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();

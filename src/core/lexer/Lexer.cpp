@@ -56,49 +56,58 @@ namespace lexer
         util::char_t currentChar = *it;
         util::loggerBasic->trace("");
 
-        if(it == end)
+        while(true)
         {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-
-        if(!lexComment())
-        {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-        currentChar = *it;
-
-        util::logger->trace(
-            "Getting next token. Current character: '{}', on {}",
-            std::to_string(currentChar), currentLocation.toString());
-
-        // Skip any whitespace
-        while(util::stringutils::isCharWhitespace(currentChar))
-        {
-            util::logger->trace("Skipping whitespace: '{}'", currentChar);
-
-            if(advance() == end)
+            util::logger->trace("In loop");
+            if(it == end)
             {
                 return createToken(TOKEN_EOF, "EOF");
             }
+
+            bool match = false;
             currentChar = *it;
+            if(util::stringutils::isCharWhitespace(currentChar))
+            {
+                util::logger->trace("Skipping whitespace: '{}'", currentChar);
 
-            // return getNextToken();
+                if(advance() == end)
+                {
+                    return createToken(TOKEN_EOF, "EOF");
+                }
+
+                currentChar = *it;
+                util::logger->trace("currentChar after advancing: '{}'",
+                                    currentChar);
+
+                match = true;
+            }
+
+            auto comment = lexComment();
+            if(comment == COMMENT_EOF)
+            {
+                return createToken(TOKEN_EOF, "EOF");
+            }
+            if(comment == COMMENT_FOUND)
+            {
+                match = true;
+            }
+
+            if(!match)
+            {
+                break;
+            }
         }
 
-        if(!lexComment())
-        {
-            return createToken(TOKEN_EOF, "EOF");
-        }
-        currentChar = *it;
+        util::logger->trace(
+            "Getting next token. Current character: '{}', on {}", currentChar,
+            currentLocation.toString());
+
         // Invalid character
         if(util::stringutils::isCharControlCharacter(currentChar) &&
            !util::stringutils::isCharWhitespace(currentChar))
         {
-            fmt::MemoryWriter out;
-            out << "'" << currentChar
-                << "', dec: " << util::stringutils::charToString(currentChar)
-                << " hex: " << fmt::hex(currentChar);
-            lexerWarning("Unrecognized character: {}, skipped", out.str());
+            lexerWarning("Unrecognized character: '{}' ({}), skipped",
+                         currentChar, static_cast<int32_t>(currentChar));
             advance();
             return createToken(TOKEN_DEFAULT,
                                util::stringutils::charToString(currentChar));
@@ -108,6 +117,7 @@ namespace lexer
         // [a-zA-Z_][a-zA-Z_0-9]*
         if(util::stringutils::isValidIdentifierBeginningChar(currentChar))
         {
+            // bchar
             if((currentChar == 'b' || currentChar == 'B') && peekNext() == '\'')
             {
                 advance(); // Skip 'b'
@@ -116,6 +126,19 @@ namespace lexer
                 {
                     Token t = createToken(TOKEN_LITERAL_CHAR, buf);
                     t.modifierChar = CHAR_BYTE;
+                    return t;
+                }
+            }
+            // cstring
+            else if((currentChar == 'c' || currentChar == 'C') &&
+                    peekNext() == '"')
+            {
+                advance(); // Skip 'c'
+                util::string_t buf = lexStringLiteral(false);
+                if(!getError())
+                {
+                    Token t = createToken(TOKEN_LITERAL_STRING, buf);
+                    t.modifierString = STRING_C;
                     return t;
                 }
             }
@@ -201,7 +224,7 @@ namespace lexer
             if(!isFloatingPoint)
             {
                 Token t = createToken(TOKEN_LITERAL_INTEGER, buf);
-                std::unordered_map<std::string, decltype(INTEGER_INT)>
+                std::unordered_map<std::string, decltype(INTEGER_NONE)>
                     allowedModifiers = {{"i64", INTEGER_INT64},
                                         {"i32", INTEGER_INT32},
                                         {"i16", INTEGER_INT16},
@@ -219,7 +242,11 @@ namespace lexer
                             allowedModifiers.erase(modit);
                             modbuf.clear();
                         }
-                        currentChar = *advance();
+                        if(advance() == end)
+                        {
+                            break;
+                        }
+                        currentChar = *it;
                     }
                     return modbuf;
                 }();
@@ -229,7 +256,7 @@ namespace lexer
                 }
                 if(t.modifierInt == INTEGER_NONE)
                 {
-                    t.modifierInt |= INTEGER_INT;
+                    t.modifierInt |= INTEGER_INT32;
                 }
 
                 if(base == BASE_BIN)
@@ -248,12 +275,11 @@ namespace lexer
             }
 
             Token t = createToken(TOKEN_LITERAL_FLOAT, buf);
-            std::unordered_map<std::string, decltype(FLOAT_FLOAT)>
-                allowedModifiers = {
-                    {"f32", FLOAT_F32},
-                    {"f64", FLOAT_F64},
-                    {"d", FLOAT_DECIMAL},
-                };
+            std::unordered_map<std::string, decltype(FLOAT_NONE)>
+                allowedModifiers = {{"f32", FLOAT_F32},
+                                    {"f64", FLOAT_F64},
+                                    {"d", FLOAT_DECIMAL},
+                                    {"l", FLOAT_LONG}};
             auto mod = [&]() {
                 util::string_t modbuf;
                 while(util::stringutils::isCharAlnum(currentChar))
@@ -276,7 +302,7 @@ namespace lexer
             }
             if(t.modifierFloat == FLOAT_NONE)
             {
-                t.modifierFloat |= FLOAT_FLOAT;
+                t.modifierFloat |= FLOAT_F64;
             }
             if(base != BASE_DEC)
             {
@@ -289,11 +315,11 @@ namespace lexer
         // ".+"
         if(currentChar == '"')
         {
-            util::string_t buf = lexStringLiteral();
+            util::string_t buf = lexStringLiteral(false);
             if(!getError())
             {
                 Token t = createToken(TOKEN_LITERAL_STRING, buf);
-                t.modifierChar = CHAR_CHAR;
+                t.modifierString = STRING_STRING;
                 return t;
             }
         }
@@ -305,7 +331,9 @@ namespace lexer
             util::string_t buf = lexStringLiteral(true);
             if(!getError())
             {
-                return createToken(TOKEN_LITERAL_CHAR, buf);
+                Token t = createToken(TOKEN_LITERAL_CHAR, buf);
+                t.modifierChar = CHAR_CHAR;
+                return t;
             }
         }
 
@@ -339,44 +367,46 @@ namespace lexer
             return t;
         }
 
-        fmt::MemoryWriter out;
-        out << "'" << currentChar
-            << "', dec: " << util::stringutils::charToString(currentChar)
-            << " hex: " << fmt::hex(currentChar);
-        lexerWarning("Unrecognized token: {}", out.str());
+        lexerWarning("Unrecognized token: '{}' ({})", currentChar,
+                     static_cast<int32_t>(currentChar));
         advance();
         return createToken(TOKEN_DEFAULT,
                            util::stringutils::charToString(currentChar));
     }
 
-    bool Lexer::lexComment()
+    Lexer::LexCommentReturn Lexer::lexComment()
     {
         if(*it == '/')
         {
             // Single line comment: '//'
             if(peekNext() == '/')
             {
+                util::logger->trace("Single-line comment");
                 advance(); // Skip the both slashes
                 advance();
 
                 if(it == end)
                 {
-                    return false;
+                    return COMMENT_EOF;
                 }
 
-                do
+                while(true)
                 {
                     auto a = _advance();
                     if(a == 1)
                     {
+                        util::logger->trace(
+                            "Single-line comment ended with line break");
                         break;
                     }
                     if(a == 2)
                     {
-                        return false;
+                        util::logger->trace(
+                            "Single-line comment ended with EOF");
+                        return COMMENT_EOF;
                     }
-                } while(true);
-                advance();
+                }
+                return COMMENT_FOUND;
             }
             // Multi line comment: '/*'
             else if(peekNext() == '*')
@@ -390,7 +420,7 @@ namespace lexer
                     if(it == end)
                     {
                         lexerWarning("Unclosed multi-line comment");
-                        return false;
+                        return COMMENT_EOF;
                     }
                     if(*it == '/' && peekNext() == '*')
                     {
@@ -408,9 +438,10 @@ namespace lexer
                     }
                     advance();
                 }
+                return COMMENT_FOUND;
             }
         }
-        return true;
+        return COMMENT_NONE;
     }
 
     util::string_t Lexer::lexStringLiteral(bool isChar)
@@ -424,8 +455,8 @@ namespace lexer
             util::char_t prev = peekPrevious();
             util::char_t next = peekNext();
             util::logger->trace(
-                "Current character: '{}', prev: '{}', next: '{}'",
-                std::to_string(currentChar), prev, next);
+                "Current character: '{}', prev: '{}', next: '{}'", currentChar,
+                prev, next);
 
             // Current char is a newline
             // String doesn't end, terminate
@@ -569,197 +600,40 @@ namespace lexer
 
     TokenType Lexer::getTokenTypeFromWord(const util::string_t& buf) const
     {
-        // Keywords
-        if(buf == "import")
-        {
-            return TOKEN_KEYWORD_IMPORT;
-        }
-        if(buf == "export")
-        {
-            return TOKEN_KEYWORD_EXPORT;
-        }
-        if(buf == "def")
-        {
-            return TOKEN_KEYWORD_DEFINE;
-        }
-        if(buf == "class")
-        {
-            return TOKEN_KEYWORD_CLASS;
-        }
-        if(buf == "override")
-        {
-            return TOKEN_KEYWORD_OVERRIDE;
-        }
-        if(buf == "final")
-        {
-            return TOKEN_KEYWORD_FINAL;
-        }
-        if(buf == "extend")
-        {
-            return TOKEN_KEYWORD_EXTEND;
-        }
-        if(buf == "abstract")
-        {
-            return TOKEN_KEYWORD_ABSTRACT;
-        }
-        if(buf == "implement")
-        {
-            return TOKEN_KEYWORD_IMPLEMENT;
-        }
-        if(buf == "interface")
-        {
-            return TOKEN_KEYWORD_INTERFACE;
-        }
-        if(buf == "public")
-        {
-            return TOKEN_KEYWORD_PUBLIC;
-        }
-        if(buf == "protected")
-        {
-            return TOKEN_KEYWORD_PROTECTED;
-        }
-        if(buf == "private")
-        {
-            return TOKEN_KEYWORD_PRIVATE;
-        }
-        if(buf == "if")
-        {
-            return TOKEN_KEYWORD_IF;
-        }
-        if(buf == "else")
-        {
-            return TOKEN_KEYWORD_ELSE;
-        }
-        if(buf == "while")
-        {
-            return TOKEN_KEYWORD_WHILE;
-        }
-        if(buf == "for")
-        {
-            return TOKEN_KEYWORD_FOR;
-        }
-        if(buf == "foreach")
-        {
-            return TOKEN_KEYWORD_FOREACH;
-        }
-        if(buf == "switch")
-        {
-            return TOKEN_KEYWORD_SWITCH;
-        }
-        if(buf == "case")
-        {
-            return TOKEN_KEYWORD_CASE;
-        }
-        if(buf == "break")
-        {
-            return TOKEN_KEYWORD_BREAK;
-        }
-        if(buf == "return")
-        {
-            return TOKEN_KEYWORD_RETURN;
-        }
-        if(buf == "continue")
-        {
-            return TOKEN_KEYWORD_CONTINUE;
-        }
-        if(buf == "module")
-        {
-            return TOKEN_KEYWORD_MODULE;
-        }
-        if(buf == "package")
-        {
-            return TOKEN_KEYWORD_PACKAGE;
-        }
-        if(buf == "extern")
-        {
-            return TOKEN_KEYWORD_EXTERN;
-        }
-        if(buf == "readonly")
-        {
-            return TOKEN_KEYWORD_READONLY;
-        }
-        if(buf == "view")
-        {
-            return TOKEN_KEYWORD_VIEW;
-        }
-        if(buf == "ref")
-        {
-            return TOKEN_KEYWORD_REF;
-        }
-        if(buf == "var")
-        {
-            return TOKEN_KEYWORD_VAR;
-        }
-        if(buf == "let")
-        {
-            return TOKEN_KEYWORD_LET;
-        }
-        if(buf == "mut")
-        {
-            return TOKEN_KEYWORD_MUT;
-        }
-        if(buf == "cast")
-        {
-            return TOKEN_KEYWORD_CAST;
-        }
+        static const std::unordered_map<util::string_t, TokenType> words{
+            {"import", TOKEN_KEYWORD_IMPORT},
+            {"export", TOKEN_KEYWORD_EXPORT},
+            {"module", TOKEN_KEYWORD_MODULE},
+            {"package", TOKEN_KEYWORD_PACKAGE},
 
-        // Literals
-        if(buf == "true")
-        {
-            return TOKEN_LITERAL_TRUE;
-        }
-        if(buf == "false")
-        {
-            return TOKEN_LITERAL_FALSE;
-        }
-        if(buf == "none")
-        {
-            return TOKEN_LITERAL_NONE;
-        }
+            {"def", TOKEN_KEYWORD_DEFINE},
+            {"if", TOKEN_KEYWORD_IF},
+            {"else", TOKEN_KEYWORD_ELSE},
+            {"while", TOKEN_KEYWORD_WHILE},
+            {"for", TOKEN_KEYWORD_FOR},
+            {"foreach", TOKEN_KEYWORD_FOREACH},
+            {"return", TOKEN_KEYWORD_RETURN},
+            {"cast", TOKEN_KEYWORD_CAST},
+            {"use", TOKEN_KEYWORD_USE},
 
-        // Textual operators
-        if(buf == "and")
-        {
-            return TOKEN_OPERATORB_AND;
-        }
-        if(buf == "or")
-        {
-            return TOKEN_OPERATORB_OR;
-        }
-        if(buf == "not")
-        {
-            return TOKEN_OPERATORU_NOT;
-        }
-        if(buf == "of")
-        {
-            return TOKEN_OPERATORB_OF;
-        }
-        if(buf == "as")
-        {
-            return TOKEN_OPERATORB_AS;
-        }
-        if(buf == "rem")
-        {
-            return TOKEN_OPERATORB_REM;
-        }
-        if(buf == "instanceof")
-        {
-            return TOKEN_OPERATORB_INSTOF;
-        }
-        if(buf == "sizeof")
-        {
-            return TOKEN_OPERATORU_SIZEOF;
-        }
-        if(buf == "typeof")
-        {
-            return TOKEN_OPERATORU_TYPEOF;
-        }
-        if(buf == "addressof")
-        {
-            return TOKEN_OPERATORU_ADDROF;
-        }
+            {"let", TOKEN_KEYWORD_LET},
+            {"mut", TOKEN_KEYWORD_MUT},
 
-        return TOKEN_IDENTIFIER;
+            {"true", TOKEN_LITERAL_TRUE},
+            {"false", TOKEN_LITERAL_FALSE},
+
+            {"and", TOKEN_OPERATORB_AND},
+            {"or", TOKEN_OPERATORB_OR},
+            {"not", TOKEN_OPERATORU_NOT},
+            {"rem", TOKEN_OPERATORB_REM},
+            {"as", TOKEN_OPERATORB_AS}};
+
+        auto find = words.find(buf);
+        if(find == words.end())
+        {
+            return TOKEN_IDENTIFIER;
+        }
+        return find->second;
     }
 
     Token Lexer::getTokenFromWord(const util::string_t& buf) const
@@ -769,164 +643,35 @@ namespace lexer
 
     TokenType Lexer::getTokenTypeFromOperator(const util::string_t& buf) const
     {
-        if(buf == "=")
-        {
-            return TOKEN_OPERATORA_SIMPLE;
-        }
-        if(buf == "+=")
-        {
-            return TOKEN_OPERATORA_ADD;
-        }
-        if(buf == "-=")
-        {
-            return TOKEN_OPERATORA_SUB;
-        }
-        if(buf == "*=")
-        {
-            return TOKEN_OPERATORA_MUL;
-        }
-        if(buf == "/=")
-        {
-            return TOKEN_OPERATORA_DIV;
-        }
-        if(buf == "%=")
-        {
-            return TOKEN_OPERATORA_MOD;
-        }
-        if(buf == "^=")
-        {
-            return TOKEN_OPERATORA_POW;
-        }
-        if(buf == "<-")
-        {
-            return TOKEN_OPERATORA_MOVE;
-        }
+        static const std::unordered_map<util::string_t, TokenType> operators{
+            {"=", TOKEN_OPERATORA_SIMPLE},  {"+=", TOKEN_OPERATORA_ADD},
+            {"-=", TOKEN_OPERATORA_SUB},    {"*=", TOKEN_OPERATORA_MUL},
+            {"/=", TOKEN_OPERATORA_DIV},    {"%=", TOKEN_OPERATORA_MOD},
 
-        if(buf == "+")
-        {
-            return TOKEN_OPERATORB_ADD;
-        }
-        if(buf == "-")
-        {
-            return TOKEN_OPERATORB_SUB;
-        }
-        if(buf == "*")
-        {
-            return TOKEN_OPERATORB_MUL;
-        }
-        if(buf == "/")
-        {
-            return TOKEN_OPERATORB_DIV;
-        }
-        if(buf == "%")
-        {
-            return TOKEN_OPERATORB_MOD;
-        }
-        if(buf == "^")
-        {
-            return TOKEN_OPERATORB_POW;
-        }
+            {"+", TOKEN_OPERATORB_ADD},     {"-", TOKEN_OPERATORB_SUB},
+            {"*", TOKEN_OPERATORB_MUL},     {"/", TOKEN_OPERATORB_DIV},
+            {"%", TOKEN_OPERATORB_MOD},
 
-        if(buf == "&&")
-        {
-            return TOKEN_OPERATORB_AND;
-        }
-        if(buf == "||")
-        {
-            return TOKEN_OPERATORB_OR;
-        }
+            {"&&", TOKEN_OPERATORB_AND},    {"||", TOKEN_OPERATORB_OR},
 
-        if(buf == "==")
-        {
-            return TOKEN_OPERATORB_EQ;
-        }
-        if(buf == "!=")
-        {
-            return TOKEN_OPERATORB_NOTEQ;
-        }
-        if(buf == "<")
-        {
-            return TOKEN_OPERATORB_LESS;
-        }
-        if(buf == ">")
-        {
-            return TOKEN_OPERATORB_GREATER;
-        }
-        if(buf == "<=")
-        {
-            return TOKEN_OPERATORB_LESSEQ;
-        }
-        if(buf == ">=")
-        {
-            return TOKEN_OPERATORB_GREATEQ;
-        }
+            {"==", TOKEN_OPERATORB_EQ},     {"!=", TOKEN_OPERATORB_NOTEQ},
+            {"<", TOKEN_OPERATORB_LESS},    {">", TOKEN_OPERATORB_GREATER},
+            {"<=", TOKEN_OPERATORB_LESSEQ}, {">=", TOKEN_OPERATORB_GREATEQ},
 
-        if(buf == ".")
-        {
-            return TOKEN_OPERATORB_MEMBER;
-        }
+            {".", TOKEN_OPERATORB_MEMBER},  {"!", TOKEN_OPERATORU_NOT},
 
-        if(buf == "++")
-        {
-            return TOKEN_OPERATORU_INC;
-        }
-        if(buf == "--")
-        {
-            return TOKEN_OPERATORU_DEC;
-        }
+            {"(", TOKEN_PUNCT_PAREN_OPEN},  {")", TOKEN_PUNCT_PAREN_CLOSE},
+            {"{", TOKEN_PUNCT_BRACE_OPEN},  {"}", TOKEN_PUNCT_BRACE_CLOSE},
+            {"[", TOKEN_PUNCT_SQR_OPEN},    {"]", TOKEN_PUNCT_SQR_CLOSE},
+            {":", TOKEN_PUNCT_COLON},       {";", TOKEN_PUNCT_SEMICOLON},
+            {",", TOKEN_PUNCT_COMMA},       {"->", TOKEN_PUNCT_ARROW}};
 
-        if(buf == "&")
+        auto find = operators.find(buf);
+        if(find == operators.end())
         {
-            return TOKEN_OPERATORU_REF;
+            return TOKEN_UNDEFINED;
         }
-
-        if(buf == "!")
-        {
-            return TOKEN_OPERATORU_NOT;
-        }
-
-        if(buf == "(")
-        {
-            return TOKEN_PUNCT_PAREN_OPEN;
-        }
-        if(buf == ")")
-        {
-            return TOKEN_PUNCT_PAREN_CLOSE;
-        }
-        if(buf == "{")
-        {
-            return TOKEN_PUNCT_BRACE_OPEN;
-        }
-        if(buf == "}")
-        {
-            return TOKEN_PUNCT_BRACE_CLOSE;
-        }
-        if(buf == "[")
-        {
-            return TOKEN_PUNCT_SQR_OPEN;
-        }
-        if(buf == "]")
-        {
-            return TOKEN_PUNCT_SQR_CLOSE;
-        }
-        if(buf == ":")
-        {
-            return TOKEN_PUNCT_COLON;
-        }
-        if(buf == ";")
-        {
-            return TOKEN_PUNCT_SEMICOLON;
-        }
-        if(buf == ",")
-        {
-            return TOKEN_PUNCT_COMMA;
-        }
-        if(buf == "->")
-        {
-            return TOKEN_PUNCT_ARROW;
-        }
-
-        return TOKEN_UNDEFINED;
+        return find->second;
     }
 
     Token Lexer::getTokenFromOperator(const util::string_t& buf) const
