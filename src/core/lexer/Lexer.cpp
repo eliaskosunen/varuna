@@ -618,7 +618,6 @@ namespace lexer
 
             {"let", TOKEN_KEYWORD_LET},
             {"mut", TOKEN_KEYWORD_MUT},
-            {"var", TOKEN_KEYWORD_VAR},
 
             {"true", TOKEN_LITERAL_TRUE},
             {"false", TOKEN_LITERAL_FALSE},

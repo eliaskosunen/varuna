@@ -79,7 +79,6 @@ namespace parser
                 break;
             // Global variable
             case TOKEN_KEYWORD_LET:
-            case TOKEN_KEYWORD_VAR:
                 handleGlobalVariable();
                 break;
             // Exported symbol
@@ -763,7 +762,6 @@ namespace parser
             return parseFalseLiteralExpression();
         case TOKEN_LITERAL_TRUE:
             return parseTrueLiteralExpression();
-        case TOKEN_KEYWORD_VAR:
         case TOKEN_KEYWORD_LET:
             return parseVariableDefinition();
         default:
@@ -1039,10 +1037,20 @@ namespace parser
                             auto lhs = std::move(operands.top());
                             operands.pop();
 
-                            auto expr = createNode<ASTBinaryExpression>(
-                                beginExprIt, std::move(lhs), std::move(rhs),
-                                operators.top());
-                            operands.push(std::move(expr));
+                            if(isAssignmentOperator(operators.top()))
+                            {
+                                auto expr = createNode<ASTAssignmentExpression>(
+                                    beginExprIt, std::move(lhs), std::move(rhs),
+                                    operators.top());
+                                operands.push(std::move(expr));
+                            }
+                            else
+                            {
+                                auto expr = createNode<ASTBinaryExpression>(
+                                    beginExprIt, std::move(lhs), std::move(rhs),
+                                    operators.top());
+                                operands.push(std::move(expr));
+                            }
 
                             operators.pop();
                         }
@@ -1321,7 +1329,7 @@ namespace parser
     {
         ++it; // Skip 'export'
 
-        if(it->type == TOKEN_KEYWORD_LET || it->type == TOKEN_KEYWORD_VAR)
+        if(it->type == TOKEN_KEYWORD_LET)
         {
             auto expr = parseGlobalVariableDefinition();
             if(!expr)
@@ -1408,7 +1416,7 @@ namespace parser
         }
         case TOKEN_IDENTIFIER:
         {
-            auto expr = parseIdentifierExpression();
+            auto expr = parseExpression();
             if(!expr)
             {
                 return nullptr;
@@ -1662,11 +1670,10 @@ namespace parser
         }
         if(it->type != TOKEN_PUNCT_SEMICOLON)
         {
-            parserError(it - 2,
-                        "Expected semicolon after expression statement, "
-                        "got '{}' instead",
+            parserError(it, "Expected semicolon after expression statement, "
+                            "got '{}' instead",
                         it->value);
-            parserInfo(it - 2, "Try adding a semicolon ';' here");
+            parserInfo(it, "Try adding a semicolon ';' here");
             return nullptr;
         }
         ++it;

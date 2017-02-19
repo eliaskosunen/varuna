@@ -94,20 +94,11 @@ struct OutputTypeHash
 void Codegen::write()
 {
     const auto output = util::viewProgramOptions().output;
+    const auto writeStdout = util::viewProgramOptions().outputFilename == "-";
 
     if(output == util::EMIT_NONE)
     {
         util::logger->info("Emitting nothing");
-        return;
-    }
-
-    if(util::viewProgramOptions().outputFilename == "-")
-    {
-        // If output file set to stdout,
-        // dump the module there
-        util::loggerBasic->error("*** MODULE DUMP ***\n");
-        codegen->dumpModule();
-        util::loggerBasic->error("\n*** END MODULE DUMP ***");
         return;
     }
 
@@ -130,7 +121,7 @@ void Codegen::write()
                 {util::EMIT_LLVM_IR, ".ll"}, {util::EMIT_LLVM_BC, ".bc"},
                 {util::EMIT_OBJ, ".o"},      {util::EMIT_ASM, ".s"}};
 
-        if(util::viewProgramOptions().outputFilename.empty())
+        if(util::viewProgramOptions().outputFilename.empty() || writeStdout)
         {
             return filenameWithoutEnding(
                        util::viewProgramOptions().inputFilenames[0])
@@ -159,6 +150,19 @@ void Codegen::write()
     }
 
     {
+        if(output == util::EMIT_LLVM_IR)
+        {
+            if(writeStdout)
+            {
+                // If output file set to stdout,
+                // dump the module there
+                util::loggerBasic->error("*** MODULE DUMP ***\n");
+                codegen->dumpModule();
+                util::loggerBasic->error("\n*** END MODULE DUMP ***");
+                return;
+            }
+        }
+
         std::error_code ec;
         llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
                                 llvm::sys::fs::F_None);
@@ -174,6 +178,31 @@ void Codegen::write()
         module->print(os, nullptr);
     }
 
+#if 0
+    {
+        auto opt = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                               util::viewProgramOptions().llvmOptBin);
+        auto optArgs = fmt::format(
+            "-o {} -S -disable-inlining -disable-opt -verify{} {}",
+            filename(util::EMIT_LLVM_IR),
+            util::viewProgramOptions().emitDebug ? "" : " -strip-debug",
+            filename(util::EMIT_LLVM_IR));
+        util::logger->debug("Running {} {}", opt, optArgs);
+        auto p = util::Process(opt, optArgs);
+        if(!p.spawn())
+        {
+            std::remove(filename(util::EMIT_LLVM_IR).c_str());
+            throw std::runtime_error(fmt::format("opt ({} {}) failed: {}", opt,
+                                                 optArgs, p.getErrorString()));
+        }
+        if(p.getReturnValue() != 0)
+        {
+            throw std::runtime_error(
+                fmt::format("opt ({} {}) failed", opt, optArgs));
+        }
+    }
+#endif
+
     if(output == util::EMIT_LLVM_IR)
     {
         util::logger->info("Wrote LLVM IR in '{}'",
@@ -183,10 +212,12 @@ void Codegen::write()
 
     if(output == util::EMIT_LLVM_BC)
     {
-        auto as = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
-                              util::viewProgramOptions().llvmAsBin);
-        auto asArgs = fmt::format("-o {} {}", filename(util::EMIT_LLVM_BC),
-                                  filename(util::EMIT_LLVM_IR));
+        const auto as =
+            fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                        util::viewProgramOptions().llvmAsBin);
+        const auto asArgs = fmt::format(
+            "-o {} {}", writeStdout ? "-" : filename(util::EMIT_LLVM_BC),
+            filename(util::EMIT_LLVM_IR), writeStdout ? " -f" : "");
         util::logger->debug("Running {} {}", as, asArgs);
         auto p = util::Process(as, asArgs);
         if(!p.spawn())
@@ -201,13 +232,15 @@ void Codegen::write()
             throw std::runtime_error(
                 fmt::format("llvm-as ({} {}) failed", as, asArgs));
         }
-        util::logger->info("Wrote LLVM BC in '{}'",
-                           filename(util::EMIT_LLVM_BC));
+
+        if(!writeStdout)
+        {
+            util::logger->info("Wrote LLVM BC in '{}'",
+                               filename(util::EMIT_LLVM_BC));
+        }
         return;
     }
 
-    // FIXME: system(3) is BAD
-    // Especially with UNSANITIZED input
     auto outputType = [&]() {
         if(output == util::EMIT_OBJ)
         {
@@ -215,10 +248,30 @@ void Codegen::write()
         }
         return "asm";
     }();
-    auto llc = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
-                           util::viewProgramOptions().llvmLlcBin);
-    auto llcArgs = fmt::format("-filetype={} -o {} {}", outputType,
-                               filename(output), filename(util::EMIT_LLVM_IR));
+    const auto llc = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
+                                 util::viewProgramOptions().llvmLlcBin);
+    const auto llcArgs = [&]() {
+        const auto x86 = []() {
+            const auto x86asm = util::viewProgramOptions().x86asm;
+            if(x86asm == util::X86_ATT)
+            {
+                return "att";
+            }
+            return "intel";
+        }();
+        const auto optStr = []() -> std::string {
+            auto o = util::viewProgramOptions().getOptLevel();
+            if(std::get<1>(o) == 0 && std::get<0>(o) > 0)
+            {
+                return " " + util::viewProgramOptions().optLevelToString();
+            }
+            return "";
+        }();
+        return fmt::format("-filetype={} -o {} {} --x86-asm-syntax={}{}",
+                           outputType, writeStdout ? "-" : filename(output),
+                           filename(util::EMIT_LLVM_IR), x86, optStr);
+    }();
+
     util::logger->debug("Running {} {}", llc, llcArgs);
     auto p = util::Process(llc, llcArgs);
     if(!p.spawn())
@@ -233,6 +286,9 @@ void Codegen::write()
         throw std::runtime_error(
             fmt::format("llc ({} {}) failed", llc, llcArgs));
     }
-    util::logger->info("Wrote {} in '{}'", outputType, filename(output));
+    if(!writeStdout)
+    {
+        util::logger->info("Wrote {} in '{}'", outputType, filename(output));
+    }
 }
 } // namespace codegen

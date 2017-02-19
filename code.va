@@ -9,11 +9,19 @@ module code;
 def getchar() -> char;
 def putchar(ch: char) -> char;
 
-use int = i32;
-
 def main() -> i32 {
-    let foo = 1;
-    let bar = foo as int;
-	putchar('a');
-    return i32(bar + foo as int);
+    let constant = 1;
+    let mut variable = 2;
+    //var removed = 3;
+
+    //constant = 4;
+    variable = 5;
+    //removed = 6;
+
+    for ,variable <= 10, variable += 1
+    {
+        putchar('a');
+    }
+
+    return constant + variable;
 }

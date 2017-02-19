@@ -48,7 +48,6 @@ namespace lexer
         TOKEN_KEYWORD_READONLY,
         TOKEN_KEYWORD_VIEW,
         TOKEN_KEYWORD_REF,
-        TOKEN_KEYWORD_VAR,
         TOKEN_KEYWORD_LET,
         TOKEN_KEYWORD_MUT,
         TOKEN_KEYWORD_CAST,

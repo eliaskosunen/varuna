@@ -33,6 +33,12 @@ enum OutputType
     EMIT_OBJ = 1 << 4
 };
 
+enum X86AsmSyntax
+{
+    X86_ATT,
+    X86_INTEL
+};
+
 /// Program options
 struct ProgramOptions
 {
@@ -56,12 +62,16 @@ struct ProgramOptions
     std::string llvmAsBin{""};
     /// llc binary
     std::string llvmLlcBin{""};
+    /// opt binary
+    std::string llvmOptBin{""};
+    /// x86 asm syntax
+    X86AsmSyntax x86asm{X86_ATT};
 
     /**
      * Get speed and size optimization levels from optLevel
      * @return Speed and size levels
      */
-    std::pair<uint8_t, uint8_t> getOptLevel() const noexcept
+    std::pair<uint8_t, uint8_t> getOptLevel() const
     {
         uint8_t o = 0;
         uint8_t s = 0;
@@ -89,6 +99,25 @@ struct ProgramOptions
         }
 
         return {o, s};
+    }
+
+    std::string optLevelToString() const
+    {
+        uint8_t o, s;
+        std::tie(o, s) = getOptLevel();
+        if(o == 0 && s == 0)
+        {
+            return "-O0";
+        }
+        if(s == 0)
+        {
+            return fmt::format("-O{}", o);
+        }
+        if(s == 1)
+        {
+            return "-Os";
+        }
+        return "-Oz";
     }
 };
 

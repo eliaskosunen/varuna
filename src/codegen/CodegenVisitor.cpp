@@ -116,7 +116,7 @@ void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
 
 void CodegenVisitor::writeExports(std::unique_ptr<SymbolTable> exports)
 {
-    if(util::viewProgramOptions().outputFilename == "stdout")
+    if(util::viewProgramOptions().outputFilename == "-")
     {
         util::logger->info("Not writing module export file");
         return;

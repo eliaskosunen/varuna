@@ -291,7 +291,10 @@ namespace stringutils
 
     inline string_t createEmptyStringWithLength(size_t len)
     {
-        assert(len >= 1);
+        if(len == 0)
+        {
+            return {};
+        }
         return fmt::format("{:>" + std::to_string(len) + "}", " ");
     }
 

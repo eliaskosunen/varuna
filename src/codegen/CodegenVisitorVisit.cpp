@@ -2,7 +2,6 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "codegen/CodegenVisitor.h"
 #include "ast/ASTControlStatement.h"
 #include "ast/ASTExpression.h"
 #include "ast/ASTFunctionStatement.h"
@@ -11,6 +10,7 @@
 #include "ast/ASTOperatorExpression.h"
 #include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
+#include "codegen/CodegenVisitor.h"
 #include "codegen/TypeOperation.h"
 
 #define USE_LLVM_FUNCTION_VERIFY 0
@@ -62,9 +62,9 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
 
     llvm::Function* func = builder.GetInsertBlock()->getParent();
 
-    auto thenBB = llvm::BasicBlock::Create(context, "then", func);
-    auto elseBB = llvm::BasicBlock::Create(context, "else");
-    auto mergeBB = llvm::BasicBlock::Create(context, "ifcont");
+    auto thenBB = llvm::BasicBlock::Create(context, "if.then", func);
+    auto elseBB = llvm::BasicBlock::Create(context, "if.else");
+    auto mergeBB = llvm::BasicBlock::Create(context, "if.merge");
 
     // Is there an else-block
     bool elseExists = node->elseBlock->nodeType != ast::ASTNode::EMPTY_STMT;
@@ -154,7 +154,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Loop init expression:
     // for INIT,,
-    auto loopInitBB = llvm::BasicBlock::Create(context, "loopinit", func);
+    auto loopInitBB = llvm::BasicBlock::Create(context, "for.init", func);
     builder.CreateBr(loopInitBB);
     builder.SetInsertPoint(loopInitBB);
 
@@ -166,7 +166,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Loop condition:
     // for ,COND,
-    auto loopCondBB = llvm::BasicBlock::Create(context, "loopcond", func);
+    auto loopCondBB = llvm::BasicBlock::Create(context, "for.cond", func);
     builder.SetInsertPoint(loopCondBB);
 
     auto cond = node->end->accept(this);
@@ -186,7 +186,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     }
 
     // Loop body
-    auto loopBodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+    auto loopBodyBB = llvm::BasicBlock::Create(context, "for.body", func);
     builder.SetInsertPoint(loopBodyBB);
 
     auto body = node->block->accept(this);
@@ -201,7 +201,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     // Step expression:
     // for ,,STEP
-    auto loopStepBB = llvm::BasicBlock::Create(context, "loopstep", func);
+    auto loopStepBB = llvm::BasicBlock::Create(context, "for.step", func);
     builder.SetInsertPoint(loopStepBB);
 
     auto step = node->step->accept(this);
@@ -211,7 +211,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
     }
 
     // Loop merge
-    auto loopEndBB = llvm::BasicBlock::Create(context, "loopend", func);
+    auto loopEndBB = llvm::BasicBlock::Create(context, "for.merge", func);
 
     // Loop init always branches to condition
     builder.SetInsertPoint(loopInitBB);
@@ -265,7 +265,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     }
 
     // Condition
-    auto condBB = llvm::BasicBlock::Create(context, "loopcond", func);
+    auto condBB = llvm::BasicBlock::Create(context, "while.cond", func);
     builder.CreateBr(condBB);
     builder.SetInsertPoint(condBB);
 
@@ -286,7 +286,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     }
 
     // Body
-    auto bodyBB = llvm::BasicBlock::Create(context, "loopbody", func);
+    auto bodyBB = llvm::BasicBlock::Create(context, "while.body", func);
     builder.SetInsertPoint(bodyBB);
 
     auto body = node->block->accept(this);
@@ -298,7 +298,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
     auto bodyInsertBlock = builder.GetInsertBlock();
     auto bodyInsertPoint = builder.GetInsertPoint();
 
-    auto endBB = llvm::BasicBlock::Create(context, "loopend", func);
+    auto endBB = llvm::BasicBlock::Create(context, "while.merge", func);
 
     // Condition has a conditional branch:
     // true: branch to body

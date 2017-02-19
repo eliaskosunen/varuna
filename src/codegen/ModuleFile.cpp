@@ -155,7 +155,6 @@ void ModuleFile::ModuleFileSymbolTable::fromSymbolTable(
         if(symbol.second->isFunction())
         {
             auto fs = std::make_unique<ModuleFileFunctionSymbol>();
-            ;
             fs->fromSymbol(symbol.second.get());
             symbols.push_back(std::move(fs));
         }

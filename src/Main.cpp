@@ -88,7 +88,7 @@ static void logException(const std::string& msg,
     }
 }
 
-#define BREAK_AFTER_EXECUTION 1
+#define BREAK_AFTER_EXECUTION 0
 
 #if BREAK_AFTER_EXECUTION
 #define MAIN_RETURN(expr)                                                      \
