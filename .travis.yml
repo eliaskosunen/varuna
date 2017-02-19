@@ -27,8 +27,8 @@ addons:
       - llvm-toolchain-precise-3.8
       - llvm-toolchain-precise-3.9
 
-- os: linux
-- compiler: clang
+os: linux
+compiler: clang
 
 matrix:
   exclude:
