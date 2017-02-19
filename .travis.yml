@@ -193,6 +193,7 @@ install:
       if [ "${COMPILER_CXX}" == "g++-4.9" ]; then
         brew install gcc4.9
       fi
+    fi
 
 before_script:
   - ${COMPILER_CXX} --version
