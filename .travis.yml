@@ -172,7 +172,7 @@ install:
 
   # Install stuff with homebrew under OSX
   - |
-    if [ "${TRAVIS_OS_NAME}" == "osx" ]; tehn
+    if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       brew update
       brew install valgrind
 
