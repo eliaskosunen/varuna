@@ -1,13 +1,13 @@
 # Varuna
 
-**Master branch:**
-Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)
+**Master branch:**  
+Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
+Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  
 Coverage: [![Coverage Status](https://coveralls.io/repos/github/varuna-lang/varuna/badge.svg?branch=master)](https://coveralls.io/github/varuna-lang/varuna?branch=master)
 
-**Develop branch:**
-Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/develop.svg)](https://travis-ci.org/varuna-lang/varuna)
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)
+**Develop branch:**  
+Linux: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/develop.svg)](https://travis-ci.org/varuna-lang/varuna)  
+Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)  
 Coverage: [![Coverage Status](https://coveralls.io/repos/github/varuna-lang/varuna/badge.svg?branch=develop)](https://coveralls.io/github/varuna-lang/varuna?branch=develop)
 
 ## About
