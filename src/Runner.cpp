@@ -15,7 +15,7 @@ Runner::Runner(int threads)
 
 bool Runner::run()
 {
-    const auto& files = util::viewProgramOptions().inputFilenames;
+    const auto& files = util::ProgramOptions::view().inputFilenames;
 
     for(const auto& file : files)
     {
@@ -60,7 +60,7 @@ std::future<std::future<bool>> Runner::runFile(std::shared_ptr<util::File> f)
         util::logger->debug("Shutting down frontend, launching code generator");
         auto ast = std::shared_ptr<ast::AST>{std::move(r)};
 
-        if(util::viewProgramOptions().output == util::EMIT_AST)
+        if(util::ProgramOptions::view().output == util::EMIT_AST)
         {
             util::logger->info("File '{}' compiled successfully",
                                ast->file->getFilename());

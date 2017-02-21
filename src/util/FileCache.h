@@ -30,12 +30,14 @@ public:
     {
         return cache;
     }
+
     /**
      * Get a file by filename
-     * @param name Filename
-     * @return Shared pointer to file
+     * @param  name Filename
+     * @param  add  Add file first
+     * @return      Shared pointer to file
      */
-    std::shared_ptr<File> getFile(const std::string& name) const;
+    std::shared_ptr<File> getFile(const std::string& name, bool add = false);
     /**
      * Get the names of all files
      * @return Name list
@@ -65,17 +67,27 @@ public:
     /**
      * Add a file to the cache
      * @param  name Filename
+     * @param  read Read the file
      * @return      Success
      */
-    bool addFile(const std::string& name);
+    bool addFile(const std::string& name, bool read = true);
 
 private:
     /// The cache itself
     std::unordered_map<std::string, std::shared_ptr<File>> cache;
 };
 
-inline std::shared_ptr<File> FileCache::getFile(const std::string& name) const
+inline std::shared_ptr<File> FileCache::getFile(const std::string& name,
+                                                bool add)
 {
+    if(add)
+    {
+        if(!addFile(name))
+        {
+            return nullptr;
+        }
+    }
+
     auto fileit = cache.find(name);
     if(fileit == cache.end())
     {
@@ -145,9 +157,9 @@ inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
     cache.insert({file->getFilename(), file});
     return true;
 }
-inline bool FileCache::addFile(const std::string& name)
+inline bool FileCache::addFile(const std::string& name, bool read)
 {
     auto file = std::make_shared<File>(name);
-    return addFile(std::move(file), true);
+    return addFile(std::move(file), read);
 }
 } // namespace util

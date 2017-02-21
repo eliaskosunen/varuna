@@ -33,11 +33,11 @@ int CLI::run()
 
     if(argc <= 1)
     {
-        util::getProgramOptions().args = "";
+        util::ProgramOptions::get().args = "";
     }
     else
     {
-        util::getProgramOptions().args =
+        util::ProgramOptions::get().args =
             util::stringutils::join(argv + 1, argv + argc, ' ');
     }
 
@@ -132,8 +132,14 @@ int CLI::run()
     cl::opt<std::string> llvmOptArg("llvm-opt", cl::desc("LLVM 'opt' binary"),
                                     cl::init("opt"), cl::cat(catLLVM));
     // x86 asm syntax
-    auto map = cl::getRegisteredOptions();
-    map["x86-asm-syntax"]->setArgStr("llvm-x86-asm-syntax");
+    {
+        auto& map = cl::getRegisteredOptions();
+        auto needle = map.find("x86-asm-syntax");
+        if(needle != map.end())
+        {
+            needle->second->setArgStr("llvm-x86-asm-syntax");
+        }
+    }
     cl::opt<util::X86AsmSyntax> x86AsmArg(
         "x86-asm-syntax", cl::desc("Emitted x86 assembly syntax"),
         cl::init(util::X86_ATT),
@@ -142,6 +148,16 @@ int CLI::run()
             clEnumValN(util::X86_INTEL, "intel", "Intel assembly syntax"),
             nullptr),
         cl::cat(catCodegen));
+    // No module file
+    cl::opt<bool> noModArg("no-module", cl::desc("Don't generate module file"),
+                           cl::init(false), cl::cat(catGeneral));
+    // Strip debug info
+    cl::opt<bool> stripDebugArg("strip-debug", cl::desc("Strip debug info"),
+                                cl::init(false), cl::cat(catCodegen));
+    // Strip source filename
+    cl::opt<bool> stripSourceFilenameArg("strip-source-filename",
+                                         cl::desc("Strip source filename"),
+                                         cl::init(false), cl::cat(catCodegen));
 
     {
         auto arr = std::vector<const decltype(catGeneral)*>{
@@ -153,8 +169,8 @@ int CLI::run()
     // Process arguments
     spdlog::set_level(logArg);
 
-    util::getProgramOptions().optLevel = optArg;
-    util::getProgramOptions().loggingLevel = logArg;
+    util::ProgramOptions::get().optLevel = optArg;
+    util::ProgramOptions::get().loggingLevel = logArg;
 
     if(licenseArg)
     {
@@ -189,18 +205,22 @@ int CLI::run()
         filelist.push_back(std::move(f));
     }
 
-    util::getProgramOptions().inputFilenames = std::move(filelist);
-    util::getProgramOptions().outputFilename = std::move(outputFileArg);
-    util::getProgramOptions().output = std::move(outputArg);
+    util::ProgramOptions::get().inputFilenames = std::move(filelist);
+    util::ProgramOptions::get().outputFilename = std::move(outputFileArg);
+    util::ProgramOptions::get().output = std::move(outputArg);
 
-    util::getProgramOptions().emitDebug = debugArg;
+    util::ProgramOptions::get().emitDebug = debugArg;
 
-    util::getProgramOptions().llvmBinDir = std::move(llvmDirArg);
-    util::getProgramOptions().llvmAsBin = std::move(llvmAsArg);
-    util::getProgramOptions().llvmLlcBin = std::move(llvmLlcArg);
-    util::getProgramOptions().llvmOptBin = std::move(llvmOptArg);
+    util::ProgramOptions::get().llvmBinDir = std::move(llvmDirArg);
+    util::ProgramOptions::get().llvmAsBin = std::move(llvmAsArg);
+    util::ProgramOptions::get().llvmLlcBin = std::move(llvmLlcArg);
+    util::ProgramOptions::get().llvmOptBin = std::move(llvmOptArg);
 
-    util::getProgramOptions().x86asm = x86AsmArg;
+    util::ProgramOptions::get().x86asm = x86AsmArg;
+    util::ProgramOptions::get().generateModuleFile =
+        !static_cast<bool>(noModArg);
+    util::ProgramOptions::get().stripDebug = stripDebugArg;
+    util::ProgramOptions::get().stripSourceFilename = stripSourceFilenameArg;
 
     // Run it
     if(!runner.run())
@@ -211,6 +231,24 @@ int CLI::run()
 
     util::logger->info("Compilation successful");
     return 0;
+}
+
+void CLI::removeRegisteredOptions()
+{
+    auto& map = llvm::cl::getRegisteredOptions();
+    for(auto& o : map)
+    {
+        if(!o.second)
+        {
+            continue;
+        }
+        const auto& first = o.first();
+        if(first == "help" || first == "help-hidden" || first == "version")
+        {
+            continue;
+        }
+        o.second->removeArgument();
+    }
 }
 
 void CLI::showLicense() const

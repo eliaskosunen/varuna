@@ -49,7 +49,7 @@ struct ProgramOptions
     /// Logging level
     spdlog::level::level_enum loggingLevel{spdlog::level::info};
     /// Optimization level
-    OptimizationLevel optLevel{OPT_O2};
+    OptimizationLevel optLevel{OPT_O0};
     /// Emit debugging symbols
     bool emitDebug{false};
     /// Output
@@ -59,79 +59,42 @@ struct ProgramOptions
     /// LLVM binary directory
     std::string llvmBinDir{""};
     /// llvm-as binary
-    std::string llvmAsBin{""};
+    std::string llvmAsBin{"llvm-as"};
     /// llc binary
-    std::string llvmLlcBin{""};
+    std::string llvmLlcBin{"llc"};
     /// opt binary
-    std::string llvmOptBin{""};
+    std::string llvmOptBin{"opt"};
     /// x86 asm syntax
     X86AsmSyntax x86asm{X86_ATT};
+    /// Generate module file
+    bool generateModuleFile{true};
+    /// Strip debug info
+    bool stripDebug{false};
+    /// Strip source filename
+    bool stripSourceFilename{false};
 
     /**
      * Get speed and size optimization levels from optLevel
      * @return Speed and size levels
      */
-    std::pair<uint8_t, uint8_t> getOptLevel() const
-    {
-        uint8_t o = 0;
-        uint8_t s = 0;
-        switch(optLevel)
-        {
-        case OPT_O0:
-            break;
-        case OPT_O1:
-            o = 1;
-            break;
-        case OPT_O2:
-            o = 2;
-            break;
-        case OPT_O3:
-            o = 3;
-            break;
-        case OPT_Os:
-            o = 2;
-            s = 1;
-            break;
-        case OPT_Oz:
-            o = 2;
-            s = 2;
-            break;
-        }
+    std::pair<uint8_t, uint8_t> getOptLevel() const;
 
-        return {o, s};
+    std::string optLevelToString() const;
+
+    /// Get mutable reference to global ProgramOptions.
+    /// Only use before spawning any threads to avoid baaad things
+    static ProgramOptions& get() noexcept
+    {
+        return instance;
     }
 
-    std::string optLevelToString() const
+    /// Get immutable reference to global ProgramOptions
+    static const ProgramOptions& view() noexcept
     {
-        uint8_t o, s;
-        std::tie(o, s) = getOptLevel();
-        if(o == 0 && s == 0)
-        {
-            return "-O0";
-        }
-        if(s == 0)
-        {
-            return fmt::format("-O{}", o);
-        }
-        if(s == 1)
-        {
-            return "-Os";
-        }
-        return "-Oz";
+        return instance;
     }
+
+private:
+    static ProgramOptions instance;
 };
-
-/// Get mutable reference to global ProgramOptions.
-/// Only use before spawning any threads to avoid baaad things
-inline ProgramOptions& getProgramOptions() noexcept
-{
-    static ProgramOptions p;
-    return p;
-}
-
-/// Get immutable reference to global ProgramOptions
-inline const ProgramOptions& viewProgramOptions() noexcept
-{
-    return getProgramOptions();
-}
 }

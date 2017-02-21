@@ -59,7 +59,7 @@ inline std::nullptr_t
 logCompilerError(SourceLocation loc, const std::string& format, Args&&... args)
 {
     assert(logger);
-    logger->error("{}: {}\n{}", loc.toString(),
+    logger->error("In {}:\n{}\n{}", loc.toString(),
                   fmt::format(format, std::forward<Args>(args)...),
                   formatCompilerMessage(loc));
     return nullptr;
@@ -76,7 +76,7 @@ inline void logCompilerWarning(SourceLocation loc, const std::string& format,
                                Args&&... args)
 {
     assert(logger);
-    logger->warn("{}: {}\n{}", loc.toString(),
+    logger->warn("In {}:\n{}\n{}", loc.toString(),
                  fmt::format(format, std::forward<Args>(args)...),
                  formatCompilerMessage(loc));
 }
@@ -92,7 +92,7 @@ inline void logCompilerInfo(SourceLocation loc, const std::string& format,
                             Args&&... args)
 {
     assert(logger);
-    logger->info("{}: {}\n{}", loc.toString(),
+    logger->info("In {}:\n{}\n{}", loc.toString(),
                  fmt::format(format, std::forward<Args>(args)...),
                  formatCompilerMessage(loc));
 }

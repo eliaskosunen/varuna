@@ -1,0 +1,23 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 06_if.va
+// If-statement
+
+module test_06_if;
+
+def cond() -> bool;
+
+def main() -> i32 {
+    if cond() {
+        // Optional parenthesis
+        if (cond()) {
+            return 0;
+        } else {
+            return 1;
+        }
+    } else if cond() {
+        return 2;
+    } else return 3;
+}

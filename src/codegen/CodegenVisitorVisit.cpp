@@ -701,6 +701,23 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     }
     auto llvmfunc = llvm::cast<llvm::Function>(func->value->value);
 
+    if(proto->isMain)
+    {
+        if(functionType->returnType->getName() != "i32")
+        {
+            return codegenError(
+                proto,
+                "Invalid main function: Main can only return 'i32', '{}' given",
+                functionType->returnType->getName());
+        }
+        if(functionType->params.size())
+        {
+            return codegenError(proto, "Invalid main function: Main can't take "
+                                       "any parameters, {} given",
+                                functionType->params.size());
+        }
+    }
+
     // If it's a declaration
     // Don't codegen the body,
     // just declare and exit

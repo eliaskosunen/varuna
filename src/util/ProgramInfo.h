@@ -5,7 +5,9 @@
 #pragma once
 
 #include "util/Compatibility.h"
+#include <spdlog.h>
 #include <array>
+#include <cstring>
 #include <stdexcept>
 #include <string>
 
@@ -56,12 +58,31 @@ namespace programinfo
 inline std::string getCurrentDirectory()
 {
     char buf[FILENAME_MAX];
-    char* result = GETCWD(buf, sizeof(buf));
-    if(!result)
+    if(GETCWD(buf, sizeof(buf)) != 0)
     {
-        return {};
+        return std::string(buf);
     }
-    return result;
+
+    switch(errno)
+    {
+    case EACCES:
+        throw std::runtime_error(
+            "util::getCurrentDirectory() failed: Access denied (EACCES)");
+    case ENOMEM:
+        throw std::runtime_error(
+            "util::getCurrentDirectory() failed: No memory (ENOMEM)");
+    default:
+    {
+        char* errstr = std::strerror(errno);
+        if(!errstr)
+        {
+            throw std::runtime_error(fmt::format(
+                "Unable to get current directory: Unknown errno: {}", errno));
+        }
+        throw std::runtime_error(
+            fmt::format("Unable to get current directory: {}", errstr));
+    }
+    }
 }
 } // namespace util
 

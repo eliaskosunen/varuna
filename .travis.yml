@@ -14,6 +14,8 @@ branches:
   except: /pr\/.*/
 
 env:
+  global:
+    - secure: Yh26HRoDt2SXpZjtoEIzV8GJrsO76RdUi5Xz1loyUrqQN22avqbJFdlG3KTeK48mL9TXC45oLYXggQZh9OVS6aR79Iqcv5+vLyxLtAnXG1UG0pdY59vDxyHjwGF/+Lr+V1pWYH+j7PvDyPjYVw1ot8DKjKksIXI4l/zdLXdwi87RZn+5EAEgQf9Te3bU97xJi62Kdyp1IeLGvCVCgudukhzpwK2rcLfn/y0qMZumY2yE1NLMWx5O3HchO558YNyVZJ0Qi0mQ+oEL6lLv1s7PaZrMmoho75JPBgLghIKCQy3UReHxIU48KyBarq/95wzPAPSDpfOq4CnW6ZUPjOIrZjDa/jeRZdQQV4M33UjD0I0r1Z4nk/Np2tlSK/tJ5hqlqBBuw17DGuzKp+fUAtyyzz31CvuPv1IAqdFbXhEaktP3tMnFgOGWvbO9YAP9IimPsjauB7JC6/dfEh11P4aYerggEWkbIlyg/5wnBMlXQIpHyIfGpnvSUkSGzYtUC7t5gAl82rXwm1EldW3ZDjbkMEbTb3x7iSh2SBkxHXr2cchIQUdvos71uq9yrSXSLsSB+FCHSR+oAmLR147o99rhrdd5WrCVHwvYxuS4tYOgZ7zKw6bcKWX0gCzPumEfCZS82hANWdy9n7DsggzIEts1uQYUWAnIRe6JawHwclEQcN8=
   matrix:
     - TRAVIS_EMPTY_JOB_WORKAROUND=true
 
@@ -26,6 +28,7 @@ addons:
       - llvm-toolchain-precise-3.7
       - llvm-toolchain-precise-3.8
       - llvm-toolchain-precise-3.9
+      - llvm-toolchain-precise-4.0
 
 os: linux
 compiler: clang
@@ -34,11 +37,20 @@ matrix:
   exclude:
     - env: TRAVIS_EMPTY_JOB_WORKAROUND=true
   include:
+    # coverage
+    - os: linux
+      env: LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5 COVERALLS=ON
+      compiler: gcc
+      addons: &cov
+        apt:
+          packages: ["g++-5", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "lcov", "ggcov", "curl"]
+          sources: *apt_sources
+
     # Clang 3.9
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
       compiler: clang
-      addons: &clang_39
+      addons: &clang39
         apt:
           packages: ["clang-3.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
@@ -46,7 +58,7 @@ matrix:
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
       compiler: clang
-      addons: &clang_38
+      addons: &clang38
         apt:
           packages: ["clang-3.8", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
@@ -54,7 +66,7 @@ matrix:
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
       compiler: clang
-      addons: &clang_37
+      addons: &clang37
         apt:
           packages: ["clang-3.7", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
@@ -62,7 +74,7 @@ matrix:
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.6 COMPILER_C=clang-3.6
       compiler: clang
-      addons: &clang_36
+      addons: &clang36
         apt:
           packages: ["clang-3.6", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
@@ -84,7 +96,6 @@ matrix:
           packages: ["g++-5", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
 
-  allow_failures:
     # GCC 4.9
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
@@ -92,6 +103,15 @@ matrix:
       addons: &gcc49
         apt:
           packages: ["g++-4.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+
+    # Clang 4
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
+      compiler: clang
+      addons: &clang4
+        apt:
+          packages: ["clang-4.0", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
 
     # Xcode 8.2 Clang
@@ -127,6 +147,14 @@ matrix:
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
       compiler: gcc
 
+    # LLVM 4 with Clang 4
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=4.0 COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
+      compiler: clang
+      addons: &llvm4
+        apt:
+          packages: ["clang-4.0", "libllvm4.0", "llvm-4.0", "llvm-4.0-dev", "valgrind"]
+          sources: *apt_sources
     # LLVM 3.8 (Clang 3.8)
     - os: linux
       env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
@@ -144,14 +172,23 @@ matrix:
           packages: ["clang-3.7", "libllvm3.7", "llvm-3.7", "llvm-3.7-dev", "valgrind"]
           sources: *apt_sources
 
-    # coverage
+  allow_failures:
+    - os: osx
     - os: linux
-      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6 COVERALLS_SERVICE_NAME=travis-ci
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
       compiler: gcc
-      addons: &cov
-        apt:
-          packages: ["g++-6", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "lcov", "curl"]
-          sources: *apt_sources
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
+      compiler: clang
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=4.0 COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
+      compiler: clang
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
+      compiler: clang
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=3.7 COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
+      compiler: clang
 
 install:
   # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
@@ -198,15 +235,21 @@ install:
     fi
 
 before_script:
+  - export CXX=${COMPILER_CXX}
+  - export C=${COMPILER_C}
   - ${COMPILER_CXX} --version
+  - git submodule update --init --recursive
 
 script:
   - mkdir build && cd build
 
   # Coverage
   - |
-    if [ "${COVERALLS_SERVICE_NAME}" == "travis-ci" ]; then
-      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+    if [ "${COVERALLS}" == "ON" ]; then
+      export COVERALLS_SERVICE_NAME=travis-ci
+      export COVERALLS_REPO_TOKEN=${repo_token}
+      export GCOV=gcov-5
+      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCOVERALLS=ON ..
       make -k -j2 && make coveralls
       exit
     fi

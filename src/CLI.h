@@ -16,6 +16,8 @@ public:
     /// Run CLI
     int run();
 
+    void removeRegisteredOptions();
+
 private:
     void showLicense() const;
     static void showVersion();

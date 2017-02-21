@@ -25,7 +25,7 @@ static void logException(const std::string& msg)
         // util::logger is available, prioritize using it
         util::logger->critical(
             "An exception occured during program execution.");
-        util::logger->info("Exception message: '{}'", msg);
+        util::logger->error("Exception message: '{}'", msg);
         util::logger->info("Program will be terminated.");
     }
     else if(util::loggerBasic)
@@ -33,7 +33,7 @@ static void logException(const std::string& msg)
         // util::loggerBasic is available, use it if util::logger isn't
         util::loggerBasic->critical(
             "An exception occured during program execution.");
-        util::loggerBasic->info("Exception message: '{}'", msg);
+        util::loggerBasic->error("Exception message: '{}'", msg);
         util::loggerBasic->info("Program will be terminated.");
     }
     else
@@ -61,8 +61,8 @@ static void logException(const std::string& msg,
         // util::logger is available, prioritize using it
         util::logger->critical(
             "An exception occured during program execution.");
-        util::logger->info("Exception message: '{}'", msg);
-        util::logger->info("Additional message: '{}'", additionalMsg);
+        util::logger->error("Exception message: '{}'", msg);
+        util::logger->error("Additional message: '{}'", additionalMsg);
         util::logger->info("Program will be terminated.");
     }
     else if(util::loggerBasic)
@@ -70,8 +70,8 @@ static void logException(const std::string& msg,
         // util::loggerBasic is available, use it if util::logger isn't
         util::loggerBasic->critical(
             "An exception occured during program execution.");
-        util::loggerBasic->info("Exception message: '{}'", msg);
-        util::loggerBasic->info("Additional message: '{}'", additionalMsg);
+        util::loggerBasic->error("Exception message: '{}'", msg);
+        util::loggerBasic->error("Additional message: '{}'", additionalMsg);
         util::loggerBasic->info("Program will be terminated.");
     }
     else
@@ -117,8 +117,9 @@ int main(int argc, char** argv)
         util::initLogger();
 
         // Run the CLI
-        CLI commandLineInterface(argc, argv);
-        MAIN_RETURN(commandLineInterface.run());
+        CLI cli(argc, argv);
+        cli.removeRegisteredOptions();
+        MAIN_RETURN(cli.run());
     }
 
     // Handle various exceptions

@@ -20,6 +20,14 @@ Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
       codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
       optimizer(std::make_unique<Optimizer>(module.get(), i))
 {
+#if 0
+    auto nameparts =
+        util::stringutils::split(ast->file->getFilename(), '.');
+    if(!nameparts.empty())
+    {
+        module->setModuleIdentifier(nameparts.front());
+    }
+#endif
 }
 
 bool Codegen::run()
@@ -93,8 +101,8 @@ struct OutputTypeHash
 
 void Codegen::write()
 {
-    const auto output = util::viewProgramOptions().output;
-    const auto writeStdout = util::viewProgramOptions().outputFilename == "-";
+    const auto output = util::ProgramOptions::view().output;
+    const auto writeStdout = util::ProgramOptions::view().outputFilename == "-";
 
     if(output == util::EMIT_NONE)
     {
@@ -103,16 +111,17 @@ void Codegen::write()
     }
 
     auto filename = [&](util::OutputType type) {
-        auto filenameWithoutEnding = [&](
-            const std::string& f = util::viewProgramOptions().outputFilename) {
-            auto filenameParts = util::stringutils::split(f, '.');
-            if(filenameParts.size() > 1)
-            {
-                filenameParts.pop_back();
-            }
+        auto filenameWithoutEnding =
+            [&](const std::string& f =
+                    util::ProgramOptions::view().outputFilename) {
+                auto filenameParts = util::stringutils::split(f, '.');
+                if(filenameParts.size() > 1)
+                {
+                    filenameParts.pop_back();
+                }
 
-            return util::stringutils::join(filenameParts, '.');
-        };
+                return util::stringutils::join(filenameParts, '.');
+            };
 
         static const std::unordered_map<util::OutputType, std::string,
                                         OutputTypeHash>
@@ -121,15 +130,15 @@ void Codegen::write()
                 {util::EMIT_LLVM_IR, ".ll"}, {util::EMIT_LLVM_BC, ".bc"},
                 {util::EMIT_OBJ, ".o"},      {util::EMIT_ASM, ".s"}};
 
-        if(util::viewProgramOptions().outputFilename.empty() || writeStdout)
+        if(util::ProgramOptions::view().outputFilename.empty() || writeStdout)
         {
             return filenameWithoutEnding(
-                       util::viewProgramOptions().inputFilenames[0])
+                       util::ProgramOptions::view().inputFilenames[0])
                 .append(filenameEndings.find(type)->second);
         }
         if(type == output)
         {
-            return util::viewProgramOptions().outputFilename;
+            return util::ProgramOptions::view().outputFilename;
         }
         return filenameWithoutEnding().append(
             filenameEndings.find(type)->second);
@@ -180,13 +189,11 @@ void Codegen::write()
 
 #if 0
     {
-        auto opt = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
-                               util::viewProgramOptions().llvmOptBin);
+        auto opt = fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
+                               util::ProgramOptions::view().llvmOptBin);
         auto optArgs = fmt::format(
-            "-o {} -S -disable-inlining -disable-opt -verify{} {}",
-            filename(util::EMIT_LLVM_IR),
-            util::viewProgramOptions().emitDebug ? "" : " -strip-debug",
-            filename(util::EMIT_LLVM_IR));
+            "-o {} -S -disable-inlining -disable-opt -strip-debug -verify {}",
+            filename(util::EMIT_LLVM_IR), filename(util::EMIT_LLVM_IR));
         util::logger->debug("Running {} {}", opt, optArgs);
         auto p = util::Process(opt, optArgs);
         if(!p.spawn())
@@ -213,8 +220,8 @@ void Codegen::write()
     if(output == util::EMIT_LLVM_BC)
     {
         const auto as =
-            fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
-                        util::viewProgramOptions().llvmAsBin);
+            fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
+                        util::ProgramOptions::view().llvmAsBin);
         const auto asArgs = fmt::format(
             "-o {} {}", writeStdout ? "-" : filename(util::EMIT_LLVM_BC),
             filename(util::EMIT_LLVM_IR), writeStdout ? " -f" : "");
@@ -248,11 +255,12 @@ void Codegen::write()
         }
         return "asm";
     }();
-    const auto llc = fmt::format("{}{}", util::viewProgramOptions().llvmBinDir,
-                                 util::viewProgramOptions().llvmLlcBin);
+    const auto llc =
+        fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
+                    util::ProgramOptions::view().llvmLlcBin);
     const auto llcArgs = [&]() {
         const auto x86 = []() {
-            const auto x86asm = util::viewProgramOptions().x86asm;
+            const auto x86asm = util::ProgramOptions::view().x86asm;
             if(x86asm == util::X86_ATT)
             {
                 return "att";
@@ -260,10 +268,10 @@ void Codegen::write()
             return "intel";
         }();
         const auto optStr = []() -> std::string {
-            auto o = util::viewProgramOptions().getOptLevel();
+            auto o = util::ProgramOptions::view().getOptLevel();
             if(std::get<1>(o) == 0 && std::get<0>(o) > 0)
             {
-                return " " + util::viewProgramOptions().optLevelToString();
+                return " " + util::ProgramOptions::view().optLevelToString();
             }
             return "";
         }();

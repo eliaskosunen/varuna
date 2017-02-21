@@ -182,6 +182,10 @@ bool Process::_spawn()
 
 std::string Process::getErrorString()
 {
+    if(errorCode == 0)
+    {
+        return "";
+    }
     return std::string(std::strerror(errorCode));
 }
 
@@ -227,9 +231,24 @@ bool Process::_spawn()
         errorCode = status;
         return false;
     }
-    returnValue = status;
-    spawned = true;
-    return true;
+    if(WIFEXITED(status))
+    {
+        returnValue = WEXITSTATUS(status);
+        spawned = true;
+        return true;
+    }
+    else if(WIFSIGNALED(status))
+    {
+        errorCode = WTERMSIG(status);
+        return false;
+    }
+    else if(WIFSTOPPED(status))
+    {
+        errorCode = WSTOPSIG(status);
+        return false;
+    }
+    errorCode = status;
+    return false;
 }
 
 #endif // VARUNA_MSVC

@@ -93,8 +93,8 @@ std::string File::_readFile(const std::string& fname)
         // https://github.com/mirrors/gcc/blob/master/libstdc%2B%2B-v3/include/bits/ios_base.h#L209
         //
 
-        util::logger->error("Error reading file: Error #{} (libc++): {}",
-                            e.code().value(), e.code().message());
+        util::logger->error("Error reading file '{}': Error #{} (libc++): {}",
+                            fname, e.code().value(), e.code().message());
     }
 #else
     catch(const std::ios_base::failure&)
@@ -110,8 +110,8 @@ std::string File::_readFile(const std::string& fname)
         errmsg = strerror(errno);
 #endif // VARUNA_MSVC
 
-        util::logger->error("Error reading file: Error #{} (libc): {}", errno,
-                            errmsg);
+        util::logger->error("Error reading file '{}': Error #{} (libc): {}",
+                            fname, errno, errmsg);
     }
 #endif // HAS_IOS_BASE_FAILURE_DERIVED_FROM_SYSTEM_ERROR
     throw std::runtime_error("File reading failed");

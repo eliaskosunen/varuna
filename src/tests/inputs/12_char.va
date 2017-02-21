@@ -1,0 +1,18 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 12_char.va
+// Characters
+
+module test_12_char;
+
+def asc(c: char) -> i32;
+def chr(n: i32) -> char;
+
+def main() -> i32 {
+    let mut c = 'a';
+    c = 'ä';
+    let smile = '😀';
+    return asc(smile) / asc(c);
+}

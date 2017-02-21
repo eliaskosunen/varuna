@@ -23,16 +23,20 @@ namespace codegen
 CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                CodegenInfo i)
     : context{c}, module(m), info(i), builder(context), dbuilder(*m),
-      dcu{dbuilder.createCompileUnit(
-          // Let's pretend for a moment that we're C
-          // That's of course very dumb,
-          // since we're definitely going to be more popular than C
-          llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
-          util::programinfo::getIdentifier(), info.optEnabled(), "", 1)},
-      dfile{dbuilder.createFile(dcu->getFilename(), dcu->getDirectory())},
-      symbols{std::make_unique<SymbolTable>()},
+      dcu{nullptr}, dfile{nullptr}, symbols{std::make_unique<SymbolTable>()},
       types{std::make_unique<TypeTable>(module)}
 {
+    if(!util::ProgramOptions::view().stripDebug)
+    {
+        dcu = dbuilder.createCompileUnit(
+            // Let's pretend for a moment that we're C
+            // That's of course very dumb,
+            // since we're definitely going to be more popular than C
+            llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
+            util::programinfo::getIdentifier(), info.optEnabled(), "", 1);
+        dfile = dbuilder.createFile(dcu->getFilename(), dcu->getDirectory());
+    }
+
     // Create types
     types->insertTypeWithVariants<VoidType>(context, dbuilder);
     types->insertTypeWithVariants<Int8Type>(context, dbuilder);
@@ -56,7 +60,10 @@ bool CodegenVisitor::codegen(ast::AST* ast)
                           llvm::DEBUG_METADATA_VERSION);
 
     // Set source filename
-    module->setSourceFileName(ast->file->getFilename());
+    if(!util::ProgramOptions::view().stripSourceFilename)
+    {
+        module->setSourceFileName(ast->file->getFilename());
+    }
 
     // Codegen all children
     auto root = ast->globalNode.get();
@@ -116,7 +123,8 @@ void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
 
 void CodegenVisitor::writeExports(std::unique_ptr<SymbolTable> exports)
 {
-    if(util::viewProgramOptions().outputFilename == "-")
+    if(util::ProgramOptions::view().outputFilename == "-" ||
+       !util::ProgramOptions::view().generateModuleFile)
     {
         util::logger->info("Not writing module export file");
         return;

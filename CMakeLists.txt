@@ -5,7 +5,17 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-set(BUILD_TESTS "Build unit tests" ON)
+set(BUILD_TESTS ON CACHE BOOL "Build unit tests")
+set(COVERALLS OFF CACHE BOOL "Turn on coveralls")
+
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/scripts/coveralls-cmake/cmake")
+
+message(STATUS "Coveralls: ${COVERALLS}")
+
+if(COVERALLS)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -84,3 +94,8 @@ file(GLOB main_sources src/Main.cpp)
 
 add_executable(varuna ${main_sources})
 target_link_libraries(varuna src)
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(src/tests)
+endif()

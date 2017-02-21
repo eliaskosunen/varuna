@@ -1,0 +1,12 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 02_main.va
+// Main function
+
+module test_02_main;
+
+def main() -> i32 {
+    return 0;
+}

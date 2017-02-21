@@ -7,12 +7,5 @@ Doxyfile.bak
 .anjuta/
 .clang_complete
 *CMakeFiles/
-*.cmake
 CMakeCache.txt
-*.cmake*
-cmake/
-*.ll
 *.vamod
-*.s
-*.o
-*.bc

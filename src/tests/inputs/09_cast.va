@@ -1,0 +1,16 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 09_cast.va
+// Cast-expression
+
+module test_09_cast;
+
+def num() -> i32;
+
+def main() -> i32 {
+    let a = num() as i16;
+    let b = f64(a);
+    return b as i32;
+}

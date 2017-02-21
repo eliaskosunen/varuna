@@ -1,0 +1,14 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 02_invalid_token.va
+// Trigger a lexer error with invalid token
+
+module test_02_invalid_token;
+
+def func();
+
+def main() {
+    @func();
+}

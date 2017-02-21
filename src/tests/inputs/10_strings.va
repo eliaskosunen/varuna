@@ -1,0 +1,16 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 10_strings.va
+// Strings
+
+module test_10_strings;
+
+def func(s: string) -> i32;
+
+def main() -> i32 {
+    let mut s = "Hello world!";
+    s = "Hei maailma!";
+    return func(s);
+}
