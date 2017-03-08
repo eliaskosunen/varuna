@@ -1,9 +1,9 @@
 ; ModuleID = 'test_08_for'
 source_filename = "Varuna"
 
-declare i32 @count()
+declare i32 @__va_count()
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %j = alloca i32
   %i = alloca i32
@@ -17,7 +17,7 @@ for.init:                                         ; preds = %entry
 
 for.cond:                                         ; preds = %for.step11, %for.init
   %i1 = load i32, i32* %i
-  %calltmp = call i32 @count()
+  %calltmp = call i32 @__va_count()
   %letmp = icmp sle i32 %i1, %calltmp
   br i1 %letmp, label %for.body, label %for.merge14
 

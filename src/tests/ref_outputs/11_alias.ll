@@ -1,14 +1,14 @@
 ; ModuleID = 'test_11_alias'
 source_filename = "Varuna"
 
-declare i32 @func(i32)
+declare i32 @__va_func(i32)
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %n = alloca i32
   store i32 10, i32* %n
   %n1 = load i32, i32* %n
-  %calltmp = call i32 @func(i32 %n1)
+  %calltmp = call i32 @__va_func(i32 %n1)
   ret i32 %calltmp
 }
 

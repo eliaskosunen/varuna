@@ -1,11 +1,11 @@
 ; ModuleID = 'test_09_cast'
 source_filename = "Varuna"
 
-declare i32 @num() local_unnamed_addr
+declare i32 @__va_num() local_unnamed_addr
 
-define i32 @main() local_unnamed_addr {
+define i32 @__va_main() local_unnamed_addr {
 entry:
-  %calltmp = tail call i32 @num()
+  %calltmp = tail call i32 @__va_num()
   %sext = shl i32 %calltmp, 16
   %casttmp4 = ashr exact i32 %sext, 16
   ret i32 %casttmp4

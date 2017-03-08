@@ -149,6 +149,8 @@ private:
     std::pair<Type*, std::unique_ptr<TypedValue>>
     inferVariableDefType(ast::ASTVariableDefinitionExpression* expr);
 
+    std::string mangleFunctionName(const std::string& name) const;
+
     /// LLVM context
     llvm::LLVMContext& context;
     /// LLVM module

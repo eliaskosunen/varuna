@@ -1,7 +1,7 @@
 ; ModuleID = 'test_05_variables'
 source_filename = "Varuna"
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %mutable = alloca i32
   %immutable = alloca i32

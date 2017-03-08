@@ -275,9 +275,10 @@ void Codegen::write()
             }
             return "";
         }();
-        return fmt::format("-filetype={} -o {} {} --x86-asm-syntax={}{}",
-                           outputType, writeStdout ? "-" : filename(output),
-                           filename(util::EMIT_LLVM_IR), x86, optStr);
+        return fmt::format(
+            "-filetype={} -o {} {} --x86-asm-syntax={}{} -debugger-tune=gdb",
+            outputType, writeStdout ? "-" : filename(output),
+            filename(util::EMIT_LLVM_IR), x86, optStr);
     }();
 
     util::logger->debug("Running {} {}", llc, llcArgs);

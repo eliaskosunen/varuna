@@ -214,6 +214,7 @@ FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
 
     if(logError)
     {
+        assert(node);
         return codegenError(node, "Undefined function: '{}'", name);
     }
     return nullptr;
@@ -420,5 +421,10 @@ llvm::DIScope* CodegenVisitor::getTopDebugScope() const
         return dcu;
     }
     return dblocks.back();
+}
+
+std::string CodegenVisitor::mangleFunctionName(const std::string& name) const
+{
+    return fmt::format("__va_{}", name);
 }
 } // namespace codegen

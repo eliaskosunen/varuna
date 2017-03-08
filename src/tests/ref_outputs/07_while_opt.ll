@@ -1,11 +1,11 @@
 ; ModuleID = 'test_07_while'
 source_filename = "Varuna"
 
-declare i1 @cond() local_unnamed_addr
+declare i1 @__va_cond() local_unnamed_addr
 
-define i32 @main() local_unnamed_addr {
+define i32 @__va_main() local_unnamed_addr {
 entry:
-  %calltmp11 = tail call i1 @cond()
+  %calltmp11 = tail call i1 @__va_cond()
   br i1 %calltmp11, label %while.cond1.preheader.preheader, label %while.merge7
 
 while.cond1.preheader.preheader:                  ; preds = %entry
@@ -17,13 +17,13 @@ while.cond1.preheader:                            ; preds = %while.cond1.prehead
 
 while.cond1:                                      ; preds = %while.cond1, %while.cond1.preheader
   %b.0 = phi i32 [ %multmp, %while.cond1 ], [ 2, %while.cond1.preheader ]
-  %calltmp2 = tail call i1 @cond()
+  %calltmp2 = tail call i1 @__va_cond()
   %multmp = shl nsw i32 %b.0, 1
   br i1 %calltmp2, label %while.merge, label %while.cond1
 
 while.merge:                                      ; preds = %while.cond1
   %addtmp = add nsw i32 %b.0, %a.012
-  %calltmp = tail call i1 @cond()
+  %calltmp = tail call i1 @__va_cond()
   br i1 %calltmp, label %while.cond1.preheader, label %while.merge7.loopexit
 
 while.merge7.loopexit:                            ; preds = %while.merge

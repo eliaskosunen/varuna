@@ -95,6 +95,8 @@ file(GLOB main_sources src/Main.cpp)
 add_executable(varuna ${main_sources})
 target_link_libraries(varuna src)
 
+install(TARGETS varuna DESTINATION bin)
+
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(src/tests)

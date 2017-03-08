@@ -1,13 +1,13 @@
 ; ModuleID = 'test_09_cast'
 source_filename = "Varuna"
 
-declare i32 @num()
+declare i32 @__va_num()
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %b = alloca double
   %a = alloca i16
-  %calltmp = call i32 @num()
+  %calltmp = call i32 @__va_num()
   %casttmp = trunc i32 %calltmp to i16
   store i16 %casttmp, i16* %a
   %a1 = load i16, i16* %a

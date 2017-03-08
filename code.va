@@ -6,14 +6,42 @@
 
 module code;
 
-def getchar() -> char;
-def putchar(ch: char) -> char;
-
-def fn() -> bool;
+import cstd;
 
 def main() -> i32 {
-    if !fn() {
+    puts("Hello world!\n");
+    let buf = stralloc(64i64);
+    puts("Please give some input: ");
+    gets(buf, 63);
+    puts("You gave: ");
+    if puts(buf) == eof() {
+        perror("");
+        strfree(buf);
         return 1;
     }
+    strfree(buf);
     return 0;
+
+    /*putsc(c"Hello world!\n");
+    let buf = cstralloc(64i64);
+    putsc(c"Please give some input: ");
+    getsc(buf, 63);
+    putsc(c"You gave: ");
+    if putsc(buf) == eof() {
+        perrorc(c"");
+        cstrfree(buf);
+        return 1;
+    }
+    cstrfree(buf);
+    return 0;*/
+
+    /*let str = "Hello world!";
+    puts(str);
+    let cstr = str_to_cstr(str);
+    putsc(cstr);
+    let str_new = cstr_to_str(cstr);
+    puts(str_new);
+    cstrfree(cstr);
+    strfree(str_new);
+    return 0;*/
 }

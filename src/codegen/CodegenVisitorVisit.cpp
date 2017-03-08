@@ -636,9 +636,11 @@ CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
         return llvm::Function::InternalLinkage;
     }();
 
+    // Mangle function name
+    const auto name = mangleFunctionName(node->name->value);
+
     // Create function
-    llvm::Function* f =
-        llvm::Function::Create(ft, linkage, node->name->value, module);
+    llvm::Function* f = llvm::Function::Create(ft, linkage, name, module);
 
     // Set argument names
     {

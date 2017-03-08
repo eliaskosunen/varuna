@@ -1,9 +1,9 @@
 ; ModuleID = 'test_07_while'
 source_filename = "Varuna"
 
-declare i1 @cond()
+declare i1 @__va_cond()
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %b = alloca i32
   %a = alloca i32
@@ -11,7 +11,7 @@ entry:
   br label %while.cond
 
 while.cond:                                       ; preds = %while.merge, %entry
-  %calltmp = call i1 @cond()
+  %calltmp = call i1 @__va_cond()
   br i1 %calltmp, label %while.body, label %while.merge7
 
 while.body:                                       ; preds = %while.cond
@@ -19,7 +19,7 @@ while.body:                                       ; preds = %while.cond
   br label %while.cond1
 
 while.cond1:                                      ; preds = %while.body3, %while.body
-  %calltmp2 = call i1 @cond()
+  %calltmp2 = call i1 @__va_cond()
   %nottmp = xor i1 %calltmp2, true
   br i1 %nottmp, label %while.body3, label %while.merge
 

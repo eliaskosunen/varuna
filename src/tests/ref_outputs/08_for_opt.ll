@@ -1,11 +1,11 @@
 ; ModuleID = 'test_08_for'
 source_filename = "Varuna"
 
-declare i32 @count() local_unnamed_addr
+declare i32 @__va_count() local_unnamed_addr
 
-define i32 @main() local_unnamed_addr {
+define i32 @__va_main() local_unnamed_addr {
 entry:
-  %calltmp21 = tail call i32 @count()
+  %calltmp21 = tail call i32 @__va_count()
   %letmp22 = icmp slt i32 %calltmp21, 1
   br i1 %letmp22, label %for.merge14, label %for.cond3.preheader.preheader
 
@@ -18,7 +18,7 @@ for.cond3.preheader:                              ; preds = %for.cond3.preheader
   %multmp = shl i32 %a.024, 5
   %addtmp10 = or i32 %multmp, 1
   %addtmp13 = add nuw nsw i32 %i.023, 1
-  %calltmp = tail call i32 @count()
+  %calltmp = tail call i32 @__va_count()
   %letmp = icmp slt i32 %i.023, %calltmp
   br i1 %letmp, label %for.cond3.preheader, label %for.merge14.loopexit
 

@@ -9,3 +9,7 @@ Doxyfile.bak
 *CMakeFiles/
 CMakeCache.txt
 *.vamod
+*.o
+a.out
+*.a
+*.lib

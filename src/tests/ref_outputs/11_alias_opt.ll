@@ -1,11 +1,11 @@
 ; ModuleID = 'test_11_alias'
 source_filename = "Varuna"
 
-declare i32 @func(i32) local_unnamed_addr
+declare i32 @__va_func(i32) local_unnamed_addr
 
-define i32 @main() local_unnamed_addr {
+define i32 @__va_main() local_unnamed_addr {
 entry:
-  %calltmp = tail call i32 @func(i32 10)
+  %calltmp = tail call i32 @__va_func(i32 10)
   ret i32 %calltmp
 }
 

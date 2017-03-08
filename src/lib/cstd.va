@@ -1,0 +1,27 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+module cstd;
+
+export def str_to_cstr(str: string) -> cstring;
+export def cstr_to_str(cstr: cstring) -> string;
+
+export def stralloc(size: i64) -> string;
+export def cstralloc(size: i64) -> cstring;
+
+export def strfree(str: string);
+export def cstrfree(str: cstring);
+
+export def getchar() -> char;
+export def gets(str: string, maxSize: i32) -> bool;
+export def getsc(str: cstring, maxSize: i32) -> bool;
+
+export def putchar(ch: char) -> char;
+export def puts(str: string) -> char;
+export def putsc(str: cstring) -> char;
+
+export def perror(str: string);
+export def perrorc(str: cstring);
+
+export def eof() -> char;

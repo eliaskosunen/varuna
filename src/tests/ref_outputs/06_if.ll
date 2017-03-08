@@ -1,15 +1,15 @@
 ; ModuleID = 'test_06_if'
 source_filename = "Varuna"
 
-declare i1 @cond()
+declare i1 @__va_cond()
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
-  %calltmp = call i1 @cond()
+  %calltmp = call i1 @__va_cond()
   br i1 %calltmp, label %if.then, label %if.else3
 
 if.then:                                          ; preds = %entry
-  %calltmp1 = call i1 @cond()
+  %calltmp1 = call i1 @__va_cond()
   br i1 %calltmp1, label %if.then2, label %if.else
 
 if.then2:                                         ; preds = %if.then
@@ -22,7 +22,7 @@ if.merge:                                         ; No predecessors!
   br label %if.merge8
 
 if.else3:                                         ; preds = %entry
-  %calltmp4 = call i1 @cond()
+  %calltmp4 = call i1 @__va_cond()
   br i1 %calltmp4, label %if.then5, label %if.else6
 
 if.then5:                                         ; preds = %if.else3

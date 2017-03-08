@@ -1,7 +1,9 @@
 add_subdirectory(ast)
 add_subdirectory(codegen)
 add_subdirectory(core)
+add_subdirectory(lib)
 add_subdirectory(util)
+add_subdirectory(vart)
 
 file(GLOB src_sources CLI.cpp Runner.cpp)
 file(GLOB src_headers CLI.h Dispatcher.h Doc.h Runner.h)
