@@ -1,0 +1,13 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 07_void_variable.va
+// Variable of type void
+
+module test_07_void_variable;
+
+def main() -> i32 {
+    let var: void;
+    return 0;
+}

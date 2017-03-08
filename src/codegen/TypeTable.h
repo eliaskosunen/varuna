@@ -222,15 +222,11 @@ inline const std::vector<Type*>
 TypeTable::findUndecorated(const std::string& name, bool logError) const
 {
     std::vector<Type*> ret;
-    auto it = list.begin(), end = list.end();
-    while(it != end)
+    for(auto& t : list)
     {
-        it = std::find_if(it, end, [&](const std::unique_ptr<Type>& t) {
-            return t->getName() == name;
-        });
-        if(it != end)
+        if(t->getName() == name)
         {
-            ret.push_back((*it).get());
+            ret.push_back(t.get());
         }
     }
     if(logError && ret.empty())

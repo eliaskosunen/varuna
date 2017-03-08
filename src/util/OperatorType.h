@@ -10,6 +10,8 @@ namespace util
 {
 enum _OperatorType
 {
+    OPERATOR_DEFAULT = -1,
+
     OPERATORA_SIMPLE = 400, // =
     OPERATORA_ADD,          // +=
     OPERATORA_SUB,          // -=
@@ -38,6 +40,7 @@ enum _OperatorType
     OPERATORB_GREATEQ, // a >= b
 
     OPERATORB_MEMBER, // a.b
+    OPERATORB_SUBSCR, // a[b]
 
     OPERATORB_OF,     // List of String
     OPERATORB_AS,     // 12 as i16

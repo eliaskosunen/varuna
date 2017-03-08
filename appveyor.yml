@@ -20,9 +20,6 @@ init:
 clone_folder: C:\projects\varuna
 
 before_build:
-    - cmd: cd C:\Program Files\LLVM
-    - cmd: dir /s
-    - cmd: cd C:\projects\varuna
     - cmd: md build
     - cmd: cd build
 

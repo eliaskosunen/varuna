@@ -4,51 +4,52 @@
 
 #pragma once
 
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
+
 namespace ast
 {
 class AST;
 
-class ASTNode;
+class Node;
 
-class ASTExpression;
-class ASTArbitraryOperandExpression;
-class ASTAssignmentExpression;
-class ASTBinaryExpression;
-class ASTBoolLiteralExpression;
-class ASTCharLiteralExpression;
-class ASTEmptyExpression;
-class ASTFloatLiteralExpression;
-class ASTIdentifierExpression;
-class ASTVariableRefExpression;
-class ASTIntegerLiteralExpression;
-class ASTMemberAccessExpression;
-class ASTNoneLiteralExpression;
-class ASTStringLiteralExpression;
-class ASTSubscriptExpression;
-class ASTSubscriptRangedExpression;
-class ASTUnaryExpression;
-class ASTVariableDefinitionExpression;
-class ASTGlobalVariableDefinitionExpression;
+class Expr;
+class ArbitraryOperandExpr;
+class AssignmentExpr;
+class BinaryExpr;
+class BoolLiteralExpr;
+class CharLiteralExpr;
+class EmptyExpr;
+class FloatLiteralExpr;
+class IdentifierExpr;
+class VariableRefExpr;
+class IntegerLiteralExpr;
+class StringLiteralExpr;
+class UnaryExpr;
+class VariableDefinitionExpr;
+class GlobalVariableDefinitionExpr;
 
-class ASTStatement;
-class ASTAliasStatement;
-class ASTBlockStatement;
-class ASTEmptyStatement;
-class ASTForeachStatement;
-class ASTForStatement;
-class ASTFunctionDefinitionStatement;
-class ASTFunctionParameter;
-class ASTFunctionPrototypeStatement;
-class ASTIfStatement;
-class ASTImportStatement;
-class ASTModuleStatement;
-class ASTReturnStatement;
-class ASTWhileStatement;
-class ASTWrappedExpressionStatement;
+class Stmt;
+class AliasStmt;
+class BlockStmt;
+class EmptyStmt;
+class ForeachStmt;
+class ForStmt;
+class FunctionDefinitionStmt;
+class FunctionParameter;
+class FunctionPrototypeStmt;
+class IfStmt;
+class ImportStmt;
+class ModuleStmt;
+class ReturnStmt;
+class WhileStmt;
+class ExprStmt;
 
 class Visitor;
-class DumpASTVisitor;
-class ASTParentSolverVisitor;
+class DumpVisitor;
+class ParentSolverVisitor;
+class Serializer;
 } // namespace ast
 
 namespace codegen
@@ -57,7 +58,3 @@ class CodegenVisitor;
 class GrammarCheckerVisitor;
 struct TypedValue;
 } // namespace codegen
-
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>

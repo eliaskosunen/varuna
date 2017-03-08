@@ -159,7 +159,6 @@ inline bool FileCache::addFile(std::shared_ptr<File> file, bool read)
 }
 inline bool FileCache::addFile(const std::string& name, bool read)
 {
-    auto file = std::make_shared<File>(name);
-    return addFile(std::move(file), read);
+    return addFile(std::make_shared<File>(name), read);
 }
 } // namespace util

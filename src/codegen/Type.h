@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ast/AST.h"
-#include "ast/ASTFunctionStatement.h"
+#include "ast/FunctionStmt.h"
 #include "util/Compatibility.h"
 #include "util/Logger.h"
 #include "util/OperatorType.h"
@@ -62,14 +62,13 @@ public:
     Type& operator=(Type&&) = default;
     virtual ~Type() noexcept;
 
-    virtual std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    virtual std::unique_ptr<TypedValue> cast(ast::Node* node,
                                              llvm::IRBuilder<>& builder,
                                              CastType c, TypedValue* val,
                                              Type* to) const = 0;
 
-    bool isSameOrImplicitlyCastable(ast::ASTNode* node,
-                                    llvm::IRBuilder<>& builder, TypedValue* val,
-                                    Type* to) const;
+    bool isSameOrImplicitlyCastable(ast::Node* node, llvm::IRBuilder<>& builder,
+                                    TypedValue* val, Type* to) const;
 
     virtual bool isSized() const
     {
@@ -148,12 +147,12 @@ public:
     Kind kind;
 
 protected:
-    std::unique_ptr<TypedValue> implicitCast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> implicitCast(ast::Node* node,
                                              llvm::IRBuilder<>& builder,
                                              TypedValue* val, Type* to) const;
 
     template <typename... Args>
-    std::nullptr_t castError(ast::ASTNode* node, const std::string& format,
+    std::nullptr_t castError(ast::Node* node, const std::string& format,
                              Args&&... args) const
     {
         return util::logCompilerError(node->loc, format,
@@ -161,7 +160,7 @@ protected:
     }
 
     template <typename... Args>
-    void castWarning(ast::ASTNode* node, const std::string& format,
+    void castWarning(ast::Node* node, const std::string& format,
                      Args&&... args) const
     {
         util::logCompilerWarning(node->loc, format,
@@ -169,7 +168,7 @@ protected:
     }
 
     template <typename... Args>
-    void castInfo(ast::ASTNode* node, const std::string& format,
+    void castInfo(ast::Node* node, const std::string& format,
                   Args&&... args) const
     {
         util::logCompilerInfo(node->loc, format, std::forward<Args>(args)...);
@@ -186,7 +185,7 @@ class VoidType : public Type
 public:
     VoidType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder&);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -203,7 +202,7 @@ public:
     IntegralType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
                  llvm::Type* t, llvm::DIType* d, const std::string& n);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -244,7 +243,7 @@ class BoolType : public Type
 public:
     BoolType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -260,7 +259,7 @@ public:
     CharacterType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
                   llvm::Type* t, llvm::DIType* d, const std::string& n);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -290,7 +289,7 @@ class ByteType : public Type
 public:
     ByteType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -306,7 +305,7 @@ public:
     FPType(TypeTable* list, size_t w, Kind k, llvm::LLVMContext& c,
            llvm::Type* t, llvm::DIType* d, const std::string& n);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -338,7 +337,7 @@ public:
 
     static llvm::StructType* getLLVMStringType(llvm::LLVMContext& c);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -354,7 +353,7 @@ public:
     CStringType(TypeTable* list, llvm::LLVMContext& c,
                 llvm::DIBuilder& dbuilder);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -383,7 +382,7 @@ public:
                             const std::vector<Type*>& params,
                             llvm::DIFile* file);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 
@@ -402,7 +401,7 @@ public:
     AliasType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder,
               const std::string& pAliasName, Type* pUnderlying);
 
-    std::unique_ptr<TypedValue> cast(ast::ASTNode* node,
+    std::unique_ptr<TypedValue> cast(ast::Node* node,
                                      llvm::IRBuilder<>& builder, CastType c,
                                      TypedValue* val, Type* to) const override;
 

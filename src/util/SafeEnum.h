@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "util/Logger.h"
 #include <cereal.h>
 #include <ostream>
 #include <type_traits>

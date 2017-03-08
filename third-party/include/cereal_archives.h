@@ -10,7 +10,7 @@
 
 #endif
 
-#define CEREAL_THREAD_SAFE 1
+#define CEREAL_THREAD_SAFE 0
 
 #include "cereal/archives/binary.hpp"
 #include "cereal/archives/json.hpp"

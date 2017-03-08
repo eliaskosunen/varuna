@@ -15,7 +15,6 @@
 #include <Windows.h>
 
 #else
-
 #include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -101,11 +100,6 @@ static std::string winStringToUtf8(WinString winstr, size_t size)
  */
 static std::string getFormattedMessage(DWORD msgID)
 {
-    if(msgID == 0)
-    {
-        return {};
-    }
-
     WinString buf = nullptr;
     auto size = FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
@@ -132,6 +126,11 @@ std::string Process::getErrorString()
 {
     // errorCode is set by _spawn()
     return getFormattedMessage(errorCode);
+}
+
+std::string Process::getSuccessErrorString()
+{
+    return getFormattedMessage(0);
 }
 
 bool Process::_spawn()
@@ -182,11 +181,12 @@ bool Process::_spawn()
 
 std::string Process::getErrorString()
 {
-    if(errorCode == 0)
-    {
-        return "";
-    }
-    return std::string(std::strerror(errorCode));
+    return std::strerror(static_cast<int>(errorCode));
+}
+
+std::string Process::getSuccessErrorString()
+{
+    return std::strerror(0);
 }
 
 bool Process::_spawn()
@@ -221,14 +221,14 @@ bool Process::_spawn()
         posix_spawnp(&pid, file.c_str(), nullptr, nullptr, argv, environ);
     if(status != 0)
     {
-        errorCode = status;
+        errorCode = static_cast<ErrorCodeType>(status);
         return false;
     }
 
     // Wait for it to complete
     if(waitpid(pid, &status, 0) == -1)
     {
-        errorCode = status;
+        errorCode = static_cast<ErrorCodeType>(status);
         return false;
     }
     if(WIFEXITED(status))
@@ -239,15 +239,15 @@ bool Process::_spawn()
     }
     else if(WIFSIGNALED(status))
     {
-        errorCode = WTERMSIG(status);
+        errorCode = static_cast<ErrorCodeType>(WTERMSIG(status));
         return false;
     }
     else if(WIFSTOPPED(status))
     {
-        errorCode = WSTOPSIG(status);
+        errorCode = static_cast<ErrorCodeType>(WSTOPSIG(status));
         return false;
     }
-    errorCode = status;
+    errorCode = static_cast<ErrorCodeType>(status);
     return false;
 }
 

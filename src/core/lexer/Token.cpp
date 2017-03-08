@@ -28,8 +28,6 @@ namespace lexer
             return "LITERAL_TRUE";
         case TOKEN_LITERAL_FALSE:
             return "LITERAL_FALSE";
-        case TOKEN_LITERAL_NONE:
-            return "LITERAL_NONE";
 
         case TOKEN_OPERATORB_ADD:
             return "OPERATORB_ADD";

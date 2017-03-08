@@ -3,7 +3,6 @@
 // See LICENSE for details
 
 #include "codegen/Codegen.h"
-#include "codegen/GrammarCheckerVisitor.h"
 #include "util/Process.h"
 #include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
@@ -45,15 +44,6 @@ bool Codegen::run()
 
 bool Codegen::prepare()
 {
-    {
-        // Check grammar
-        auto ref = std::make_unique<GrammarCheckerVisitor>();
-        if(!ref->run<ast::ASTBlockStatement*>(ast->globalNode.get()))
-        {
-            return false;
-        }
-    }
-
     // Initialize LLVM stuff
     // For some reason all of these return false
     if(!llvm::InitializeNativeTarget())
@@ -133,7 +123,7 @@ void Codegen::write()
         if(util::ProgramOptions::view().outputFilename.empty() || writeStdout)
         {
             return filenameWithoutEnding(
-                       util::ProgramOptions::view().inputFilenames[0])
+                       util::ProgramOptions::view().inputFilename)
                 .append(filenameEndings.find(type)->second);
         }
         if(type == output)

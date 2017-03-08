@@ -18,7 +18,7 @@ Type::Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Type::Kind k,
 
 Type::~Type() noexcept = default;
 
-bool Type::isSameOrImplicitlyCastable(ast::ASTNode* node,
+bool Type::isSameOrImplicitlyCastable(ast::Node* node,
                                       llvm::IRBuilder<>& builder,
                                       TypedValue* val, Type* to) const
 {

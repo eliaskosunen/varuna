@@ -5,9 +5,9 @@
 #pragma once
 
 #include "ast/AST.h"
-#include "ast/ASTFunctionStatement.h"
-#include "ast/ASTNode.h"
+#include "ast/FunctionStmt.h"
 #include "ast/FwdDecl.h"
+#include "ast/Node.h"
 #include "ast/Visitor.h"
 #include "codegen/CodegenInfo.h"
 #include "codegen/Symbol.h"
@@ -53,7 +53,7 @@ private:
      * @param node Location to use, or nullptr to reset location information
      * (e.g. for function prologues)
      */
-    void emitDebugLocation(ast::ASTNode* node);
+    void emitDebugLocation(ast::Node* node);
 
     llvm::DIScope* getTopDebugScope() const;
 
@@ -69,7 +69,7 @@ private:
     /// Get a typed dummy value
     std::unique_ptr<TypedValue> getTypedDummyValue();
 
-    bool importModule(ast::ASTImportStatement* import);
+    bool importModule(ast::ImportStmt* import);
 
     /**
      * Log an error
@@ -79,13 +79,13 @@ private:
      * @return        nullptr
      */
     template <typename... Args>
-    std::nullptr_t codegenError(ast::ASTNode* node, const std::string& format,
+    std::nullptr_t codegenError(ast::Node* node, const std::string& format,
                                 Args&&... args) const;
     template <typename... Args>
-    void codegenWarning(ast::ASTNode* node, const std::string& format,
+    void codegenWarning(ast::Node* node, const std::string& format,
                         Args&&... args) const;
     template <typename... Args>
-    void codegenInfo(ast::ASTNode* node, const std::string& format,
+    void codegenInfo(ast::Node* node, const std::string& format,
                      Args&&... args) const;
 
     /**
@@ -95,16 +95,15 @@ private:
      * @param  logError Log the error
      * @return          FunctionSymbol*, nullptr on error
      */
-    FunctionSymbol* findFunction(const std::string& name, ast::ASTNode* node,
+    FunctionSymbol* findFunction(const std::string& name, ast::Node* node,
                                  bool logError = true);
 
     /**
-     * Get the ASTFunctionPrototypeStatement of an ASTNode.
-     * Searches parents recursively. Requires a ASTParentSolverVisitor run.
-     * @return ASTFunctionPrototypeStatement*, or nullptr on error
+     * Get the FunctionPrototypeStmt of an Node.
+     * Searches parents recursively. Requires a ParentSolverVisitor run.
+     * @return FunctionPrototypeStmt*, or nullptr on error
      */
-    ast::ASTFunctionPrototypeStatement*
-    getASTNodeFunction(ast::ASTNode* node) const;
+    ast::FunctionPrototypeStmt* getNodeFunction(ast::Node* node) const;
 
     /**
      * Declare a function.
@@ -113,11 +112,11 @@ private:
      * Generates code for the prototype.
      * @param  type  FunctionType of function
      * @param  name  Name of function
-     * @param  proto ASTFunctionPrototypeStatement of function
+     * @param  proto FunctionPrototypeStmt of function
      * @return       Created FunctionSymbol, or nullptr on error
      */
     FunctionSymbol* declareFunction(FunctionType* type, const std::string& name,
-                                    ast::ASTFunctionPrototypeStatement* proto);
+                                    ast::FunctionPrototypeStmt* proto);
 
     /**
      * Remove all instructions after block terminators.
@@ -147,7 +146,7 @@ private:
      * expression). On error both members are nullptr.
      */
     std::pair<Type*, std::unique_ptr<TypedValue>>
-    inferVariableDefType(ast::ASTVariableDefinitionExpression* expr);
+    inferVariableDefType(ast::VariableDefinitionExpr* expr);
 
     std::string mangleFunctionName(const std::string& name) const;
 
@@ -174,50 +173,43 @@ private:
     std::unique_ptr<TypeTable> types;
 
 public:
-    std::unique_ptr<TypedValue> visit(ast::ASTNode* node) = delete;
-    std::unique_ptr<TypedValue> visit(ast::ASTStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::Node* node) = delete;
+    std::unique_ptr<TypedValue> visit(ast::Stmt* node);
+    std::unique_ptr<TypedValue> visit(ast::Expr* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTIfStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTForStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTForeachStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTWhileStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTImportStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTModuleStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::IfStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ForStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ForeachStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::WhileStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ImportStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ModuleStmt* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTEmptyExpression* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTIdentifierExpression* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTVariableRefExpression* expr);
-    std::unique_ptr<TypedValue>
-    visit(ast::ASTVariableDefinitionExpression* expr);
-    std::unique_ptr<TypedValue>
-    visit(ast::ASTGlobalVariableDefinitionExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTSubscriptExpression* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTSubscriptRangedExpression* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTMemberAccessExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::EmptyExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::IdentifierExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::VariableRefExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::VariableDefinitionExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::GlobalVariableDefinitionExpr* expr);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTFunctionParameter* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTFunctionPrototypeStatement* node);
-    std::unique_ptr<TypedValue>
-    visit(ast::ASTFunctionDefinitionStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTReturnStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::FunctionParameter* node);
+    std::unique_ptr<TypedValue> visit(ast::FunctionPrototypeStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::FunctionDefinitionStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ReturnStmt* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTIntegerLiteralExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTFloatLiteralExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTStringLiteralExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTCharLiteralExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTBoolLiteralExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTNoneLiteralExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::IntegerLiteralExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::FloatLiteralExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::StringLiteralExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::CharLiteralExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::BoolLiteralExpr* expr);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTBinaryExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTUnaryExpression* expr);
-    std::unique_ptr<TypedValue> visit(ast::ASTAssignmentExpression* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTArbitraryOperandExpression* node);
+    std::unique_ptr<TypedValue> visit(ast::BinaryExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::UnaryExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::AssignmentExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::ArbitraryOperandExpr* node);
 
-    std::unique_ptr<TypedValue> visit(ast::ASTEmptyStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTBlockStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTWrappedExpressionStatement* node);
-    std::unique_ptr<TypedValue> visit(ast::ASTAliasStatement* node);
+    std::unique_ptr<TypedValue> visit(ast::EmptyStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::BlockStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::ExprStmt* node);
+    std::unique_ptr<TypedValue> visit(ast::AliasStmt* node);
 };
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::createVoidVal(llvm::Value* v)
@@ -242,7 +234,7 @@ inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 }
 
 template <typename... Args>
-inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
+inline std::nullptr_t CodegenVisitor::codegenError(ast::Node* node,
                                                    const std::string& format,
                                                    Args&&... args) const
 {
@@ -252,7 +244,7 @@ inline std::nullptr_t CodegenVisitor::codegenError(ast::ASTNode* node,
 }
 
 template <typename... Args>
-inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
+inline void CodegenVisitor::codegenWarning(ast::Node* node,
                                            const std::string& format,
                                            Args&&... args) const
 {
@@ -262,7 +254,7 @@ inline void CodegenVisitor::codegenWarning(ast::ASTNode* node,
 }
 
 template <typename... Args>
-inline void CodegenVisitor::codegenInfo(ast::ASTNode* node,
+inline void CodegenVisitor::codegenInfo(ast::Node* node,
                                         const std::string& format,
                                         Args&&... args) const
 {

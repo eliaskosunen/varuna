@@ -2,14 +2,14 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "ast/ASTControlStatement.h"
-#include "ast/ASTExpression.h"
-#include "ast/ASTFunctionStatement.h"
-#include "ast/ASTLiteralExpression.h"
-#include "ast/ASTNode.h"
-#include "ast/ASTOperatorExpression.h"
-#include "ast/ASTStatement.h"
+#include "ast/ControlStmt.h"
+#include "ast/Expr.h"
+#include "ast/FunctionStmt.h"
 #include "ast/FwdDecl.h"
+#include "ast/LiteralExpr.h"
+#include "ast/Node.h"
+#include "ast/OperatorExpr.h"
+#include "ast/Stmt.h"
 #include "codegen/CodegenVisitor.h"
 #include "codegen/TypeOperation.h"
 
@@ -17,19 +17,19 @@
 
 namespace codegen
 {
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::Expr* node)
 {
     codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
                    node->nodeType.get());
     return nullptr;
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::Stmt* node)
 {
     codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
                    node->nodeType.get());
     return nullptr;
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::IfStmt* node)
 {
     emitDebugLocation(node);
 
@@ -67,7 +67,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
     auto mergeBB = llvm::BasicBlock::Create(context, "if.merge");
 
     // Is there an else-block
-    bool elseExists = node->elseBlock->nodeType != ast::ASTNode::EMPTY_STMT;
+    bool elseExists = node->elseBlock->nodeType != ast::Node::EMPTY_STMT;
     if(elseExists)
     {
         // If there is one,
@@ -122,7 +122,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTIfStatement* node)
 
     return createVoidVal(mergeBB);
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ForStmt* node)
 {
     llvm::Function* func = builder.GetInsertBlock()->getParent();
 
@@ -242,14 +242,13 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTForStatement* node)
 
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTForeachStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ForeachStmt* node)
 {
     codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
                    node->nodeType.get());
     return nullptr;
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::WhileStmt* node)
 {
     llvm::Function* func = builder.GetInsertBlock()->getParent();
 
@@ -321,7 +320,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTWhileStatement* node)
 
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTImportStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ImportStmt* node)
 {
     auto table = importModule(node);
     if(!table)
@@ -330,18 +329,17 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTImportStatement* node)
     }
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTModuleStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ModuleStmt* node)
 {
     module->setModuleIdentifier(node->moduleName->value);
     return getTypedDummyValue();
 }
 
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyExpression*)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::EmptyExpr*)
 {
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::IdentifierExpr* node)
 {
     emitDebugLocation(node);
 
@@ -354,8 +352,7 @@ CodegenVisitor::visit(ast::ASTIdentifierExpression* node)
     return std::make_unique<TypedValue>(symbol->getType(), symbol->value->value,
                                         TypedValue::LVALUE, symbol->isMutable);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::VariableRefExpr* node)
 {
     emitDebugLocation(node);
 
@@ -374,7 +371,7 @@ CodegenVisitor::visit(ast::ASTVariableRefExpression* node)
                                         TypedValue::LVALUE, var->isMutable);
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
+CodegenVisitor::visit(ast::VariableDefinitionExpr* node)
 {
     // Infer variable type and codegen init expression
     Type* type;
@@ -438,7 +435,7 @@ CodegenVisitor::visit(ast::ASTVariableDefinitionExpression* node)
     return valclone;
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
+CodegenVisitor::visit(ast::GlobalVariableDefinitionExpr* node)
 {
     // Infer variable type and codegen init expression
     Type* type;
@@ -453,7 +450,7 @@ CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
 
     // Check initializer
     llvm::Constant* llvminit = nullptr;
-    if(node->var->init->nodeType == ast::ASTNode::EMPTY_EXPR)
+    if(node->var->init->nodeType == ast::Node::EMPTY_EXPR)
     {
         return codegenError(node->var.get(),
                             "Global variable has to be initialized");
@@ -492,6 +489,7 @@ CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
         auto d = dbuilder.createGlobalVariable(
             dfile, node->var->name->value, node->var->name->value, dfile,
             node->loc.line, type->dtype, node->isExport, llvminit);
+        static_cast<void>(d);
     }
 
     // Create symbol
@@ -507,30 +505,8 @@ CodegenVisitor::visit(ast::ASTGlobalVariableDefinitionExpression* node)
 
     return valclone;
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTSubscriptExpression* node)
-{
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
-}
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTSubscriptRangedExpression* node)
-{
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
-}
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTMemberAccessExpression* node)
-{
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
-}
 
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTFunctionParameter* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FunctionParameter* node)
 {
     llvm::Function* func = builder.GetInsertBlock()->getParent();
     const auto var = node->var.get();
@@ -566,8 +542,7 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
 
     if(info.emitDebug)
     {
-        auto proto =
-            static_cast<ast::ASTFunctionPrototypeStatement*>(node->parent);
+        auto proto = static_cast<ast::FunctionPrototypeStmt*>(node->parent);
         auto d = dbuilder.createParameterVariable(
             func->getSubprogram(), var->name->value, node->num, dfile,
             proto->loc.line, type->dtype, true);
@@ -590,7 +565,7 @@ CodegenVisitor::visit(ast::ASTFunctionParameter* node)
     return valclone;
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
+CodegenVisitor::visit(ast::FunctionPrototypeStmt* node)
 {
     // Find return type
     auto rt = types->findDecorated(node->returnType->value);
@@ -622,8 +597,7 @@ CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
 
     // Determine linkage
     auto linkage = [&]() {
-        auto parent =
-            static_cast<ast::ASTFunctionDefinitionStatement*>(node->parent);
+        auto parent = static_cast<ast::FunctionDefinitionStmt*>(node->parent);
         assert(parent);
         if(parent->isDecl)
         {
@@ -654,7 +628,7 @@ CodegenVisitor::visit(ast::ASTFunctionPrototypeStatement* node)
     return createVoidVal(f);
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
+CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
 {
     // Check for function type
     // If absent create one
@@ -793,16 +767,16 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     }
 
     // If no return instruction was found, create one
-    auto backNodeType = [&]() -> ast::ASTNode::NodeType {
+    auto backNodeType = [&]() -> ast::Node::NodeType {
         auto& nodes = node->body->nodes;
         if(nodes.empty())
         {
-            return ast::ASTNode::EMPTY_STMT;
+            return ast::Node::EMPTY_STMT;
         }
         return nodes.back()->nodeType;
     };
     if(llvmfunc->getReturnType()->isVoidTy() &&
-       backNodeType() != ast::ASTNode::RETURN_STMT)
+       backNodeType() != ast::Node::RETURN_STMT)
     {
         builder.CreateRetVoid();
     }
@@ -833,12 +807,12 @@ CodegenVisitor::visit(ast::ASTFunctionDefinitionStatement* node)
     return std::make_unique<TypedValue>(functionType, llvmfunc,
                                         TypedValue::STMTVALUE, false);
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ReturnStmt* node)
 {
     emitDebugLocation(node);
 
     // If empty return expression, return void
-    if(node->returnValue->nodeType == ast::ASTNode::EMPTY_EXPR)
+    if(node->returnValue->nodeType == ast::Node::EMPTY_EXPR)
     {
         builder.CreateRetVoid();
         return getTypedDummyValue();
@@ -852,7 +826,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
     }
 
     // Find function and check if types match
-    auto f = getASTNodeFunction(node);
+    auto f = getNodeFunction(node);
     auto retType = types->findDecorated(f->returnType->value);
     assert(retType);
     if(!ret->type->isSameOrImplicitlyCastable(node->returnValue.get(), builder,
@@ -868,8 +842,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTReturnStatement* node)
     return ret;
 }
 
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::IntegerLiteralExpr* node)
 {
     emitDebugLocation(node);
 
@@ -893,8 +866,7 @@ CodegenVisitor::visit(ast::ASTIntegerLiteralExpression* node)
         }(),
         TypedValue::RVALUE, true);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FloatLiteralExpr* node)
 {
     emitDebugLocation(node);
 
@@ -905,8 +877,7 @@ CodegenVisitor::visit(ast::ASTFloatLiteralExpression* node)
         t, llvm::ConstantFP::get(t->type, node->value), TypedValue::RVALUE,
         true);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::StringLiteralExpr* node)
 {
     emitDebugLocation(node);
 
@@ -952,8 +923,7 @@ CodegenVisitor::visit(ast::ASTStringLiteralExpression* node)
     return std::make_unique<TypedValue>(t, stringFatPtr, TypedValue::LVALUE,
                                         false);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTCharLiteralExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::CharLiteralExpr* node)
 {
     emitDebugLocation(node);
 
@@ -964,8 +934,7 @@ CodegenVisitor::visit(ast::ASTCharLiteralExpression* node)
         t, llvm::ConstantInt::get(t->type, node->value, false),
         TypedValue::RVALUE, true);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTBoolLiteralExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BoolLiteralExpr* node)
 {
     emitDebugLocation(node);
 
@@ -976,16 +945,8 @@ CodegenVisitor::visit(ast::ASTBoolLiteralExpression* node)
                        : llvm::ConstantInt::getFalse(context),
         TypedValue::RVALUE, true);
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTNoneLiteralExpression* node)
-{
-    codegenWarning(node, "Unimplemented CodegenVisitor::visit({})",
-                   node->nodeType.get());
-    return nullptr;
-}
 
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTBinaryExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BinaryExpr* node)
 {
     emitDebugLocation(node);
 
@@ -1000,16 +961,14 @@ CodegenVisitor::visit(ast::ASTBinaryExpression* node)
     if(node->oper == util::OPERATORB_AS)
     {
         // Check rhs validity
-        auto rhs = [&]() -> ast::ASTIdentifierExpression* {
-            if(node->rhs->nodeType == ast::ASTNode::IDENTIFIER_EXPR)
+        auto rhs = [&]() -> ast::IdentifierExpr* {
+            if(node->rhs->nodeType == ast::Node::IDENTIFIER_EXPR)
             {
-                return static_cast<ast::ASTIdentifierExpression*>(
-                    node->rhs.get());
+                return static_cast<ast::IdentifierExpr*>(node->rhs.get());
             }
-            if(node->rhs->nodeType == ast::ASTNode::VARIABLE_REF_EXPR)
+            if(node->rhs->nodeType == ast::Node::VARIABLE_REF_EXPR)
             {
-                return static_cast<ast::ASTVariableRefExpression*>(
-                    node->rhs.get());
+                return static_cast<ast::VariableRefExpr*>(node->rhs.get());
             }
             return codegenError(node->rhs.get(),
                                 "Invalid cast expression target type");
@@ -1045,7 +1004,7 @@ CodegenVisitor::visit(ast::ASTBinaryExpression* node)
     return operands.front()->type->getOperations()->binaryOperation(
         node, builder, node->oper, std::move(operands));
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTUnaryExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::UnaryExpr* node)
 {
     emitDebugLocation(node);
 
@@ -1061,8 +1020,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTUnaryExpression* node)
     return operands.front()->type->getOperations()->unaryOperation(
         node, builder, node->oper, std::move(operands));
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTAssignmentExpression* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::AssignmentExpr* node)
 {
     emitDebugLocation(node);
 
@@ -1086,17 +1044,16 @@ CodegenVisitor::visit(ast::ASTAssignmentExpression* node)
         node, builder, node->oper, std::move(operands));
 }
 std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTArbitraryOperandExpression* node)
+CodegenVisitor::visit(ast::ArbitraryOperandExpr* node)
 {
     emitDebugLocation(node);
 
     assert(node->operands.size() >= 1);
-    if(node->operands[0]->nodeType == ast::ASTNode::IDENTIFIER_EXPR &&
+    if(node->operands[0]->nodeType == ast::Node::IDENTIFIER_EXPR &&
        node->operands.size() == 2)
     {
         auto t = types->find(
-            static_cast<ast::ASTIdentifierExpression*>(node->operands[0].get())
-                ->value);
+            static_cast<ast::IdentifierExpr*>(node->operands[0].get())->value);
         // Constructor syntac
         // e.g. let foo = i16(10);
         //              ---^
@@ -1141,11 +1098,11 @@ CodegenVisitor::visit(ast::ASTArbitraryOperandExpression* node)
         node, builder, node->oper, std::move(operands));
 }
 
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTEmptyStatement*)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::EmptyStmt*)
 {
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BlockStmt* node)
 {
     emitDebugLocation(node);
 
@@ -1180,12 +1137,11 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTBlockStatement* node)
 
     return getTypedDummyValue();
 }
-std::unique_ptr<TypedValue>
-CodegenVisitor::visit(ast::ASTWrappedExpressionStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ExprStmt* node)
 {
     return node->expr->accept(this);
 }
-std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ASTAliasStatement* node)
+std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::AliasStmt* node)
 {
     auto aliasee = types->find(node->aliasee->value);
     if(!aliasee)

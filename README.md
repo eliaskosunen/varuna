@@ -15,7 +15,7 @@ Coverage: [![Coverage Status](https://img.shields.io/coveralls/varuna-lang/varun
 Varuna is a general-purpose compiled programming language.
 The implementation of the language can be found in this repository.
 More specifically, this compiler is an LLVM front-end.
-It produces (optionally) optimized LLVM IR.
+It produces either native object code, assembly or LLVM IR or bytecode.
 
 WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
 Wait for 0.1 release (coming soon(tm)) or grab the code from the develop branch.
@@ -36,7 +36,7 @@ a Varuna module file `.vamod` (used for importing).
 
 ```
 OVERVIEW: Varuna Compiler
-USAGE: varuna [subcommand] [options] Input file list
+USAGE: varuna [subcommand] [options] Input file
 
 OPTIONS:
 
@@ -112,26 +112,47 @@ $ ./a.out
 
 The project is developed on Ubuntu 16.04 and tested on Ubuntu 14.04.
 Other Linux distributions should work, as long as they'll have the right compiler versions available.
-Windows is supported, and macOS may work, but is not tested due to lack of resources.
+Building on Windows is supported and tested on Win10.
+Mac OS X may work, but is not tested due to lack of resources.
 
-A C++14 compliant compiler is required for building.
-The project is confirmed to build on
-Linux with g++ (versions 5.4.0 and 6.2.0) and Clang (versions 3.6.2 and 3.9.1) and
-on Windows with Visual Studio 14 (2015). Other compilers may work, but are not actively supported.
-Further support is not planned.
-
-This project depends on LLVM. It is developed on version 3.9, but earlier versions may work as well.
+This project depends on LLVM. It needs the LLVM binaries 'llvm-as', 'llc' and 'opt' available in the system path and the LLVM compiler infrastructure C++ libraries.
+The project is developed on version 3.9 and guaranteed to work only on that version.
 The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
 
-### Instructions
+To build the compiler, a C++14 standard compliant compiler is required. This means g++-5 or up (g++-4.9 may work) or clang++-3.6 or up (clang++-3.4 or 3.5 may work).
+On Windows, only Visual Studio 14 (2015) is supported.
 
-The application can be built using CMake.
-The easiest way to do this is to run `build.sh`,
-which will build the application, tests and documentation.
-`build.sh` will only work on Linux.
+### Installing LLVM
 
-If you'd like to build on other platforms than Linux,
-or not to build documentation, here are the instructions:
+The easiest way to install LLVM, if you are on Debian/Ubuntu, is to install them with `apt-get`. ([More information on the LLVM webpage](http://apt.llvm.org/)). First, add the apt repository:
+
+```
+# Debian (Jessie)
+deb http://apt.llvm.org/jessie/ llvm-toolchain-jessie-3.9 main
+deb-src http://apt.llvm.org/jessie/ llvm-toolchain-jessie-3.9 main
+# Ubuntu (Xenial)
+deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main
+deb-src http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main
+# See instructions for other OS versions from the link above
+```
+
+Then do the rest of the installation in the shell:
+
+```sh
+# Retrieve archive signature
+$ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+
+# Install packages
+$ sudo apt-get install libllvm3.9 llvm-3.9 llvm-3.9-dev
+
+# LLVM packages will be on /usr/lib/llvm-3.9
+```
+
+On other platforms, you need to build LLVM yourself.
+See the LLVM documentation:
+[Linux](http://llvm.org/docs/GettingStarted.html)
+[Windows](http://llvm.org/docs/GettingStartedVS.html)
+[Downloads](releases.llvm.org/download.html#3.9.1)
 
 ### Linux
 
@@ -140,28 +161,15 @@ or not to build documentation, here are the instructions:
 $ mkdir build
 $ cd build
 # Your LLVM installation directory may be different
-# Add -DBUILD_TESTS=OFF to disable building of unit tests
-$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS_OFF ..
 # Parallel builds are recommended
 $ make -j4
-
-# Run tests:
-$ cd ..
-$ ./bin/tests
-
-# Build documentation
-./scripts/doxygen.sh
+$ sudo make install
 ```
 
 ### Windows
 
-You can either use the CMake GUI or the Command Prompt:
-```sh
-# On the repository root folder
-> md build
-> cd build
-> cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release ..
-```
+You can either use the CMake GUI to create the MSVC project files.
 
 After that the Visual Studio project files can be found in the folder `build`.
 

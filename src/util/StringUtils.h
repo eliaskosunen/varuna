@@ -5,7 +5,7 @@
 #pragma once
 
 #include "util/String.h"
-#include <spdlog.h>
+#include <fmt.h>
 #include <algorithm>
 #include <cassert>
 #include <cctype>

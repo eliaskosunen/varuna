@@ -6,7 +6,7 @@
 
 #include "util/File.h"
 #include <cereal.h>
-#include <spdlog.h>
+#include <fmt.h>
 
 namespace util
 {
@@ -21,11 +21,12 @@ struct SourceLocation
     /// Format to a string
     std::string toString() const
     {
+        assert(file);
         return fmt::format("{}:{}:{}", file->getFilename(), line, col);
     }
 
     /// File
-    std::shared_ptr<util::File> file;
+    std::shared_ptr<util::File> file{nullptr};
     /// Line
     uint32_t line{0};
     /// Column

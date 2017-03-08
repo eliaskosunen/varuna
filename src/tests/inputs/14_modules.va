@@ -1,0 +1,18 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 14_modules.va
+// Modules
+
+module test_14_modules;
+
+import test_14_modules_importee;
+
+def main() -> i32 {
+    let mut a = external_function();
+    a /= 2;
+    let mut b = another_function();
+    b *= 2;
+    return a + b;
+}

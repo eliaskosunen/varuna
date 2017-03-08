@@ -58,6 +58,13 @@ public:
     const std::string& getContent() const;
 
     /**
+     * Get ownership of the file contents.
+     * For testing purposes
+     * @return Contents
+     */
+    std::string&& consumeContent();
+
+    /**
      * Get a line of contents.
      * Throws at invalid line number
      * @param  line Line number
@@ -107,6 +114,12 @@ inline const std::string& File::getContent() const
 {
     assert(contentValid);
     return content;
+}
+
+inline std::string&& File::consumeContent()
+{
+    assert(contentValid);
+    return std::move(content);
 }
 
 inline void File::setContent(const std::string& c)

@@ -61,7 +61,6 @@ namespace lexer
         TOKEN_LITERAL_CHAR,
         TOKEN_LITERAL_TRUE,
         TOKEN_LITERAL_FALSE,
-        TOKEN_LITERAL_NONE,
 
         TOKEN_OPERATORA_SIMPLE = util::OPERATORA_SIMPLE, // =
         TOKEN_OPERATORA_ADD = util::OPERATORA_ADD,       // +=

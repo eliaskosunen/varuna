@@ -16,7 +16,7 @@ class Frontend
 public:
     Frontend(std::shared_ptr<util::File> f);
 
-    std::unique_ptr<ast::AST> run();
+    std::shared_ptr<ast::AST> run();
 
     const char* getIdentifier() const noexcept
     {
@@ -29,6 +29,6 @@ private:
 
     std::shared_ptr<util::File> file;
     core::lexer::TokenVector tokens;
-    std::unique_ptr<ast::AST> ast;
+    std::shared_ptr<ast::AST> ast;
 };
 } // namespace core

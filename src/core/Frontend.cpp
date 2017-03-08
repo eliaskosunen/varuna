@@ -3,6 +3,7 @@
 // See LICENSE for details
 
 #include "core/Frontend.h"
+#include "ast/Serializer.h"
 
 namespace core
 {
@@ -12,7 +13,7 @@ Frontend::Frontend(std::shared_ptr<util::File> f)
     assert(file);
 }
 
-std::unique_ptr<ast::AST> Frontend::run()
+std::shared_ptr<ast::AST> Frontend::run()
 {
     if(!runLexer())
     {
@@ -23,7 +24,7 @@ std::unique_ptr<ast::AST> Frontend::run()
         return nullptr;
     }
     assert(ast);
-    return std::move(ast);
+    return std::shared_ptr<ast::AST>(std::move(ast));
 }
 
 bool Frontend::runLexer()
@@ -54,12 +55,13 @@ bool Frontend::runParser()
                            file->getFilename());
         return false;
     }
-    ast = p.retrieveAST();
+    auto astUniq = p.retrieveAST();
+    ast = std::shared_ptr<ast::AST>(std::move(astUniq));
     util::logger->debug("Parsing finished\n");
 
     {
-        auto dumper = ast::DumpASTVisitor();
-        dumper.dump(ast->globalNode.get());
+        ast::Serializer s(ast);
+        s.runDump();
     }
 
     return true;

@@ -11,6 +11,8 @@ namespace util
 {
 class Process
 {
+    using ErrorCodeType = uint32_t;
+
     /// Has the process been spawned
     bool spawned{false};
     /// Executable
@@ -19,12 +21,6 @@ class Process
     std::string params;
     /// Process exit status
     int returnValue{-1};
-
-#if VARUNA_MSVC
-    using ErrorCodeType = DWORD;
-#else
-    using ErrorCodeType = int32_t;
-#endif
     /// Latest error code
     ErrorCodeType errorCode{0};
 
@@ -59,6 +55,8 @@ public:
     /// Get platform-dependent error description.
     /// Returns an empty string if no error has occured
     std::string getErrorString();
+
+    static std::string getSuccessErrorString();
 
     static Process create(const std::string& pFile, const std::string& pParams)
     {

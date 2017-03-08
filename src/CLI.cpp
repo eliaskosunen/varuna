@@ -98,9 +98,9 @@ int CLI::run()
     cl::opt<std::string> outputFileArg("o", cl::desc("Output file"),
                                        cl::init(""), cl::cat(catGeneral));
     // Input files
-    cl::list<std::string> inputFilesArg(cl::desc("Input file list"),
-                                        cl::value_desc("file"), cl::Positional,
-                                        cl::cat(catGeneral));
+    cl::opt<std::string> inputFileArg(cl::desc("Input file"),
+                                      cl::value_desc("file"), cl::Positional,
+                                      cl::cat(catGeneral));
     // Debugging symbols
     cl::opt<bool> debugArg("g", cl::desc("Emit debugging symbols"),
                            cl::init(false), cl::cat(catCodegen));
@@ -179,6 +179,12 @@ int CLI::run()
         return 0;
     }
 
+    if(inputFileArg.empty())
+    {
+        util::logger->error("No input file given!");
+        return -1;
+    }
+
     // Create Runner
     int threads = jobsArg;
     if(threads < 0)
@@ -188,24 +194,7 @@ int CLI::run()
     }
     Runner runner(threads);
 
-    std::vector<std::string> filelist;
-    if(inputFilesArg.empty())
-    {
-        util::logger->error("At least one input file required");
-        return -1;
-    }
-    if(inputFilesArg.size() > 1)
-    {
-        // TODO: Multiple input files
-        util::logger->error("Only one input file is supported");
-        return -1;
-    }
-    for(auto&& f : inputFilesArg)
-    {
-        filelist.push_back(std::move(f));
-    }
-
-    util::ProgramOptions::get().inputFilenames = std::move(filelist);
+    util::ProgramOptions::get().inputFilename = std::move(inputFileArg);
     util::ProgramOptions::get().outputFilename = std::move(outputFileArg);
     util::ProgramOptions::get().output = std::move(outputArg);
 
@@ -243,7 +232,8 @@ void CLI::removeRegisteredOptions()
             continue;
         }
         const auto& first = o.first();
-        if(first == "help" || first == "help-hidden" || first == "version")
+        if(first == "help" || first == "help-hidden" || first == "help-list" ||
+           first == "help-list-hidden" || first == "version")
         {
             continue;
         }

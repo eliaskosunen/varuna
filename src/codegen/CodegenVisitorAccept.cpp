@@ -2,189 +2,169 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
-#include "ast/ASTControlStatement.h"
-#include "ast/ASTExpression.h"
-#include "ast/ASTFunctionStatement.h"
-#include "ast/ASTLiteralExpression.h"
-#include "ast/ASTNode.h"
-#include "ast/ASTOperatorExpression.h"
-#include "ast/ASTStatement.h"
+#include "ast/ControlStmt.h"
+#include "ast/Expr.h"
+#include "ast/FunctionStmt.h"
 #include "ast/FwdDecl.h"
+#include "ast/LiteralExpr.h"
+#include "ast/Node.h"
+#include "ast/OperatorExpr.h"
+#include "ast/Stmt.h"
 #include "codegen/CodegenVisitor.h"
 
 std::unique_ptr<codegen::TypedValue>
-ast::ASTExpression::accept(codegen::CodegenVisitor* v)
+ast::Expr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-
-std::unique_ptr<codegen::TypedValue>
-ast::ASTIfStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTForStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTForeachStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTWhileStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTImportStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTModuleStatement::accept(codegen::CodegenVisitor* v)
+ast::Stmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 
 std::unique_ptr<codegen::TypedValue>
-ast::ASTEmptyExpression::accept(codegen::CodegenVisitor* v)
+ast::IfStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTIdentifierExpression::accept(codegen::CodegenVisitor* v)
+ast::ForStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTVariableRefExpression::accept(codegen::CodegenVisitor* v)
+ast::ForeachStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTVariableDefinitionExpression::accept(codegen::CodegenVisitor* v)
+ast::WhileStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTGlobalVariableDefinitionExpression::accept(codegen::CodegenVisitor* v)
+ast::ImportStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTSubscriptExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTSubscriptRangedExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTMemberAccessExpression::accept(codegen::CodegenVisitor* v)
+ast::ModuleStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 
 std::unique_ptr<codegen::TypedValue>
-ast::ASTFunctionParameter::accept(codegen::CodegenVisitor* v)
+ast::EmptyExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTFunctionPrototypeStatement::accept(codegen::CodegenVisitor* v)
+ast::IdentifierExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTFunctionDefinitionStatement::accept(codegen::CodegenVisitor* v)
+ast::VariableRefExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTReturnStatement::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-
-std::unique_ptr<codegen::TypedValue>
-ast::ASTIntegerLiteralExpression::accept(codegen::CodegenVisitor* v)
+ast::VariableDefinitionExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTFloatLiteralExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTStringLiteralExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTCharLiteralExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTBoolLiteralExpression::accept(codegen::CodegenVisitor* v)
-{
-    return v->visit(this);
-}
-std::unique_ptr<codegen::TypedValue>
-ast::ASTNoneLiteralExpression::accept(codegen::CodegenVisitor* v)
+ast::GlobalVariableDefinitionExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 
 std::unique_ptr<codegen::TypedValue>
-ast::ASTBinaryExpression::accept(codegen::CodegenVisitor* v)
+ast::FunctionParameter::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTUnaryExpression::accept(codegen::CodegenVisitor* v)
+ast::FunctionPrototypeStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTAssignmentExpression::accept(codegen::CodegenVisitor* v)
+ast::FunctionDefinitionStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTArbitraryOperandExpression::accept(codegen::CodegenVisitor* v)
+ast::ReturnStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 
 std::unique_ptr<codegen::TypedValue>
-ast::ASTEmptyStatement::accept(codegen::CodegenVisitor* v)
+ast::IntegerLiteralExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTBlockStatement::accept(codegen::CodegenVisitor* v)
+ast::FloatLiteralExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTWrappedExpressionStatement::accept(codegen::CodegenVisitor* v)
+ast::StringLiteralExpr::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }
 std::unique_ptr<codegen::TypedValue>
-ast::ASTAliasStatement::accept(codegen::CodegenVisitor* v)
+ast::CharLiteralExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::BoolLiteralExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+
+std::unique_ptr<codegen::TypedValue>
+ast::BinaryExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::UnaryExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::AssignmentExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::ArbitraryOperandExpr::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+
+std::unique_ptr<codegen::TypedValue>
+ast::EmptyStmt::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::BlockStmt::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::ExprStmt::accept(codegen::CodegenVisitor* v)
+{
+    return v->visit(this);
+}
+std::unique_ptr<codegen::TypedValue>
+ast::AliasStmt::accept(codegen::CodegenVisitor* v)
 {
     return v->visit(this);
 }

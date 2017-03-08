@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ast/AST.h"
-#include "ast/DumpASTVisitor.h"
+#include "ast/DumpVisitor.h"
 #include "core/lexer/Lexer.h"
 #include "util/File.h"
 #include "util/Logger.h"
@@ -63,7 +63,7 @@ namespace parser
         template <typename... Args>
         void parserWarning(const std::string& format, Args&&... args);
 
-        std::vector<std::unique_ptr<ast::ASTStatement>>& getGlobalNodeList()
+        std::vector<std::unique_ptr<ast::Stmt>>& getGlobalNodeList()
         {
             return ast->globalNode->nodes;
         }
@@ -95,48 +95,40 @@ namespace parser
 
         struct ForCondition
         {
-            std::unique_ptr<ast::ASTExpression> init;
-            std::unique_ptr<ast::ASTExpression> cond;
-            std::unique_ptr<ast::ASTExpression> step;
+            std::unique_ptr<ast::Expr> init;
+            std::unique_ptr<ast::Expr> cond;
+            std::unique_ptr<ast::Expr> step;
         };
         ForCondition parseForCondition();
 
-        std::unique_ptr<ast::ASTImportStatement> parseImportStatement();
-        std::unique_ptr<ast::ASTIfStatement> parseIfStatement();
-        std::unique_ptr<ast::ASTForStatement> parseForStatement();
-        std::unique_ptr<ast::ASTWhileStatement> parseWhileStatement();
-        std::unique_ptr<ast::ASTVariableDefinitionExpression>
-        parseVariableDefinition();
-        std::unique_ptr<ast::ASTGlobalVariableDefinitionExpression>
+        std::unique_ptr<ast::ImportStmt> parseImportStatement();
+        std::unique_ptr<ast::IfStmt> parseIfStatement();
+        std::unique_ptr<ast::ForStmt> parseForStatement();
+        std::unique_ptr<ast::WhileStmt> parseWhileStatement();
+        std::unique_ptr<ast::VariableDefinitionExpr> parseVariableDefinition();
+        std::unique_ptr<ast::GlobalVariableDefinitionExpr>
         parseGlobalVariableDefinition();
-        std::unique_ptr<ast::ASTModuleStatement> parseModuleStatement();
-        std::unique_ptr<ast::ASTReturnStatement> parseReturnStatement();
+        std::unique_ptr<ast::ModuleStmt> parseModuleStatement();
+        std::unique_ptr<ast::ReturnStmt> parseReturnStatement();
 
-        std::unique_ptr<ast::ASTAliasStatement> parseAliasStatement();
+        std::unique_ptr<ast::AliasStmt> parseAliasStatement();
 
-        std::unique_ptr<ast::ASTIntegerLiteralExpression>
+        std::unique_ptr<ast::IntegerLiteralExpr>
         parseIntegerLiteralExpression();
-        std::unique_ptr<ast::ASTFloatLiteralExpression>
-        parseFloatLiteralExpression();
-        std::unique_ptr<ast::ASTStringLiteralExpression>
-        parseStringLiteralExpression();
-        std::unique_ptr<ast::ASTCharLiteralExpression>
-        parseCharLiteralExpression();
-        std::unique_ptr<ast::ASTBoolLiteralExpression>
-        parseTrueLiteralExpression();
-        std::unique_ptr<ast::ASTBoolLiteralExpression>
-        parseFalseLiteralExpression();
-        std::unique_ptr<ast::ASTNoneLiteralExpression>
-        parseNoneLiteralExpression();
+        std::unique_ptr<ast::FloatLiteralExpr> parseFloatLiteralExpression();
+        std::unique_ptr<ast::StringLiteralExpr> parseStringLiteralExpression();
+        std::unique_ptr<ast::CharLiteralExpr> parseCharLiteralExpression();
+        std::unique_ptr<ast::BoolLiteralExpr> parseTrueLiteralExpression();
+        std::unique_ptr<ast::BoolLiteralExpr> parseFalseLiteralExpression();
 
-        std::unique_ptr<ast::ASTExpression> parseIdentifierExpression();
-        std::unique_ptr<ast::ASTArbitraryOperandExpression>
-        parseFunctionCallExpression(std::unique_ptr<ast::ASTExpression> lhs);
-        std::unique_ptr<ast::ASTSubscriptExpression>
-        parseSubscriptExpression(std::unique_ptr<ast::ASTExpression> lhs);
-        std::unique_ptr<ast::ASTExpression>
+        std::unique_ptr<ast::Expr> parseIdentifierExpression();
+        std::unique_ptr<ast::ArbitraryOperandExpr>
+        parseFunctionCallExpression(std::unique_ptr<ast::Expr> lhs);
+        std::unique_ptr<ast::BinaryExpr>
+        parseSubscriptExpression(std::unique_ptr<ast::Expr> lhs);
+        std::unique_ptr<ast::Expr>
         parsePrimary(bool tolerateUnrecognized = false);
-        std::unique_ptr<ast::ASTExpression> parseExpression();
+        std::unique_ptr<ast::Expr> parseExpression();
 
         void handleImport();
         void handleModule();
@@ -146,24 +138,23 @@ namespace parser
         void handleExport();
         void handleUse();
 
-        std::unique_ptr<ast::ASTStatement> parseStatement();
-        std::unique_ptr<ast::ASTBlockStatement> parseBlockStatement();
-        std::unique_ptr<ast::ASTFunctionParameter>
+        std::unique_ptr<ast::Stmt> parseStatement();
+        std::unique_ptr<ast::BlockStmt> parseBlockStatement();
+        std::unique_ptr<ast::FunctionParameter>
         parseFunctionParameter(uint32_t num);
-        std::unique_ptr<ast::ASTFunctionPrototypeStatement>
-        parseFunctionPrototype();
-        std::unique_ptr<ast::ASTFunctionDefinitionStatement>
+        std::unique_ptr<ast::FunctionPrototypeStmt> parseFunctionPrototype();
+        std::unique_ptr<ast::FunctionDefinitionStmt>
         parseFunctionDefinitionStatement();
 
-        std::unique_ptr<ast::ASTWrappedExpressionStatement>
-        wrapExpression(std::unique_ptr<ast::ASTExpression> expr);
-        std::unique_ptr<ast::ASTEmptyStatement> emptyStatement(bool skip = true)
+        std::unique_ptr<ast::ExprStmt>
+        createExprStmt(std::unique_ptr<ast::Expr> expr);
+        std::unique_ptr<ast::EmptyStmt> emptyStatement(bool skip = true)
         {
             if(skip)
             {
                 ++it;
             }
-            return createNode<ast::ASTEmptyStatement>(skip ? (it - 1) : it);
+            return createNode<ast::EmptyStmt>(skip ? (it - 1) : it);
         }
 
         void _runParser();

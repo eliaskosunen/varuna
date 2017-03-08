@@ -26,7 +26,7 @@ public:
     virtual ~TypeOperationBase() = default;
 
     template <typename... Args>
-    std::nullptr_t operationError(ast::ASTNode* node, const std::string& format,
+    std::nullptr_t operationError(ast::Node* node, const std::string& format,
                                   Args&&... args) const
     {
         return util::logCompilerError(node->loc, format,
@@ -34,7 +34,7 @@ public:
     }
 
     template <typename... Args>
-    void operationWarning(ast::ASTNode* node, const std::string& format,
+    void operationWarning(ast::Node* node, const std::string& format,
                           Args&&... args) const
     {
         util::logCompilerWarning(node->loc, format,
@@ -42,7 +42,7 @@ public:
     }
 
     template <typename... Args>
-    void operationInfo(ast::ASTNode* node, const std::string& format,
+    void operationInfo(ast::Node* node, const std::string& format,
                        Args&&... args) const
     {
         util::logCompilerInfo(node->loc, format, std::forward<Args>(args)...);
@@ -50,22 +50,22 @@ public:
 
     /// Assignment operations
     virtual std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const = 0;
     /// Unary operations
     virtual std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const = 0;
     /// Binary operations
     virtual std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const = 0;
     /// Arbitrary-operand operations
     virtual std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const = 0;
 
@@ -80,19 +80,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -105,19 +105,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -130,19 +130,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -155,19 +155,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -180,19 +180,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -205,19 +205,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -230,19 +230,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -255,19 +255,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };
@@ -280,19 +280,19 @@ public:
     }
 
     std::unique_ptr<TypedValue>
-    assignmentOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    assignmentOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                         util::OperatorType op,
                         std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    unaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    unaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                    util::OperatorType op,
                    std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    binaryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    binaryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                     util::OperatorType op,
                     std::vector<TypedValue*> operands) const override;
     std::unique_ptr<TypedValue>
-    arbitraryOperation(ast::ASTNode* node, llvm::IRBuilder<>& builder,
+    arbitraryOperation(ast::Node* node, llvm::IRBuilder<>& builder,
                        util::OperatorType op,
                        std::vector<TypedValue*> operands) const override;
 };

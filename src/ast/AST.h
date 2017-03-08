@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "ast/ASTStatement.h"
 #include "ast/FwdDecl.h"
+#include "ast/Stmt.h"
 #include "ast/Visitor.h"
 #include "util/File.h"
 #include <algorithm>
@@ -15,13 +15,17 @@ namespace ast
 /// AST representation
 class AST final
 {
+    friend class cereal::access;
+
+    AST() = default;
+
 public:
     /**
      * AST constructor
      * @param  f Source file of AST
      */
     explicit AST(std::shared_ptr<util::File> f)
-        : globalNode(std::make_unique<ASTBlockStatement>()), file(f)
+        : globalNode(std::make_unique<BlockStmt>()), file(f)
     {
     }
 
@@ -29,7 +33,7 @@ public:
      * Push a statement to the global node list
      * @param node Node to push
      */
-    void push(std::unique_ptr<ASTStatement> node)
+    void push(std::unique_ptr<Stmt> node)
     {
         globalNode->nodes.push_back(std::move(node));
     }
@@ -43,8 +47,14 @@ public:
         return globalNode->nodes.size();
     }
 
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(file), CEREAL_NVP(globalNode));
+    }
+
     /// Global node
-    std::unique_ptr<ASTBlockStatement> globalNode;
+    std::unique_ptr<BlockStmt> globalNode;
     /// Source file of the tree
     std::shared_ptr<util::File> file;
 };

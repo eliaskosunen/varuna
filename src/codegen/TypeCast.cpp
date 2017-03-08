@@ -8,7 +8,7 @@
 
 namespace codegen
 {
-std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> Type::implicitCast(ast::Node* node,
                                                llvm::IRBuilder<>& builder,
                                                TypedValue* val, Type* to) const
 {
@@ -22,7 +22,7 @@ std::unique_ptr<TypedValue> Type::implicitCast(ast::ASTNode* node,
                      to->kind.get());
 }
 
-std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> VoidType::cast(ast::Node* node,
                                            llvm::IRBuilder<>& builder,
                                            CastType c, TypedValue* val,
                                            Type* to) const
@@ -35,7 +35,7 @@ std::unique_ptr<TypedValue> VoidType::cast(ast::ASTNode* node,
     return castError(node, "Invalid cast: Cannot cast void");
 }
 
-std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> IntegralType::cast(ast::Node* node,
                                                llvm::IRBuilder<>& builder,
                                                CastType c, TypedValue* val,
                                                Type* to) const
@@ -82,7 +82,7 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::ASTNode* node,
     }
 }
 
-std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> BoolType::cast(ast::Node* node,
                                            llvm::IRBuilder<>& builder,
                                            CastType c, TypedValue* val,
                                            Type* to) const
@@ -129,7 +129,7 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::ASTNode* node,
     }
 }
 
-std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> CharacterType::cast(ast::Node* node,
                                                 llvm::IRBuilder<>& builder,
                                                 CastType c, TypedValue* val,
                                                 Type* to) const
@@ -159,7 +159,7 @@ std::unique_ptr<TypedValue> CharacterType::cast(ast::ASTNode* node,
                      getDecoratedName(), to->getDecoratedName());
 }
 
-std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
                                            llvm::IRBuilder<>& builder,
                                            CastType c, TypedValue* val,
                                            Type* to) const
@@ -202,7 +202,7 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::ASTNode* node,
     }
 }
 
-std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> FPType::cast(ast::Node* node,
                                          llvm::IRBuilder<>& builder, CastType c,
                                          TypedValue* val, Type* to) const
 {
@@ -243,7 +243,7 @@ std::unique_ptr<TypedValue> FPType::cast(ast::ASTNode* node,
     }
 }
 
-std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> StringType::cast(ast::Node* node,
                                              llvm::IRBuilder<>& builder,
                                              CastType c, TypedValue* val,
                                              Type* to) const
@@ -256,7 +256,7 @@ std::unique_ptr<TypedValue> StringType::cast(ast::ASTNode* node,
     return castError(node, "Invalid cast: Cannot cast string");
 }
 
-std::unique_ptr<TypedValue> CStringType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> CStringType::cast(ast::Node* node,
                                               llvm::IRBuilder<>& builder,
                                               CastType c, TypedValue* val,
                                               Type* to) const
@@ -269,7 +269,7 @@ std::unique_ptr<TypedValue> CStringType::cast(ast::ASTNode* node,
     return castError(node, "Invalid cast: Cannot cast string");
 }
 
-std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> FunctionType::cast(ast::Node* node,
                                                llvm::IRBuilder<>& builder,
                                                CastType c, TypedValue* val,
                                                Type* to) const
@@ -282,7 +282,7 @@ std::unique_ptr<TypedValue> FunctionType::cast(ast::ASTNode* node,
     return castError(node, "Invalid cast: Cannot cast function");
 }
 
-std::unique_ptr<TypedValue> AliasType::cast(ast::ASTNode* node,
+std::unique_ptr<TypedValue> AliasType::cast(ast::Node* node,
                                             llvm::IRBuilder<>& builder,
                                             CastType c, TypedValue* val,
                                             Type* to) const

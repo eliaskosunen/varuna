@@ -3,14 +3,14 @@
 // See LICENSE for details
 
 #include "codegen/CodegenVisitor.h"
-#include "ast/ASTControlStatement.h"
-#include "ast/ASTExpression.h"
-#include "ast/ASTFunctionStatement.h"
-#include "ast/ASTLiteralExpression.h"
-#include "ast/ASTNode.h"
-#include "ast/ASTOperatorExpression.h"
-#include "ast/ASTStatement.h"
+#include "ast/ControlStmt.h"
+#include "ast/Expr.h"
+#include "ast/FunctionStmt.h"
 #include "ast/FwdDecl.h"
+#include "ast/LiteralExpr.h"
+#include "ast/Node.h"
+#include "ast/OperatorExpr.h"
+#include "ast/Stmt.h"
 #include "codegen/ModuleFile.h"
 #include "util/ProgramInfo.h"
 #include "util/ProgramOptions.h"
@@ -104,7 +104,7 @@ bool CodegenVisitor::codegen(ast::AST* ast)
     return true;
 }
 
-void CodegenVisitor::emitDebugLocation(ast::ASTNode* node)
+void CodegenVisitor::emitDebugLocation(ast::Node* node)
 {
     if(info.emitDebug)
     {
@@ -134,6 +134,7 @@ void CodegenVisitor::writeExports(std::unique_ptr<SymbolTable> exports)
     ModuleFile mod(filename);
     mod.write(ModuleFile::ModuleFileSymbolTable::createFromSymbolTable(
         std::move(exports)));
+    util::logger->info("Wrote module export file in '{}'", filename);
 }
 
 void CodegenVisitor::stripInstructionsAfterTerminators()
@@ -196,7 +197,7 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
 }
 
 FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
-                                             ast::ASTNode* node, bool logError)
+                                             ast::Node* node, bool logError)
 {
     // Find a symbol with a similar name
     auto f = symbols->find(name, Type::FUNCTION);
@@ -222,7 +223,7 @@ FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
 
 FunctionSymbol*
 CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
-                                ast::ASTFunctionPrototypeStatement* proto)
+                                ast::FunctionPrototypeStmt* proto)
 {
     // Check if function with the same name is already declared
     auto func = findFunction(name, nullptr, false);
@@ -274,10 +275,10 @@ CodegenVisitor::createEntryBlockAlloca(llvm::Function* func, llvm::Type* type,
     return tmp.CreateAlloca(type, nullptr, name.c_str());
 }
 
-ast::ASTFunctionPrototypeStatement*
-CodegenVisitor::getASTNodeFunction(ast::ASTNode* node) const
+ast::FunctionPrototypeStmt*
+CodegenVisitor::getNodeFunction(ast::Node* node) const
 {
-    // Use ASTNode::getFunction(), which was made for this
+    // Use Node::getFunction(), which was made for this
     auto f = node->getFunction();
     if(!f)
     {
@@ -286,7 +287,7 @@ CodegenVisitor::getASTNodeFunction(ast::ASTNode* node) const
     return f->proto.get();
 }
 
-bool CodegenVisitor::importModule(ast::ASTImportStatement* import)
+bool CodegenVisitor::importModule(ast::ImportStmt* import)
 {
     auto moduleName = getModuleFilename(import->importee->value);
     ModuleFile mod(moduleName);
@@ -319,7 +320,7 @@ bool CodegenVisitor::importModule(ast::ASTImportStatement* import)
 }
 
 std::pair<Type*, std::unique_ptr<TypedValue>>
-CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
+CodegenVisitor::inferVariableDefType(ast::VariableDefinitionExpr* node)
 {
     // Define some lambdas for easier returning
     auto ret = [](Type* t, std::unique_ptr<TypedValue> i) {
@@ -329,7 +330,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
 
     // Initializer
     std::unique_ptr<TypedValue> init = nullptr;
-    if(node->init->nodeType != ast::ASTNode::EMPTY_EXPR)
+    if(node->init->nodeType != ast::Node::EMPTY_EXPR)
     {
         // Only codegen if there actually is an initializer
         init = node->init->accept(this);
@@ -363,7 +364,7 @@ CodegenVisitor::inferVariableDefType(ast::ASTVariableDefinitionExpression* node)
     {
         // Cannot name variable as an already defined typename
         return err(codegenError(
-            node->type.get(), "Cannot name variable as '{}': Reserved typename",
+            node->name.get(), "Cannot name variable as '{}': Reserved typename",
             node->name->value));
     }
 
@@ -401,8 +402,7 @@ std::string CodegenVisitor::getModuleFilename() const
 std::string
 CodegenVisitor::getModuleFilename(const std::string& moduleName) const
 {
-    auto pathparts = util::stringutils::split(moduleName, '/');
-    auto nameparts = util::stringutils::split(pathparts.back(), '.');
+    auto nameparts = util::stringutils::split(moduleName, '.');
     if(nameparts.back() != "va")
     {
         nameparts.push_back("vamod");
@@ -411,7 +411,12 @@ CodegenVisitor::getModuleFilename(const std::string& moduleName) const
     {
         nameparts.back() = "vamod";
     }
-    return util::stringutils::join(nameparts, '.');
+    auto name = util::stringutils::join(nameparts, '.');
+
+    auto pathparts = util::stringutils::split(
+        util::ProgramOptions::view().outputFilename, '/');
+    pathparts.back() = name;
+    return util::stringutils::join(pathparts, '/');
 }
 
 llvm::DIScope* CodegenVisitor::getTopDebugScope() const

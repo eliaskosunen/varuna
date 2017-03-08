@@ -3,6 +3,7 @@
 // See LICENSE for details
 
 #include "Runner.h"
+#include "ast/Serializer.h"
 #include "codegen/Generator.h"
 #include "core/Frontend.h"
 #include "util/ProgramOptions.h"
@@ -15,17 +16,14 @@ Runner::Runner(int threads)
 
 bool Runner::run()
 {
-    const auto& files = util::ProgramOptions::view().inputFilenames;
+    const auto& file = util::ProgramOptions::view().inputFilename;
 
-    for(const auto& file : files)
+    if(!fileCache->addFile(file))
     {
-        if(!fileCache->addFile(file))
-        {
-            util::logger->error("Failed to add file '{}'", file);
-            return false;
-        }
-        util::logger->trace("Added file to cache: '{}'", file);
+        util::logger->error("Failed to add file '{}'", file);
+        return false;
     }
+    util::logger->trace("Added file to cache: '{}'", file);
 
     std::vector<std::future<bool>> results;
     for(const auto& f : fileCache->getFiles())
@@ -47,26 +45,27 @@ bool Runner::run()
 
 std::future<std::future<bool>> Runner::runFile(std::shared_ptr<util::File> f)
 {
+    assert(f);
     auto file = f;
     return pool->push([this, file](int) {
         util::logger->info("Running file: '{}'", file->getFilename());
 
-        auto r = frontend<core::Frontend>(file);
-        if(!r)
+        auto ast = frontend<core::Frontend>(file);
+        if(!ast)
         {
             return failedTask();
         }
 
         util::logger->debug("Shutting down frontend, launching code generator");
-        auto ast = std::shared_ptr<ast::AST>{std::move(r)};
 
         if(util::ProgramOptions::view().output == util::EMIT_AST)
         {
             util::logger->info("File '{}' compiled successfully",
                                ast->file->getFilename());
 
-            auto dumper = ast::DumpASTVisitor(false, true);
-            dumper.dump(ast->globalNode.get());
+            ast::Serializer s(ast);
+            s.run(*util::loggerBasic.get(), spdlog::level::warn,
+                  ast::Serializer::JSON);
             return successTask();
         }
 
@@ -76,6 +75,7 @@ std::future<std::future<bool>> Runner::runFile(std::shared_ptr<util::File> f)
 
 std::future<bool> Runner::runCodegen(std::shared_ptr<ast::AST> a)
 {
+    assert(a);
     auto ast = a;
     return pool->push([ast](int) -> bool {
         auto c = generate<codegen::Generator>(ast);

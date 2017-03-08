@@ -20,28 +20,4 @@ def main() -> i32 {
         return 1;
     }
     strfree(buf);
-    return 0;
-
-    /*putsc(c"Hello world!\n");
-    let buf = cstralloc(64i64);
-    putsc(c"Please give some input: ");
-    getsc(buf, 63);
-    putsc(c"You gave: ");
-    if putsc(buf) == eof() {
-        perrorc(c"");
-        cstrfree(buf);
-        return 1;
-    }
-    cstrfree(buf);
-    return 0;*/
-
-    /*let str = "Hello world!";
-    puts(str);
-    let cstr = str_to_cstr(str);
-    putsc(cstr);
-    let str_new = cstr_to_str(cstr);
-    puts(str_new);
-    cstrfree(cstr);
-    strfree(str_new);
-    return 0;*/
 }

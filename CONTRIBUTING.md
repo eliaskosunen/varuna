@@ -61,10 +61,7 @@ if(condition)
 ```
 * All `#include`s are separated with only one break and are ordered followingly:
     * (.cpp files only) Interface declaration file in "quotes"
-    * fe/*.h in "quotes"
-    * core/*.h in "quotes"
-    * util/*.h in "quotes"
-    * LLVM and subproject (llvm, clang etc.) headers in <angle brackets>
+    * Other Varuna headers in "quotes"
     * Third-party library includes in <angle brackets>
     * Standard library and system headers in <angle brackets>
 ```cpp

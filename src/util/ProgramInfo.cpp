@@ -3,8 +3,8 @@
 // See LICENSE for details
 
 #include "util/ProgramInfo.h"
+#include <fmt.h>
 #include <llvm/Support/ErrorHandling.h>
-#include <spdlog.h>
 
 namespace util
 {

@@ -24,6 +24,8 @@ addons:
     sources: &apt_sources
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.4
+      - llvm-toolchain-precise-3.5
       - llvm-toolchain-precise-3.6
       - llvm-toolchain-precise-3.7
       - llvm-toolchain-precise-3.8
@@ -113,41 +115,57 @@ matrix:
         apt:
           packages: ["clang-4.0", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
           sources: *apt_sources
+    # Clang 3.5
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
+      compiler: clang
+      addons: &clang35
+        apt:
+          packages: ["clang-3.5", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
+    # Clang 3.4
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.4 COMPILER_C=clang-3.4
+      compiler: clang
+      addons: &clang34
+        apt:
+          packages: ["clang-3.4", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind"]
+          sources: *apt_sources
 
     # Xcode 8.2 Clang
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
       osx_image: xcode8.2
     # Xcode 7.3 Clang
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
       osx_image: xcode7.3
     # Xcode 6.4 Clang
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
       osx_image: xcode6.4
 
     # OSX GCC 6
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
       compiler: gcc
       osx_image: beta-xcode6.3
     # OSX GCC 5
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
       compiler: gcc
       osx_image: beta-xcode6.3
     # OSX GCC 4.9
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
       compiler: gcc
       osx_image: beta-xcode6.3
     # OSX LLVM-GCC
     - os: osx
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
       compiler: gcc
 
-    # LLVM 4 with Clang 4
+    # LLVM 4 (Clang 4)
     - os: linux
       env: TESTS=ON LLVM_VERSION=4.0 COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
       compiler: clang
@@ -173,22 +191,26 @@ matrix:
           sources: *apt_sources
 
   allow_failures:
-    - os: osx
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
-      compiler: gcc
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
-      compiler: clang
+    - os: osx
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
+    - os: osx
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
+    - os: osx
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.4 COMPILER_C=clang-3.4
     - os: linux
       env: TESTS=ON LLVM_VERSION=4.0 COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
-      compiler: clang
     - os: linux
       env: TESTS=ON LLVM_VERSION=3.8 COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
-      compiler: clang
     - os: linux
       env: TESTS=ON LLVM_VERSION=3.7 COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
-      compiler: clang
 
 install:
   # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
@@ -213,7 +235,6 @@ install:
   - |
     if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       brew update
-      brew install valgrind
 
       # CMake
       if brew list -1 | grep -q "^cmake\$"; then
@@ -222,6 +243,9 @@ install:
         brew install cmake
       fi
 
+      # LLVM
+      brew install llvm
+
       # GCC
       if [ "${COMPILER_CXX}" == "g++-6" ]; then
         brew install gcc6
@@ -229,9 +253,20 @@ install:
       if [ "${COMPILER_CXX}" == "g++-5" ]; then
         brew install gcc5
       fi
-      if [ "${COMPILER_CXX}" == "g++-4.9" ]; then
-        brew install gcc4.9
-      fi
+      # GCC 4.9 is already installed
+      #if [ "${COMPILER_CXX}" == "g++-4.9" ]; then
+        #brew install gcc@4.9
+      #fi
+    fi
+
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      LLVM_DIR="/usr/lib/llvm-${LLVM_VERSION}"
+      USE_VALGRIND="ON"
+    else
+      LLVM_DIR="/usr/local/Cellar/llvm/3.9.1/lib/cmake/llvm"
+      USE_VALGRIND="OFF"
+      export PATH="${PATH}:/opt/local/bin:/opt/local/sbin:/usr/local/Cellar/llvm/3.9.1/bin"
     fi
 
 before_script:
@@ -249,12 +284,19 @@ script:
       export COVERALLS_SERVICE_NAME=travis-ci
       export COVERALLS_REPO_TOKEN=${repo_token}
       export GCOV=gcov-5
-      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCOVERALLS=ON ..
+      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCOVERALLS=ON ..
       make -k -j2 && make coveralls
       exit
     fi
 
-  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=/usr/lib/llvm-${LLVM_VERSION} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
   - make -j2
   - cd ..
-  - if [ "${TESTS}" == "ON" ]; then valgrind ./bin/tests ; fi
+  - |
+    if [ "${TESTS}" == "ON" ]; then
+      if [ "${USE_VALGRIND}" == "ON" ]; then
+        valgrind ./bin/tests
+      else
+        ./bin/tests
+      fi
+    fi

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ast/AST.h"
-#include "ast/DumpASTVisitor.h"
+#include "ast/DumpVisitor.h"
 #include "codegen/Codegen.h"
 #include "util/File.h"
 #include "util/ProgramOptions.h"
@@ -16,7 +16,7 @@
  * @return      AST generated from file
  */
 template <class Frontend>
-inline std::unique_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
+inline std::shared_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
 {
     assert(file);
 
@@ -46,7 +46,7 @@ generate(std::shared_ptr<ast::AST> ast)
 {
     assert(ast);
 
-    auto gen = std::make_unique<Generator>(std::move(ast));
+    auto gen = std::make_unique<Generator>(ast);
     util::logger->debug("Starting generator: {}", gen->getIdentifier());
 
     if(!gen->run())

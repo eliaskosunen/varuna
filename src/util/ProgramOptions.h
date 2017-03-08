@@ -43,7 +43,7 @@ enum X86AsmSyntax
 struct ProgramOptions
 {
     /// Input file list
-    std::vector<std::string> inputFilenames{};
+    std::string inputFilename{""};
     /// Output filename
     std::string outputFilename{"-"};
     /// Logging level

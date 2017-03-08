@@ -9,6 +9,7 @@ namespace codegen
 {
 Generator::Generator(std::shared_ptr<ast::AST> t) : ast(t), c{nullptr}
 {
+    assert(t);
     // Create CodegenInfo based on ProgramOptions
     const auto& opt = util::ProgramOptions::view().getOptLevel();
     CodegenInfo cinfo(t->file, std::get<0>(opt), std::get<1>(opt),

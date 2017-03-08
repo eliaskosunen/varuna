@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "ast/ASTExpression.h"
-#include "ast/ASTFunctionStatement.h"
+#include "ast/Expr.h"
+#include "ast/FunctionStmt.h"
 #include "codegen/SymbolTable.h"
 #include "util/File.h"
 #include <cereal.h>
@@ -47,7 +47,7 @@ public:
             return node;
         }
 
-        virtual std::unique_ptr<ast::ASTStatement> toASTNode(ast::AST* ast);
+        virtual std::unique_ptr<ast::Stmt> toNode(ast::AST* ast);
         virtual void fromSymbol(Symbol* s);
     };
 
@@ -64,7 +64,7 @@ public:
                     CEREAL_NVP(paramTypeNames));
         }
 
-        std::unique_ptr<ast::ASTStatement> toASTNode(ast::AST* ast) override;
+        std::unique_ptr<ast::Stmt> toNode(ast::AST* ast) override;
         void fromSymbol(Symbol* s) override;
     };
 

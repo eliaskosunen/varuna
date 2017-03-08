@@ -4,7 +4,7 @@
 
 #include "codegen/ModuleFile.h"
 #include "ast/AST.h"
-#include "ast/ASTParentSolverVisitor.h"
+#include "ast/ParentSolverVisitor.h"
 #include "codegen/CodegenVisitor.h"
 #include "codegen/Symbol.h"
 #include "codegen/TypeTable.h"
@@ -61,19 +61,17 @@ void ModuleFile::write(ModuleFile::ModuleFileSymbolTable&& symbols)
     archive(symbols);
 }
 
-std::unique_ptr<ast::ASTStatement>
-ModuleFile::ModuleFileSymbol::toASTNode(ast::AST* ast)
+std::unique_ptr<ast::Stmt> ModuleFile::ModuleFileSymbol::toNode(ast::AST* ast)
 {
-    auto vardef = createNode<ast::ASTVariableDefinitionExpression>(
+    auto vardef = createNode<ast::VariableDefinitionExpr>(
         loc, ast,
-        createNode<ast::ASTIdentifierExpression>(loc, ast, std::move(typeName)),
-        createNode<ast::ASTIdentifierExpression>(loc, ast, std::move(name)),
-        createNode<ast::ASTEmptyExpression>(loc, ast));
+        createNode<ast::IdentifierExpr>(loc, ast, std::move(typeName)),
+        createNode<ast::IdentifierExpr>(loc, ast, std::move(name)),
+        createNode<ast::EmptyExpr>(loc, ast));
     vardef->isMutable = isMutable;
-    auto global = createNode<ast::ASTGlobalVariableDefinitionExpression>(
+    auto global = createNode<ast::GlobalVariableDefinitionExpr>(
         loc, ast, std::move(vardef));
-    return createNode<ast::ASTWrappedExpressionStatement>(loc, ast,
-                                                          std::move(global));
+    return createNode<ast::ExprStmt>(loc, ast, std::move(global));
 }
 
 void ModuleFile::ModuleFileSymbol::fromSymbol(Symbol* s)
@@ -84,30 +82,26 @@ void ModuleFile::ModuleFileSymbol::fromSymbol(Symbol* s)
     loc = s->loc;
 }
 
-std::unique_ptr<ast::ASTStatement>
-ModuleFile::ModuleFileFunctionSymbol::toASTNode(ast::AST* ast)
+std::unique_ptr<ast::Stmt>
+ModuleFile::ModuleFileFunctionSymbol::toNode(ast::AST* ast)
 {
-    std::vector<std::unique_ptr<ast::ASTFunctionParameter>> paramTypes;
+    std::vector<std::unique_ptr<ast::FunctionParameter>> paramTypes;
     for(size_t i = 0; i < paramTypeNames.size(); ++i)
     {
         auto& p = paramTypeNames[i];
-        auto vardef = createNode<ast::ASTVariableDefinitionExpression>(
-            loc, ast,
-            createNode<ast::ASTIdentifierExpression>(loc, ast, std::move(p)),
-            createNode<ast::ASTIdentifierExpression>(loc, ast, ""),
-            createNode<ast::ASTEmptyExpression>(loc, ast));
-        paramTypes.push_back(createNode<ast::ASTFunctionParameter>(
+        auto vardef = createNode<ast::VariableDefinitionExpr>(
+            loc, ast, createNode<ast::IdentifierExpr>(loc, ast, std::move(p)),
+            createNode<ast::IdentifierExpr>(loc, ast, ""),
+            createNode<ast::EmptyExpr>(loc, ast));
+        paramTypes.push_back(createNode<ast::FunctionParameter>(
             loc, ast, std::move(vardef), i + 1));
     }
-    auto proto = createNode<ast::ASTFunctionPrototypeStatement>(
-        loc, ast,
-        createNode<ast::ASTIdentifierExpression>(loc, ast, std::move(name)),
-        createNode<ast::ASTIdentifierExpression>(loc, ast,
-                                                 std::move(retTypeName)),
+    auto proto = createNode<ast::FunctionPrototypeStmt>(
+        loc, ast, createNode<ast::IdentifierExpr>(loc, ast, std::move(name)),
+        createNode<ast::IdentifierExpr>(loc, ast, std::move(retTypeName)),
         std::move(paramTypes));
-    return createNode<ast::ASTFunctionDefinitionStatement>(
-        loc, ast, std::move(proto),
-        createNode<ast::ASTEmptyStatement>(loc, ast));
+    return createNode<ast::FunctionDefinitionStmt>(
+        loc, ast, std::move(proto), createNode<ast::EmptyStmt>(loc, ast));
 }
 
 void ModuleFile::ModuleFileFunctionSymbol::fromSymbol(Symbol* s)
@@ -133,10 +127,10 @@ std::unique_ptr<ast::AST> ModuleFile::ModuleFileSymbolTable::toAST()
     auto ast = std::make_unique<ast::AST>(symbols[0]->loc.file);
     for(auto& s : symbols)
     {
-        ast->push(s->toASTNode(ast.get()));
+        ast->push(s->toNode(ast.get()));
     }
     {
-        ast::ASTParentSolverVisitor p;
+        ast::ParentSolverVisitor p;
         p.run(ast->globalNode.get());
     }
     return ast;

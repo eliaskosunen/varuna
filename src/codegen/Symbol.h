@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ast/ASTFunctionStatement.h"
+#include "ast/FunctionStmt.h"
 #include "codegen/Type.h"
 #include "codegen/TypedValue.h"
 #include "util/SourceLocation.h"
@@ -80,8 +80,7 @@ class FunctionSymbol : public Symbol
 {
 public:
     FunctionSymbol(util::SourceLocation l, std::unique_ptr<TypedValue> pValue,
-                   std::string pName,
-                   ast::ASTFunctionPrototypeStatement* pProto)
+                   std::string pName, ast::FunctionPrototypeStmt* pProto)
         : Symbol(l, std::move(pValue), std::move(pName), false), proto(pProto)
     {
     }
@@ -108,6 +107,6 @@ public:
     }
 
     /// Function prototype
-    ast::ASTFunctionPrototypeStatement* proto;
+    ast::FunctionPrototypeStmt* proto;
 };
 } // namespace codegen

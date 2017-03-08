@@ -30,7 +30,7 @@ View the full license at third-party/info/ctpl/LICENSE
 
 # Cereal
 
-The 3-Clause BSD License
+The 3-Clause BSD License  
 Copyright (C) 2014 Randolph Voorhies, Shane Grant
 
 View the full license at third-party/info/cereal/LICENSE
