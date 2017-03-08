@@ -4,7 +4,7 @@ source_filename = "Varuna"
 @constant = internal constant i32 1
 @variable = internal global i32 2
 
-define i32 @main() {
+define i32 @__va_main() {
 entry:
   %local_variable = alloca i32
   %local_constant = alloca i32

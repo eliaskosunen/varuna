@@ -2,13 +2,13 @@
 source_filename = "Varuna"
 
 ; Function Attrs: norecurse nounwind readnone
-define i32 @external_function() local_unnamed_addr #0 {
+define i32 @__va_external_function() local_unnamed_addr #0 {
 entry:
   ret i32 10
 }
 
 ; Function Attrs: norecurse nounwind readnone
-define i32 @another_function() local_unnamed_addr #0 {
+define i32 @__va_another_function() local_unnamed_addr #0 {
 entry:
   ret i32 -89
 }

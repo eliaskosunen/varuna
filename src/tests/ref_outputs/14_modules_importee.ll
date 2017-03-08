@@ -1,12 +1,12 @@
 ; ModuleID = 'test_14_modules_importee'
 source_filename = "Varuna"
 
-define i32 @external_function() {
+define i32 @__va_external_function() {
 entry:
   ret i32 10
 }
 
-define i32 @another_function() {
+define i32 @__va_another_function() {
 entry:
   ret i32 -89
 }
