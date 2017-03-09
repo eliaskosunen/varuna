@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 
 #define VA_MANGLE(name) __va_##name
 
