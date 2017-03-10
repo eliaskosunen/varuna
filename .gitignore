@@ -5,7 +5,6 @@ doc/
 Doxyfile.bak
 *.anjuta*
 .anjuta/
-.clang_complete
 *CMakeFiles/
 CMakeCache.txt
 *.vamod
@@ -13,3 +12,4 @@ CMakeCache.txt
 a.out
 *.a
 *.lib
+*.so

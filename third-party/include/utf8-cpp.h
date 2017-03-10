@@ -10,7 +10,7 @@
 
 #endif
 
-#include "ctpl/ctpl_stl.h"
+#include "utf8.h"
 
 #ifdef _MSC_VER
 

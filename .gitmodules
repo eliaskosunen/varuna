@@ -1,3 +1,21 @@
 [submodule "scripts/coveralls-cmake"]
 	path = scripts/coveralls-cmake
 	url = https://github.com/JoakimSoderberg/coveralls-cmake.git
+[submodule "projects/vastd"]
+	path = projects/vastd
+	url = https://github.com/varuna-lang/vastd.git
+[submodule "projects/vart"]
+	path = projects/vart
+	url = https://github.com/varuna-lang/vart.git
+[submodule "third-party/spdlog"]
+	path = third-party/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "third-party/cereal"]
+	path = third-party/cereal
+	url = https://github.com/USCiLab/cereal
+[submodule "third-party/ctpl"]
+	path = third-party/ctpl
+	url = https://github.com/vit-vit/CTPL
+[submodule "third-party/doctest"]
+	path = third-party/doctest
+	url = https://github.com/onqtam/doctest

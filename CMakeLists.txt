@@ -41,12 +41,20 @@ else()
         set(WARNINGS "-Weverything -Wno-c++98-compat -Wno-padded -Wno-unused -Wno-unused-parameter -Wno-weak-vtables -Wno-exit-time-destructors -Wno-global-constructors -Wno-date-time -Wno-unused-member-function -Wno-c++98-compat-pedantic")
     endif()
 
-    set(DEBUG_FLAGS				"-g -O0 -DVARUNA_DEBUG=1")
+    include(CheckCXXCompilerFlag)
+
+    check_cxx_compiler_flag(-Og CXX_COMPILER_SUPPORT_OG)
+    if(CXX_COMPILER_SUPPORT_OG)
+        set(OPT_FLAG_DEBUG "-Og")
+    else()
+        set(OPT_FLAG_DEBUG "-O0")
+    endif()
+
+    set(DEBUG_FLAGS				"-g ${OPT_FLAG_DEBUG} -DVARUNA_DEBUG=1")
     set(RELEASE_FLAGS			"-O3 -DVARUNA_RELEASE=1")
     set(MINSIZEREL_FLAGS		"-Os -DVARUNA_RELEASE=1")
     set(RELWITHDEBINFO_FLAGS	"-g -O2 -DVARUNA_DEBUG=1")
 
-    include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(-std=c++14 CXX_COMPILER_SUPPORTS_CXX14)
     check_cxx_compiler_flag(-std=c++1y CXX_COMPILER_SUPPORTS_CXX1Y)
     if(CXX_COMPILER_SUPPORTS_CXX14)
@@ -93,13 +101,18 @@ message(STATUS "LLVM include directory: ${LLVM_INCLUDE_DIRS}")
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(src)
 include_directories(third-party/include)
-include_directories(SYSTEM third-party/include-private)
+include_directories(SYSTEM third-party/cereal/include)
+include_directories(SYSTEM third-party/ctpl)
+include_directories(SYSTEM third-party/doctest)
+include_directories(SYSTEM third-party/spdlog/include)
+include_directories(SYSTEM third-party/utf8/source)
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 
 add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(third-party)
 add_subdirectory(src)
+add_subdirectory(projects)
 
 file(GLOB main_sources src/Main.cpp)
 
