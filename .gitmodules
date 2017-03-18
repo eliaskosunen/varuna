@@ -19,3 +19,13 @@
 [submodule "third-party/doctest"]
 	path = third-party/doctest
 	url = https://github.com/onqtam/doctest
+[submodule "projects/llvm-binutils"]
+	path = projects/llvm-binutils
+	url = https://github.com/varuna-lang/llvm-binutils
+	branch = develop
+[submodule "third-party/binreloc/src"]
+	path = third-party/binreloc/src
+	url = https://github.com/datenwolf/binreloc
+[submodule "third-party/crossguid/guid"]
+	path = third-party/crossguid/guid
+	url = https://github.com/graeme-hill/crossguid

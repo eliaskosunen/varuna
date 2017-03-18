@@ -11,6 +11,7 @@ def func(s: string) -> i32;
 
 def main() -> i32 {
     let mut s = "Hello world!";
+    func(s);
     s = "Hei maailma!";
     return func(s);
 }

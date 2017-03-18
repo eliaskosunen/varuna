@@ -83,6 +83,8 @@ public:
     std::vector<std::unique_ptr<FunctionParameter>> params;
     /// Is function a main function
     bool isMain{false};
+    /// Mangle function name
+    bool mangle{true};
 };
 
 /// Function definition

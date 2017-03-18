@@ -485,10 +485,16 @@ CodegenVisitor::visit(ast::GlobalVariableDefinitionExpr* node)
 
     if(info.emitDebug)
     {
-        // TODO: Add the debug info to the module
+// TODO: Add the debug info to the module
+#if VARUNA_LLVM_VERSION == 39
         auto d = dbuilder.createGlobalVariable(
             dfile, node->var->name->value, node->var->name->value, dfile,
             node->loc.line, type->dtype, node->isExport, llvminit);
+#else
+        auto d = dbuilder.createGlobalVariableExpression(
+            dfile, node->var->name->value, node->var->name->value, dfile,
+            node->loc.line, type->dtype, node->isExport);
+#endif
         static_cast<void>(d);
     }
 
@@ -610,11 +616,9 @@ CodegenVisitor::visit(ast::FunctionPrototypeStmt* node)
         return llvm::Function::InternalLinkage;
     }();
 
-    // Mangle function name
-    const auto name = mangleFunctionName(node->name->value);
-
     // Create function
-    llvm::Function* f = llvm::Function::Create(ft, linkage, name, module);
+    llvm::Function* f =
+        llvm::Function::Create(ft, linkage, node->name->value, module);
 
     // Set argument names
     {
@@ -941,8 +945,9 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BoolLiteralExpr* node)
     auto t = types->findDecorated("bool");
     assert(t);
     return std::make_unique<TypedValue>(
-        t, node->value ? llvm::ConstantInt::getTrue(context)
-                       : llvm::ConstantInt::getFalse(context),
+        t,
+        node->value ? llvm::ConstantInt::getTrue(context)
+                    : llvm::ConstantInt::getFalse(context),
         TypedValue::RVALUE, true);
 }
 

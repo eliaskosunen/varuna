@@ -56,14 +56,6 @@ struct ProgramOptions
     OutputType output{EMIT_OBJ};
     /// Argument string
     std::string args{""};
-    /// LLVM binary directory
-    std::string llvmBinDir{""};
-    /// llvm-as binary
-    std::string llvmAsBin{"llvm-as"};
-    /// llc binary
-    std::string llvmLlcBin{"llc"};
-    /// opt binary
-    std::string llvmOptBin{"opt"};
     /// x86 asm syntax
     X86AsmSyntax x86asm{X86_ATT};
     /// Generate module file

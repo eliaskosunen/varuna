@@ -5,17 +5,13 @@
 #pragma once
 
 #ifdef _MSC_VER
-
 #pragma warning(push, 0)
-
 #endif
 
 #include "doctest/doctest.h"
 
 #ifdef _MSC_VER
-
 #pragma warning(pop)
-
 #endif
 
 #define TEST_FILE "tests.va"

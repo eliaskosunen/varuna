@@ -1291,6 +1291,13 @@ namespace parser
     {
         ++it; // Skip 'export'
 
+        bool mangle = true;
+        if(it->type == TOKEN_KEYWORD_NO_MANGLE)
+        {
+            ++it; // Skip 'nomangle'
+            mangle = false;
+        }
+
         if(it->type == TOKEN_KEYWORD_LET)
         {
             auto expr = parseGlobalVariableDefinition();
@@ -1318,6 +1325,7 @@ namespace parser
             }
 
             def->proto->isExport = true;
+            def->proto->mangle = mangle;
 
             util::logger->trace("Parsed function definition: name: '{}', "
                                 "return: '{}', params.size: '{}'",

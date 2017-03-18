@@ -605,6 +605,7 @@ namespace lexer
             {"export", TOKEN_KEYWORD_EXPORT},
             {"module", TOKEN_KEYWORD_MODULE},
             {"package", TOKEN_KEYWORD_PACKAGE},
+            {"nomangle", TOKEN_KEYWORD_NO_MANGLE},
 
             {"def", TOKEN_KEYWORD_DEFINE},
             {"if", TOKEN_KEYWORD_IF},

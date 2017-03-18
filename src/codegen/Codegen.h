@@ -8,7 +8,7 @@
 #include "ast/FwdDecl.h"
 #include "codegen/CodegenInfo.h"
 #include "codegen/CodegenVisitor.h"
-#include "codegen/Optimizer.h"
+#include "util/TmpFile.h"
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 
@@ -64,7 +64,6 @@ private:
     std::unique_ptr<llvm::Module> module;
     /// CodegenVisitor
     std::unique_ptr<CodegenVisitor> codegen;
-    /// Module optimizer
-    std::unique_ptr<Optimizer> optimizer;
+    util::TmpFile inputFile;
 };
 } // namespace codegen

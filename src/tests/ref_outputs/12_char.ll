@@ -1,11 +1,11 @@
-; ModuleID = 'test_12_char'
+; ModuleID = 'varuna_tmp_input_noopt-dcb59a73-a616-4ac4-bc80-0431b1edc532.ll'
 source_filename = "Varuna"
 
-declare i32 @__va_asc(i32)
+declare i32 @_Z3ascDi(i32)
 
-declare i32 @__va_chr(i32)
+declare i32 @_Z3chri(i32)
 
-define i32 @__va_main() {
+define i32 @_Z4mainv() {
 entry:
   %smile = alloca i32
   %c = alloca i32
@@ -14,9 +14,9 @@ entry:
   store i32 228, i32* %c
   store i32 128512, i32* %smile
   %smile2 = load i32, i32* %smile
-  %calltmp = call i32 @__va_asc(i32 %smile2)
+  %calltmp = call i32 @_Z3ascDi(i32 %smile2)
   %c3 = load i32, i32* %c
-  %calltmp4 = call i32 @__va_asc(i32 %c3)
+  %calltmp4 = call i32 @_Z3ascDi(i32 %c3)
   %divtmp = sdiv i32 %calltmp, %calltmp4
   ret i32 %divtmp
 }

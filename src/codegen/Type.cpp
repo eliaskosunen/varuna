@@ -7,6 +7,13 @@
 #include "codegen/TypeTable.h"
 #include "codegen/TypedValue.h"
 
+// API changed for LLVM 4.0
+#if VARUNA_LLVM_VERSION == 39
+#define BASIC_TYPE_SIZE(num) num, num
+#else
+#define BASIC_TYPE_SIZE(num) num
+#endif
+
 namespace codegen
 {
 Type::Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Type::Kind k,
@@ -60,6 +67,15 @@ std::unique_ptr<TypedValue> VoidType::zeroInit()
     return nullptr;
 }
 
+std::string VoidType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "X";
+#else
+    return "v";
+#endif
+}
+
 IntegralType::IntegralType(TypeTable* list, size_t w, Kind k,
                            llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d,
                            const std::string& n)
@@ -85,45 +101,82 @@ std::unique_ptr<TypedValue> IntegralType::zeroInit()
 
 Int8Type::Int8Type(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
-    : IntegralType(
-          list, 8, INT8, c, llvm::Type::getInt8Ty(c),
-          dbuilder.createBasicType("int8", 8, 8, llvm::dwarf::DW_ATE_signed),
-          "int8")
+    : IntegralType(list, 8, INT8, c, llvm::Type::getInt8Ty(c),
+                   dbuilder.createBasicType("int8", BASIC_TYPE_SIZE(8),
+                                            llvm::dwarf::DW_ATE_signed),
+                   "int8")
 {
+}
+
+std::string Int8Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "C";
+#else
+    return "a";
+#endif
 }
 
 Int16Type::Int16Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
-    : IntegralType(
-          list, 16, INT16, c, llvm::Type::getInt16Ty(c),
-          dbuilder.createBasicType("i16", 16, 16, llvm::dwarf::DW_ATE_signed),
-          "i16")
+    : IntegralType(list, 16, INT16, c, llvm::Type::getInt16Ty(c),
+                   dbuilder.createBasicType("i16", BASIC_TYPE_SIZE(16),
+                                            llvm::dwarf::DW_ATE_signed),
+                   "i16")
 {
+}
+
+std::string Int16Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "F";
+#else
+    return "s";
+#endif
 }
 
 Int32Type::Int32Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
-    : IntegralType(
-          list, 32, INT32, c, llvm::Type::getInt32Ty(c),
-          dbuilder.createBasicType("i32", 32, 32, llvm::dwarf::DW_ATE_signed),
-          "i32")
+    : IntegralType(list, 32, INT32, c, llvm::Type::getInt32Ty(c),
+                   dbuilder.createBasicType("i32", BASIC_TYPE_SIZE(32),
+                                            llvm::dwarf::DW_ATE_signed),
+                   "i32")
 {
+}
+
+std::string Int32Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "H";
+#else
+    return "i";
+#endif
 }
 
 Int64Type::Int64Type(TypeTable* list, llvm::LLVMContext& c,
                      llvm::DIBuilder& dbuilder)
-    : IntegralType(
-          list, 64, INT64, c, llvm::Type::getInt64Ty(c),
-          dbuilder.createBasicType("i64", 64, 64, llvm::dwarf::DW_ATE_signed),
-          "i64")
+    : IntegralType(list, 64, INT64, c, llvm::Type::getInt64Ty(c),
+                   dbuilder.createBasicType("i64", BASIC_TYPE_SIZE(64),
+                                            llvm::dwarf::DW_ATE_signed),
+                   "i64")
 {
+}
+
+std::string Int64Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "J";
+#else
+    return "l";
+#endif
 }
 
 BoolType::BoolType(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<BoolTypeOperation>(this), BOOL, c,
            llvm::Type::getInt1Ty(c),
-           dbuilder.createBasicType("bool", 1, 1, llvm::dwarf::DW_ATE_boolean),
+           dbuilder.createBasicType("bool", BASIC_TYPE_SIZE(1),
+                                    llvm::dwarf::DW_ATE_boolean),
            "bool")
 {
 }
@@ -141,6 +194,15 @@ std::unique_ptr<TypedValue> BoolType::zeroInit()
 {
     auto val = llvm::Constant::getNullValue(type);
     return std::make_unique<TypedValue>(this, val, TypedValue::RVALUE, true);
+}
+
+std::string BoolType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "_N";
+#else
+    return "b";
+#endif
 }
 
 CharacterType::CharacterType(TypeTable* list, size_t w, Kind k,
@@ -169,26 +231,45 @@ std::unique_ptr<TypedValue> CharacterType::zeroInit()
 CharType::CharType(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
     : CharacterType(list, 32, CHAR, c, llvm::Type::getInt32Ty(c),
-                    dbuilder.createBasicType("char", 32, 32,
+                    dbuilder.createBasicType("char", BASIC_TYPE_SIZE(32),
                                              llvm::dwarf::DW_ATE_unsigned_char),
                     "char")
 {
 }
 
+std::string CharType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "_I";
+#else
+    return "Di";
+#endif
+}
+
 ByteCharType::ByteCharType(TypeTable* list, llvm::LLVMContext& c,
                            llvm::DIBuilder& dbuilder)
     : CharacterType(list, 8, BCHAR, c, llvm::Type::getInt8Ty(c),
-                    dbuilder.createBasicType("bchar", 8, 8,
+                    dbuilder.createBasicType("bchar", BASIC_TYPE_SIZE(8),
                                              llvm::dwarf::DW_ATE_unsigned_char),
                     "bchar")
 {
+}
+
+std::string ByteCharType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "D";
+#else
+    return "c";
+#endif
 }
 
 ByteType::ByteType(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<ByteTypeOperation>(this), BYTE, c,
            llvm::Type::getInt8Ty(c),
-           dbuilder.createBasicType("byte", 8, 8, llvm::dwarf::DW_ATE_unsigned),
+           dbuilder.createBasicType("byte", BASIC_TYPE_SIZE(8),
+                                    llvm::dwarf::DW_ATE_unsigned),
            "byte")
 {
 }
@@ -200,6 +281,15 @@ bool ByteType::isIntegral() const
 bool ByteType::isFloatingPoint() const
 {
     return false;
+}
+
+std::string ByteType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "E";
+#else
+    return "h";
+#endif
 }
 
 std::unique_ptr<TypedValue> ByteType::zeroInit()
@@ -233,17 +323,37 @@ std::unique_ptr<TypedValue> FPType::zeroInit()
 F32Type::F32Type(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder)
     : FPType(list, 32, F32, c, llvm::Type::getFloatTy(c),
-             dbuilder.createBasicType("f32", 32, 32, llvm::dwarf::DW_ATE_float),
+             dbuilder.createBasicType("f32", BASIC_TYPE_SIZE(32),
+                                      llvm::dwarf::DW_ATE_float),
              "f32")
 {
+}
+
+std::string F32Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "M";
+#else
+    return "f";
+#endif
 }
 
 F64Type::F64Type(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder)
     : FPType(list, 64, F64, c, llvm::Type::getDoubleTy(c),
-             dbuilder.createBasicType("f64", 64, 64, llvm::dwarf::DW_ATE_float),
+             dbuilder.createBasicType("f64", BASIC_TYPE_SIZE(64),
+                                      llvm::dwarf::DW_ATE_float),
              "f64")
 {
+}
+
+std::string F64Type::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "N";
+#else
+    return "d";
+#endif
 }
 
 StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
@@ -292,6 +402,15 @@ std::unique_ptr<TypedValue> StringType::zeroInit()
     return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
 }
 
+std::string StringType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "Ustring@@";
+#else
+    return "6string";
+#endif
+}
+
 CStringType::CStringType(TypeTable* list, llvm::LLVMContext& c,
                          llvm::DIBuilder& dbuilder)
     : Type(list, std::make_unique<CStringTypeOperation>(this), CSTRING, c,
@@ -330,6 +449,15 @@ std::unique_ptr<TypedValue> CStringType::zeroInit()
     return std::make_unique<TypedValue>(this, val, TypedValue::LVALUE, false);
 }
 
+std::string CStringType::getMangleEncoding() const
+{
+#if VARUNA_WIN32
+    return "PAD";
+#else
+    return "Pc";
+#endif
+}
+
 FunctionType::FunctionType(TypeTable* list, llvm::LLVMContext& c,
                            llvm::DIBuilder&, Type* pReturnType,
                            std::vector<Type*> pParams)
@@ -352,6 +480,11 @@ bool FunctionType::isFloatingPoint() const
 std::unique_ptr<TypedValue> FunctionType::zeroInit()
 {
     return nullptr;
+}
+
+std::string FunctionType::getMangleEncoding() const
+{
+    throw std::logic_error("Unimplemented FunctionType::getMangleEncoding");
 }
 
 llvm::FunctionType*
@@ -436,7 +569,6 @@ bool AliasType::isIntegral() const
 bool AliasType::isFloatingPoint() const
 {
     return underlying->isFloatingPoint();
-    ;
 }
 std::unique_ptr<TypedValue> AliasType::zeroInit()
 {
@@ -445,6 +577,11 @@ std::unique_ptr<TypedValue> AliasType::zeroInit()
 TypeOperationBase* AliasType::getOperations() const
 {
     return underlying->getOperations();
+}
+
+std::string AliasType::getMangleEncoding() const
+{
+    return underlying->getMangleEncoding();
 }
 
 } // namespace codegen

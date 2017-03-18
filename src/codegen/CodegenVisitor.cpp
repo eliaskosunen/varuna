@@ -28,13 +28,19 @@ CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
 {
     if(!util::ProgramOptions::view().stripDebug)
     {
+        dfile = dbuilder.createFile(info.file->getFilename(), ".");
+// Let's pretend for a moment that we're C
+// That's of course very dumb,
+// since we're definitely going to be more popular than C
+#if VARUNA_LLVM_VERSION == 39
         dcu = dbuilder.createCompileUnit(
-            // Let's pretend for a moment that we're C
-            // That's of course very dumb,
-            // since we're definitely going to be more popular than C
             llvm::dwarf::DW_LANG_C, info.file->getFilename(), ".",
             util::programinfo::getIdentifier(), info.optEnabled(), "", 1);
-        dfile = dbuilder.createFile(dcu->getFilename(), dcu->getDirectory());
+#else
+        dcu = dbuilder.createCompileUnit(llvm::dwarf::DW_LANG_C, dfile,
+                                         util::programinfo::getIdentifier(),
+                                         info.optEnabled(), "", 1);
+#endif
     }
 
     // Create types
@@ -254,12 +260,19 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
         return nullptr;
     }
 
+    // Mangle function name
+    if(proto->mangle)
+    {
+        accept->value->setName(mangleFunctionName(name, type));
+    }
+
     // Add symbol to current scope
     auto val = std::make_unique<TypedValue>(type, accept->value,
                                             TypedValue::STMTVALUE, false);
     auto var = std::make_unique<FunctionSymbol>(proto->loc, std::move(val),
                                                 name, proto);
     var->isExport = proto->isExport;
+    var->mangled = proto->mangle;
     auto varptr = var.get();
     symbols->getTop().insert(std::make_pair(name, std::move(var)));
     return varptr;
@@ -428,8 +441,52 @@ llvm::DIScope* CodegenVisitor::getTopDebugScope() const
     return dblocks.back();
 }
 
-std::string CodegenVisitor::mangleFunctionName(const std::string& name) const
+std::string CodegenVisitor::mangleFunctionName(const std::string& name,
+                                               FunctionType* type) const
 {
-    return fmt::format("__va_{}", name);
+    using namespace fmt::literals;
+
+#if VARUNA_WIN32
+    return fmt::format(
+        "?{name}@@YA{return}{args}Z", "name"_a = name,
+        "return"_a =
+            [&]() {
+                /*if(type->returnType->kind == Type::VOID)
+                {
+                    return "@";
+                }*/
+                return type->returnType->getMangleEncoding();
+            }(),
+        "args"_a =
+            [&]() {
+                if(type->params.empty())
+                {
+                    return types->find("void")->getMangleEncoding();
+                }
+
+                std::string s;
+                for(auto& a : type->params)
+                {
+                    s.append(a->getMangleEncoding());
+                }
+                s.append("@");
+                return s;
+            }());
+#else
+    return fmt::format("_Z{namelen}{name}{args}", "namelen"_a = name.length(),
+                       "name"_a = name, "args"_a = [&]() {
+                           if(type->params.empty())
+                           {
+                               return types->find("void")->getMangleEncoding();
+                           }
+
+                           std::string s;
+                           for(auto& a : type->params)
+                           {
+                               s.append(a->getMangleEncoding());
+                           }
+                           return s;
+                       }());
+#endif
 }
 } // namespace codegen

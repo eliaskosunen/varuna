@@ -55,13 +55,14 @@ public:
     {
         std::string retTypeName;
         std::vector<std::string> paramTypeNames;
+        bool mangle{true};
 
         template <class Archive>
         void serialize(Archive& archive)
         {
             archive(cereal::base_class<ModuleFileSymbol>(this),
                     cereal::make_nvp("returnTypeName", retTypeName),
-                    CEREAL_NVP(paramTypeNames));
+                    CEREAL_NVP(paramTypeNames), CEREAL_NVP(mangle));
         }
 
         std::unique_ptr<ast::Stmt> toNode(ast::AST* ast) override;

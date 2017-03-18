@@ -57,8 +57,8 @@ int CLI::run()
             clEnumValN(util::OPT_O2, "O2", "Enable more optimizations"),
             clEnumValN(util::OPT_O3, "O3", "Enable expensive optimizations"),
             clEnumValN(util::OPT_Os, "Os", "Enable size optimizations"),
-            clEnumValN(util::OPT_Oz, "Oz", "Enable maximum size optimizations"),
-            nullptr),
+            clEnumValN(util::OPT_Oz, "Oz",
+                       "Enable maximum size optimizations")),
         cl::cat(catCodegen));
     // Logging level
     cl::opt<spdlog::level::level_enum> logArg(
@@ -83,8 +83,7 @@ int CLI::run()
                               "Log only critical messages"),
                    clEnumValN(spdlog::level::off,
                               spdlog::level::to_str(spdlog::level::off),
-                              "Disable all log messages"),
-                   nullptr),
+                              "Disable all log messages")),
         cl::cat(catGeneral));
     // Jobs
     cl::opt<int> jobsArg(
@@ -116,21 +115,7 @@ int CLI::run()
             clEnumValN(util::EMIT_LLVM_BC, "llvm-bc", "LLVM Bytecode '.bc'"),
             clEnumValN(util::EMIT_ASM, "asm", "Native assembly '.s'"),
             clEnumValN(util::EMIT_OBJ, "obj",
-                       "Native object format '.o' (default)"),
-            nullptr));
-    // LLVM binary location
-    cl::opt<std::string> llvmDirArg("llvm-dir",
-                                    cl::desc("LLVM binary directory"),
-                                    cl::init(""), cl::cat(catLLVM));
-    // LLVM llvm-as name
-    cl::opt<std::string> llvmAsArg("llvm-as", cl::desc("LLVM 'llvm-as' binary"),
-                                   cl::init("llvm-as"), cl::cat(catLLVM));
-    // LLVM llc name
-    cl::opt<std::string> llvmLlcArg("llvm-llc", cl::desc("LLVM 'llc' binary"),
-                                    cl::init("llc"), cl::cat(catLLVM));
-    // LLVM opt name
-    cl::opt<std::string> llvmOptArg("llvm-opt", cl::desc("LLVM 'opt' binary"),
-                                    cl::init("opt"), cl::cat(catLLVM));
+                       "Native object format '.o' (default)")));
     // x86 asm syntax
     {
         auto& map = cl::getRegisteredOptions();
@@ -145,8 +130,7 @@ int CLI::run()
         cl::init(util::X86_ATT),
         cl::values(
             clEnumValN(util::X86_ATT, "att", "AT&T assembly syntax"),
-            clEnumValN(util::X86_INTEL, "intel", "Intel assembly syntax"),
-            nullptr),
+            clEnumValN(util::X86_INTEL, "intel", "Intel assembly syntax")),
         cl::cat(catCodegen));
     // No module file
     cl::opt<bool> noModArg("no-module", cl::desc("Don't generate module file"),
@@ -199,11 +183,6 @@ int CLI::run()
     util::ProgramOptions::get().output = std::move(outputArg);
 
     util::ProgramOptions::get().emitDebug = debugArg;
-
-    util::ProgramOptions::get().llvmBinDir = std::move(llvmDirArg);
-    util::ProgramOptions::get().llvmAsBin = std::move(llvmAsArg);
-    util::ProgramOptions::get().llvmLlcBin = std::move(llvmLlcArg);
-    util::ProgramOptions::get().llvmOptBin = std::move(llvmOptArg);
 
     util::ProgramOptions::get().x86asm = x86AsmArg;
     util::ProgramOptions::get().generateModuleFile =

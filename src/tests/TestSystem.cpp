@@ -71,18 +71,12 @@ static void compare(std::string&& lhs, std::string&& rhs,
 static auto& dir()
 {
     static const auto d = [&]() {
-        auto dirparts =
-            util::stringutils::split(util::getCurrentDirectory(), '/');
-        auto dirpartsNew = dirparts;
-        for(auto it = dirparts.rbegin(); it != dirparts.rend(); ++it)
+        auto binDir = util::stringutils::split(util::getExecDirectory(), '/');
+        if(binDir.back() == "bin")
         {
-            if(*it == "varuna")
-            {
-                break;
-            }
-            dirpartsNew.push_back("..");
+            binDir.pop_back();
         }
-        return util::stringutils::join(dirpartsNew, '/');
+        return util::stringutils::join(binDir, '/');
     }();
     return d;
 }
@@ -94,8 +88,7 @@ static void run(const std::string& inputFilename,
     auto p = util::Process(
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format("{module}-strip-debug -strip-source-filename "
-                    "-logging=warning -llvm-as=llvm-as-3.9 "
-                    "-llvm-llc=llc-3.9{flags} -llvm-opt=opt-3.9 "
+                    "-logging=warning{flags} "
                     "{dir}/src/tests/inputs/{in} "
                     "-o {dir}/src/tests/outputs/{out}",
                     "dir"_a = dir(),
@@ -115,7 +108,7 @@ static void run(const std::string& inputFilename,
                                      "out"_a = outputFilename));
     REQUIRE(refOutput.readFile());
 
-    compare(output.consumeContent(), refOutput.consumeContent());
+    compare(output.consumeContent(), refOutput.consumeContent(), true);
 }
 
 static void runEmitLLVM(const std::string& inputFilename,
@@ -156,8 +149,7 @@ TEST_CASE("Emit AST")
     auto p = util::Process(
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format("-no-module -strip-debug -strip-source-filename "
-                    "-logging=error -llvm-as=llvm-as-3.9 "
-                    "-llvm-llc=llc-3.9 -llvm-opt=opt-3.9 "
+                    "-logging=error "
                     "{dir}/src/tests/inputs/02_main.va "
                     "-o - -emit=ast",
                     "dir"_a = dir()));
@@ -171,8 +163,7 @@ TEST_CASE("Emit assembly")
     auto p = util::Process(
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format("-no-module -strip-debug -strip-source-filename -O3 "
-                    "-logging=error -llvm-as=llvm-as-3.9 "
-                    "-llvm-llc=llc-3.9 -llvm-opt=opt-3.9 "
+                    "-logging=error "
                     "{dir}/src/tests/inputs/02_main.va "
                     "-o {dir}/src/tests/outputs/02_main_asm.s -emit=asm",
                     "dir"_a = dir()));
@@ -186,8 +177,7 @@ TEST_CASE("Emit object code")
     auto p = util::Process(
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format("-no-module -strip-debug -strip-source-filename -O3 "
-                    "-logging=error -llvm-as=llvm-as-3.9 "
-                    "-llvm-llc=llc-3.9 -llvm-opt=opt-3.9 "
+                    "-logging=error "
                     "{dir}/src/tests/inputs/02_main.va "
                     "-o {dir}/src/tests/outputs/02_main_obj.o -emit=obj",
                     "dir"_a = dir()));
@@ -202,8 +192,7 @@ TEST_CASE("Emit LLVM BC")
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format(
             "-no-module -strip-debug -strip-source-filename -O3 "
-            "-logging=error -llvm-as=llvm-as-3.9 "
-            "-llvm-llc=llc-3.9 -llvm-opt=opt-3.9 "
+            "-logging=error "
             "{dir}/src/tests/inputs/02_main.va "
             "-o {dir}/src/tests/outputs/02_main_bctest.bc -emit=llvm-bc",
             "dir"_a = dir()));
@@ -213,7 +202,7 @@ TEST_CASE("Emit LLVM BC")
 
     {
         auto llvmDisProc = util::Process(
-            "llvm-dis-3.9",
+            fmt::format("{dir}/bin/varuna-llvm-dis", "dir"_a = dir()),
             fmt::format("{dir}/src/tests/outputs/02_main_bctest.bc -o "
                         "{dir}/src/tests/outputs/02_main_bctest.ll",
                         "dir"_a = dir()));
@@ -227,8 +216,8 @@ TEST_CASE("Emit LLVM BC")
                                   "dir"_a = dir()));
     REQUIRE(output.readFile());
 
-    util::File refOutput(
-        fmt::format("{dir}/src/tests/ref_outputs/02_main.ll", "dir"_a = dir()));
+    util::File refOutput(fmt::format(
+        "{dir}/src/tests/ref_outputs/02_main_opt.ll", "dir"_a = dir()));
     REQUIRE(refOutput.readFile());
 
     compare(output.consumeContent(), refOutput.consumeContent(), true);
@@ -236,12 +225,14 @@ TEST_CASE("Emit LLVM BC")
 
 TEST_CASE("01_empty")
 {
-    runEmitLLVM("01_empty.va", "01_empty.ll", "-O3");
+    runEmitLLVM("01_empty.va", "01_empty.ll", "-O0");
+    runEmitLLVM("01_empty.va", "01_empty_opt.ll", "-O3");
 }
 
 TEST_CASE("02_main")
 {
-    runEmitLLVM("02_main.va", "02_main.ll", "-O3");
+    runEmitLLVM("02_main.va", "02_main.ll", "-O0");
+    runEmitLLVM("02_main.va", "02_main_opt.ll", "-O3");
 }
 
 TEST_CASE("03_functions")
@@ -333,8 +324,7 @@ static void runExpectError(const std::string& inputFilename,
     auto p = util::Process(
         fmt::format("{dir}/bin/varuna", "dir"_a = dir()),
         fmt::format("-no-module -strip-debug -strip-source-filename "
-                    "-logging={log} -llvm-as=llvm-as-3.9 "
-                    "-llvm-llc=llc-3.9 -llvm-opt=opt-3.9 "
+                    "-logging={log} "
                     "{dir}/src/tests/error_inputs/{in} "
                     "-o - -emit=none",
                     "dir"_a = dir(), "in"_a = inputFilename,

@@ -93,6 +93,8 @@ public:
     /// Get type operations
     virtual TypeOperationBase* getOperations() const;
 
+    virtual std::string getMangleEncoding() const = 0;
+
     /// Are types completely equal
     /// e.g. Same mutability
     bool equal(const Type& t) const
@@ -194,6 +196,7 @@ public:
     bool isSized() const override;
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 };
 
 class IntegralType : public Type
@@ -218,24 +221,32 @@ class Int8Type : public IntegralType
 {
 public:
     Int8Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class Int16Type : public IntegralType
 {
 public:
     Int16Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class Int32Type : public IntegralType
 {
 public:
     Int32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class Int64Type : public IntegralType
 {
 public:
     Int64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class BoolType : public Type
@@ -251,6 +262,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 };
 
 class CharacterType : public Type
@@ -275,6 +287,8 @@ class CharType : public CharacterType
 {
 public:
     CharType(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class ByteCharType : public CharacterType
@@ -282,6 +296,8 @@ class ByteCharType : public CharacterType
 public:
     ByteCharType(TypeTable* list, llvm::LLVMContext& c,
                  llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class ByteType : public Type
@@ -297,6 +313,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 };
 
 class FPType : public Type
@@ -321,12 +338,16 @@ class F32Type : public FPType
 {
 public:
     F32Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class F64Type : public FPType
 {
 public:
     F64Type(TypeTable* list, llvm::LLVMContext& c, llvm::DIBuilder& dbuilder);
+
+    std::string getMangleEncoding() const override;
 };
 
 class StringType : public Type
@@ -345,6 +366,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 };
 
 class CStringType : public Type
@@ -361,6 +383,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 };
 
 class FunctionType : public Type
@@ -390,6 +413,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 
     Type* returnType;
     std::vector<Type*> params;
@@ -409,6 +433,7 @@ public:
 
     bool isIntegral() const override;
     bool isFloatingPoint() const override;
+    std::string getMangleEncoding() const override;
 
     TypeOperationBase* getOperations() const override;
 

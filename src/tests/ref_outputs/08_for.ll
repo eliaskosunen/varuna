@@ -1,9 +1,9 @@
-; ModuleID = 'test_08_for'
+; ModuleID = 'varuna_tmp_input_noopt-5195967b-63c9-4e5c-ac8c-e67c7a679b9b.ll'
 source_filename = "Varuna"
 
-declare i32 @__va_count()
+declare i32 @_Z5countv()
 
-define i32 @__va_main() {
+define i32 @_Z4mainv() {
 entry:
   %j = alloca i32
   %i = alloca i32
@@ -17,7 +17,7 @@ for.init:                                         ; preds = %entry
 
 for.cond:                                         ; preds = %for.step11, %for.init
   %i1 = load i32, i32* %i
-  %calltmp = call i32 @__va_count()
+  %calltmp = call i32 @_Z5countv()
   %letmp = icmp sle i32 %i1, %calltmp
   br i1 %letmp, label %for.body, label %for.merge14
 

@@ -100,6 +100,7 @@ ModuleFile::ModuleFileFunctionSymbol::toNode(ast::AST* ast)
         loc, ast, createNode<ast::IdentifierExpr>(loc, ast, std::move(name)),
         createNode<ast::IdentifierExpr>(loc, ast, std::move(retTypeName)),
         std::move(paramTypes));
+    proto->mangle = mangle;
     return createNode<ast::FunctionDefinitionStmt>(
         loc, ast, std::move(proto), createNode<ast::EmptyStmt>(loc, ast));
 }
@@ -116,6 +117,7 @@ void ModuleFile::ModuleFileFunctionSymbol::fromSymbol(Symbol* s)
     {
         paramTypeNames.push_back(pType->getDecoratedName());
     }
+    mangle = static_cast<FunctionSymbol*>(s)->mangled;
 }
 
 std::unique_ptr<ast::AST> ModuleFile::ModuleFileSymbolTable::toAST()

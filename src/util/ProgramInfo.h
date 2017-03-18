@@ -11,15 +11,6 @@
 #include <stdexcept>
 #include <string>
 
-#if VARUNA_MSVC
-#define WIN32_LEAN_AND_MEAN
-#include <direct.h>
-#define GETCWD _getcwd
-#else
-#include <unistd.h>
-#define GETCWD getcwd
-#endif
-
 namespace util
 {
 namespace programinfo
@@ -54,36 +45,4 @@ namespace programinfo
     /// Program build date
     const std::string& getBuildDate();
 } // namespace programinfo
-
-inline std::string getCurrentDirectory()
-{
-    char buf[FILENAME_MAX];
-    if(GETCWD(buf, sizeof(buf)) != 0)
-    {
-        return std::string(buf);
-    }
-
-    switch(errno)
-    {
-    case EACCES:
-        throw std::runtime_error(
-            "util::getCurrentDirectory() failed: Access denied (EACCES)");
-    case ENOMEM:
-        throw std::runtime_error(
-            "util::getCurrentDirectory() failed: No memory (ENOMEM)");
-    default:
-    {
-        char* errstr = std::strerror(errno);
-        if(!errstr)
-        {
-            throw std::runtime_error(fmt::format(
-                "Unable to get current directory: Unknown errno: {}", errno));
-        }
-        throw std::runtime_error(
-            fmt::format("Unable to get current directory: {}", errstr));
-    }
-    }
-}
 } // namespace util
-
-#undef GETCWD

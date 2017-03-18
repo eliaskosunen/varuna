@@ -13,3 +13,4 @@ a.out
 *.a
 *.lib
 *.so
+code.ll

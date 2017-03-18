@@ -1,13 +1,13 @@
-; ModuleID = 'test_09_cast'
+; ModuleID = 'varuna_tmp_input_noopt-35fd3f44-92e6-43be-a5bf-530df23df2e3.ll'
 source_filename = "Varuna"
 
-declare i32 @__va_num()
+declare i32 @_Z3numv()
 
-define i32 @__va_main() {
+define i32 @_Z4mainv() {
 entry:
   %b = alloca double
   %a = alloca i16
-  %calltmp = call i32 @__va_num()
+  %calltmp = call i32 @_Z3numv()
   %casttmp = trunc i32 %calltmp to i16
   store i16 %casttmp, i16* %a
   %a1 = load i16, i16* %a

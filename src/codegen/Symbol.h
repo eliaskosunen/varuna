@@ -90,16 +90,9 @@ public:
         auto s =
             std::make_unique<FunctionSymbol>(loc, value->clone(), name, proto);
         s->isExport = isExport;
+        s->mangled = mangled;
         return std::move(s);
     }
-
-    FunctionSymbol(const FunctionSymbol& other) = delete;
-    FunctionSymbol& operator=(const FunctionSymbol& other) = delete;
-
-    FunctionSymbol(FunctionSymbol&& other) = default;
-    FunctionSymbol& operator=(FunctionSymbol&& other) = default;
-
-    ~FunctionSymbol() = default;
 
     bool isFunction() const override
     {
@@ -108,5 +101,7 @@ public:
 
     /// Function prototype
     ast::FunctionPrototypeStmt* proto;
+    /// Is name mangled
+    bool mangled{true};
 };
 } // namespace codegen

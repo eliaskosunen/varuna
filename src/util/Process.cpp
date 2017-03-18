@@ -10,18 +10,14 @@
 #include <cstring>
 #include <vector>
 
-#if VARUNA_MSVC
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-#else
+#if !VARUNA_WIN32
 #include <spawn.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 // Required for posix_spawn
 extern char** environ;
-#endif // VARUNA_MSVC
+#endif // VARUNA_WIN32
 
 namespace util
 {
@@ -48,79 +44,7 @@ int Process::getReturnValue() const
     return returnValue;
 }
 
-#if VARUNA_MSVC
-
-#if VARUNA_MSVC_UNICODE
-using WinString = LPWSTR;
-
-/**
- * Convert WinString (LPWSTR, UTF-16) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
- */
-static std::string winStringToUtf8(WinString winstr, size_t size)
-{
-    if(size == 0)
-    {
-        return {};
-    }
-    // Not the best APIs around
-    auto sizeNeeded =
-        WideCharToMultiByte(CP_UTF8, 0, &winstr[0], static_cast<int>(size),
-                            nullptr, 0, nullptr, nullptr);
-    std::string strTo(sizeNeeded, 0);
-    WideCharToMultiByte(CP_UTF8, 0, &winstr[0], static_cast<int>(size),
-                        &strTo[0], sizeNeeded, nullptr, nullptr);
-    return strTo;
-}
-#else
-using WinString = LPSTR;
-
-/**
- * Convert WinString (LPSTR, UTF-8) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
- */
-static std::string winStringToUtf8(WinString winstr, size_t size)
-{
-    if(size == 0)
-    {
-        return {};
-    }
-    return std::string(winstr, size);
-}
-#endif // VARUNA_MSVC_UNICODE
-
-/**
- * Get OS error message from error code
- * @param  msgID Error code from GetLastError()
- * @return       Formatted error message
- */
-static std::string getFormattedMessage(DWORD msgID)
-{
-    WinString buf = nullptr;
-    auto size = FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, msgID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (WinString)&buf, 0, nullptr);
-
-    auto msg = winStringToUtf8(buf, size);
-    LocalFree(buf);
-
-    // Remove possible line breaks from the end
-    if(msg.back() == '\n')
-    {
-        msg.pop_back();
-    }
-    if(msg.back() == '\r')
-    {
-        msg.pop_back();
-    }
-    return msg;
-}
+#if VARUNA_WIN32
 
 std::string Process::getErrorString()
 {
@@ -186,7 +110,12 @@ std::string Process::getErrorString()
 
 std::string Process::getSuccessErrorString()
 {
-    return std::strerror(0);
+    auto errstr = std::strerror(0);
+    if(!errstr)
+    {
+        return "";
+    }
+    return errstr;
 }
 
 bool Process::_spawn()

@@ -9,7 +9,7 @@
 
 namespace codegen
 {
-/// Information for Codegen, CodegenVisitor and Optimizer
+/// Information for Codegen and CodegenVisitor
 struct CodegenInfo
 {
     CodegenInfo() = default;

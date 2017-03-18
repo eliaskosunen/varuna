@@ -9,15 +9,16 @@ module code;
 import cstd;
 
 def main() -> i32 {
-    puts("Hello world!\n");
+    putstr("Hello world!");
     let buf = stralloc(64i64);
-    puts("Please give some input: ");
-    gets(buf, 63);
-    puts("You gave: ");
-    if puts(buf) == eof() {
-        perror("");
+    putstr("Please give some input: ");
+    getstr(buf, 63);
+    putstr("You gave: ");
+    if putstr(buf) == eof() {
+        perrorstr("");
         strfree(buf);
         return 1;
     }
     strfree(buf);
+    return 0;
 }

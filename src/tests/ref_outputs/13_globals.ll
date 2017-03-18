@@ -1,10 +1,10 @@
-; ModuleID = 'test_13_globals'
+; ModuleID = 'varuna_tmp_input_noopt-a5792f36-11b9-4938-aace-41058c8f5579.ll'
 source_filename = "Varuna"
 
 @constant = internal constant i32 1
 @variable = internal global i32 2
 
-define i32 @__va_main() {
+define i32 @_Z4mainv() {
 entry:
   %local_variable = alloca i32
   %local_constant = alloca i32

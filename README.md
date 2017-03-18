@@ -2,12 +2,12 @@
 
 **Master branch:**  
 Linux/OSX: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  
+Windows: [![Appveyor Build Status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  
 Coverage: [![Coverage Status](https://img.shields.io/coveralls/varuna-lang/varuna/master.svg)](https://coveralls.io/github/varuna-lang/varuna?branch=master)
 
 **Develop branch:**  
 Linux/OSX: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/develop.svg)](https://travis-ci.org/varuna-lang/varuna)  
-Windows: [![Appveyor Build status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)  
+Windows: [![Appveyor Build Status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)  
 Coverage: [![Coverage Status](https://img.shields.io/coveralls/varuna-lang/varuna/develop.svg)](https://coveralls.io/github/varuna-lang/varuna?branch=develop)
 
 ## About
@@ -36,9 +36,30 @@ a Varuna module file `.vamod` (used for importing).
 
 ```
 OVERVIEW: Varuna Compiler
-USAGE: varuna [subcommand] [options] Input file
+USAGE: varuna [options] Input file
 
 OPTIONS:
+
+Generic Options:
+
+  -help                  - Display available options (-help-hidden for more)
+  -help-list             - Display list of available options (-help-list-hidden for more)
+  -version               - Display the version of this program
+
+General compiler options:
+
+  -j=<threads>           - Number of worker threads to use (Default: 1)
+  -license               - Print license and copyright information
+  -logging               - Logging level
+    =trace               -   Internal trace messages
+    =debug               -   Internal debugging messages
+    =info                -   Default logging level
+    =warning             -   Log only warnings or greater
+    =error               -   Log only errors or greater
+    =critical            -   Log only critical messages
+    =off                 -   Disable all log messages
+  -no-module             - Don't generate module file
+  -o=<string>            - Output file
 
 Code generation options:
 
@@ -62,34 +83,6 @@ Code generation options:
   -x86-asm-syntax        - Emitted x86 assembly syntax
     =att                 -   AT&T assembly syntax
     =intel               -   Intel assembly syntax
-
-General compiler options:
-
-  -j=<threads>           - Number of worker threads to use (Default: 1)
-  -license               - Print license and copyright information
-  -logging               - Logging level
-    =trace               -   Internal trace messages
-    =debug               -   Internal debugging messages
-    =info                -   Default logging level
-    =warning             -   Log only warnings or greater
-    =error               -   Log only errors or greater
-    =critical            -   Log only critical messages
-    =off                 -   Disable all log messages
-  -no-module             - Don't generate module file
-  -o=<string>            - Output file
-
-Generic Options:
-
-  -help                  - Display available options (-help-hidden for more)
-  -help-list             - Display list of available options (-help-list-hidden for more)
-  -version               - Display the version of this program
-
-LLVM options:
-
-  -llvm-as=<string>      - LLVM 'llvm-as' binary
-  -llvm-dir=<string>     - LLVM binary directory
-  -llvm-llc=<string>     - LLVM 'llc' binary
-  -llvm-opt=<string>     - LLVM 'opt' binary
 ```
 
 ### Compiling a Varuna program
@@ -110,17 +103,17 @@ $ ./a.out
 
 ### Requirements
 
-The project is developed on Ubuntu 16.04 and tested on Ubuntu 14.04.
-Other Linux distributions should work, as long as they'll have the right compiler versions available.
+The project is developed on Ubuntu 16.04 and tested on Ubuntu 12.04.
+Other Linux distributions should work, as long as they'll have the right compiler and library versions available.
 Building on Windows is supported and tested on Win10.
-Mac OS X may work, but is not tested due to lack of resources.
+Building on Mac OS X is supported and tested.
 
-This project depends on LLVM. It needs the LLVM binaries 'llvm-as', 'llc' and 'opt' available in the system path and the LLVM compiler infrastructure C++ libraries.
-The project is developed on version 3.9 and guaranteed to work only on that version.
+This project depends on LLVM. It needs the LLVM compiler infrastructure C++ libraries.
+The project is developed on version 4.0 and guaranteed to work only on that version.
 The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
 
-To build the compiler, a C++14 standard compliant compiler is required. This means g++-5 or up (g++-4.9 may work) or clang++-3.6 or up (clang++-3.4 or 3.5 may work).
-On Windows, only Visual Studio 14 (2015) is supported.
+To build the compiler, a C++14 standard compliant compiler is required. This means g++-5 or up (g++-4.9 may work) or clang++-3.6 or up.
+On Windows, Visual Studio 14 (2015) or up is supported.
 
 ### Installing LLVM
 
@@ -128,31 +121,55 @@ The easiest way to install LLVM, if you are on Debian/Ubuntu, is to install them
 
 ```
 # Debian (Jessie)
-deb http://apt.llvm.org/jessie/ llvm-toolchain-jessie-3.9 main
-deb-src http://apt.llvm.org/jessie/ llvm-toolchain-jessie-3.9 main
+deb http://apt.llvm.org/jessie/ llvm-toolchain-jessie-4.0 main
+deb-src http://apt.llvm.org/jessie/ llvm-toolchain-jessie-4.0 main
 # Ubuntu (Xenial)
-deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main
-deb-src http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main
+deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main
+deb-src http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main
 # See instructions for other OS versions from the link above
 ```
 
 Then do the rest of the installation in the shell:
 
 ```sh
+# Add sources (see above)
+$ echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main" | sudo tee -a /etc/apt/sources.list > /dev/null
+$ echo "deb-src http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main" | sudo tee -a /etc/apt/sources.list > /dev/null
+
 # Retrieve archive signature
 $ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
-# Install packages
-$ sudo apt-get install libllvm3.9 llvm-3.9 llvm-3.9-dev
+# Update package lists
+$ sudo apt-get update
 
-# LLVM packages will be on /usr/lib/llvm-3.9
+# Install packages
+$ sudo apt-get install libllvm4.0 llvm-4.0 llvm-4.0-dev
+
+# LLVM packages will be on /usr/lib/llvm-4.0
 ```
 
-On other platforms, you need to build LLVM yourself.
+On other platforms, you'll need to build LLVM yourself.
 See the LLVM documentation:
 [Linux](http://llvm.org/docs/GettingStarted.html)
 [Windows](http://llvm.org/docs/GettingStartedVS.html)
-[Downloads](releases.llvm.org/download.html#3.9.1)
+[Downloads](releases.llvm.org/download.html#4.0.0)
+
+### Other dependencies
+
+Make sure to update submodules before building
+
+```sh
+$ git submodule update --init
+```
+
+On Linux, you'll also need to install libuuid.
+The library files are already installed on some distributions, but the header files may be missing.
+Libuuid is not required on Windows or Mac.
+
+```sh
+# Debian-based
+$ sudo apt-get install uuid-dev
+```
 
 ### Linux
 
@@ -161,7 +178,7 @@ See the LLVM documentation:
 $ mkdir build
 $ cd build
 # Your LLVM installation directory may be different
-$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS_OFF ..
+$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-4.0 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS_OFF ..
 # Parallel builds are recommended
 $ make -j4
 $ sudo make install
@@ -192,4 +209,4 @@ which is included in the file LICENSE.
 
 Copyright (C) 2016-2017 Elias Kosunen
 
-Varuna also uses various third-party software, see LICENSE.thirdparty.txt for details.
+Varuna also uses various third-party software, see third-party subdirectories for details.

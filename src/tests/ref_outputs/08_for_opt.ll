@@ -1,25 +1,25 @@
-; ModuleID = 'test_08_for'
+; ModuleID = 'varuna_tmp_input_noopt-f83d2a9a-3995-4df1-8ab6-e24b8330f8ef.ll'
 source_filename = "Varuna"
 
-declare i32 @__va_count() local_unnamed_addr
+declare i32 @_Z5countv() local_unnamed_addr
 
-define i32 @__va_main() local_unnamed_addr {
+define i32 @_Z4mainv() local_unnamed_addr {
 entry:
-  %calltmp21 = tail call i32 @__va_count()
-  %letmp22 = icmp slt i32 %calltmp21, 1
-  br i1 %letmp22, label %for.merge14, label %for.cond3.preheader.preheader
+  %calltmp6 = tail call i32 @_Z5countv()
+  %letmp7 = icmp slt i32 %calltmp6, 1
+  br i1 %letmp7, label %for.merge14, label %for.cond3.preheader.preheader
 
 for.cond3.preheader.preheader:                    ; preds = %entry
   br label %for.cond3.preheader
 
 for.cond3.preheader:                              ; preds = %for.cond3.preheader.preheader, %for.cond3.preheader
-  %a.024 = phi i32 [ %addtmp10, %for.cond3.preheader ], [ 1, %for.cond3.preheader.preheader ]
-  %i.023 = phi i32 [ %addtmp13, %for.cond3.preheader ], [ 1, %for.cond3.preheader.preheader ]
-  %multmp = shl i32 %a.024, 5
+  %a.09 = phi i32 [ %addtmp10, %for.cond3.preheader ], [ 1, %for.cond3.preheader.preheader ]
+  %i.08 = phi i32 [ %addtmp13, %for.cond3.preheader ], [ 1, %for.cond3.preheader.preheader ]
+  %multmp = shl i32 %a.09, 5
   %addtmp10 = or i32 %multmp, 1
-  %addtmp13 = add nuw nsw i32 %i.023, 1
-  %calltmp = tail call i32 @__va_count()
-  %letmp = icmp slt i32 %i.023, %calltmp
+  %addtmp13 = add nuw nsw i32 %i.08, 1
+  %calltmp = tail call i32 @_Z5countv()
+  %letmp = icmp slt i32 %i.08, %calltmp
   br i1 %letmp, label %for.cond3.preheader, label %for.merge14.loopexit
 
 for.merge14.loopexit:                             ; preds = %for.cond3.preheader

@@ -1,8 +1,8 @@
-; ModuleID = 'test_05_variables'
+; ModuleID = 'varuna_tmp_input_noopt-e17f6406-1ff8-4981-971b-c358789a1c27.ll'
 source_filename = "Varuna"
 
 ; Function Attrs: norecurse nounwind readnone
-define i32 @__va_main() local_unnamed_addr #0 {
+define i32 @_Z4mainv() local_unnamed_addr #0 {
 entry:
   ret i32 0
 }

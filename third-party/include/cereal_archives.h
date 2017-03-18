@@ -5,9 +5,7 @@
 #pragma once
 
 #ifdef _MSC_VER
-
 #pragma warning(push, 0)
-
 #endif
 
 #define CEREAL_THREAD_SAFE 0
@@ -18,7 +16,5 @@
 #include "cereal/archives/xml.hpp"
 
 #ifdef _MSC_VER
-
 #pragma warning(pop)
-
 #endif

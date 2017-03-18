@@ -1,7 +1,7 @@
-; ModuleID = 'test_05_variables'
+; ModuleID = 'varuna_tmp_input_noopt-c9d7fd5f-8f27-4f0a-bb2e-27dc84e52bd5.ll'
 source_filename = "Varuna"
 
-define i32 @__va_main() {
+define i32 @_Z4mainv() {
 entry:
   %mutable = alloca i32
   %immutable = alloca i32

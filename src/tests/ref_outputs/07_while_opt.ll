@@ -1,29 +1,29 @@
-; ModuleID = 'test_07_while'
+; ModuleID = 'varuna_tmp_input_noopt-0ec1391a-0314-44e4-a597-8926042335e1.ll'
 source_filename = "Varuna"
 
-declare i1 @__va_cond() local_unnamed_addr
+declare i1 @_Z4condv() local_unnamed_addr
 
-define i32 @__va_main() local_unnamed_addr {
+define i32 @_Z4mainv() local_unnamed_addr {
 entry:
-  %calltmp11 = tail call i1 @__va_cond()
-  br i1 %calltmp11, label %while.cond1.preheader.preheader, label %while.merge7
+  %calltmp3 = tail call i1 @_Z4condv()
+  br i1 %calltmp3, label %while.cond1.preheader.preheader, label %while.merge7
 
 while.cond1.preheader.preheader:                  ; preds = %entry
   br label %while.cond1.preheader
 
 while.cond1.preheader:                            ; preds = %while.cond1.preheader.preheader, %while.merge
-  %a.012 = phi i32 [ %addtmp, %while.merge ], [ 1, %while.cond1.preheader.preheader ]
+  %a.04 = phi i32 [ %addtmp, %while.merge ], [ 1, %while.cond1.preheader.preheader ]
   br label %while.cond1
 
 while.cond1:                                      ; preds = %while.cond1, %while.cond1.preheader
   %b.0 = phi i32 [ %multmp, %while.cond1 ], [ 2, %while.cond1.preheader ]
-  %calltmp2 = tail call i1 @__va_cond()
+  %calltmp2 = tail call i1 @_Z4condv()
   %multmp = shl nsw i32 %b.0, 1
   br i1 %calltmp2, label %while.merge, label %while.cond1
 
 while.merge:                                      ; preds = %while.cond1
-  %addtmp = add nsw i32 %b.0, %a.012
-  %calltmp = tail call i1 @__va_cond()
+  %addtmp = add nsw i32 %b.0, %a.04
+  %calltmp = tail call i1 @_Z4condv()
   br i1 %calltmp, label %while.cond1.preheader, label %while.merge7.loopexit
 
 while.merge7.loopexit:                            ; preds = %while.merge

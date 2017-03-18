@@ -17,7 +17,7 @@ Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
     : ast(a), info(i), context{},
       module(std::make_unique<llvm::Module>("Varuna", context)),
       codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
-      optimizer(std::make_unique<Optimizer>(module.get(), i))
+      inputFile("varuna_tmp_input", "ll")
 {
 #if 0
     auto nameparts =
@@ -74,9 +74,91 @@ bool Codegen::visit()
 bool Codegen::finish()
 {
     util::logger->trace("Optimizing...");
-    // Run Optimizer
-    optimizer->init();
-    optimizer->run();
+
+    util::TmpFile input("varuna_tmp_input_noopt", "ll");
+    {
+        std::error_code ec;
+        llvm::raw_fd_ostream os(input.getFilename(), ec, llvm::sys::fs::F_None);
+
+        // Throw on error
+        if(ec)
+        {
+            throw std::runtime_error(
+                fmt::format("Failed to open output file: {}", ec.message()));
+        }
+
+        // Write the module to the stream
+        module->print(os, nullptr);
+
+        util::logger->debug("Wrote LLVM IR to {}", input.getFilename());
+    }
+
+    using namespace fmt::literals;
+
+    const auto flags = [&]() {
+        std::vector<std::string> flist;
+
+        return flist.empty() ? " " + util::stringutils::join(flist, ' ') : "";
+    }();
+    if(info.optEnabled())
+    {
+        auto opt = fmt::format("{}/varuna-opt", util::getExecDirectory());
+        auto optArgs = fmt::format(
+            "{input} -o {output} -S {opt} -verify-each{stripdebug}",
+            "opt"_a = util::ProgramOptions::view().optLevelToString(),
+            "input"_a = input.getFilename(),
+            "output"_a = inputFile.getFilename(), "stripdebug"_a = [&]() {
+                if(util::ProgramOptions::view().stripDebug)
+                {
+                    return " -strip-debug";
+                }
+                return "";
+            }());
+        util::logger->debug("Running {} {}", opt, optArgs);
+        auto p = util::Process(opt, optArgs);
+        if(!p.spawn())
+        {
+            util::logger->error("opt ({} {}) failed: {}", opt, optArgs,
+                                p.getErrorString());
+            return false;
+        }
+        if(p.getReturnValue() != 0)
+        {
+            util::logger->error("opt ({} {}) failed", opt, optArgs);
+            return false;
+        }
+
+        util::logger->debug("Wrote optimized LLVM IR to {}",
+                            inputFile.getFilename());
+    }
+    else
+    {
+        auto opt = fmt::format("{}/varuna-opt", util::getExecDirectory());
+        auto optArgs = fmt::format(
+            "{input} -o {output} -S -verify{stripdebug}",
+            "input"_a = input.getFilename(),
+            "output"_a = inputFile.getFilename(), "stripdebug"_a = [&]() {
+                if(util::ProgramOptions::view().stripDebug)
+                {
+                    return " -strip-debug";
+                }
+                return "";
+            }());
+        util::logger->debug("Running {} {}", opt, optArgs);
+        auto p = util::Process(opt, optArgs);
+        if(!p.spawn())
+        {
+            util::logger->error("opt ({} {}) failed: {}", opt, optArgs,
+                                p.getErrorString());
+            return false;
+        }
+        if(p.getReturnValue() != 0)
+        {
+            util::logger->error("opt ({} {}) failed", opt, optArgs);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -133,6 +215,7 @@ void Codegen::write()
         return filenameWithoutEnding().append(
             filenameEndings.find(type)->second);
     };
+    const auto execDir = util::getExecDirectory();
 
     util::logger->trace("EMIT_AST: {}", filename(util::EMIT_AST));
     util::logger->trace("EMIT_LLVM_IR: {}", filename(util::EMIT_LLVM_IR));
@@ -142,79 +225,41 @@ void Codegen::write()
     util::logger->trace("output: {}", output);
 
     util::logger->trace("cwd: {}", util::getCurrentDirectory());
+    util::logger->trace("execDir: {}", util::getExecDirectory());
 
     if(output == util::EMIT_AST)
     {
         throw std::logic_error("EMIT_AST in Codegen::write()");
     }
 
-    {
-        if(output == util::EMIT_LLVM_IR)
-        {
-            if(writeStdout)
-            {
-                // If output file set to stdout,
-                // dump the module there
-                util::loggerBasic->error("*** MODULE DUMP ***\n");
-                codegen->dumpModule();
-                util::loggerBasic->error("\n*** END MODULE DUMP ***");
-                return;
-            }
-        }
-
-        std::error_code ec;
-        llvm::raw_fd_ostream os(filename(util::EMIT_LLVM_IR).c_str(), ec,
-                                llvm::sys::fs::F_None);
-
-        // Throw on error
-        if(ec)
-        {
-            throw std::runtime_error(
-                fmt::format("Failed to open output file: {}", ec.message()));
-        }
-
-        // Write the module to the stream
-        module->print(os, nullptr);
-    }
-
-#if 0
-    {
-        auto opt = fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
-                               util::ProgramOptions::view().llvmOptBin);
-        auto optArgs = fmt::format(
-            "-o {} -S -disable-inlining -disable-opt -strip-debug -verify {}",
-            filename(util::EMIT_LLVM_IR), filename(util::EMIT_LLVM_IR));
-        util::logger->debug("Running {} {}", opt, optArgs);
-        auto p = util::Process(opt, optArgs);
-        if(!p.spawn())
-        {
-            std::remove(filename(util::EMIT_LLVM_IR).c_str());
-            throw std::runtime_error(fmt::format("opt ({} {}) failed: {}", opt,
-                                                 optArgs, p.getErrorString()));
-        }
-        if(p.getReturnValue() != 0)
-        {
-            throw std::runtime_error(
-                fmt::format("opt ({} {}) failed", opt, optArgs));
-        }
-    }
-#endif
-
     if(output == util::EMIT_LLVM_IR)
     {
-        util::logger->info("Wrote LLVM IR in '{}'",
-                           filename(util::EMIT_LLVM_IR));
+        if(writeStdout)
+        {
+            // If output file set to stdout,
+            // dump the module there
+            util::loggerBasic->error("*** MODULE DUMP ***\n");
+            codegen->dumpModule();
+            util::loggerBasic->error("\n*** END MODULE DUMP ***");
+        }
+        else
+        {
+            std::rename(inputFile.getFilename().c_str(),
+                        filename(util::EMIT_LLVM_IR).c_str());
+            util::logger->debug("Renaming {} to {}", inputFile.getFilename(),
+                                filename(util::EMIT_LLVM_IR));
+            util::logger->info("Wrote LLVM IR in '{}'",
+                               filename(util::EMIT_LLVM_IR));
+        }
         return;
     }
 
     if(output == util::EMIT_LLVM_BC)
     {
-        const auto as =
-            fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
-                        util::ProgramOptions::view().llvmAsBin);
+        const auto as = fmt::format("{}/varuna-llvm-as", execDir);
         const auto asArgs = fmt::format(
             "-o {} {}", writeStdout ? "-" : filename(util::EMIT_LLVM_BC),
-            filename(util::EMIT_LLVM_IR), writeStdout ? " -f" : "");
+            inputFile.getFilename(), writeStdout ? " -f" : "");
         util::logger->debug("Running {} {}", as, asArgs);
         auto p = util::Process(as, asArgs);
         if(!p.spawn())
@@ -223,7 +268,6 @@ void Codegen::write()
             throw std::runtime_error(fmt::format(
                 "llvm-as ({} {}) failed: {}", as, asArgs, p.getErrorString()));
         }
-        std::remove(filename(util::EMIT_LLVM_IR).c_str());
         if(p.getReturnValue() != 0)
         {
             throw std::runtime_error(
@@ -245,9 +289,7 @@ void Codegen::write()
         }
         return "asm";
     }();
-    const auto llc =
-        fmt::format("{}{}", util::ProgramOptions::view().llvmBinDir,
-                    util::ProgramOptions::view().llvmLlcBin);
+    const auto llc = fmt::format("{}/varuna-llc", execDir);
     const auto llcArgs = [&]() {
         const auto x86 = []() {
             const auto x86asm = util::ProgramOptions::view().x86asm;
@@ -268,18 +310,16 @@ void Codegen::write()
         return fmt::format(
             "-filetype={} -o {} {} --x86-asm-syntax={}{} -debugger-tune=gdb",
             outputType, writeStdout ? "-" : filename(output),
-            filename(util::EMIT_LLVM_IR), x86, optStr);
+            inputFile.getFilename(), x86, optStr);
     }();
 
     util::logger->debug("Running {} {}", llc, llcArgs);
     auto p = util::Process(llc, llcArgs);
     if(!p.spawn())
     {
-        std::remove(filename(util::EMIT_LLVM_IR).c_str());
         throw std::runtime_error(fmt::format("llc ({} {}) failed: {}", llc,
                                              llcArgs, p.getErrorString()));
     }
-    std::remove(filename(util::EMIT_LLVM_IR).c_str());
     if(p.getReturnValue() != 0)
     {
         throw std::runtime_error(
