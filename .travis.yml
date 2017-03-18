@@ -278,7 +278,7 @@ install:
 
       # LLVM
       LLVM_VERSION_LONG=4.0.0
-      brew install llvm@${LLVM_VERSION_LONG}
+      brew install llvm
 
       # GCC
       if [[ "${COMPILER_CXX}" == "g++-6" ]]; then
@@ -323,7 +323,7 @@ script:
       exit
     fi
 
-  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
   - make -j2
   - cd ..
   - |

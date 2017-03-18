@@ -1,5 +1,6 @@
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     add_library(binreloc src/binreloc.c src/binreloc.h)
+    target_compile_options(binreloc PRIVATE -w)
 else()
     add_library(binreloc binreloc.c)
 endif()

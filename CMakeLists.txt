@@ -24,7 +24,7 @@ set(CMAKE_CXX_EXTENSIONS  OFF)
 include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(WARNINGS "/W4 /EHsc /wd4100")
 
 	set(DEBUG_FLAGS				"/DEBUG /Zi /Od /DVARUNA_DEBUG=1")
