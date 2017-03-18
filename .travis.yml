@@ -21,9 +21,6 @@ env:
 
 addons:
   apt:
-    packages:
-        - valgrind
-        - uuid-dev
     sources: &apt_sources
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise
@@ -52,14 +49,6 @@ matrix:
           packages: ["g++-5", "lcov", "ggcov", "curl", "valgrind", "uuid-dev"]
           sources: *apt_sources
 
-    # Clang 5.0
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
-      compiler: clang
-      addons: &clang50
-        apt:
-          packages: ["valgrind", "uuid-dev"]
-          sources: *apt_sources
     # Clang 4.0
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-4.0 COMPILER_C=clang-4.0
@@ -127,6 +116,14 @@ matrix:
           packages: ["g++-4.9", "valgrind", "uuid-dev"]
           sources: *apt_sources
 
+    # Clang 5.0
+    - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
+      compiler: clang
+      addons: &clang50
+        apt:
+          packages: ["valgrind", "uuid-dev"]
+          sources: *apt_sources
     # Clang 3.5
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
@@ -197,6 +194,8 @@ matrix:
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
     - os: linux
+      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
+    - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.4 COMPILER_C=clang-3.4
@@ -229,7 +228,7 @@ install:
   # lldb-4.0 lld-4.0 libclang-common-4.0-dev libclang-4.0-dev libclang1-4.0 libfuzzer-4.0-dev
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      echo ${LLVM_VERSION}
+      echo LLVM version: ${LLVM_VERSION}
       if [[ "${LLVM_VERSION}" == "5.0" ]]; then
         sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install libllvm5.0 llvm-5.0 llvm-5.0-dev
       fi
@@ -243,6 +242,7 @@ install:
 
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      echo Compiler: ${COMPILER_CXX}
       if [[ "${COMPILER_CXX}" == "clang++-5.0" ]]; then
         sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install clang-5.0
       fi
@@ -306,7 +306,7 @@ install:
 before_script:
   - export CXX=${COMPILER_CXX}
   - export C=${COMPILER_C}
-  - ${COMPILER_CXX} --version
+  - ${CXX} --version
   - git submodule update --init --recursive
 
 script:
@@ -318,12 +318,12 @@ script:
       export COVERALLS_SERVICE_NAME=travis-ci
       export COVERALLS_REPO_TOKEN=${repo_token}
       export GCOV=gcov-5
-      cmake -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCOVERALLS=ON ..
+      cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCOVERALLS=ON ..
       make -k -j2 && make coveralls
       exit
     fi
 
-  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${COMPILER_C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+  - cmake -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=${COMPILER_CXX} -DCMAKE_C_COMPILER=${C} -DLLVM_DIR=${LLVM_DIR} -DBUILD_TESTS=${TESTS} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
   - make -j2
   - cd ..
   - |
