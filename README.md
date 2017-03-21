@@ -17,8 +17,7 @@ The implementation of the language can be found in this repository.
 More specifically, this compiler is an LLVM front-end.
 It produces either native object code, assembly or LLVM IR or bytecode.
 
-WORK IN PROGRESS. Master branch contains stable, but very outdated and unfunctional code.
-Wait for 0.1 release (coming soon(tm)) or grab the code from the develop branch.
+WORK IN PROGRESS. 0.1 release is coming soon.
 
 ## Language tutorial
 
