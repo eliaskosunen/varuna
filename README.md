@@ -178,7 +178,7 @@ $ sudo apt-get install uuid-dev
 $ mkdir build
 $ cd build
 # Your LLVM installation directory may be different
-$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-4.0 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS_OFF ..
+$ cmake -G "Unix Makefiles" -DLLVM_DIR=/usr/lib/llvm-4.0 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF ..
 # Parallel builds are recommended
 $ make -j4
 $ sudo make install

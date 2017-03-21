@@ -2,9 +2,7 @@ version: 1.0.{build}
 
 os: Visual Studio 2015
 
-platform:
-    - Win32
-    - x64
+platform: Win32
 
 environment:
     MSVC_DEFAULT_OPTIONS: ON
@@ -18,13 +16,16 @@ init:
     - cmd: msbuild /version
 
 clone_folder: C:\projects\varuna
+clone_depth: 5
+
+install:
+    - cmd: git submodule update --init --recursive
 
 before_build:
     - cmd: md build
     - cmd: cd build
 
-    - cmd: if "%platform%"=="Win32" cmake -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR="C:\Program Files\LLVM" ..
-    - cmd: if "%platform%"=="x64" cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR="C:\Program Files\LLVM" ..
+    - cmd: cmake -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR=C:\Libraries\llvm-4.0.0\lib\cmake\llvm -DBUILD_TESTS=OFF ..
 
 build:
     project: C:\projects\varuna\build\varuna.sln

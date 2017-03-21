@@ -8,10 +8,10 @@
 #include <vector>
 
 template <typename T>
-void testIsChar(T&& f, std::vector<util::char_t>&& is,
-                std::vector<util::char_t>&& isnot)
+void testIsChar(T&& f, std::vector<char>&& is,
+                std::vector<char>&& isnot)
 {
-    auto isfunc = [&f](util::char_t c) {
+    auto isfunc = [&f](char c) {
         if(!f(c))
         {
             // Returned false:
@@ -19,7 +19,7 @@ void testIsChar(T&& f, std::vector<util::char_t>&& is,
             CHECK(c == 0);
         }
     };
-    auto isnotfunc = [&f](util::char_t c) {
+    auto isnotfunc = [&f](char c) {
         if(f(c))
         {
             // Returned true:
@@ -43,9 +43,7 @@ TEST_CASE("stringutils")
     using namespace util::stringutils;
 
     CHECK(replaceAllCopy("foo", "o", "a") == "faa");
-    CHECK(ltrimCopy("   foo") == "foo");
-    CHECK(rtrimCopy("foo   ") == "foo");
-    CHECK(trimCopy("  foo  ") == "foo");
+    CHECK(trim("  foo  ") == "foo");
     CHECK(trimConsecutiveSpacesCopy("foo   bar") == "foo bar");
     CHECK(cstrToString("foo") == "foo");
     CHECK(charToString('a') == "a");

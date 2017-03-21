@@ -8,7 +8,6 @@
 #include "util/File.h"
 #include "util/IteratorUtils.h"
 #include "util/Logger.h"
-#include "util/String.h"
 #include <utf8.h>
 #include <string>
 #include <vector>
@@ -79,38 +78,38 @@ namespace lexer
             COMMENT_NONE
         };
 
-        TokenType getTokenTypeFromWord(const util::string_t& buf) const;
-        Token getTokenFromWord(const util::string_t& buf) const;
-        Token createToken(TokenType type, const util::string_t& val) const;
+        TokenType getTokenTypeFromWord(const std::string& buf) const;
+        Token getTokenFromWord(const std::string& buf) const;
+        Token createToken(TokenType type, const std::string& val) const;
 
         Token getNextToken();
 
-        util::string_t lexStringLiteral(bool isChar = false);
+        std::string lexStringLiteral(bool isChar = false);
 
-        TokenType getTokenTypeFromOperator(const util::string_t& buf) const;
-        Token getTokenFromOperator(const util::string_t& buf) const;
+        TokenType getTokenTypeFromOperator(const std::string& buf) const;
+        Token getTokenFromOperator(const std::string& buf) const;
 
         template <typename... Args>
-        void lexerError(const util::string_t& format, Args&&... args);
+        void lexerError(const std::string& format, Args&&... args);
         template <typename... Args>
-        void lexerWarning(const util::string_t& format, Args&&... args);
+        void lexerWarning(const std::string& format, Args&&... args);
 
         void newline();
-        util::char_t peekUpcoming(std::ptrdiff_t) const;
-        util::char_t peekNext() const;
+        char peekUpcoming(std::ptrdiff_t) const;
+        char peekNext() const;
 
         void _next();
-        util::char_t _getNext();
+        char _getNext();
         ContentIterator& advance();
         int _advance();
 
         [[noreturn]] void prevline();
-        util::char_t peekPrevious() const;
-        util::char_t peekPassed(std::ptrdiff_t n) const;
+        char peekPrevious() const;
+        char peekPassed(std::ptrdiff_t n) const;
 
         LexCommentReturn lexComment();
 
-        util::string_t content;
+        std::string content;
         ContentIterator it;
         ContentIterator end;
 
@@ -122,7 +121,7 @@ namespace lexer
     };
 
     template <typename... Args>
-    inline void Lexer::lexerError(const util::string_t& format, Args&&... args)
+    inline void Lexer::lexerError(const std::string& format, Args&&... args)
     {
         error = ERROR_ERROR;
         util::logCompilerError(currentLocation, format,
@@ -130,7 +129,7 @@ namespace lexer
     }
 
     template <typename... Args>
-    inline void Lexer::lexerWarning(const util::string_t& format,
+    inline void Lexer::lexerWarning(const std::string& format,
                                     Args&&... args)
     {
         if(error != ERROR_ERROR)
@@ -146,16 +145,16 @@ namespace lexer
         currentLocation.line++;
         currentLocation.col = 1;
     }
-    inline util::char_t Lexer::peekUpcoming(std::ptrdiff_t) const
+    inline char Lexer::peekUpcoming(std::ptrdiff_t) const
     {
         throw std::logic_error("Lexer::peekUpcoming() is unimplemented");
     }
-    inline util::char_t Lexer::peekNext() const
+    inline char Lexer::peekNext() const
     {
         // return peekUpcoming(1);
-        // return static_cast<util::char_t>(utf8::peek_next(it, end));
+        // return static_cast<char>(utf8::peek_next(it, end));
         auto copy = it;
-        return static_cast<util::char_t>(*(copy + 1));
+        return static_cast<char>(*(copy + 1));
     }
 
     inline void Lexer::_next()
@@ -173,12 +172,12 @@ namespace lexer
             }
         }
     }
-    inline util::char_t Lexer::_getNext()
+    inline char Lexer::_getNext()
     {
-        // auto tmp = static_cast<util::char_t>(utf8::next(it, end));
+        // auto tmp = static_cast<char>(utf8::next(it, end));
         _next();
         assert(it != end);
-        auto tmp = static_cast<util::char_t>(*it);
+        auto tmp = static_cast<char>(*it);
         return tmp;
     }
     inline Lexer::ContentIterator& Lexer::advance()
@@ -223,14 +222,14 @@ namespace lexer
         throw std::logic_error(
             "Don't use Lexer::prevline(), it messes up the column counter");
     }
-    inline util::char_t Lexer::peekPrevious() const
+    inline char Lexer::peekPrevious() const
     {
         auto copy = it;
-        // return static_cast<util::char_t>(utf8::prior(copy,
+        // return static_cast<char>(utf8::prior(copy,
         // content.begin()));
-        return static_cast<util::char_t>(*(copy - 1));
+        return static_cast<char>(*(copy - 1));
     }
-    inline util::char_t Lexer::peekPassed(std::ptrdiff_t n) const
+    inline char Lexer::peekPassed(std::ptrdiff_t n) const
     {
         for(int i = 1; i < n; ++i)
         {

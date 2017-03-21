@@ -3,6 +3,7 @@
 // See LICENSE for details
 
 #include "util/TmpFile.h"
+#include "util/Platform.h"
 #include <fmt.h>
 
 namespace util
@@ -11,7 +12,8 @@ GuidGenerator TmpFile::g{};
 
 TmpFile::TmpFile(const std::string& prefix, const std::string& suffix)
 {
-    name = fmt::format("{}-{}.{}", prefix, g.newGuid(), suffix);
+    name = fmt::format("{}-{}.{}", prefix,
+                       g.newGuid(), suffix);
     auto f = std::fopen(name.c_str(), "w");
     if(!f)
     {
@@ -24,6 +26,7 @@ TmpFile::TmpFile(const std::string& prefix, const std::string& suffix)
         throw std::runtime_error(
             fmt::format("Unable to create temporary file: {}", errstr));
     }
+    std::fprintf(f, "foo");
     std::fclose(f);
 }
 

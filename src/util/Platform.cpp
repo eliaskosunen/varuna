@@ -4,7 +4,6 @@
 
 #include "util/Platform.h"
 #include <fmt.h>
-#include <llvm/Support/FileSystem.h>
 #include <climits>
 #include <cstdlib>
 #include <stdexcept>

@@ -53,7 +53,7 @@ namespace lexer
 
     Token Lexer::getNextToken()
     {
-        util::char_t currentChar = *it;
+        char currentChar = *it;
         util::loggerBasic->trace("");
 
         while(true)
@@ -121,7 +121,7 @@ namespace lexer
             if((currentChar == 'b' || currentChar == 'B') && peekNext() == '\'')
             {
                 advance(); // Skip 'b'
-                util::string_t buf = lexStringLiteral(true);
+                std::string buf = lexStringLiteral(true);
                 if(!getError())
                 {
                     Token t = createToken(TOKEN_LITERAL_CHAR, buf);
@@ -134,7 +134,7 @@ namespace lexer
                     peekNext() == '"')
             {
                 advance(); // Skip 'c'
-                util::string_t buf = lexStringLiteral(false);
+                std::string buf = lexStringLiteral(false);
                 if(!getError())
                 {
                     Token t = createToken(TOKEN_LITERAL_STRING, buf);
@@ -144,7 +144,7 @@ namespace lexer
             }
             else
             {
-                util::string_t buf;
+                std::string buf;
                 buf.reserve(8);
                 buf.push_back(currentChar);
                 while(util::stringutils::isValidIdentifierChar(*advance()))
@@ -162,7 +162,7 @@ namespace lexer
         if(util::stringutils::isCharDigit(currentChar) ||
            (currentChar == '.' && util::stringutils::isCharDigit(*(it + 1))))
         {
-            util::string_t buf;
+            std::string buf;
             buf.reserve(8);
             bool isFloatingPoint = (currentChar == '.');
             enum _IntegerLiteralBase
@@ -231,7 +231,7 @@ namespace lexer
                                         {"i8", INTEGER_INT8},
                                         {"o", INTEGER_BYTE}}; // o = octet
                 auto mod = [&]() {
-                    util::string_t modbuf;
+                    std::string modbuf;
                     while(util::stringutils::isCharAlnum(currentChar))
                     {
                         modbuf.push_back(currentChar);
@@ -281,7 +281,7 @@ namespace lexer
                                     {"d", FLOAT_DECIMAL},
                                     {"l", FLOAT_LONG}};
             auto mod = [&]() {
-                util::string_t modbuf;
+                std::string modbuf;
                 while(util::stringutils::isCharAlnum(currentChar))
                 {
                     modbuf.push_back(currentChar);
@@ -315,7 +315,7 @@ namespace lexer
         // ".+"
         if(currentChar == '"')
         {
-            util::string_t buf = lexStringLiteral(false);
+            std::string buf = lexStringLiteral(false);
             if(!getError())
             {
                 Token t = createToken(TOKEN_LITERAL_STRING, buf);
@@ -328,7 +328,7 @@ namespace lexer
         // '.'
         if(currentChar == '\'')
         {
-            util::string_t buf = lexStringLiteral(true);
+            std::string buf = lexStringLiteral(true);
             if(!getError())
             {
                 Token t = createToken(TOKEN_LITERAL_CHAR, buf);
@@ -340,12 +340,12 @@ namespace lexer
         // Operator or punctuator
         if(util::stringutils::isCharPunctuation(currentChar))
         {
-            util::string_t buf;
+            std::string buf;
             while(util::stringutils::isCharPunctuation(currentChar))
             {
                 if(getTokenTypeFromOperator(buf) != TOKEN_UNDEFINED)
                 {
-                    util::string_t tmp(buf);
+                    std::string tmp(buf);
                     tmp.push_back(*it);
                     if(getTokenTypeFromOperator(tmp) == TOKEN_UNDEFINED)
                     {
@@ -444,16 +444,16 @@ namespace lexer
         return COMMENT_NONE;
     }
 
-    util::string_t Lexer::lexStringLiteral(bool isChar)
+    std::string Lexer::lexStringLiteral(bool isChar)
     {
-        util::string_t buf;
+        std::string buf;
         buf.reserve(isChar ? 2 : 8);
-        const util::char_t quote = (isChar ? '\'' : '"');
+        const char quote = (isChar ? '\'' : '"');
         while(advance() != end)
         {
-            util::char_t currentChar = *it;
-            util::char_t prev = peekPrevious();
-            util::char_t next = peekNext();
+            char currentChar = *it;
+            char prev = peekPrevious();
+            char next = peekNext();
             util::logger->trace(
                 "Current character: '{}', prev: '{}', next: '{}'", currentChar,
                 prev, next);
@@ -485,7 +485,7 @@ namespace lexer
         }
 
         util::logger->trace("Buffer before escaping: '{}'", buf);
-        util::string_t escaped;
+        std::string escaped;
         std::string::const_iterator rit = buf.begin();
         while(rit != buf.end())
         {
@@ -520,7 +520,7 @@ namespace lexer
                     break;
                 case 'x':
                 {
-                    util::string_t hex;
+                    std::string hex;
                     if(!util::stringutils::isCharHexDigit(*rit))
                     {
                         lexerWarning("Invalid hexadecimal escape sequence: The "
@@ -541,7 +541,7 @@ namespace lexer
                 }
                 case 'o':
                 {
-                    util::string_t oct;
+                    std::string oct;
                     if(!util::stringutils::isCharOctDigit(*rit))
                     {
                         lexerWarning("Invalid octal escape sequence: The first "
@@ -593,14 +593,14 @@ namespace lexer
         return escaped;
     }
 
-    Token Lexer::createToken(TokenType type, const util::string_t& val) const
+    Token Lexer::createToken(TokenType type, const std::string& val) const
     {
         return Token::create(type, val, currentLocation);
     }
 
-    TokenType Lexer::getTokenTypeFromWord(const util::string_t& buf) const
+    TokenType Lexer::getTokenTypeFromWord(const std::string& buf) const
     {
-        static const std::unordered_map<util::string_t, TokenType> words{
+        static const std::unordered_map<std::string, TokenType> words{
             {"import", TOKEN_KEYWORD_IMPORT},
             {"export", TOKEN_KEYWORD_EXPORT},
             {"module", TOKEN_KEYWORD_MODULE},
@@ -637,14 +637,14 @@ namespace lexer
         return find->second;
     }
 
-    Token Lexer::getTokenFromWord(const util::string_t& buf) const
+    Token Lexer::getTokenFromWord(const std::string& buf) const
     {
         return createToken(getTokenTypeFromWord(buf), buf);
     }
 
-    TokenType Lexer::getTokenTypeFromOperator(const util::string_t& buf) const
+    TokenType Lexer::getTokenTypeFromOperator(const std::string& buf) const
     {
-        static const std::unordered_map<util::string_t, TokenType> operators{
+        static const std::unordered_map<std::string, TokenType> operators{
             {"=", TOKEN_OPERATORA_SIMPLE},  {"+=", TOKEN_OPERATORA_ADD},
             {"-=", TOKEN_OPERATORA_SUB},    {"*=", TOKEN_OPERATORA_MUL},
             {"/=", TOKEN_OPERATORA_DIV},    {"%=", TOKEN_OPERATORA_MOD},
@@ -675,7 +675,7 @@ namespace lexer
         return find->second;
     }
 
-    Token Lexer::getTokenFromOperator(const util::string_t& buf) const
+    Token Lexer::getTokenFromOperator(const std::string& buf) const
     {
         return createToken(getTokenTypeFromOperator(buf), buf);
     }

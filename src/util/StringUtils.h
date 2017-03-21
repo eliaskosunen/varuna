@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "util/String.h"
 #include <fmt.h>
 #include <algorithm>
 #include <cassert>
@@ -14,6 +13,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#define CHAR_SIGNED CHAR_MIN < 0
 
 namespace util
 {
@@ -28,11 +29,12 @@ namespace stringutils
      * @param needle      String to replace
      * @param replacement Replacement string
      */
-    inline void replaceAll(string_t& haystack, const string_t& needle,
-                           const string_t& replacement)
+    inline void replaceAll(std::string& haystack, const std::string& needle,
+                           const std::string& replacement)
     {
         size_t start_pos = 0;
-        while((start_pos = haystack.find(needle, start_pos)) != string_t::npos)
+        while((start_pos = haystack.find(needle, start_pos)) !=
+              std::string::npos)
         {
             haystack.replace(start_pos, needle.length(), replacement);
             start_pos += replacement.length(); // Handles case where
@@ -49,87 +51,33 @@ namespace stringutils
      * @param  replacement Replacement string
      * @return             Copy of the final string
      */
-    inline string_t replaceAllCopy(string_t haystack, const string_t& needle,
-                                   const string_t& replacement)
+    inline std::string replaceAllCopy(std::string haystack,
+                                      const std::string& needle,
+                                      const std::string& replacement)
     {
         replaceAll(haystack, needle, replacement);
         return haystack;
     }
 
-    /**
-     * Trim off whitespace from the beginning of the string
-     * @param str String to trim
-     */
-    inline void ltrim(string_t& str)
+    inline std::string trim(const std::string& s)
     {
-        str.erase(
-            str.begin(),
-            std::find_if(str.begin(), str.end(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace))));
-    }
-
-    /**
-     * Trim off whitespace from the end of the string
-     * @param str String to trim
-     */
-    inline void rtrim(string_t& str)
-    {
-        str.erase(std::find_if(str.rbegin(), str.rend(),
-                               std::not1(std::ptr_fun<int, int>(std::isspace)))
-                      .base(),
-                  str.end());
-    }
-
-    /**
-     * Trim off whitespace from both sides of the string
-     * @param str String to trim
-     */
-    inline void trim(string_t& str)
-    {
-        ltrim(str);
-        rtrim(str);
-    }
-
-    /**
-     * Trim off whitespace from the beginning of the string and return a copy
-     * @param  str String to trim
-     * @return     Trimmed string
-     */
-    inline string_t ltrimCopy(string_t str)
-    {
-        ltrim(str);
-        return str;
-    }
-
-    /**
-     * Trim off whitespace from the end of the string and return a copy
-     * @param  str String to trim
-     * @return     Trimmed string
-     */
-    inline string_t rtrimCopy(string_t str)
-    {
-        rtrim(str);
-        return str;
-    }
-
-    /**
-     * Trim off whitespace from both sides of the string and return a copy
-     * @param  str String to trim
-     * @return     Trimmed string
-     */
-    inline string_t trimCopy(string_t str)
-    {
-        trim(str);
-        return str;
+        auto wsfront = std::find_if_not(s.begin(), s.end(),
+                                        [](int c) { return std::isspace(c); });
+        return std::string(
+            wsfront,
+            std::find_if_not(s.rbegin(),
+                             std::string::const_reverse_iterator(wsfront),
+                             [](int c) { return std::isspace(c); })
+                .base());
     }
 
     /**
      * Trim off all consecutive spaces from a string
      * @param str String to trim
      */
-    inline void trimConsecutiveSpaces(string_t& str)
+    inline void trimConsecutiveSpaces(std::string& str)
     {
-        string_t::iterator newEnd =
+        std::string::iterator newEnd =
             std::unique(str.begin(), str.end(), [](char lhs, char rhs) {
                 return (lhs == rhs) && (lhs == ' ');
             });
@@ -141,34 +89,35 @@ namespace stringutils
      * @param  str String to trim
      * @return     Trimmed string
      */
-    inline string_t trimConsecutiveSpacesCopy(string_t str)
+    inline std::string trimConsecutiveSpacesCopy(std::string str)
     {
         trimConsecutiveSpaces(str);
         return str;
     }
 
     /**
-     * Convert a C string (const char_t*) to a C++ string (string_t)
+     * Convert a C string (const char*) to a C++ string (std::string)
      * @param  cstr C string to convert
      * @return      Equivalent C++ string
      */
-    inline string_t cstrToString(const char_t* cstr)
+    inline std::string cstrToString(const char* cstr)
     {
-        stringstream_t ss;
+        std::stringstream ss;
         ss << cstr;
         return ss.str();
     }
 
     /**
-     * Convert a C string (const char_t*) to a C++ string (string_t) with length
+     * Convert a C string (const char*) to a C++ string (std::string) with
+     * length
      * information
      * @param  cstr C string to convert
      * @param  len  Length of the C string
      * @return      Equivalent C++ string
      */
-    inline string_t cstrToStringLen(const char_t* cstr, size_t len)
+    inline std::string cstrToStringLen(const char* cstr, size_t len)
     {
-        return string_t(cstr, len);
+        return std::string(cstr, len);
     }
 
     /**
@@ -176,15 +125,15 @@ namespace stringutils
      * @param  c Char to convert
      * @return   Equivalent C++ string
      */
-    inline string_t charToString(const char_t& c)
+    inline std::string charToString(const char& c)
     {
-        stringstream_t ss;
+        std::stringstream ss;
         ss << c;
         return ss.str();
     }
 
-    inline void split(const char* str, char_t delim,
-                      std::vector<string_t>& result)
+    inline void split(const char* str, char delim,
+                      std::vector<std::string>& result)
     {
         do
         {
@@ -195,60 +144,60 @@ namespace stringutils
                 str++;
             }
 
-            result.push_back(string_t(begin, str));
+            result.push_back(std::string(begin, str));
         } while(*str++ != 0x0);
     }
 
-    inline std::vector<string_t> split(const char* str, char_t delim)
+    inline std::vector<std::string> split(const char* str, char delim)
     {
-        std::vector<string_t> result;
+        std::vector<std::string> result;
         split(str, delim, result);
         return result;
     }
 
-    inline void split(const string_t& str, char_t delim,
-                      std::vector<string_t>& result)
+    inline void split(const std::string& str, char delim,
+                      std::vector<std::string>& result)
     {
         split(str.c_str(), delim, result);
     }
 
-    inline std::vector<string_t> split(const string_t& str, char_t delim)
+    inline std::vector<std::string> split(const std::string& str, char delim)
     {
         return split(str.c_str(), delim);
     }
 
-    inline bool isCharAlpha(char_t c)
+    inline bool isCharAlpha(char c)
     {
         return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
     }
 
-    inline bool isCharDigit(char_t c)
+    inline bool isCharDigit(char c)
     {
         return (c >= '0' && c <= '9');
     }
 
-    inline bool isCharAlnum(char_t c)
+    inline bool isCharAlnum(char c)
     {
         return (isCharAlpha(c) || isCharDigit(c));
     }
 
-    inline bool isCharHexDigit(char_t c)
+    inline bool isCharHexDigit(char c)
     {
         return (isCharDigit(c) || (c >= 'A' && c <= 'F') ||
                 (c >= 'a' && c <= 'f'));
     }
 
-    inline bool isCharOctDigit(char_t c)
+    inline bool isCharOctDigit(char c)
     {
         return (c >= '0' && c <= '7');
     }
 
-    inline bool isCharBinDigit(char_t c)
+    inline bool isCharBinDigit(char c)
     {
         return (c == '0' || c == '1');
     }
 
-    inline bool isCharPunctuation(char_t c)
+    inline bool isCharPunctuation(char c)
     {
         return ((c >= 0x21 && c <= 0x2F) || (c >= 0x3A && c <= 0x40) ||
                 (c >= 0x5B && c <= 0x60) || (c >= 0x7B && c <= 0x7E));
@@ -259,27 +208,27 @@ namespace stringutils
      * @param  c Char to check
      * @return   true = whitespace
      */
-    inline bool isCharWhitespace(char_t c)
+    inline bool isCharWhitespace(char c)
     {
         return ((c >= 0x09 && c <= 0x0D) || c == 0x20);
     }
 
-    inline bool isCharControlCharacter(char_t c)
+    inline bool isCharControlCharacter(char c)
     {
         return (isCharWhitespace(c) || (c >= 0x0E && c <= 0x1F) || c == 0x7F);
     }
 
-    inline bool isValidIdentifierBeginningChar(char_t c)
+    inline bool isValidIdentifierBeginningChar(char c)
     {
         return (isCharAlpha(c) || c == '_');
     }
 
-    inline bool isValidIdentifierChar(char_t c)
+    inline bool isValidIdentifierChar(char c)
     {
         return (isCharAlnum(c) || c == '_');
     }
 
-    inline bool isValidStringChar(char_t c)
+    inline bool isValidStringChar(char c)
     {
         return (isCharAlnum(c) || isCharPunctuation(c) || isCharWhitespace(c) ||
 #if CHAR_SIGNED
@@ -289,7 +238,7 @@ namespace stringutils
 #endif
     }
 
-    inline string_t createEmptyStringWithLength(size_t len)
+    inline std::string createEmptyStringWithLength(size_t len)
     {
         if(len == 0)
         {
@@ -299,21 +248,21 @@ namespace stringutils
     }
 
     template <typename ForwardIterator>
-    string_t join(ForwardIterator begin, ForwardIterator end, char_t glue)
+    std::string join(ForwardIterator begin, ForwardIterator end, char glue)
     {
         if(begin == end)
         {
             return {};
         }
-        stringstream_t ss;
+        std::stringstream ss;
         std::for_each(begin, end, [&](const auto& p) { ss << p << glue; });
-        string_t str = ss.str();
+        std::string str = ss.str();
         str.pop_back();
         return str;
     }
 
     template <typename Container>
-    string_t join(const Container& parts, char_t glue)
+    std::string join(const Container& parts, char glue)
     {
         return join(parts.begin(), parts.end(), glue);
     }
