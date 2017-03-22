@@ -6,25 +6,19 @@ No implicit conversions between any of the types are allowed.
 
 | Typename | Size (bits) | Literal suffix |
 | -------- | ----------- | -------------- |
-| `int`    | 32/64*      | (none)         |
-| `int8`   | 8           | `i8`           |
-| `int16`  | 16          | `i16`          |
-| `int32`  | 32          | `i32`          |
-| `int64`  | 64          | `i64`          |
-
-\* `int` size can be determined with compiler flag `-fint-size=[0|32|64]`.
-`0` is the default, and is either 32 or 64 bits depending on the CPU architecture.
+| `i8`     | 8           | `i8`           |
+| `i16`    | 16          | `i16`          |
+| `i32`    | 32          | `i32` or none  |
+| `i64`    | 64          | `i64`          |
 
 All integer types are signed.  
-
 
 ## Floating-point types
 
 | Typename | Size (bits) | Literal suffix |
 | -------- | ----------- | -------------- |
-| `float`  | 32          | (none)         |
 | `f32`    | 32          | `f32`          |
-| `f64`    | 64          | `f64`          |
+| `f64`    | 64          | `f64` none     |
 
 ## Other types
 
@@ -57,12 +51,12 @@ Variables are immutable by default.
 
 ```
 // Prefer initializing your variables
-let a = 1;       // Immutable variable, type int, value 1
+let a = 1;       // Immutable variable, type i32, value 1
 let mut b = 1.0; // Mutable variable, type float, value 1.0
 var c = true;    // Mutable variable, type bool, value true
 
 // Avoid this
-let d: int8;     // Uninitialized immutable variable, type int8
+let d: i8;     // Uninitialized immutable variable, type i8
 let mut e: f64;  // Uninitialized mutable variable, type f64
 var f: char;     // Uninitialized mutable variable, type char
 
@@ -84,7 +78,7 @@ let g: byte = 0b01010101b; // Immutable variable, type byte, value 85
 
 `not` works as expected. Operand must be of type `bool`.
 
-`+` casts to `int`. Operand must be of an integral type.
+`+` casts to `i32`. Operand must be of an integral type.
 
 `-` works as expected. Operand must be of numeric type.
 
@@ -104,10 +98,10 @@ Function call operator: `()`
 
 ```
 // Function declaration
-def function(param: int) -> int;
+def function(param: i32) -> i32;
 
 // Function definition
-def function2() -> int {
+def function2() -> i32 {
     return 1;
 }
 
@@ -118,7 +112,7 @@ def function3();
 ## Function calling
 
 ```
-def function(param: int) -> int;
+def function(param: i32) -> i32;
 def function2();
 
 def callee() -> bool {
@@ -178,6 +172,39 @@ while cond() {
 
 ## Casts
 
-`cast<type>(value)`.
+`42 as i16`
 
 Invalid casts produce a compile-time error.
+
+# Modules
+
+## Creating a module
+
+Include a `module`-statement somewhere in the file, preferably in the beginning.
+
+```
+module mymodule;
+
+def private() -> i32 {
+    return 0;
+}
+
+// Only exported functions can be called!
+export def func() -> i32 {
+    return private();
+}
+```
+
+## Importing a module
+
+Modules can be imported with a `import`-statement. The compiler must be able to find the corresponding `.vamod` file in order to successfully compile the module.
+
+```
+// Only `func` will be visible
+import mymodule;
+
+def main() -> i32 {
+    //return private(); <- error
+    return func();
+}
+```

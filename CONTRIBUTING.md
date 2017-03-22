@@ -1,8 +1,18 @@
 # Contributing
 
+All contributions are welcome!
+
+## Pull requests
+
+It's highly recommended to open a issue for a discussion before making a pull request.
+
+All pull requests should be made against the `develop` branch. Make sure the code is properly formatted and doesn't violate the coding standards and style. If you're adding a new feature, consider adding a test for it.
+
+Compiler and language documentation and tests are unfortunately sincerely lacking right now.
+
 ## Coding standards
 
-The code used in the Varuna compiler should always be standard-compliant (C++14) and not depend on platform or compiler-specific features.
+The code used in the Varuna compiler should always be standard-compliant (C++14) and it should avoid depending on platform-specific features.
 
 The coding standard used in Varuna is based on the
 [LLVM Coding Standards](http://llvm.org/docs/CodingStandards.html).
@@ -11,12 +21,10 @@ The exceptions to it are below. Also, the [C++ Core Guidelines](https://github.c
 These rules are guidelines, not laws.
 They are there only to provide consistency.
 
-* Exceptions and RTTI are allowed (not disabled), but not encouraged
-* Do not use `#include <iostream>`. Use `spdlog`, and if it fails, fall back on `<cstdio>`
-* Naming style:
-    * **Types** (classes, structs, enums...) in PascalCase
-    * **Variables**, **functions** and **namespaces** in camelCase
-    * **Enumerators** in ALL_CAPS
+Naming style:
+* **Types** (classes, structs, enums...) in PascalCase
+* **Variables**, **functions** and **namespaces** in camelCase
+* **Enumerators** in ALL_CAPS
 
 ### Coding style
 
