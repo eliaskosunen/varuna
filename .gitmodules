@@ -22,7 +22,6 @@
 [submodule "projects/llvm-binutils"]
 	path = projects/llvm-binutils
 	url = https://github.com/varuna-lang/llvm-binutils
-	branch = develop
 [submodule "third-party/binreloc/src"]
 	path = third-party/binreloc/src
 	url = https://github.com/datenwolf/binreloc
