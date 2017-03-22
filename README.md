@@ -107,7 +107,7 @@ Other Linux distributions should work, as long as they'll have the right compile
 Building on Windows is supported and tested on Win10.
 Building on Mac OS X is supported and tested.
 
-This project depends on LLVM. It needs the LLVM compiler infrastructure C++ libraries.
+This project depends on LLVM and needs the LLVM compiler infrastructure C++ libraries.
 The project is developed on version 4.0 and guaranteed to work only on that version.
 The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
 
@@ -185,9 +185,8 @@ $ sudo make install
 
 ### Windows
 
-You can either use the CMake GUI to create the MSVC project files.
-
-After that the Visual Studio project files can be found in the folder `build`.
+You can use the CMake GUI to create the MSVC project files.
+Note that the tests don't support Windows.
 
 ## Contributing
 
