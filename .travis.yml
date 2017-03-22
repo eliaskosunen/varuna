@@ -65,22 +65,6 @@ matrix:
         apt:
           packages: ["clang-3.9", "valgrind", "uuid-dev"]
           sources: *apt_sources
-    # Clang 3.8
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.8 COMPILER_C=clang-3.8
-      compiler: clang
-      addons: &clang38
-        apt:
-          packages: ["clang-3.8", "valgrind", "uuid-dev"]
-          sources: *apt_sources
-    # Clang 3.7
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.7 COMPILER_C=clang-3.7
-      compiler: clang
-      addons: &clang37
-        apt:
-          packages: ["clang-3.7", "valgrind", "uuid-dev"]
-          sources: *apt_sources
     # Clang 3.6
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.6 COMPILER_C=clang-3.6
@@ -117,28 +101,13 @@ matrix:
           sources: *apt_sources
 
     # Clang 5.0
+    # Fails to install sometimes
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
       compiler: clang
       addons: &clang50
         apt:
           packages: ["valgrind", "uuid-dev"]
-          sources: *apt_sources
-    # Clang 3.5
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
-      compiler: clang
-      addons: &clang35
-        apt:
-          packages: ["clang-3.5", "valgrind", "uuid-dev"]
-          sources: *apt_sources
-    # Clang 3.4
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.4 COMPILER_C=clang-3.4
-      compiler: clang
-      addons: &clang34
-        apt:
-          packages: ["valgrind", "valgrind", "uuid-dev"]
           sources: *apt_sources
 
     # Xcode 8.2 Clang
@@ -154,16 +123,6 @@ matrix:
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
       osx_image: xcode6.4
 
-    # OSX GCC 6
-    - os: osx
-      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
-      compiler: gcc
-      osx_image: beta-xcode6.3
-    # OSX GCC 5
-    - os: osx
-      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
-      compiler: gcc
-      osx_image: beta-xcode6.3
     # OSX LLVM-GCC
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
@@ -189,16 +148,8 @@ matrix:
   allow_failures:
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=g++-4.9 COMPILER_C=gcc-4.9
-    - os: osx
-      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-6 COMPILER_C=gcc-6
-    - os: osx
-      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++-5 COMPILER_C=gcc-5
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.5 COMPILER_C=clang-3.5
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.4 COMPILER_C=clang-3.4
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
     - os: linux
