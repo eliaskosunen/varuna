@@ -1,0 +1,16 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 14_modules_importee.va
+// Modules
+
+module test_14_modules_importee;
+
+export def external_function() -> i32 {
+    return 10;
+}
+
+export def another_function() -> i32 {
+    return -89;
+}

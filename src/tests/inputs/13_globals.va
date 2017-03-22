@@ -1,0 +1,21 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 13_globals.va
+// Global variables
+
+module test_13_globals;
+
+let constant = 1;
+let mut variable = 2;
+
+def main() -> i32 {
+    let local_constant = 3;
+    let mut local_variable = 4;
+
+    variable = 5;
+    local_variable = 6;
+
+    return constant + variable;
+}

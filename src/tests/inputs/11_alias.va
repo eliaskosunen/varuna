@@ -1,0 +1,17 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 11_alias.va
+// Type aliases
+
+module test_11_alias;
+
+use int = i32;
+
+def func(i: int) -> int;
+
+def main() -> i32 {
+    let n = int(10);
+    return func(n) as i32;
+}

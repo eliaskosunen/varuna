@@ -1,0 +1,31 @@
+[submodule "scripts/coveralls-cmake"]
+	path = scripts/coveralls-cmake
+	url = https://github.com/JoakimSoderberg/coveralls-cmake.git
+[submodule "projects/vastd"]
+	path = projects/vastd
+	url = https://github.com/varuna-lang/vastd.git
+[submodule "projects/vart"]
+	path = projects/vart
+	url = https://github.com/varuna-lang/vart.git
+[submodule "third-party/spdlog"]
+	path = third-party/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "third-party/cereal"]
+	path = third-party/cereal
+	url = https://github.com/USCiLab/cereal
+[submodule "third-party/ctpl"]
+	path = third-party/ctpl
+	url = https://github.com/vit-vit/CTPL
+[submodule "third-party/doctest"]
+	path = third-party/doctest
+	url = https://github.com/onqtam/doctest
+[submodule "projects/llvm-binutils"]
+	path = projects/llvm-binutils
+	url = https://github.com/varuna-lang/llvm-binutils
+	branch = develop
+[submodule "third-party/binreloc/src"]
+	path = third-party/binreloc/src
+	url = https://github.com/datenwolf/binreloc
+[submodule "third-party/crossguid/guid"]
+	path = third-party/crossguid/guid
+	url = https://github.com/graeme-hill/crossguid

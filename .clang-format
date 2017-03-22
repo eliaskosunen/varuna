@@ -1,0 +1,21 @@
+BasedOnStyle: LLVM
+Language: Cpp
+IndentWidth: 4
+UseTab: Never
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: true
+NamespaceIndentation: Inner
+PointerAlignment: Left
+SpaceBeforeParens: Never
+TabWidth: 4
+IncludeCategories:
+    - Regex:    '^"'
+      Priority: 1
+    - Regex:    '^<(llvm|llvm-c|clang|clang-c|binreloc|ctpl|doctest|spdlog|fmt|utf8|cereal|threadpool|guid)'
+      Priority: 3
+    - Regex:    '^</'
+      Priority: 4
+    - Regex:    '.\*'
+      Priority: 2

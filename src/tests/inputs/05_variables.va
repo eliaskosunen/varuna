@@ -1,0 +1,18 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 05_variables.va
+// Mutable and immutable variables
+
+module test_05_variables;
+
+def main() -> i32 {
+    let immutable = 1;
+    let mut mutable = 2;
+
+    mutable = 0;
+    mutable = 1;
+
+    return immutable - mutable;
+}

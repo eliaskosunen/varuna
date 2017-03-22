@@ -1,0 +1,15 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 03_parser_error.va
+// Parser error
+
+module test_03_parser_error;
+
+// C style function declaration
+void func(int argument);
+
+def main() {
+    func(1);
+}

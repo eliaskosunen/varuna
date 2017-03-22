@@ -1,0 +1,16 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 04_type_mismatch.va
+// Mismatching types passing to a function
+
+module test_04_type_mismatch;
+
+// Function takes an i32
+def func(m: i32) -> i32;
+
+def main() -> i32 {
+    // But gets passed an f32
+    return func(3.14);
+}

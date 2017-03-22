@@ -1,0 +1,14 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 06_invalid_cast.va
+// Invalid cast
+
+module test_06_invalid_cast;
+
+def main() -> i32 {
+    let character = '0';
+    // char cannot be casted to an i32
+    return character as i32;
+}

@@ -1,0 +1,18 @@
+// Copyright (C) 2016-2017 Elias Kosunen
+// This file is distributed under the 3-Clause BSD License
+// See LICENSE for details
+
+// 03_functions.va
+// Function declaration, definition and calling
+
+module test_03_functions;
+
+def declaration(arg: i32) -> i32;
+
+def definition(arg: i32) -> i32 {
+    return declaration(arg);
+}
+
+def main() -> i32 {
+    return definition(0);
+}
