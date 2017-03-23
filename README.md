@@ -170,7 +170,9 @@ Libuuid is not required on Windows or Mac.
 $ sudo apt-get install uuid-dev
 ```
 
-### Linux
+### Actual building
+
+#### Linux
 
 ```sh
 # On the repository root folder
@@ -183,7 +185,7 @@ $ make -j4
 $ sudo make install
 ```
 
-### Windows
+#### Windows
 
 You can use the CMake GUI to create the MSVC project files.
 Note that the tests don't support Windows.
@@ -191,6 +193,10 @@ Note that the tests don't support Windows.
 ## Contributing
 
 See CONTRIBUTING.md
+
+## Editor support
+
+An Atom package for Varuna syntax highlighting can be found here: https://github.com/varuna-lang/atom-language-varuna
 
 ## Compiler documentation
 
