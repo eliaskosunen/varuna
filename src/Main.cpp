@@ -125,7 +125,11 @@ int main(int argc, char** argv)
     // Handle various exceptions
     catch(const spdlog::spdlog_ex& e)
     {
-        logException(e.what());
+        logException(e.what(), "Spdlog exception");
+    }
+    catch(const fmt::FormatError& e)
+    {
+        logException(e.what(), "Fmt format error");
     }
 
     catch(const utf8::invalid_code_point& e)

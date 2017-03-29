@@ -2,6 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
+#include "ast/OperatorExpr.h"
 #include "codegen/Type.h"
 #include "codegen/TypeTable.h"
 #include "codegen/TypedValue.h"

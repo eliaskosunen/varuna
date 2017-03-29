@@ -238,13 +238,26 @@ namespace stringutils
 #endif
     }
 
+    inline std::string createStringWithLength(const std::string& s, size_t len)
+    {
+        auto it = s.begin();
+        std::string ret(len, '\0');
+        std::generate(ret.begin(), ret.end(), [&]() {
+            if(it == s.end())
+            {
+                it = s.begin();
+            }
+            return *it++;
+        });
+        return ret;
+    }
+    inline std::string createStringWithLength(char c, size_t len)
+    {
+        return std::string(len, c);
+    }
     inline std::string createEmptyStringWithLength(size_t len)
     {
-        if(len == 0)
-        {
-            return {};
-        }
-        return fmt::format("{:>" + std::to_string(len) + "}", " ");
+        return createStringWithLength(' ', len);
     }
 
     template <typename ForwardIterator>

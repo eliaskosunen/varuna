@@ -1,5 +1,27 @@
 # Varuna
 
+```varuna
+// Example Varuna program
+// Compile with:
+// $ varuna example.va -O3 -o example.o
+// You'll have to link it yourself
+
+// Declare module
+module example;
+
+// Import C standard library
+import cstd;
+
+// Define program entry point
+def main() -> i32 {
+    // Write to stdout
+    putstr("Hello world!");
+    return 0;
+}
+```
+
+## Build status
+
 **Master branch:**  
 Linux/OSX: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
 Windows: [![Appveyor Build Status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  

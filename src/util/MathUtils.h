@@ -30,7 +30,7 @@ inline std::size_t numDigits(int32_t x)
 {
     if(x == std::numeric_limits<int32_t>::min())
     {
-        return 10 + 1;
+        return 11;
     }
     if(x < 0)
     {

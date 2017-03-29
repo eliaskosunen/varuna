@@ -65,28 +65,15 @@ namespace lexer
 
     struct Token final
     {
-        explicit Token(TokenType t = TOKEN_DEFAULT, std::string val = "")
-            : loc(), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
+        explicit Token(util::SourceLocation l, TokenType t = TOKEN_DEFAULT,
+                       std::string val = "")
+            : loc(l), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
               modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE),
               modifierString(STRING_NONE)
         {
         }
 
         std::string typeToString() const;
-
-        static std::string typeToString(TokenType t)
-        {
-            Token tok(t, "");
-            return tok.typeToString();
-        }
-
-        static Token create(TokenType t, const std::string& val,
-                            util::SourceLocation loc)
-        {
-            Token tok(t, val);
-            tok.loc = loc;
-            return tok;
-        }
 
         util::SourceLocation loc;
 

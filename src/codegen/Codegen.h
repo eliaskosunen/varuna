@@ -24,7 +24,7 @@ public:
     Codegen(Codegen&&) = default;
     Codegen& operator=(const Codegen&) = delete;
     Codegen& operator=(Codegen&&) = default;
-    ~Codegen() noexcept = default;
+    ~Codegen() noexcept;
 
     /**
      * Run the code generator

@@ -686,7 +686,7 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
         if(functionType->returnType->getName() != "i32")
         {
             return codegenError(
-                proto,
+                proto->returnType.get(),
                 "Invalid main function: Main can only return 'i32', '{}' given",
                 functionType->returnType->getName());
         }

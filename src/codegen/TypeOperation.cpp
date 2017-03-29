@@ -3,6 +3,7 @@
 // See LICENSE for details
 
 #include "codegen/TypeOperation.h"
+#include "ast/OperatorExpr.h"
 #include "codegen/Symbol.h"
 #include "codegen/Type.h"
 #include "codegen/TypeTable.h"
@@ -851,12 +852,17 @@ std::unique_ptr<TypedValue> FunctionTypeOperation::arbitraryOperation(
         auto arg = operands[i];
 
         auto p = calleetype->params[i - 1];
-        if(!arg->type->isSameOrImplicitlyCastable(node, builder, arg, p))
         {
-            return operationError(node, "Invalid function call: Cannot convert "
-                                        "parameter {} from {} to {}",
-                                  i, arg->type->getDecoratedName(),
-                                  p->getDecoratedName());
+            auto operand = static_cast<ast::ArbitraryOperandExpr*>(node)
+                               ->operands[i]
+                               .get();
+            if(!arg->type->isSameOrImplicitlyCastable(operand, builder, arg, p))
+            {
+                return operationError(
+                    operand, "Invalid function call: Cannot convert "
+                             "parameter {} from {} to {}",
+                    i, arg->type->getDecoratedName(), p->getDecoratedName());
+            }
         }
 
         args.push_back(arg->value);

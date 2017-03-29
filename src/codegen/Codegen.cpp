@@ -29,6 +29,11 @@ Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
 #endif
 }
 
+Codegen::~Codegen() noexcept
+{
+    std::remove(inputFile.getFilename().c_str());
+}
+
 bool Codegen::run()
 {
     if(!prepare())

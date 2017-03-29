@@ -23,7 +23,7 @@ addons:
   apt:
     sources: &apt_sources
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise
+      #- llvm-toolchain-precise
       #- llvm-toolchain-precise-3.4
       - llvm-toolchain-precise-3.5
       - llvm-toolchain-precise-3.6
@@ -160,6 +160,15 @@ matrix:
 before_install:
     - |
       if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+        sudo apt-get clean
+        sudo rm -r /var/lib/apt/lists/*
+
+        sudo apt-get --allow-unauthenticated -yq update
+
+        wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+
+        echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise main" | sudo tee -a /etc/apt/sources.list > /dev/null
+        echo "deb-src http://apt.llvm.org/precise/ llvm-toolchain-precise main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.4 main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb-src http://apt.llvm.org/precise/ llvm-toolchain-precise-3.4 main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-4.0 main" | sudo tee -a /etc/apt/sources.list > /dev/null
