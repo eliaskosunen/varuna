@@ -357,7 +357,7 @@ std::string F64Type::getMangleEncoding() const
 }
 
 StringType::StringType(TypeTable* list, llvm::LLVMContext& c,
-                       llvm::DIBuilder& dbuilder)
+                       llvm::DIBuilder& /*dbuilder*/)
     : Type(list, std::make_unique<StringTypeOperation>(this), STRING, c,
            getLLVMStringType(c), nullptr, "string")
 {
@@ -392,7 +392,7 @@ std::unique_ptr<TypedValue> StringType::zeroInit()
         stringConst->getType(), stringGlobal, indexList, true);
 
     auto val = llvm::ConstantStruct::get(llvm::cast<llvm::StructType>(type),
-                                         stringLen, stringPtr, nullptr);
+                                         {stringLen, stringPtr});
 
     /*auto val = llvm::ConstantStruct::get(
         llvm::cast<llvm::StructType>(type),
@@ -412,7 +412,7 @@ std::string StringType::getMangleEncoding() const
 }
 
 CStringType::CStringType(TypeTable* list, llvm::LLVMContext& c,
-                         llvm::DIBuilder& dbuilder)
+                         llvm::DIBuilder& /*dbuilder*/)
     : Type(list, std::make_unique<CStringTypeOperation>(this), CSTRING, c,
            llvm::Type::getInt8PtrTy(c), nullptr, "cstring")
 {
@@ -539,7 +539,7 @@ std::string FunctionType::functionTypeToString(Type* returnType,
 
 llvm::DISubroutineType* FunctionType::createDebugFunctionType(
     llvm::DIBuilder* dbuilder, Type* returnType,
-    const std::vector<Type*>& params, llvm::DIFile* file)
+    const std::vector<Type*>& params, llvm::DIFile* /*file*/)
 {
     llvm::SmallVector<llvm::Metadata*, 8> elementTypes;
     elementTypes.push_back(returnType->dtype);
@@ -554,8 +554,8 @@ llvm::DISubroutineType* FunctionType::createDebugFunctionType(
 }
 
 AliasType::AliasType(TypeTable* list, llvm::LLVMContext& c,
-                     llvm::DIBuilder& dbuilder, const std::string& pAliasName,
-                     Type* pUnderlying)
+                     llvm::DIBuilder& /*dbuilder*/,
+                     const std::string& pAliasName, Type* pUnderlying)
     : Type(list, nullptr, pUnderlying->kind, c, pUnderlying->type, nullptr,
            pAliasName),
       underlying(pUnderlying)

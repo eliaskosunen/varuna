@@ -21,6 +21,11 @@ extern char** environ;
 
 namespace util
 {
+Process::Process(std::string pFile, std::string pParams)
+    : file(std::move(pFile)), params(std::move(pParams))
+{
+}
+
 bool Process::spawn()
 {
     if(isSpawned())
@@ -166,12 +171,12 @@ bool Process::_spawn()
         spawned = true;
         return true;
     }
-    else if(WIFSIGNALED(status))
+    if(WIFSIGNALED(status))
     {
         errorCode = static_cast<ErrorCodeType>(WTERMSIG(status));
         return false;
     }
-    else if(WIFSTOPPED(status))
+    if(WIFSTOPPED(status))
     {
         errorCode = static_cast<ErrorCodeType>(WSTOPSIG(status));
         return false;

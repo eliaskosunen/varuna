@@ -23,7 +23,7 @@ public:
         JSON
     };
 
-    Serializer(std::shared_ptr<AST> a);
+    explicit Serializer(std::shared_ptr<AST> a);
 
     /**
      * Serialize the AST and write outputs to a std::ostream

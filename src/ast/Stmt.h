@@ -22,8 +22,8 @@ public:
     }
     Stmt(const Stmt&) = delete;
     Stmt& operator=(const Stmt&) = delete;
-    Stmt(Stmt&&) = default;
-    Stmt& operator=(Stmt&&) = default;
+    Stmt(Stmt&&) noexcept = default;
+    Stmt& operator=(Stmt&&) noexcept = default;
     ~Stmt() override = default;
 
     void accept(DumpVisitor* v, size_t ind = 0) override;

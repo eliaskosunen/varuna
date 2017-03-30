@@ -56,10 +56,10 @@ public:
 
     Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
          llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n);
-    Type(const Type& t) = default;
-    Type& operator=(const Type& t) = default;
-    Type(Type&&) = default;
-    Type& operator=(Type&&) = default;
+    Type(const Type& t) = delete;
+    Type& operator=(const Type& t) = delete;
+    Type(Type&&) noexcept = delete;
+    Type& operator=(Type&&) noexcept = delete;
     virtual ~Type() noexcept;
 
     virtual std::unique_ptr<TypedValue> cast(ast::Node* node,

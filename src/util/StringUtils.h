@@ -144,7 +144,7 @@ namespace stringutils
                 str++;
             }
 
-            result.push_back(std::string(begin, str));
+            result.emplace_back(begin, str);
         } while(*str++ != 0x0);
     }
 

@@ -124,7 +124,6 @@ static void runEmitLLVM(const std::string& inputFilename,
 
 static void runEmitLLVMWithModules(const std::string& inputFilename,
                                    const std::string& outputFilename,
-                                   const std::string& moduleName,
                                    const std::string& flags = "")
 {
     runEmitLLVM(inputFilename, outputFilename, flags, true);
@@ -304,14 +303,11 @@ TEST_CASE("13_globals")
 TEST_CASE("14_modules")
 {
     runEmitLLVMWithModules("14_modules_importee.va", "14_modules_importee.ll",
-                           "test_14_modules_importee.vamod", "-O0");
+                           "-O0");
     runEmitLLVMWithModules("14_modules_importee.va",
-                           "14_modules_importee_opt.ll",
-                           "test_14_modules_importee.vamod", "-O3");
-    runEmitLLVMWithModules("14_modules.va", "14_modules.ll",
-                           "test_14_modules.vamod", "-O0");
-    runEmitLLVMWithModules("14_modules.va", "14_modules_opt.ll",
-                           "test_14_modules.vamod", "-O3");
+                           "14_modules_importee_opt.ll", "-O3");
+    runEmitLLVMWithModules("14_modules.va", "14_modules.ll", "-O0");
+    runEmitLLVMWithModules("14_modules.va", "14_modules_opt.ll", "-O3");
 }
 
 TEST_SUITE_END();

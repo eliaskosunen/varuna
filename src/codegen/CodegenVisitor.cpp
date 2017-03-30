@@ -22,7 +22,7 @@ namespace codegen
 {
 CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                CodegenInfo i)
-    : context{c}, module(m), info(i), builder(context), dbuilder(*m),
+    : context{c}, module(m), info(std::move(i)), builder(context), dbuilder(*m),
       dcu{nullptr}, dfile{nullptr}, symbols{std::make_unique<SymbolTable>()},
       types{std::make_unique<TypeTable>(module)}
 {
@@ -184,7 +184,7 @@ void CodegenVisitor::stripInstructionsAfterTerminators()
 
             // No terminator instruction has been found in this block
             // Insert an 'unreachable'-instruction
-            // TODO: This might lead to unexpected bugs in generated code
+            // TODO This might lead to unexpected bugs in generated code
             if(!termFound)
             {
                 // Save current insert point
@@ -214,7 +214,7 @@ FunctionSymbol* CodegenVisitor::findFunction(const std::string& name,
         // Because we searched with Type::FUNCTION, it's guaranteed to actually
         // be a FunctionSymbol.
         // Therefore, a static_cast is safe
-        auto func = static_cast<FunctionSymbol*>(f);
+        auto func = dynamic_cast<FunctionSymbol*>(f);
         assert(func->value->value);
         return func;
     }
@@ -241,16 +241,13 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
             // Declaration's already been done, no need to redo it.
             return func;
         }
-        else
-        {
-            // Function signatures don't match!
-            return codegenError(proto,
-                                "Function declaration failed: Mismatching "
-                                "prototypes for similarly named functions: "
-                                "'{}' and '{}'",
-                                func->value->type->getDecoratedName(),
-                                type->getDecoratedName());
-        }
+
+        // Function signatures don't match!
+        return codegenError(proto, "Function declaration failed: Mismatching "
+                                   "prototypes for similarly named functions: "
+                                   "'{}' and '{}'",
+                            func->value->type->getDecoratedName(),
+                            type->getDecoratedName());
     }
 
     // Codegen prototype
@@ -285,7 +282,7 @@ CodegenVisitor::createEntryBlockAlloca(llvm::Function* func, llvm::Type* type,
     emitDebugLocation(nullptr);
     llvm::IRBuilder<> tmp(&func->getEntryBlock(),
                           func->getEntryBlock().begin());
-    return tmp.CreateAlloca(type, nullptr, name.c_str());
+    return tmp.CreateAlloca(type, nullptr, name);
 }
 
 ast::FunctionPrototypeStmt*
@@ -418,7 +415,7 @@ CodegenVisitor::getModuleFilename(const std::string& moduleName) const
     auto nameparts = util::stringutils::split(moduleName, '.');
     if(nameparts.back() != "va")
     {
-        nameparts.push_back("vamod");
+        nameparts.emplace_back("vamod");
     }
     else
     {

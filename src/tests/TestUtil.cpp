@@ -8,8 +8,7 @@
 #include <vector>
 
 template <typename T>
-void testIsChar(T&& f, std::vector<char>&& is,
-                std::vector<char>&& isnot)
+void testIsChar(T&& f, std::vector<char>&& is, std::vector<char>&& isnot)
 {
     auto isfunc = [&f](char c) {
         if(!f(c))

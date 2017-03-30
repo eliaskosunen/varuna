@@ -11,6 +11,10 @@
 #include "util/Compatibility.h"
 #include <fstream>
 
+#include <cereal_archives.h>
+
+CEREAL_REGISTER_TYPE(codegen::ModuleFile::ModuleFileFunctionSymbol)
+
 #define ALWAYS_USE_BINARY_MODULE 1
 
 #if VARUNA_DEBUG && !ALWAYS_USE_BINARY_MODULE
@@ -111,13 +115,13 @@ void ModuleFile::ModuleFileFunctionSymbol::fromSymbol(Symbol* s)
     name = s->name;
     isMutable = s->isMutable;
     loc = s->loc;
-    auto type = static_cast<FunctionType*>(s->getType());
+    auto type = dynamic_cast<FunctionType*>(s->getType());
     retTypeName = type->returnType->getDecoratedName();
     for(auto& pType : type->params)
     {
         paramTypeNames.push_back(pType->getDecoratedName());
     }
-    mangle = static_cast<FunctionSymbol*>(s)->mangled;
+    mangle = dynamic_cast<FunctionSymbol*>(s)->mangled;
 }
 
 std::unique_ptr<ast::AST> ModuleFile::ModuleFileSymbolTable::toAST()
@@ -142,7 +146,7 @@ void ModuleFile::ModuleFileSymbolTable::fromSymbolTable(
     std::unique_ptr<SymbolTable> s)
 {
     auto list = s->consumeList();
-    if(list.size() == 0)
+    if(list.empty())
     {
         return;
     }

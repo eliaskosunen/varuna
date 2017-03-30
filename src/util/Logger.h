@@ -6,6 +6,7 @@
 
 #include "util/File.h"
 #include "util/SourceLocation.h"
+#include <guid.h>
 #include <spdlog.h>
 
 namespace util
@@ -24,10 +25,11 @@ inline auto createLogger(bool isColor, const std::string& name = "Logger")
 {
     if(isColor)
     {
-        // std::rand() is baaaaaaaaad
-        return spdlog::stdout_color_mt(fmt::format("{}-{}", name, std::rand()));
+        return spdlog::stdout_color_mt(
+            fmt::format("{}-{}", name, GuidGenerator{}.newGuid()));
     }
-    return spdlog::stdout_logger_mt(fmt::format("{}-{}", name, std::rand()));
+    return spdlog::stdout_logger_mt(
+        fmt::format("{}-{}", name, GuidGenerator{}.newGuid()));
 }
 
 /// Initialize logger and loggerBasic
@@ -44,8 +46,9 @@ void dropLogger();
  * @return        nullptr
  */
 template <typename... Args>
-inline std::nullptr_t
-logCompilerError(SourceLocation loc, const std::string& format, Args&&... args)
+inline std::nullptr_t logCompilerError(const SourceLocation& loc,
+                                       const std::string& format,
+                                       Args&&... args)
 {
     assert(logger);
     logger->error("In {}:\n{}\n{}", loc.toString(),
@@ -61,8 +64,8 @@ logCompilerError(SourceLocation loc, const std::string& format, Args&&... args)
  * @param  args   Format arguments
  */
 template <typename... Args>
-inline void logCompilerWarning(SourceLocation loc, const std::string& format,
-                               Args&&... args)
+inline void logCompilerWarning(const SourceLocation& loc,
+                               const std::string& format, Args&&... args)
 {
     assert(logger);
     logger->warn("In {}:\n{}\n{}", loc.toString(),
@@ -77,8 +80,8 @@ inline void logCompilerWarning(SourceLocation loc, const std::string& format,
  * @param  args   Format arguments
  */
 template <typename... Args>
-inline void logCompilerInfo(SourceLocation loc, const std::string& format,
-                            Args&&... args)
+inline void logCompilerInfo(const SourceLocation& loc,
+                            const std::string& format, Args&&... args)
 {
     assert(logger);
     logger->info("In {}:\n{}\n{}", loc.toString(),

@@ -20,7 +20,7 @@ public:
     TmpFile(const TmpFile&) = delete;
     TmpFile& operator=(const TmpFile&) = delete;
 
-    TmpFile(TmpFile&&) = default;
+    TmpFile(TmpFile&&) noexcept = default;
     TmpFile& operator=(TmpFile&&) = default;
 
     const std::string& getFilename() const;

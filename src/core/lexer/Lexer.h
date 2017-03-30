@@ -30,16 +30,12 @@ namespace lexer
     public:
         using ContentIterator = util::SourceLocation;
 
-        explicit Lexer(std::shared_ptr<util::File> f)
-            : warningsAsErrors(false), content(f->getContent()),
-              it(f, 1, 1, content.begin()), error(ERROR_NONE), file(f)
-        {
-        }
+        explicit Lexer(std::shared_ptr<util::File> f);
 
         Lexer(const Lexer&) = delete;
-        Lexer(Lexer&&) = default;
+        Lexer(Lexer&&) noexcept = default;
         Lexer& operator=(const Lexer&) = delete;
-        Lexer& operator=(Lexer&&) = default;
+        Lexer& operator=(Lexer&&) noexcept = delete;
         ~Lexer() noexcept = default;
 
         /// Run lexer
@@ -118,7 +114,6 @@ namespace lexer
 
         LexCommentReturn lexComment();
 
-        const std::string& content;
         ContentIterator it;
 
         ErrorLevel error;

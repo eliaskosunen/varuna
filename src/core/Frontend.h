@@ -14,7 +14,7 @@ namespace core
 class Frontend
 {
 public:
-    Frontend(std::shared_ptr<util::File> f);
+    explicit Frontend(std::shared_ptr<util::File> f);
 
     std::shared_ptr<ast::AST> run();
 

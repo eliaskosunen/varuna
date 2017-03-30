@@ -25,7 +25,7 @@ public:
      * @param  f Source file of AST
      */
     explicit AST(std::shared_ptr<util::File> f)
-        : globalNode(std::make_unique<BlockStmt>()), file(f)
+        : globalNode(std::make_unique<BlockStmt>()), file(std::move(f))
     {
     }
 

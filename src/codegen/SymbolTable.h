@@ -125,9 +125,7 @@ inline bool SymbolTable::isDefined(const std::string& name, Type* type) const
 
 inline void SymbolTable::addBlock()
 {
-    // Empty initializer list {} errors on some configurations
-    // Dunno why
-    list.push_back(decltype(list)::value_type{});
+    list.emplace_back();
 }
 inline void SymbolTable::removeTopBlock()
 {
@@ -298,14 +296,12 @@ inline void SymbolTable::dump() const
     stlogger->trace("SymbolTable");
     for(size_t i = 0; i < list.size(); ++i)
     {
-        const std::string prefix = [i]() {
-            using namespace std::string_literals;
-
+        const auto prefix = [i]() {
+            std::string buf = "\\-";
             if(i == 0)
             {
-                return "\\-"s;
+                return buf;
             }
-            std::string buf = "\\-";
             for(size_t j = 1; j <= i; ++j)
             {
                 buf.append("--");
@@ -334,11 +330,11 @@ inline bool SymbolTable::import(std::unique_ptr<SymbolTable> symbols)
         util::logger->warn(
             "Import has more than one scope, only importing the top one");
     }
-    if(slist.size() == 0)
+    if(slist.empty())
     {
         return true;
     }
-    assert(list.size() >= 1);
+    assert(!list.empty());
     for(auto& s : slist[0])
     {
         if(find(s.first))

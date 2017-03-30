@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Reformat the whole src/ folder
-#find src/ -iname "*.h" -o -iname "*.cpp" | xargs clang-format -i -style=file
+#find src/ -iname "*.h" -o -iname "*.cpp" | xargs clang-format-3.9 -i -style=file
 
 # Format current pending changes and
 # write it to stdout

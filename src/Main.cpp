@@ -6,6 +6,7 @@
 #include "util/Logger.h"
 #include <utf8.h>
 #include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 
 /// Clean up loggers
@@ -38,13 +39,12 @@ static void logException(const std::string& msg)
     }
     else
     {
-        // Fallback on C stdio
-        std::fprintf(stderr,
-                     "An exception occured during program execution.\n");
-        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        std::fprintf(stderr, "Program will be terminated.\n");
-        std::fprintf(stderr, "No loggers available for message delivery.\n");
-        std::fflush(stderr);
+        // Fallback on iostreams
+        std::cerr << "An exception occured during program execution.\n"
+                  << "Exception message: '" << msg << "'\n"
+                  << "Program will be terminated.\n"
+                  << "No loggers available for message delivery.\n"
+                  << std::flush;
     }
 }
 
@@ -76,15 +76,13 @@ static void logException(const std::string& msg,
     }
     else
     {
-        // Fallback on C stdio
-        std::fprintf(stderr,
-                     "An exception occured during program execution.\n");
-        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        std::fprintf(stderr, "Additional message: '%s'\n",
-                     additionalMsg.c_str());
-        std::fprintf(stderr, "Program will be terminated.\n");
-        std::fprintf(stderr, "No loggers available for message delivery.\n");
-        std::fflush(stderr);
+        // Fallback on iostreams
+        std::cerr << "An exception occured during program execution.\n"
+                  << "Exception message: '" << msg << "'\n"
+                  << "Additional message: '" << additionalMsg << "'\n"
+                  << "Program will be terminated.\n"
+                  << "No loggers available for message delivery.\n"
+                  << std::flush;
     }
 }
 

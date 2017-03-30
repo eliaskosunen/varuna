@@ -26,7 +26,7 @@ public:
     File(const File&) = delete;
     File& operator=(const File&) = delete;
 
-    File(File&&) = default;
+    File(File&&) noexcept = default;
     File& operator=(File&&) = default;
 
     ~File() noexcept = default;

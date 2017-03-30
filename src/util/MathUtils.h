@@ -10,16 +10,16 @@
 namespace util
 {
 template <typename T>
-inline std::size_t numDigits(T number)
+inline std::size_t numDigits(T x)
 {
     std::size_t digits = 0;
-    if(number <= 0)
+    if(x <= 0)
     {
         digits = 1;
     }
-    while(number)
+    while(x)
     {
-        number /= 10;
+        x /= 10;
         digits++;
     }
     return digits;
@@ -75,4 +75,4 @@ inline std::size_t numDigits(int32_t x)
     }
     return 10;
 }
-}
+} // namespace util

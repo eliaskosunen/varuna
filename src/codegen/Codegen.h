@@ -21,9 +21,9 @@ public:
     Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i);
 
     Codegen(const Codegen&) = delete;
-    Codegen(Codegen&&) = default;
+    Codegen(Codegen&&) noexcept = delete;
     Codegen& operator=(const Codegen&) = delete;
-    Codegen& operator=(Codegen&&) = default;
+    Codegen& operator=(Codegen&&) noexcept = delete;
     ~Codegen() noexcept;
 
     /**

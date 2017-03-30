@@ -13,13 +13,13 @@ namespace util
 SourceLocation::SourceLocation(std::shared_ptr<util::File> f, uint32_t l,
                                uint32_t c, std::string::const_iterator i,
                                size_t pLen)
-    : file(f), line(l), col(c), it(i), len(pLen)
+    : file(std::move(f)), line(l), col(c), it(i), len(pLen)
 {
 }
 
 std::string::const_iterator SourceLocation::invalidIterator()
 {
-    static const std::string invalid{"\0"};
+    static const std::string invalid(1, '\0');
     return invalid.cend();
 }
 

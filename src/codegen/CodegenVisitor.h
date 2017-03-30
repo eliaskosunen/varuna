@@ -22,7 +22,6 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Verifier.h>
-#include <utility>
 
 namespace codegen
 {
@@ -141,12 +140,12 @@ private:
      * If type information is given otherwise in the definition, it is used
      * instead.
      * Generates code for the init expression.
-     * @param expr Variable definition
+     * @param node Variable definition
      * @return Pair of Type (type of variable) and TypedValue (visited init
      * expression). On error both members are nullptr.
      */
     std::pair<Type*, std::unique_ptr<TypedValue>>
-    inferVariableDefType(ast::VariableDefinitionExpr* expr);
+    inferVariableDefType(ast::VariableDefinitionExpr* node);
 
     std::string mangleFunctionName(const std::string& name,
                                    FunctionType* type) const;
@@ -187,23 +186,23 @@ public:
 
     std::unique_ptr<TypedValue> visit(ast::EmptyExpr* node);
     std::unique_ptr<TypedValue> visit(ast::IdentifierExpr* node);
-    std::unique_ptr<TypedValue> visit(ast::VariableRefExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::VariableDefinitionExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::GlobalVariableDefinitionExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::VariableRefExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::VariableDefinitionExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::GlobalVariableDefinitionExpr* node);
 
     std::unique_ptr<TypedValue> visit(ast::FunctionParameter* node);
     std::unique_ptr<TypedValue> visit(ast::FunctionPrototypeStmt* node);
     std::unique_ptr<TypedValue> visit(ast::FunctionDefinitionStmt* node);
     std::unique_ptr<TypedValue> visit(ast::ReturnStmt* node);
 
-    std::unique_ptr<TypedValue> visit(ast::IntegerLiteralExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::FloatLiteralExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::StringLiteralExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::CharLiteralExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::BoolLiteralExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::IntegerLiteralExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::FloatLiteralExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::StringLiteralExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::CharLiteralExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::BoolLiteralExpr* node);
 
-    std::unique_ptr<TypedValue> visit(ast::BinaryExpr* expr);
-    std::unique_ptr<TypedValue> visit(ast::UnaryExpr* expr);
+    std::unique_ptr<TypedValue> visit(ast::BinaryExpr* node);
+    std::unique_ptr<TypedValue> visit(ast::UnaryExpr* node);
     std::unique_ptr<TypedValue> visit(ast::AssignmentExpr* node);
     std::unique_ptr<TypedValue> visit(ast::ArbitraryOperandExpr* node);
 

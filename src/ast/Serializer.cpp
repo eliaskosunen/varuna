@@ -52,7 +52,7 @@ CEREAL_REGISTER_TYPE(::ast::ExprStmt);
 
 namespace ast
 {
-Serializer::Serializer(std::shared_ptr<AST> a) : ast(a)
+Serializer::Serializer(std::shared_ptr<AST> a) : ast(std::move(a))
 {
 }
 

@@ -29,14 +29,7 @@ class Process
     bool _spawn();
 
 public:
-    Process(const std::string& pFile, const std::string& pParams)
-        : file(pFile), params(pParams)
-    {
-    }
-    Process(std::string&& pFile, std::string&& pParams)
-        : file(std::move(pFile)), params(std::move(pParams))
-    {
-    }
+    Process(std::string pFile, std::string pParams);
 
     /**
      * Spawn the process.

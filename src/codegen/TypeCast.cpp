@@ -10,7 +10,7 @@
 namespace codegen
 {
 std::unique_ptr<TypedValue> Type::implicitCast(ast::Node* node,
-                                               llvm::IRBuilder<>& builder,
+                                               llvm::IRBuilder<>& /*builder*/,
                                                TypedValue* val, Type* to) const
 {
     if(basicEqual(to))
@@ -61,7 +61,7 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::Node* node,
         return ret(
             builder.CreateIntCast(val->value, to->type, true, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     case F32:
     case F64:
         return ret(builder.CreateSIToFP(val->value, to->type, "casttmp"));
@@ -105,7 +105,7 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::Node* node,
     case INT32:
     case INT64:
     case BYTE:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     case F32:
     case F64:
         return ret(builder.CreateFCmpONE(
@@ -184,7 +184,7 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
         return ret(
             builder.CreateIntCast(val->value, to->type, false, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     default:
         if(c == BITCAST)
         {

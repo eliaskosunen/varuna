@@ -74,4 +74,4 @@ enum _OperatorType
 };
 
 using OperatorType = util::SafeEnum<_OperatorType>;
-}
+} // namespace util

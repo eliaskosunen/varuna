@@ -365,7 +365,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::VariableRefExpr* node)
 
     // Create load instruction
     auto load = builder.CreateLoad(var->getType()->type, var->value->value,
-                                   node->value.c_str());
+                                   node->value);
     assert(load);
     return std::make_unique<TypedValue>(var->getType(), load,
                                         TypedValue::LVALUE, var->isMutable);
@@ -455,17 +455,15 @@ CodegenVisitor::visit(ast::GlobalVariableDefinitionExpr* node)
         return codegenError(node->var.get(),
                             "Global variable has to be initialized");
     }
-    else
+
+    auto castedinit = llvm::dyn_cast<llvm::Constant>(init->value);
+    if(!castedinit)
     {
-        auto castedinit = llvm::dyn_cast<llvm::Constant>(init->value);
-        if(!castedinit)
-        {
-            return codegenError(node->var->init.get(),
-                                "Global variable has to be initialized "
-                                "with a constant expression");
-        }
-        llvminit = castedinit;
+        return codegenError(node->var->init.get(),
+                            "Global variable has to be initialized "
+                            "with a constant expression");
     }
+    llvminit = castedinit;
 
     bool isConstant = !node->var->isMutable;
     // Determine linkage
@@ -485,7 +483,7 @@ CodegenVisitor::visit(ast::GlobalVariableDefinitionExpr* node)
 
     if(info.emitDebug)
     {
-// TODO: Add the debug info to the module
+// TODO Add the debug info to the module
 #if VARUNA_LLVM_VERSION == 39
         auto d = dbuilder.createGlobalVariable(
             dfile, node->var->name->value, node->var->name->value, dfile,
@@ -548,7 +546,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FunctionParameter* node)
 
     if(info.emitDebug)
     {
-        auto proto = static_cast<ast::FunctionPrototypeStmt*>(node->parent);
+        auto proto = dynamic_cast<ast::FunctionPrototypeStmt*>(node->parent);
         auto d = dbuilder.createParameterVariable(
             func->getSubprogram(), var->name->value, node->num, dfile,
             proto->loc.line, type->dtype, true);
@@ -603,7 +601,7 @@ CodegenVisitor::visit(ast::FunctionPrototypeStmt* node)
 
     // Determine linkage
     auto linkage = [&]() {
-        auto parent = static_cast<ast::FunctionDefinitionStmt*>(node->parent);
+        auto parent = dynamic_cast<ast::FunctionDefinitionStmt*>(node->parent);
         assert(parent);
         if(parent->isDecl)
         {
@@ -671,7 +669,7 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
         functionTypeBase = ft.get();
         types->insertType(std::move(ft));
     }
-    auto functionType = static_cast<FunctionType*>(functionTypeBase);
+    auto functionType = dynamic_cast<FunctionType*>(functionTypeBase);
 
     // Declare the function
     auto func = declareFunction(functionType, name, proto);
@@ -690,7 +688,7 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
                 "Invalid main function: Main can only return 'i32', '{}' given",
                 functionType->returnType->getName());
         }
-        if(functionType->params.size())
+        if(!functionType->params.empty())
         {
             return codegenError(proto, "Invalid main function: Main can't take "
                                        "any parameters, {} given",
@@ -717,9 +715,9 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
         auto isDefinition = !node->isDecl;
         auto sp = dbuilder.createFunction(
             dfile, name, llvm::StringRef(), dfile, proto->loc.line,
-            static_cast<llvm::DISubroutineType*>(functionType->dtype),
-            isInternal, isDefinition, proto->loc.line,
-            llvm::DINode::FlagPrototyped, info.optEnabled());
+            llvm::cast<llvm::DISubroutineType>(functionType->dtype), isInternal,
+            isDefinition, proto->loc.line, llvm::DINode::FlagPrototyped,
+            info.optEnabled());
         llvmfunc->setSubprogram(sp);
 
         dblocks.push_back(sp);
@@ -921,7 +919,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::StringLiteralExpr* node)
     // auto stringPtr = builder.CreateGlobalStringPtr(node->value, ".str");
 
     auto stringFatPtr = llvm::ConstantStruct::get(
-        llvm::cast<llvm::StructType>(t->type), stringLen, stringPtr, nullptr);
+        llvm::cast<llvm::StructType>(t->type), {stringLen, stringPtr});
     assert(stringFatPtr);
 
     return std::make_unique<TypedValue>(t, stringFatPtr, TypedValue::LVALUE,
@@ -945,9 +943,8 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BoolLiteralExpr* node)
     auto t = types->findDecorated("bool");
     assert(t);
     return std::make_unique<TypedValue>(
-        t,
-        node->value ? llvm::ConstantInt::getTrue(context)
-                    : llvm::ConstantInt::getFalse(context),
+        t, node->value ? llvm::ConstantInt::getTrue(context)
+                       : llvm::ConstantInt::getFalse(context),
         TypedValue::RVALUE, true);
 }
 
@@ -969,11 +966,11 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BinaryExpr* node)
         auto rhs = [&]() -> ast::IdentifierExpr* {
             if(node->rhs->nodeType == ast::Node::IDENTIFIER_EXPR)
             {
-                return static_cast<ast::IdentifierExpr*>(node->rhs.get());
+                return dynamic_cast<ast::IdentifierExpr*>(node->rhs.get());
             }
             if(node->rhs->nodeType == ast::Node::VARIABLE_REF_EXPR)
             {
-                return static_cast<ast::VariableRefExpr*>(node->rhs.get());
+                return dynamic_cast<ast::VariableRefExpr*>(node->rhs.get());
             }
             return codegenError(node->rhs.get(),
                                 "Invalid cast expression target type");
@@ -1006,8 +1003,9 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BinaryExpr* node)
     // Create operand vector
     std::vector<TypedValue*> operands{lhs.get(), rhs.get()};
 
-    return operands.front()->type->getOperations()->binaryOperation(
-        node, builder, node->oper, std::move(operands));
+    auto operations = operands.front()->type->getOperations();
+    return operations->binaryOperation(node, builder, node->oper,
+                                       std::move(operands));
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::UnaryExpr* node)
 {
@@ -1022,8 +1020,9 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::UnaryExpr* node)
 
     std::vector<TypedValue*> operands{operand.get()};
 
-    return operands.front()->type->getOperations()->unaryOperation(
-        node, builder, node->oper, std::move(operands));
+    auto operations = operands.front()->type->getOperations();
+    return operations->unaryOperation(node, builder, node->oper,
+                                      std::move(operands));
 }
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::AssignmentExpr* node)
 {
@@ -1045,20 +1044,21 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::AssignmentExpr* node)
 
     std::vector<TypedValue*> operands{lhs.get(), rhs.get()};
 
-    return operands.front()->type->getOperations()->assignmentOperation(
-        node, builder, node->oper, std::move(operands));
+    auto operations = operands.front()->type->getOperations();
+    return operations->assignmentOperation(node, builder, node->oper,
+                                           std::move(operands));
 }
 std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::ArbitraryOperandExpr* node)
 {
     emitDebugLocation(node);
 
-    assert(node->operands.size() >= 1);
+    assert(!node->operands.empty());
     if(node->operands[0]->nodeType == ast::Node::IDENTIFIER_EXPR &&
        node->operands.size() == 2)
     {
         auto t = types->find(
-            static_cast<ast::IdentifierExpr*>(node->operands[0].get())->value);
+            dynamic_cast<ast::IdentifierExpr*>(node->operands[0].get())->value);
         // Constructor syntac
         // e.g. let foo = i16(10);
         //              ---^
@@ -1099,8 +1099,9 @@ CodegenVisitor::visit(ast::ArbitraryOperandExpr* node)
         operands.push_back(o.get());
     }
 
-    return operands.front()->type->getOperations()->arbitraryOperation(
-        node, builder, node->oper, std::move(operands));
+    auto operations = operands.front()->type->getOperations();
+    return operations->arbitraryOperation(node, builder, node->oper,
+                                          std::move(operands));
 }
 
 std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::EmptyStmt*)
@@ -1168,7 +1169,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::AliasStmt* node)
     {
         return nullptr;
     }
-    auto castedType = static_cast<AliasType*>(type);
+    auto castedType = dynamic_cast<AliasType*>(type);
     type->dtype = dbuilder.createTypedef(castedType->underlying->dtype,
                                          node->alias->value, dfile,
                                          node->loc.line, getTopDebugScope());

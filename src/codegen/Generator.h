@@ -14,7 +14,7 @@ class Generator
 public:
     using GeneratorClass = Codegen;
 
-    Generator(std::shared_ptr<ast::AST> t);
+    explicit Generator(std::shared_ptr<ast::AST> t);
 
     /**
      * Run code generation
@@ -43,4 +43,4 @@ private:
     /// Code generator
     std::unique_ptr<GeneratorClass> c;
 };
-}
+} // namespace codegen

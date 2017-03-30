@@ -94,6 +94,15 @@ namespace parser
         return block;
     }
 
+    std::unique_ptr<ast::EmptyStmt> Parser::emptyStatement(bool skip)
+    {
+        if(skip)
+        {
+            ++it;
+        }
+        return createNode<ast::EmptyStmt>(skip ? (it - 1) : it);
+    }
+
     std::unique_ptr<ImportStmt> Parser::parseImportStatement()
     {
         // Import statement syntax:
@@ -442,7 +451,7 @@ namespace parser
         const auto iter = it;
         ++it; // Skip 'for'
 
-        // TODO: Optimize
+        // TODO Optimize
         // Not utilizing constructors
         // Not sure if possible in C++14
         ForCondition cond = parseForCondition();
@@ -609,17 +618,14 @@ namespace parser
                 ++it; // Skip ','
                 continue;
             }
-            else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+            if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
             {
                 ++it; // Skip ')'
                 break;
             }
-            else
-            {
-                return parserError("Invalid function prototype: expected ')' "
-                                   "or ',' in parameter, got '{}' instead",
-                                   it->value);
-            }
+            return parserError("Invalid function prototype: expected ')' "
+                               "or ',' in parameter, got '{}' instead",
+                               it->value);
         }
 
         if(it->type == TOKEN_PUNCT_ARROW)

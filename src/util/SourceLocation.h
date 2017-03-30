@@ -65,4 +65,4 @@ private:
 
     uint32_t lastLineLen{0};
 };
-}
+} // namespace util

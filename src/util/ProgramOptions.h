@@ -89,4 +89,4 @@ struct ProgramOptions
 private:
     static ProgramOptions instance;
 };
-}
+} // namespace util

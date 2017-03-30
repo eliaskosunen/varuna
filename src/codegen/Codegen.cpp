@@ -14,7 +14,7 @@
 namespace codegen
 {
 Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
-    : ast(a), info(i), context{},
+    : ast(std::move(a)), info(i),
       module(std::make_unique<llvm::Module>("Varuna", context)),
       codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
       inputFile("varuna_tmp_input", "ll")

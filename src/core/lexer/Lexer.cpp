@@ -8,6 +8,12 @@ namespace core
 {
 namespace lexer
 {
+    Lexer::Lexer(std::shared_ptr<util::File> f)
+        : warningsAsErrors(false), it(f, 1, 1, f->getContent().begin()),
+          error(ERROR_NONE), file(std::move(f))
+    {
+    }
+
     char Lexer::peekUpcoming(std::ptrdiff_t dist) const
     {
         return *(it + dist);

@@ -26,9 +26,9 @@ namespace parser
         Parser(std::shared_ptr<util::File> f, const lexer::TokenVector& tok);
 
         Parser(const Parser&) = delete;
-        Parser(Parser&&) = default;
+        Parser(Parser&&) noexcept = default;
         Parser& operator=(const Parser&) = delete;
-        Parser& operator=(Parser&&) = default;
+        Parser& operator=(Parser&&) noexcept = delete;
         ~Parser() noexcept = default;
 
         /// Run the parser
@@ -152,14 +152,7 @@ namespace parser
 
         std::unique_ptr<ast::ExprStmt>
         createExprStmt(std::unique_ptr<ast::Expr> expr);
-        std::unique_ptr<ast::EmptyStmt> emptyStatement(bool skip = true)
-        {
-            if(skip)
-            {
-                ++it;
-            }
-            return createNode<ast::EmptyStmt>(skip ? (it - 1) : it);
-        }
+        std::unique_ptr<ast::EmptyStmt> emptyStatement(bool skip = true);
 
         void _runParser();
 

@@ -13,7 +13,7 @@ namespace codegen
 class TypeTable
 {
 public:
-    TypeTable(llvm::Module* m) : module(m)
+    explicit TypeTable(llvm::Module* m) : module(m)
     {
     }
 
@@ -115,14 +115,9 @@ inline size_t TypeTable::isDefinedLLVM(llvm::Type* type) const
 inline Type* TypeTable::find(const std::string& name, TypeTable::FindFlags,
                              bool logError)
 {
-    auto p = [&](const std::unique_ptr<Type>& t) {
-        if(t->getName() != name)
-        {
-            return false;
-        }
-        return true;
-    };
-    auto it = std::find_if(list.begin(), list.end(), p);
+    auto it = std::find_if(
+        list.begin(), list.end(),
+        [&](const std::unique_ptr<Type>& t) { return t->getName() == name; });
     if(it == list.end())
     {
         if(logError)
@@ -159,7 +154,7 @@ inline Type* TypeTable::findDecorated(const std::string& name, bool logError)
 {
     auto it = std::find_if(list.begin(), list.end(),
                            [&](const std::unique_ptr<Type>& t) {
-                               return t.get()->getDecoratedName() == name;
+                               return t->getDecoratedName() == name;
                            });
     if(it == list.end())
     {
@@ -200,14 +195,9 @@ inline const Type* TypeTable::find(const std::string& name,
                                    TypeTable::FindFlags /*unused*/,
                                    bool logError) const
 {
-    auto p = [&](const std::unique_ptr<Type>& t) {
-        if(t->getName() != name)
-        {
-            return false;
-        }
-        return true;
-    };
-    auto it = std::find_if(list.begin(), list.end(), p);
+    auto it = std::find_if(
+        list.begin(), list.end(),
+        [&](const std::unique_ptr<Type>& t) { return t->getName() == name; });
     if(it == list.end())
     {
         if(logError)

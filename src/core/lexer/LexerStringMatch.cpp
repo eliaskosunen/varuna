@@ -44,7 +44,7 @@ namespace lexer
                 return COMMENT_FOUND;
             }
             // Multi line comment: '/*'
-            else if(peekNext() == '*')
+            if(peekNext() == '*')
             {
                 advance(); // Skip '/'
                 advance(); // Skip '*'

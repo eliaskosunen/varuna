@@ -102,4 +102,4 @@ inline std::string BinReloc::brInitErrorToString(BrInitError error) const
     }
     return "";
 }
-}
+} // namespace util

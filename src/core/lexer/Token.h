@@ -67,9 +67,9 @@ namespace lexer
     {
         explicit Token(util::SourceLocation l, TokenType t = TOKEN_DEFAULT,
                        std::string val = "")
-            : loc(l), type(t), value(std::move(val)), modifierInt(INTEGER_NONE),
-              modifierFloat(FLOAT_NONE), modifierChar(CHAR_NONE),
-              modifierString(STRING_NONE)
+            : loc(std::move(l)), type(t), value(std::move(val)),
+              modifierInt(INTEGER_NONE), modifierFloat(FLOAT_NONE),
+              modifierChar(CHAR_NONE), modifierString(STRING_NONE)
         {
         }
 

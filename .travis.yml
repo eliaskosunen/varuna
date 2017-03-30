@@ -57,14 +57,6 @@ matrix:
         apt:
           packages: ["valgrind", "uuid-dev"]
           sources: *apt_sources
-    # Clang 3.9
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
-      compiler: clang
-      addons: &clang39
-        apt:
-          packages: ["clang-3.9", "valgrind", "uuid-dev"]
-          sources: *apt_sources
     # Clang 3.6
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.6 COMPILER_C=clang-3.6
@@ -136,14 +128,6 @@ matrix:
         apt:
           packages: ["valgrind", "uuid-dev"]
           sources: *apt_sources
-    # LLVM 3.9 (Clang 3.9)
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=3.9 COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
-      compiler: clang
-      addons: &llvm39
-        apt:
-          packages: ["clang-3.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind", "uuid-dev"]
-          sources: *apt_sources
 
   allow_failures:
     - os: linux
@@ -154,8 +138,6 @@ matrix:
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
     - os: linux
       env: TESTS=ON LLVM_VERSION=5.0 COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=3.9 COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
 
 before_install:
     - |

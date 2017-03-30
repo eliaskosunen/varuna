@@ -17,9 +17,7 @@ namespace util
 class FileCache
 {
 public:
-    FileCache()
-    {
-    }
+    FileCache() = default;
 
     /// Get the entire cache
     auto& getCache()

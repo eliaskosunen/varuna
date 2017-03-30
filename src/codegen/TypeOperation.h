@@ -13,15 +13,15 @@ namespace codegen
 class TypeOperationBase
 {
 public:
-    TypeOperationBase(Type* pType) : type(pType)
+    explicit TypeOperationBase(Type* pType) : type(pType)
     {
     }
 
     TypeOperationBase(const TypeOperationBase&) = delete;
     TypeOperationBase& operator=(const TypeOperationBase&) = delete;
 
-    TypeOperationBase(TypeOperationBase&&) = default;
-    TypeOperationBase& operator=(TypeOperationBase&&) = default;
+    TypeOperationBase(TypeOperationBase&&) noexcept = delete;
+    TypeOperationBase& operator=(TypeOperationBase&&) noexcept = delete;
 
     virtual ~TypeOperationBase() = default;
 
@@ -75,7 +75,7 @@ public:
 class VoidTypeOperation : public TypeOperationBase
 {
 public:
-    VoidTypeOperation(VoidType* pType) : TypeOperationBase(pType)
+    explicit VoidTypeOperation(VoidType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -100,7 +100,8 @@ public:
 class IntegralTypeOperation : public TypeOperationBase
 {
 public:
-    IntegralTypeOperation(IntegralType* pType) : TypeOperationBase(pType)
+    explicit IntegralTypeOperation(IntegralType* pType)
+        : TypeOperationBase(pType)
     {
     }
 
@@ -125,7 +126,7 @@ public:
 class BoolTypeOperation : public TypeOperationBase
 {
 public:
-    BoolTypeOperation(BoolType* pType) : TypeOperationBase(pType)
+    explicit BoolTypeOperation(BoolType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -150,7 +151,7 @@ public:
 class FPTypeOperation : public TypeOperationBase
 {
 public:
-    FPTypeOperation(FPType* pType) : TypeOperationBase(pType)
+    explicit FPTypeOperation(FPType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -175,7 +176,8 @@ public:
 class CharacterTypeOperation : public TypeOperationBase
 {
 public:
-    CharacterTypeOperation(CharacterType* pType) : TypeOperationBase(pType)
+    explicit CharacterTypeOperation(CharacterType* pType)
+        : TypeOperationBase(pType)
     {
     }
 
@@ -200,7 +202,7 @@ public:
 class ByteTypeOperation : public TypeOperationBase
 {
 public:
-    ByteTypeOperation(ByteType* pType) : TypeOperationBase(pType)
+    explicit ByteTypeOperation(ByteType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -225,7 +227,7 @@ public:
 class StringTypeOperation : public TypeOperationBase
 {
 public:
-    StringTypeOperation(StringType* pType) : TypeOperationBase(pType)
+    explicit StringTypeOperation(StringType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -250,7 +252,7 @@ public:
 class CStringTypeOperation : public TypeOperationBase
 {
 public:
-    CStringTypeOperation(CStringType* pType) : TypeOperationBase(pType)
+    explicit CStringTypeOperation(CStringType* pType) : TypeOperationBase(pType)
     {
     }
 
@@ -275,7 +277,8 @@ public:
 class FunctionTypeOperation : public TypeOperationBase
 {
 public:
-    FunctionTypeOperation(FunctionType* pType) : TypeOperationBase(pType)
+    explicit FunctionTypeOperation(FunctionType* pType)
+        : TypeOperationBase(pType)
     {
     }
 

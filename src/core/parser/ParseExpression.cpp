@@ -73,7 +73,7 @@ namespace parser
                 ++parenCount;
                 continue;
             }
-            else if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
+            if(it->type == TOKEN_PUNCT_PAREN_CLOSE)
             {
                 if(parenCount == 0)
                 {
@@ -93,30 +93,28 @@ namespace parser
                             ok = true;
                             break;
                         }
+
+                        auto rhs = std::move(operands.top());
+                        operands.pop();
+                        auto lhs = std::move(operands.top());
+                        operands.pop();
+
+                        if(isAssignmentOperator(operators.top().type))
+                        {
+                            auto expr = createNode<AssignmentExpr>(
+                                operators.top().loc, std::move(lhs),
+                                std::move(rhs), operators.top().type);
+                            operands.push(std::move(expr));
+                        }
                         else
                         {
-                            auto rhs = std::move(operands.top());
-                            operands.pop();
-                            auto lhs = std::move(operands.top());
-                            operands.pop();
-
-                            if(isAssignmentOperator(operators.top().type))
-                            {
-                                auto expr = createNode<AssignmentExpr>(
-                                    operators.top().loc, std::move(lhs),
-                                    std::move(rhs), operators.top().type);
-                                operands.push(std::move(expr));
-                            }
-                            else
-                            {
-                                auto expr = createNode<BinaryExpr>(
-                                    operators.top().loc, std::move(lhs),
-                                    std::move(rhs), operators.top().type);
-                                operands.push(std::move(expr));
-                            }
-
-                            operators.pop();
+                            auto expr = createNode<BinaryExpr>(
+                                operators.top().loc, std::move(lhs),
+                                std::move(rhs), operators.top().type);
+                            operands.push(std::move(expr));
                         }
+
+                        operators.pop();
                     }
                     if(ok)
                     {
@@ -126,7 +124,8 @@ namespace parser
 
                 return parserError("Parenthesis mismatch in expression");
             }
-            else if(isBinaryOperator())
+
+            if(isBinaryOperator())
             {
                 if(it == beginExprIt ||
                    getBinOpPrecedence(
@@ -139,7 +138,7 @@ namespace parser
                         ++it;
                         continue;
                     }
-                    else if(it->type == TOKEN_OPERATORB_SUB)
+                    if(it->type == TOKEN_OPERATORB_SUB)
                     {
                         operators.push(createOperator(
                             Token(it->loc, TOKEN_OPERATORU_MINUS, it->value)));
@@ -160,11 +159,11 @@ namespace parser
                     ++it; // Skip operator
                     continue;
                 }
-                else if(getBinOpPrecedence() <
-                            getBinOpPrecedence(operators.top().type) ||
-                        (!isBinOpRightAssociative() &&
-                         getBinOpPrecedence() ==
-                             getBinOpPrecedence(operators.top().type)))
+                if(getBinOpPrecedence() <
+                       getBinOpPrecedence(operators.top().type) ||
+                   (!isBinOpRightAssociative() &&
+                    getBinOpPrecedence() ==
+                        getBinOpPrecedence(operators.top().type)))
                 {
                     while(getBinOpPrecedence() <
                               getBinOpPrecedence(operators.top().type) ||
@@ -332,7 +331,7 @@ namespace parser
         const auto nameIter = it;
         ++it; // Skip name
 
-        std::string typen = "";
+        std::string typen;
         const auto typeIter = it + 1;
         if(it->type == TOKEN_PUNCT_COLON)
         {

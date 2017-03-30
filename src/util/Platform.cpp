@@ -29,7 +29,7 @@ namespace util
 std::string getCurrentDirectory()
 {
     char buf[FILENAME_MAX];
-    if(GETCWD(buf, sizeof(buf)) != 0)
+    if(GETCWD(buf, sizeof(buf)) != nullptr)
     {
         return std::string(buf);
     }

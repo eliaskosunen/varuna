@@ -8,12 +8,11 @@
 
 namespace util
 {
-GuidGenerator TmpFile::g{};
+GuidGenerator TmpFile::g;
 
 TmpFile::TmpFile(const std::string& prefix, const std::string& suffix)
 {
-    name = fmt::format("{}-{}.{}", prefix,
-                       g.newGuid(), suffix);
+    name = fmt::format("{}-{}.{}", prefix, g.newGuid(), suffix);
     auto f = std::fopen(name.c_str(), "w");
     if(!f)
     {
