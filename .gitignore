@@ -17,11 +17,15 @@ doc/
 varuna_tmp_*
 
 # Other files
-Doxyfile.bak
 *.vamod
 code.ll
 *code.va
 *.xml
+
+# My crap
+Doxyfile
+Doxyfile.bak
+.clang_complete
 
 ##
 ## From GitHub .gitignore list: https://github.com/github/gitignore

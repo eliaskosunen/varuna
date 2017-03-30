@@ -22,15 +22,11 @@ def main() -> i32 {
 
 ## Build status
 
-**Master branch:**  
-Linux/OSX: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/master.svg)](https://travis-ci.org/varuna-lang/varuna)  
-Windows: [![Appveyor Build Status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/master.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  
-Coverage: [![Coverage Status](https://img.shields.io/coveralls/varuna-lang/varuna/master.svg)](https://coveralls.io/github/varuna-lang/varuna?branch=master)
-
-**Develop branch:**  
-Linux/OSX: [![Travis Build Status](https://img.shields.io/travis/varuna-lang/varuna/develop.svg)](https://travis-ci.org/varuna-lang/varuna)  
-Windows: [![Appveyor Build Status](https://img.shields.io/appveyor/ci/varuna-lang/varuna/develop.svg)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop)  
-Coverage: [![Coverage Status](https://img.shields.io/coveralls/varuna-lang/varuna/develop.svg)](https://coveralls.io/github/varuna-lang/varuna?branch=develop)
+|                | Master branch | Develop branch |
+| -------------- | ------------- | -------------- |
+| **Linux/OS X** | [![Travis Build Status](https://travis-ci.org/varuna-lang/varuna.svg?branch=master)](https://travis-ci.org/varuna-lang/varuna) | [![Travis Build Status](https://travis-ci.org/varuna-lang/varuna.svg?branch=develop)](https://travis-ci.org/varuna-lang/varuna) |
+| **Windows**    | [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/l52k63sfb6x6ar0e/branch/master?svg=true)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/master)  | [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/l52k63sfb6x6ar0e/branch/develop?svg=true)](https://ci.appveyor.com/project/varuna-lang/varuna/branch/develop) |
+| **Coverage**   | [![Coverage Status](https://coveralls.io/repos/github/varuna-lang/varuna/badge.svg?branch=master)](https://coveralls.io/github/varuna-lang/varuna?branch=master) | [![Coverage Status](https://coveralls.io/repos/github/varuna-lang/varuna/badge.svg?branch=develop)](https://coveralls.io/github/varuna-lang/varuna?branch=develop) |
 
 ## About
 
@@ -50,7 +46,7 @@ A quick guide can be found from quick-guide.md
 ## Usage
 
 The compiler compiles a Varuna source file (or *module*) to
-a native object file `.o` (or optionally some other format) and
+a native object file `.o`/`.obj` (or optionally some other format) and
 a Varuna module file `.vamod` (used for importing).
 
 ### Command line usage
