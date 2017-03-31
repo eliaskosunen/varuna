@@ -219,7 +219,7 @@ install:
       fi
 
       # LLVM
-      LLVM_VERSION_LONG=4.0.0
+      LLVM_VERSION_LONG=4.0.0_1
       brew install llvm
 
       # GCC

@@ -72,7 +72,7 @@ bool Process::_spawn()
     ZeroMemory(&pi, sizeof(pi));
 
     // CreateProcessA requires a C-style array
-    // C++ doesn't have VLA's, so we use a std::vector instead
+    // C++ doesn't have VLAs, so we use a std::vector instead
     // and then get a pointer to its first element
     auto command = std::vector<char>(file.begin(), file.end());
     command.push_back(' ');

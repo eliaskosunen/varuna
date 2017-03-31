@@ -18,19 +18,19 @@ public:
 
     /**
      * Run code generation
-     * @return Success
+     * \return Success
      */
     bool run();
 
     /**
      * Consume the code generator class
-     * @return Generator class
+     * \return Generator class
      */
     std::unique_ptr<GeneratorClass> get();
 
     /**
      * Get generator identifier
-     * @return Identifier
+     * \return Identifier
      */
     const char* getIdentifier() const noexcept
     {

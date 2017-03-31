@@ -37,11 +37,13 @@ It produces either native object code, assembly or LLVM IR or bytecode.
 
 WORK IN PROGRESS. 0.1 release is coming soon.
 
-## Language tutorial
+## Language documentation
 
 WORK IN PROGRESS.
 
-A quick guide can be found from quick-guide.md
+A quick guide can be found from quick-guide.md  
+[Reference manual (WIP)](https://varuna-lang.gitbooks.io/varuna-book/content/)  
+[API Reference](https://varuna-lang.gitbooks.io/varuna-api-documentation/content/)
 
 ## Usage
 
@@ -118,15 +120,22 @@ $ ./a.out
 
 ## Building
 
+### AUR
+
+There's an AUR for the Varuna compiler, that should be used on Arch Linux:
+https://aur.archlinux.org/packages/varuna-git/
+
 ### Requirements
 
-The project is developed on Ubuntu 16.04 and tested on Ubuntu 12.04.
+The project is developed on Arch Linux and tested on Ubuntu 12.04.
 Other Linux distributions should work, as long as they'll have the right compiler and library versions available.
 Building on Windows is supported and tested on Win10.
 Building on Mac OS X is supported and tested.
 
 This project depends on LLVM and needs the LLVM compiler infrastructure C++ libraries.
 The project is developed on version 4.0 and guaranteed to work only on that version.
+We are trying to also keep the code compatible with upcoming LLVM releases (5.0).
+Every release drops support for previous LLVM versions.
 The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
 
 To build the compiler, a C++14 standard compliant compiler is required. This means g++-5 or up (g++-4.9 may work) or clang++-3.6 or up.
@@ -134,7 +143,9 @@ On Windows, Visual Studio 14 (2015) or up is supported.
 
 ### Installing LLVM
 
-The easiest way to install LLVM, if you are on Debian/Ubuntu, is to install them with `apt-get`. ([More information on the LLVM webpage](http://apt.llvm.org/)). First, add the apt repository:
+#### Debian/Ubuntu
+
+On Debian/Ubuntu LLVM can be installed with `apt-get`. ([More information on the LLVM webpage](http://apt.llvm.org/)). First, add the apt repository:
 
 ```
 # Debian (Jessie)
@@ -162,14 +173,34 @@ $ sudo apt-get update
 # Install packages
 $ sudo apt-get install libllvm4.0 llvm-4.0 llvm-4.0-dev
 
-# LLVM packages will be on /usr/lib/llvm-4.0
+# LLVM packages will be in /usr/lib/llvm-4.0
 ```
 
+#### Arch Linux
+
+Install packages `llvm` and `llvm-libs` from the repository `extra`. They are currently of version 4.0.
+
+```sh
+$ sudo pacman -S llvm llvm-libs
+```
+
+#### OS X
+
+Install package `llvm` with homebrew.
+
+```sh
+$ brew install llvm
+```
+
+#### Other platforms
+
 On other platforms, you'll need to build LLVM yourself.
-See the LLVM documentation:
-[Linux](http://llvm.org/docs/GettingStarted.html)
-[Windows](http://llvm.org/docs/GettingStartedVS.html)
-[Downloads](releases.llvm.org/download.html#4.0.0)
+See the LLVM documentation:  
+[Linux](http://llvm.org/docs/GettingStarted.html)  
+[Windows](http://llvm.org/docs/GettingStartedVS.html)  
+[Downloads](releases.llvm.org/download.html#4.0.0)  
+Please note, that your package manager may provide some version of LLVM, even though it wouldn't be listed here.
+As long as their versions are compatible (4.0), using them should be fine.
 
 ### Other dependencies
 

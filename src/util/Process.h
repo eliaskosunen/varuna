@@ -26,6 +26,7 @@ class Process
 
     /// Spawn the process.
     /// Platform-dependent
+    /// \throw std::runtime_error (Windows only) Return value getting failed
     bool _spawn();
 
 public:
@@ -33,16 +34,17 @@ public:
 
     /**
      * Spawn the process.
-     * Throws std::logic_error if it has already been spawned
-     * @return Success. For further error information, see getErrorString()
+     * \throw  std::logic_error   If process had already been spawned
+     * \throw  std::runtime_error (Windows only) Return value getting failed
+     * \return Success. For further error information, see getErrorString()
      */
     bool spawn();
     /// Has the process been spawned
     bool isSpawned() const;
     /**
      * Get process exit code.
-     * Throws std::logic_error if the process hasn't been spawned
-     * @return Exit code
+     * \throw std::logic_error If the process hasn't been spawned
+     * \return Exit code
      */
     int getReturnValue() const;
     /// Get platform-dependent error description.
@@ -50,16 +52,5 @@ public:
     std::string getErrorString();
 
     static std::string getSuccessErrorString();
-
-    static Process create(const std::string& pFile, const std::string& pParams)
-    {
-        Process p(pFile, pParams);
-        return p;
-    }
-    static Process create(std::string&& pFile, std::string&& pParams)
-    {
-        Process p(std::move(pFile), std::move(pParams));
-        return p;
-    }
 };
 } // namespace util

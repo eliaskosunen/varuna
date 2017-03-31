@@ -11,8 +11,8 @@ namespace util
 template <class ReverseIterator>
 /**
  * Convert a ReverseIterator to a ForwardIterator
- * @param  rit ReverseIterator
- * @return     ForwardIterator
+ * \param  rit ReverseIterator
+ * \return     ForwardIterator
  */
 inline typename ReverseIterator::iterator_type ritToFwdIt(ReverseIterator rit)
 {

@@ -19,14 +19,11 @@ Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
       codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
       inputFile("varuna_tmp_input", "ll")
 {
-#if 0
-    auto nameparts =
-        util::stringutils::split(ast->file->getFilename(), '.');
+    auto nameparts = util::stringutils::split(ast->file->getFilename(), '.');
     if(!nameparts.empty())
     {
         module->setModuleIdentifier(nameparts.front());
     }
-#endif
 }
 
 Codegen::~Codegen() noexcept

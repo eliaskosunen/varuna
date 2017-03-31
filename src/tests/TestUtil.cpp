@@ -47,6 +47,22 @@ TEST_CASE("stringutils")
     CHECK(cstrToString("foo") == "foo");
     CHECK(charToString('a') == "a");
 
+    SUBCASE("split")
+    {
+        auto vec = split("a bc d ", ' ');
+        CHECK(vec.size() == 3);
+        CHECK(vec.at(0) == "a");
+        CHECK(vec.at(1) == "bc");
+        CHECK(vec.at(2) == "d");
+
+        auto vec2 = split("abc", 'd');
+        CHECK(vec2.size() == 1);
+        CHECK(vec2.at(0) == "abc");
+
+        auto vec3 = split("", ' ');
+        CHECK(vec3.size() == 0);
+    }
+
     SUBCASE("isCharSomething")
     {
         testIsChar(isCharAlpha,

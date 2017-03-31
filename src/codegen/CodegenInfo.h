@@ -22,7 +22,7 @@ struct CodegenInfo
 
     /**
      * Area any optimizations enabled
-     * @return Enabled
+     * \return Enabled
      */
     bool optEnabled() const
     {

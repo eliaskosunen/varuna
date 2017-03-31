@@ -18,8 +18,8 @@ extern std::shared_ptr<spdlog::logger> loggerBasic;
 
 /**
  * Create a new logger
- * @param isColor Does the logger have colors
- * @param name    Name of the logger
+ * \param isColor Does the logger have colors
+ * \param name    Name of the logger
  */
 inline auto createLogger(bool isColor, const std::string& name = "Logger")
 {
@@ -40,10 +40,10 @@ void dropLogger();
 
 /**
  * Log a compiler error
- * @param  loc    Location of error
- * @param  format Format string of the message
- * @param  args   Format arguments
- * @return        nullptr
+ * \param  loc    Location of error
+ * \param  format Format string of the message
+ * \param  args   Format arguments
+ * \return        nullptr
  */
 template <typename... Args>
 inline std::nullptr_t logCompilerError(const SourceLocation& loc,
@@ -59,9 +59,9 @@ inline std::nullptr_t logCompilerError(const SourceLocation& loc,
 
 /**
  * Log a compiler warning
- * @param  loc    Location of warning
- * @param  format Format string of the message
- * @param  args   Format arguments
+ * \param  loc    Location of warning
+ * \param  format Format string of the message
+ * \param  args   Format arguments
  */
 template <typename... Args>
 inline void logCompilerWarning(const SourceLocation& loc,
@@ -75,9 +75,9 @@ inline void logCompilerWarning(const SourceLocation& loc,
 
 /**
  * Log a compiler notice
- * @param  loc    Location of notice
- * @param  format Format string of the message
- * @param  args   Format arguments
+ * \param  loc    Location of notice
+ * \param  format Format string of the message
+ * \param  args   Format arguments
  */
 template <typename... Args>
 inline void logCompilerInfo(const SourceLocation& loc,

@@ -18,7 +18,7 @@ public:
 
     /**
      * Run the visitor
-     * @param root Pointer to Node or similar, root node of the tree
+     * \param root Pointer to Node or similar, root node of the tree
      */
     template <typename T>
     void run(T* root)

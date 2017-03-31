@@ -35,12 +35,15 @@ const std::string::const_iterator SourceLocation::getEnd() const
 std::string SourceLocation::toString() const
 {
     assert(file);
+    // code.va:10:3
     return fmt::format("{}:{}:{}", file->getFilename(), line, col);
 }
 
 std::string SourceLocation::contentToString() const
 {
-    assert(len != 0);
+    assert(len > 0);
+    assert(it < getEnd());
+    assert(static_cast<size_t>(std::distance(it, getEnd())) >= len);
     return std::string(it, it + static_cast<ptrdiff_t>(len));
 }
 
@@ -72,7 +75,7 @@ SourceLocation& SourceLocation::operator++() noexcept
     ++it;
     return *this;
 }
-SourceLocation SourceLocation::operator++(int)noexcept
+SourceLocation SourceLocation::operator++(int dummy) noexcept
 {
     SourceLocation ret(*this);
     ++(*this);
@@ -111,7 +114,7 @@ SourceLocation& SourceLocation::operator--() noexcept
     }
     return *this;
 }
-SourceLocation SourceLocation::operator--(int)noexcept
+SourceLocation SourceLocation::operator--(int dummy) noexcept
 {
     SourceLocation ret(*this);
     --(*this);
@@ -165,38 +168,53 @@ std::string SourceLocation::getErrorMessage() const
     assert(it != getEnd());
 
     const auto& content = getContent();
+
+    // Get SourceLocation pointing to the beginning of a line
     auto getBeginningOfLine = [&](SourceLocation l) {
         assert(l.it < l.getEnd());
         for(;; --l)
         {
             if(*l == '\n')
             {
+                // If '\n', go forward one character to get first of the line
                 return ++l;
             }
             if(l.it == l.getContent().begin())
             {
+                // There's no previous line of the first character
                 return l;
             }
         }
     };
 
-    auto getLine = [&](SourceLocation l) -> std::string {
+    const auto lineBegin = getBeginningOfLine(*this);
+    assert(lineBegin.it < getEnd());
+    assert(lineBegin.it >= file->getContent().begin());
+
+    auto getLine = [&](SourceLocation l) {
         const auto begin = getBeginningOfLine(l);
         assert(begin.it < l.getEnd());
+        assert(lineBegin.it >= file->getContent().begin());
+
         const auto end = [&]() {
+            // Use a similar tactic as in getBeginningOfLine but reversed
             auto b = begin;
             for(;; ++b)
             {
                 if(*b == '\n')
                 {
+                    // '\n' is always the last character of its line...
                     return b;
                 }
                 if(b.it == l.getEnd())
                 {
+                    // ...except when it's the last line
+                    // --b because otherwise we'd return an iterator to the end
                     return --b;
                 }
             }
         }();
+
         assert(begin.it <= end.it);
         if(begin.it == end.it)
         {
@@ -210,25 +228,29 @@ std::string SourceLocation::getErrorMessage() const
         assert(line > 0);
         if(line == 1)
         {
+            // The first line doesn't have a previous line
             return ""s;
         }
-        auto i = getBeginningOfLine(*this);
-        assert(i.it < getEnd());
-        if(i.it == content.begin())
-        {
-            return ""s;
-        }
-        assert((i - 2).it >= content.begin());
-        return getLine(i - 2);
+
+        // lineBegin points to the beginning of *this line
+        // lineBegin - 1 is is the line break of the previous line
+        // If we'd use that we'd get the contents of *this line
+        // So we'll use lineBegin - 2
+        assert((lineBegin - 2).it >= content.begin());
+        return getLine(lineBegin - 2);
     }();
 
     auto getDisplayedWidth = [](std::string::const_iterator begin,
                                 std::string::const_iterator end) {
         size_t result = 0;
         std::for_each(begin, end, [&](const char c) {
+            // We *could* be Unicode-friendly,
+            // but we aren't
+            // Every character is 1 'unit' wide
             ++result;
             if(c == '\t')
             {
+                // Except a tab is 4 (1 + 3)
                 result += 3;
             }
         });
@@ -236,7 +258,6 @@ std::string SourceLocation::getErrorMessage() const
     };
 
     const auto underline = [&]() {
-        const auto lineBegin = getBeginningOfLine(*this);
         assert(lineBegin.it <= it);
         const auto leftPad = util::stringutils::createEmptyStringWithLength(
             getDisplayedWidth(lineBegin.it, it));
