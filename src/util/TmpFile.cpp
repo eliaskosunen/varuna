@@ -30,6 +30,7 @@ TmpFile::TmpFile(const std::string& prefix, const std::string& suffix)
 
 TmpFile::~TmpFile()
 {
+    // Remove the file, because it's meant to be temporary
     std::remove(name.c_str());
 }
 

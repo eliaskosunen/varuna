@@ -41,7 +41,7 @@ namespace tests
 
 } // namespace tests
 
-/// Utility function
+/// Utility functions and classes
 namespace util
 {
 /// Static information of the compiler

@@ -87,10 +87,12 @@ namespace lexer
         {
             lexerError("Empty token list");
         }
-        /*if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
+#if 0
+        if(tokens.size() == 1 && tokens[0].type == TOKEN_EOF)
         {
             lexerWarning("Empty translation unit");
-        }*/
+        }
+#endif
         if(tokens.back().type != TOKEN_EOF && !getError())
         {
             lexerError("No EOF token found");
@@ -103,6 +105,8 @@ namespace lexer
         auto loc = it;
         const auto len = type == TOKEN_EOF ? 0 : val.length();
         loc.len = len;
+        // `it` points to the end of the token,
+        // go back `len` steps to point to the beginning
         loc -= static_cast<std::ptrdiff_t>(len);
 
         assert(loc.it < loc.file->getContent().end() || *loc == '\0');

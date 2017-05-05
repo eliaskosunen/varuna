@@ -25,18 +25,18 @@ enum OptimizationLevel
 
 enum OutputType
 {
-    EMIT_NONE = 0,
-    EMIT_AST = 1 << 0,
-    EMIT_LLVM_IR = 1 << 1,
-    EMIT_LLVM_BC = 1 << 2,
-    EMIT_ASM = 1 << 3,
-    EMIT_OBJ = 1 << 4
+    EMIT_NONE = 0,         ///< Emit nothing: -emit=none
+    EMIT_AST = 1 << 0,     ///< Emit AST: -emit=ast
+    EMIT_LLVM_IR = 1 << 1, ///< Emit LLVM IR: -emit=llvm-ir
+    EMIT_LLVM_BC = 1 << 2, ///< Emit LLVM bytecode: -emit=llvm-bc
+    EMIT_ASM = 1 << 3,     ///< Emit assembly: -emit=asm
+    EMIT_OBJ = 1 << 4      ///< Emit object code: -emit=obj
 };
 
 enum X86AsmSyntax
 {
-    X86_ATT,
-    X86_INTEL
+    X86_ATT,  ///< AT&T syntax: -x86-asm-syntax=att
+    X86_INTEL ///< Intel syntax: -x86-asm-syntax=intel
 };
 
 /// Program options
@@ -67,7 +67,7 @@ struct ProgramOptions
 
     /**
      * Get speed and size optimization levels from optLevel
-     * @return Speed and size levels
+     * \return Speed and size levels
      */
     std::pair<uint8_t, uint8_t> getOptLevel() const;
 

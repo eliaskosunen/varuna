@@ -13,14 +13,13 @@ std::unique_ptr<TypedValue> Type::implicitCast(ast::Node* node,
                                                llvm::IRBuilder<>& /*builder*/,
                                                TypedValue* val, Type* to) const
 {
-    if(basicEqual(to))
+    if(equal(to))
     {
         return val->clone();
     }
     return castError(node, "Invalid implicit cast: Cannot convert from "
                            "{} to {} implicitly (kinds: {} and {})",
-                     getDecoratedName(), to->getDecoratedName(), kind,
-                     to->kind.get());
+                     getName(), to->getName(), kind, to->kind.get());
 }
 
 std::unique_ptr<TypedValue> VoidType::cast(ast::Node* node,
@@ -74,12 +73,12 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -121,12 +120,12 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -152,12 +151,12 @@ std::unique_ptr<TypedValue> CharacterType::cast(ast::Node* node,
         {
             return castError(node,
                              "Invalid bitcast: Cannot convert from {} to {}",
-                             getDecoratedName(), to->getDecoratedName());
+                             getName(), to->getName());
         }
         return ret(bitcast);
     }
     return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                     getDecoratedName(), to->getDecoratedName());
+                     getName(), to->getName());
 }
 
 std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
@@ -194,12 +193,12 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -235,12 +234,12 @@ std::unique_ptr<TypedValue> FPType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 

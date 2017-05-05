@@ -80,7 +80,7 @@ std::unique_ptr<ast::Stmt> ModuleFile::ModuleFileSymbol::toNode(ast::AST* ast)
 
 void ModuleFile::ModuleFileSymbol::fromSymbol(Symbol* s)
 {
-    typeName = s->getType()->getDecoratedName();
+    typeName = s->getType()->getName();
     name = s->name;
     isMutable = s->isMutable;
     loc = s->loc;
@@ -111,15 +111,15 @@ ModuleFile::ModuleFileFunctionSymbol::toNode(ast::AST* ast)
 
 void ModuleFile::ModuleFileFunctionSymbol::fromSymbol(Symbol* s)
 {
-    typeName = s->getType()->getDecoratedName();
+    typeName = s->getType()->getName();
     name = s->name;
     isMutable = s->isMutable;
     loc = s->loc;
     auto type = dynamic_cast<FunctionType*>(s->getType());
-    retTypeName = type->returnType->getDecoratedName();
+    retTypeName = type->returnType->getName();
     for(auto& pType : type->params)
     {
-        paramTypeNames.push_back(pType->getDecoratedName());
+        paramTypeNames.push_back(pType->getName());
     }
     mangle = dynamic_cast<FunctionSymbol*>(s)->mangled;
 }

@@ -16,7 +16,6 @@ namespace lexer
 
         while(true)
         {
-            util::logger->trace("In loop");
             if(!it.hasMore())
             {
                 return createToken(TOKEN_EOF, "EOF");
@@ -135,18 +134,21 @@ namespace lexer
             IntegerLiteralBase base = BASE_DEC;
             if(currentChar == '0')
             {
+                // 0x... = hexadecimal
                 if(*(it + 1) == 'x' || *(it + 1) == 'X')
                 {
                     _next();
                     currentChar = _getNext();
                     base = BASE_HEX;
                 }
+                // 0o... = octal
                 else if(*(it + 1) == 'o' || *(it + 1) == 'O')
                 {
                     _next();
                     currentChar = _getNext();
                     base = BASE_OCT;
                 }
+                // 0b... = binary
                 else if(*(it + 1) == 'b' || *(it + 1) == 'B')
                 {
                     _next();

@@ -516,7 +516,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FunctionParameter* node)
     const auto var = node->var.get();
 
     // Find type
-    auto type = types->findDecorated(var->type->value);
+    auto type = types->find(var->type->value);
     if(!type)
     {
         return codegenError(var->type.get(), "Undefined typename: '{}'",
@@ -533,7 +533,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FunctionParameter* node)
     }
 
     // Parameter name cannot be a typename
-    if(types->isDefinedUndecorated(var->name->value) != 0)
+    if(types->isDefined(var->name->value) != 0)
     {
         return codegenError(
             var->name.get(),
@@ -572,7 +572,7 @@ std::unique_ptr<TypedValue>
 CodegenVisitor::visit(ast::FunctionPrototypeStmt* node)
 {
     // Find return type
-    auto rt = types->findDecorated(node->returnType->value);
+    auto rt = types->find(node->returnType->value);
     if(!rt)
     {
         return codegenError(node->returnType.get(), "Undefined typename: '{}'",
@@ -586,7 +586,7 @@ CodegenVisitor::visit(ast::FunctionPrototypeStmt* node)
     params.reserve(node->params.size());
     for(const auto& param : node->params)
     {
-        auto t = types->findDecorated(param->var->type->value);
+        auto t = types->find(param->var->type->value);
         if(!t)
         {
             return codegenError(param->var->type.get(),
@@ -638,7 +638,7 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
     const auto name = proto->name->value;
 
     // Find return type
-    auto returnType = types->findDecorated(proto->returnType->value);
+    auto returnType = types->find(proto->returnType->value);
     if(!returnType)
     {
         return codegenError(proto->returnType.get(), "Undefined typename: '{}'",
@@ -649,7 +649,7 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
     std::vector<Type*> paramTypes;
     for(const auto& p : proto->params)
     {
-        auto t = types->findDecorated(p->var->type->value);
+        auto t = types->find(p->var->type->value);
         if(!t)
         {
             return codegenError(p->var->type.get(), "Undefined typename: '{}'",
@@ -659,8 +659,8 @@ CodegenVisitor::visit(ast::FunctionDefinitionStmt* node)
     }
 
     // Find function type
-    auto functionTypeBase = types->findDecorated(
-        FunctionType::functionTypeToString(returnType, paramTypes));
+    auto functionTypeBase =
+        types->find(FunctionType::functionTypeToString(returnType, paramTypes));
     if(!functionTypeBase)
     {
         // If none was found, create it
@@ -829,7 +829,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::ReturnStmt* node)
 
     // Find function and check if types match
     auto f = getNodeFunction(node);
-    auto retType = types->findDecorated(f->returnType->value);
+    auto retType = types->find(f->returnType->value);
     assert(retType);
     if(!ret->type->isSameOrImplicitlyCastable(node->returnValue.get(), builder,
                                               ret.get(), retType))
@@ -849,7 +849,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::IntegerLiteralExpr* node)
     emitDebugLocation(node);
 
     // Find integer type
-    auto t = types->findDecorated(node->type->value);
+    auto t = types->find(node->type->value);
     assert(t);
 
     return std::make_unique<TypedValue>(
@@ -872,7 +872,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::FloatLiteralExpr* node)
 {
     emitDebugLocation(node);
 
-    auto t = types->findDecorated(node->type->value);
+    auto t = types->find(node->type->value);
     assert(t);
 
     return std::make_unique<TypedValue>(
@@ -883,7 +883,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::StringLiteralExpr* node)
 {
     emitDebugLocation(node);
 
-    auto t = types->findDecorated(node->type->value);
+    auto t = types->find(node->type->value);
     assert(t);
 
     if(node->type->value == "cstring")
@@ -929,7 +929,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::CharLiteralExpr* node)
 {
     emitDebugLocation(node);
 
-    auto t = types->findDecorated(node->type->value);
+    auto t = types->find(node->type->value);
     assert(t);
 
     return std::make_unique<TypedValue>(
@@ -940,11 +940,12 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BoolLiteralExpr* node)
 {
     emitDebugLocation(node);
 
-    auto t = types->findDecorated("bool");
+    auto t = types->find("bool");
     assert(t);
     return std::make_unique<TypedValue>(
-        t, node->value ? llvm::ConstantInt::getTrue(context)
-                       : llvm::ConstantInt::getFalse(context),
+        t,
+        node->value ? llvm::ConstantInt::getTrue(context)
+                    : llvm::ConstantInt::getFalse(context),
         TypedValue::RVALUE, true);
 }
 
@@ -981,7 +982,7 @@ std::unique_ptr<TypedValue> CodegenVisitor::visit(ast::BinaryExpr* node)
         }
 
         // Find type to be casted in
-        auto t = types->findDecorated(rhs->value);
+        auto t = types->find(rhs->value);
         if(!t)
         {
             return codegenError(node->rhs.get(),

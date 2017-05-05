@@ -1,4 +1,4 @@
-; ModuleID = 'varuna_tmp_input_noopt-dcb59a73-a616-4ac4-bc80-0431b1edc532.ll'
+; ModuleID = 'varuna_tmp_input_noopt-60881899-f1ed-4303-8e89-6555f9da8531.ll'
 source_filename = "Varuna"
 
 declare i32 @_Z3ascDi(i32)

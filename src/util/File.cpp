@@ -6,7 +6,6 @@
 #include "util/Compatibility.h"
 #include "util/Logger.h"
 #include "util/StringUtils.h"
-#include <utf8.h>
 #include <fstream>
 #include <sstream>
 
@@ -20,10 +19,13 @@ namespace util
 {
 bool File::readFile()
 {
+    // Allow file reading only once
     assert(content.empty());
     assert(!contentValid);
+
     try
     {
+        // _readFile throws on error
         content = _readFile(filename);
     }
     catch(const std::exception& e)
@@ -33,30 +35,6 @@ bool File::readFile()
     }
     contentValid = true;
     return true;
-}
-
-bool File::checkUtf8()
-{
-    return utf8::is_valid(content.begin(), content.end());
-}
-
-void File::calculateChecksum()
-{
-    throw std::logic_error(
-        "util::FileCache::File::calculateChecksum() not implemented");
-}
-
-const std::string& File::getLine(uint32_t line)
-{
-    if(contentRows.empty())
-    {
-        // Copies the rows of the file to a vector
-        // We now have 2 copies of the contents
-        // This is BAAAAAAAAAAAAAAAD
-        // FIXME
-        stringutils::split(content, '\n', contentRows);
-    }
-    return contentRows.at(static_cast<size_t>(line - 1));
 }
 
 std::string File::_readFile(const std::string& fname)
@@ -103,8 +81,9 @@ std::string File::_readFile(const std::string& fname)
 
 #if VARUNA_MSVC
         // Use strerror_s on MSVC
-        char buf[80];
-        strerror_s<80>(buf, errno);
+        const auto bufsize = 80u;
+        char buf[bufsize];
+        strerror_s<bufsize>(buf, errno);
         errmsg = util::stringutils::cstrToString(buf);
 #else
         errmsg = strerror(errno);

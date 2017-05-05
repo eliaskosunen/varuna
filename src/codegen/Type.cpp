@@ -29,13 +29,12 @@ bool Type::isSameOrImplicitlyCastable(ast::Node* node,
                                       llvm::IRBuilder<>& builder,
                                       TypedValue* val, Type* to) const
 {
-    if(basicEqual(to))
+    if(equal(to))
     {
         return true;
     }
 
-    auto result = cast(node, builder, IMPLICIT, val, to);
-    return result != nullptr;
+    return cast(node, builder, IMPLICIT, val, to) != nullptr;
 }
 
 TypeOperationBase* Type::getOperations() const
@@ -525,7 +524,7 @@ std::string FunctionType::paramVectorToString(const std::vector<Type*>& params,
         {
             ret.push_back(',');
         }
-        ret.append(p->getDecoratedName());
+        ret.append(p->getName());
     }
     return ret;
 }
@@ -534,7 +533,7 @@ std::string FunctionType::functionTypeToString(Type* returnType,
                                                const std::vector<Type*>& params)
 {
     return fmt::format("({}) -> {}", paramVectorToString(params, false),
-                       returnType->getDecoratedName());
+                       returnType->getName());
 }
 
 llvm::DISubroutineType* FunctionType::createDebugFunctionType(

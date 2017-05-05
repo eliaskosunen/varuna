@@ -136,6 +136,7 @@ public:
     }
 };
 
+/// Variable definition expression
 class VariableDefinitionExpr : public Expr
 {
     friend class cereal::access;
@@ -179,6 +180,7 @@ public:
     bool isMutable{false};
 };
 
+/// Global variable definition expression
 class GlobalVariableDefinitionExpr : public Expr
 {
     friend class cereal::access;

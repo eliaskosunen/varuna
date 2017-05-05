@@ -27,15 +27,15 @@ public:
 
     /**
      * Serialize the AST and write outputs to a std::ostream
-     * @param os   Stream to write outputs to
-     * @param type Output format
+     * \param os   Stream to write outputs to
+     * \param type Output format
      */
     void run(std::ostream& os, SerializeType type = XML);
     /**
      * Serialize the AST and write outputs to a log
-     * @param logger Logger to write outputs to
-     * @param level  Logging level
-     * @param type   Output format
+     * \param logger Logger to write outputs to
+     * \param level  Logging level
+     * \param type   Output format
      */
     void run(spdlog::logger& logger, spdlog::level::level_enum level,
              SerializeType type = XML);

@@ -23,9 +23,11 @@ code.ll
 *.xml
 
 # My crap
-Doxyfile
 Doxyfile.bak
 .clang_complete
+scripts/build.sh
+scripts/clear.sh
+scripts/debug.sh
 
 ##
 ## From GitHub .gitignore list: https://github.com/github/gitignore

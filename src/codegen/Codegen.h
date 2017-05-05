@@ -28,7 +28,7 @@ public:
 
     /**
      * Run the code generator
-     * @return Success
+     * \return Success
      */
     bool run();
 
@@ -41,17 +41,17 @@ public:
 private:
     /**
      * Initialize the code generator
-     * @return Success
+     * \return Success
      */
     bool prepare();
     /**
      * Run CodegenVisitor
-     * @return Success
+     * \return Success
      */
     bool visit();
     /**
      * Optimize the generated module
-     * @return Success
+     * \return Success
      */
     bool finish();
 

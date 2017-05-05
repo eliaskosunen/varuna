@@ -17,7 +17,7 @@ static void cleanup()
 
 /**
  * Log an exception
- * @param msg Exception message
+ * \param msg Exception message
  */
 static void logException(const std::string& msg)
 {
@@ -50,8 +50,8 @@ static void logException(const std::string& msg)
 
 /**
  * Log an exception with an additional message
- * @param msg           Exception message
- * @param additionalMsg Additional message
+ * \param msg           Exception message
+ * \param additionalMsg Additional message
  */
 static void logException(const std::string& msg,
                          const std::string& additionalMsg)
@@ -100,6 +100,7 @@ static void logException(const std::string& msg,
 #define MAIN_RETURN(expr) return expr;
 #endif
 
+/// Entry point
 int main(int argc, char** argv)
 {
     try

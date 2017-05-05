@@ -39,7 +39,7 @@ public:
 
     /**
      * Get the type of the symbol
-     * @return Type
+     * \return Type
      */
     Type* getType() const
     {
@@ -49,7 +49,7 @@ public:
 
     /**
      * Is symbol a function
-     * @return isFunction
+     * \return isFunction
      */
     virtual bool isFunction() const
     {

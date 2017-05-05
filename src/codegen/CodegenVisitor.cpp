@@ -22,9 +22,11 @@ namespace codegen
 {
 CodegenVisitor::CodegenVisitor(llvm::LLVMContext& c, llvm::Module* m,
                                CodegenInfo i)
-    : context{c}, module(m), info(std::move(i)), builder(context), dbuilder(*m),
-      dcu{nullptr}, dfile{nullptr}, symbols{std::make_unique<SymbolTable>()},
-      types{std::make_unique<TypeTable>(module)}
+    : context{c}, module(m), info(std::move(i)), builder(context),
+      dbuilder(*m), dcu{nullptr}, dfile{nullptr},
+      symbols{std::make_unique<SymbolTable>()}, types{
+                                                    std::make_unique<TypeTable>(
+                                                        module)}
 {
     if(!util::ProgramOptions::view().stripDebug)
     {
@@ -246,8 +248,7 @@ CodegenVisitor::declareFunction(FunctionType* type, const std::string& name,
         return codegenError(proto, "Function declaration failed: Mismatching "
                                    "prototypes for similarly named functions: "
                                    "'{}' and '{}'",
-                            func->value->type->getDecoratedName(),
-                            type->getDecoratedName());
+                            func->value->type->getName(), type->getName());
     }
 
     // Codegen prototype
@@ -368,9 +369,9 @@ CodegenVisitor::inferVariableDefType(ast::VariableDefinitionExpr* node)
         // It needs to be sized
         return err(codegenError(node->type.get(),
                                 "Cannot create a variable of unsized type: {}",
-                                type->getDecoratedName()));
+                                type->getName()));
     }
-    if(types->isDefinedUndecorated(node->name->value) != 0)
+    if(types->isDefined(node->name->value) != 0)
     {
         // Cannot name variable as an already defined typename
         return err(codegenError(
@@ -390,7 +391,7 @@ CodegenVisitor::inferVariableDefType(ast::VariableDefinitionExpr* node)
     {
         return err(codegenError(
             node->init.get(), "Invalid init nodeession: Cannot assign {} to {}",
-            init->type->getDecoratedName(), type->getDecoratedName()));
+            init->type->getName(), type->getName()));
     }
 
     // Check for existing similarly named symbol
@@ -425,7 +426,14 @@ CodegenVisitor::getModuleFilename(const std::string& moduleName) const
 
     auto pathparts = util::stringutils::split(
         util::ProgramOptions::view().outputFilename, '/');
-    pathparts.back() = name;
+    if(pathparts.empty())
+    {
+        pathparts.push_back(name);
+    }
+    else
+    {
+        pathparts.back() = name;
+    }
     return util::stringutils::join(pathparts, '/');
 }
 
@@ -470,20 +478,76 @@ std::string CodegenVisitor::mangleFunctionName(const std::string& name,
                 return s;
             }());
 #else
-    return fmt::format("_Z{namelen}{name}{args}", "namelen"_a = name.length(),
-                       "name"_a = name, "args"_a = [&]() {
-                           if(type->params.empty())
-                           {
-                               return types->find("void")->getMangleEncoding();
-                           }
+    return fmt::format(
+        "_Z{namelen}{name}{args}", "namelen"_a = name.length(), "name"_a = name,
+        "args"_a = [&]() {
+            if(type->params.empty())
+            {
+                return types->find("void")->getMangleEncoding();
+            }
 
-                           std::string s;
-                           for(auto& a : type->params)
-                           {
-                               s.append(a->getMangleEncoding());
-                           }
-                           return s;
-                       }());
+            struct Encoding
+            {
+                std::string encoding;
+                int subId{-1};
+
+                Encoding(const std::string& e, int s) : encoding(e), subId(s)
+                {
+                }
+                Encoding(std::string&& e, int s)
+                    : encoding(std::move(e)), subId(s)
+                {
+                }
+            };
+            std::vector<Encoding> enc;
+            int currentSubId = -1;
+            for(auto& a : type->params)
+            {
+                auto e = a->getMangleEncoding();
+                auto it =
+                    std::find_if(enc.begin(), enc.end(), [&](const auto& i) {
+                        if(i.encoding == e)
+                        {
+                            return true;
+                        }
+                        return false;
+                    });
+                if(it == enc.end())
+                {
+                    enc.emplace_back(std::move(e), currentSubId);
+                    continue;
+                }
+                if(currentSubId == -1)
+                {
+                    enc.emplace_back("S_", currentSubId);
+                }
+                else
+                {
+                    using namespace std::string_literals;
+                    auto base36 = [](size_t val) {
+                        static const auto b36 =
+                            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"s;
+                        std::string result;
+                        do
+                        {
+                            result = b36[val % 36] + result;
+                        } while(val /= 36);
+                        return result;
+                    };
+                    enc.emplace_back(
+                        "S" + base36(static_cast<size_t>(currentSubId)) + "_",
+                        currentSubId);
+                }
+                ++currentSubId;
+            }
+
+            std::string s;
+            for(auto& e : enc)
+            {
+                s.append(e.encoding);
+            }
+            return s;
+        }());
 #endif
 }
 } // namespace codegen

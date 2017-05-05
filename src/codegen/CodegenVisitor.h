@@ -22,6 +22,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/Support/raw_os_ostream.h>
 
 namespace codegen
 {
@@ -34,22 +35,28 @@ public:
 
     /**
      * Visit the AST and generate code for it
-     * @param  ast AST to visit
-     * @return     Success
+     * \param  ast AST to visit
+     * \return     Success
      */
     bool codegen(ast::AST* ast);
 
     /// Dump the module to stdout
     void dumpModule() const
     {
+// Linking error on LLVM 5
+#if VARUNA_LLVM_VERSION >= 50
+        llvm::raw_os_ostream os(std::clog);
+        module->print(os, nullptr);
+#else
         module->dump();
+#endif
     }
 
 private:
     /**
      * Add current source location information to the module.
      * Checks for '-g' itself.
-     * @param node Location to use, or nullptr to reset location information
+     * \param node Location to use, or nullptr to reset location information
      * (e.g. for function prologues)
      */
     void emitDebugLocation(ast::Node* node);
@@ -72,10 +79,10 @@ private:
 
     /**
      * Log an error
-     * @param  node   Errorenous node
-     * @param  format Message format
-     * @param  args   Format arguments
-     * @return        nullptr
+     * \param  node   Errorenous node
+     * \param  format Message format
+     * \param  args   Format arguments
+     * \return        nullptr
      */
     template <typename... Args>
     std::nullptr_t codegenError(ast::Node* node, const std::string& format,
@@ -89,10 +96,10 @@ private:
 
     /**
      * Find a function by name
-     * @param  name     Function name
-     * @param  node     Node that calls the function
-     * @param  logError Log the error
-     * @return          FunctionSymbol*, nullptr on error
+     * \param  name     Function name
+     * \param  node     Node that calls the function
+     * \param  logError Log the error
+     * \return          FunctionSymbol*, nullptr on error
      */
     FunctionSymbol* findFunction(const std::string& name, ast::Node* node,
                                  bool logError = true);
@@ -100,7 +107,7 @@ private:
     /**
      * Get the FunctionPrototypeStmt of an Node.
      * Searches parents recursively. Requires a ParentSolverVisitor run.
-     * @return FunctionPrototypeStmt*, or nullptr on error
+     * \return FunctionPrototypeStmt*, or nullptr on error
      */
     ast::FunctionPrototypeStmt* getNodeFunction(ast::Node* node) const;
 
@@ -109,10 +116,10 @@ private:
      * Doesn't redeclare if a function with similar name and type is already
      * declared.
      * Generates code for the prototype.
-     * @param  type  FunctionType of function
-     * @param  name  Name of function
-     * @param  proto FunctionPrototypeStmt of function
-     * @return       Created FunctionSymbol, or nullptr on error
+     * \param  type  FunctionType of function
+     * \param  name  Name of function
+     * \param  proto FunctionPrototypeStmt of function
+     * \return       Created FunctionSymbol, or nullptr on error
      */
     FunctionSymbol* declareFunction(FunctionType* type, const std::string& name,
                                     ast::FunctionPrototypeStmt* proto);
@@ -126,10 +133,10 @@ private:
     /// Create 'alloca'-instruction for variable
     /**
      * Create 'alloca'-instruction in the function entry block for a variable
-     * @param  func Function of variable
-     * @param  type Variable type
-     * @param  name Variable name
-     * @return      Alloca instruction, never nullptr
+     * \param  func Function of variable
+     * \param  type Variable type
+     * \param  name Variable name
+     * \return      Alloca instruction, never nullptr
      */
     llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* func,
                                              llvm::Type* type,
@@ -140,8 +147,8 @@ private:
      * If type information is given otherwise in the definition, it is used
      * instead.
      * Generates code for the init expression.
-     * @param node Variable definition
-     * @return Pair of Type (type of variable) and TypedValue (visited init
+     * \param node Variable definition
+     * \return Pair of Type (type of variable) and TypedValue (visited init
      * expression). On error both members are nullptr.
      */
     std::pair<Type*, std::unique_ptr<TypedValue>>
@@ -214,7 +221,7 @@ public:
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::createVoidVal(llvm::Value* v)
 {
-    static auto t = types->findDecorated("void");
+    static auto t = types->find("void");
     assert(t);
     return std::make_unique<TypedValue>(t, v, TypedValue::STMTVALUE, false);
 }
@@ -226,7 +233,7 @@ inline llvm::Value* CodegenVisitor::getDummyValue()
 
 inline std::unique_ptr<TypedValue> CodegenVisitor::getTypedDummyValue()
 {
-    static auto t = types->findDecorated("i32");
+    static auto t = types->find("i32");
     assert(t);
     auto v = llvm::Constant::getNullValue(t->type);
     auto ret = std::make_unique<TypedValue>(t, v, TypedValue::STMTVALUE, false);

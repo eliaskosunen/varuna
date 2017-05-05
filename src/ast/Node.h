@@ -66,7 +66,7 @@ public:
     /**
      * Get the FunctionDefinitionStmt of the node
      * Requires a ParentSolverVisitor beforehand
-     * @return Pointer to the function, or nullptr if none was found (e.g.
+     * \return Pointer to the function, or nullptr if none was found (e.g.
      * Global node without a function)
      */
     FunctionDefinitionStmt* getFunction()

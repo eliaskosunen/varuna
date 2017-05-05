@@ -6,7 +6,7 @@
 
 namespace ast
 {
-/// Base class of the AST visitros
+/// Base class of the AST visitors
 class Visitor
 {
 public:
