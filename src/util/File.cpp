@@ -30,7 +30,7 @@ bool File::readFile()
     }
     catch(const std::exception& e)
     {
-        util::logger->error(e.what());
+        util::logger->debug(e.what());
         return false;
     }
     contentValid = true;

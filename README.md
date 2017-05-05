@@ -113,7 +113,7 @@ Building a Varuna program is currently not very user-friendly as you'll have to 
 $ varuna program.va
 # Link the object files
 # This example uses gcc
-$ gcc program.o -lvart -lvacstd -o a.out
+$ gcc program.o -lvart -lvastd -o a.out
 # Run it!
 $ ./a.out
 ```
