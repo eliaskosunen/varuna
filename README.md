@@ -123,7 +123,7 @@ $ ./a.out
 ### AUR
 
 There's an AUR for the Varuna compiler, that should be used on Arch Linux:
-https://aur.archlinux.org/packages/varuna-git/
+https://aur.archlinux.org/packages/varuna/
 
 ### Requirements
 
