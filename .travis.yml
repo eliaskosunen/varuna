@@ -137,6 +137,7 @@ matrix:
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      osx_image: xcode8.2
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
     - os: linux

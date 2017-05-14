@@ -14,7 +14,7 @@ FunctionDefinitionStmt* Node::_getFunction()
     // If current node is a FunctionDefinitionStmt, return it
     if(nodeType == FUNCTION_DEF_STMT)
     {
-        return dynamic_cast<FunctionDefinitionStmt*>(this);
+        return static_cast<FunctionDefinitionStmt*>(this);
     }
     // If no parent is set (nullptr), this is either a root node or parents
     // haven't been solved

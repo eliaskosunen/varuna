@@ -81,7 +81,7 @@ std::string File::_readFile(const std::string& fname)
 
 #if VARUNA_MSVC
         // Use strerror_s on MSVC
-        const auto bufsize = 80u;
+        constexpr const auto bufsize = 80u;
         char buf[bufsize];
         strerror_s<bufsize>(buf, errno);
         errmsg = util::stringutils::cstrToString(buf);
