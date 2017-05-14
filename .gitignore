@@ -28,6 +28,7 @@ Doxyfile.bak
 scripts/build.sh
 scripts/clear.sh
 scripts/debug.sh
+.ycm*
 
 ##
 ## From GitHub .gitignore list: https://github.com/github/gitignore
