@@ -35,7 +35,7 @@ The implementation of the language can be found in this repository.
 More specifically, this compiler is an LLVM front-end.
 It produces either native object code, assembly or LLVM IR or bytecode.
 
-WORK IN PROGRESS. 0.1 release is coming soon.
+WORK IN PROGRESS. Compiler functionality and documentation is severely lacking.
 
 ## Language documentation
 
@@ -138,7 +138,7 @@ We are trying to also keep the code compatible with upcoming LLVM releases (5.0)
 Every release drops support for previous LLVM versions.
 The command line flag -DLLVM_DIR can be used if CMake cannot find the LLVM installation from your system.
 
-To build the compiler, a C++14 standard compliant compiler is required. This means g++-5 or up (g++-4.9 may work) or clang++-3.6 or up.
+To build the compiler, a C++14 standard compliant compiler is required. This means g++ version 5 or up or clang++ version 3.6 or up.
 On Windows, Visual Studio 14 (2015) or up is supported.
 
 ### Installing LLVM
