@@ -18,15 +18,15 @@ public:
     Symbol(util::SourceLocation l, std::unique_ptr<TypedValue> pValue,
            std::string pName, bool mut)
         : value(std::move(pValue)), name(std::move(pName)), isMutable(mut),
-          loc(l)
+          loc(std::move(l))
     {
     }
 
     Symbol(const Symbol& other) = delete;
     Symbol& operator=(const Symbol& other) = delete;
 
-    Symbol(Symbol&& other) = default;
-    Symbol& operator=(Symbol&& other) = default;
+    Symbol(Symbol&&) noexcept = default;
+    Symbol& operator=(Symbol&&) = default;
 
     virtual ~Symbol() = default;
 
@@ -39,7 +39,7 @@ public:
 
     /**
      * Get the type of the symbol
-     * @return Type
+     * \return Type
      */
     Type* getType() const
     {
@@ -49,7 +49,7 @@ public:
 
     /**
      * Is symbol a function
-     * @return isFunction
+     * \return isFunction
      */
     virtual bool isFunction() const
     {
@@ -71,7 +71,7 @@ protected:
     Symbol(util::SourceLocation l, Type* t, llvm::Value* v, std::string pName,
            TypedValue::ValueCategory cat, bool mut)
         : value(std::make_unique<TypedValue>(t, v, cat, mut)),
-          name(std::move(pName)), isMutable(mut), loc(l)
+          name(std::move(pName)), isMutable(mut), loc(std::move(l))
     {
     }
 };
@@ -81,7 +81,8 @@ class FunctionSymbol : public Symbol
 public:
     FunctionSymbol(util::SourceLocation l, std::unique_ptr<TypedValue> pValue,
                    std::string pName, ast::FunctionPrototypeStmt* pProto)
-        : Symbol(l, std::move(pValue), std::move(pName), false), proto(pProto)
+        : Symbol(std::move(l), std::move(pValue), std::move(pName), false),
+          proto(pProto)
     {
     }
 

@@ -36,4 +36,4 @@ std::unique_ptr<Generator::GeneratorClass> Generator::get()
 {
     return std::move(c);
 }
-}
+} // namespace codegen

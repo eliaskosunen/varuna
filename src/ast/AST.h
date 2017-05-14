@@ -22,16 +22,16 @@ class AST final
 public:
     /**
      * AST constructor
-     * @param  f Source file of AST
+     * \param  f Source file of AST
      */
     explicit AST(std::shared_ptr<util::File> f)
-        : globalNode(std::make_unique<BlockStmt>()), file(f)
+        : globalNode(std::make_unique<BlockStmt>()), file(std::move(f))
     {
     }
 
     /**
      * Push a statement to the global node list
-     * @param node Node to push
+     * \param node Node to push
      */
     void push(std::unique_ptr<Stmt> node)
     {
@@ -40,7 +40,7 @@ public:
 
     /**
      * Get the amount of global nodes
-     * @return Global node count
+     * \return Global node count
      */
     size_t countTopLevelNodes()
     {

@@ -1,4 +1,4 @@
-; ModuleID = 'varuna_tmp_input_noopt-298f26ca-8d48-4b00-83e8-3ca6259e2413.ll'
+; ModuleID = 'varuna_tmp_input_noopt-a25f4fc8-e968-4d7e-b206-55b4c33c52f5.ll'
 source_filename = "Varuna"
 
 declare i32 @_Z17external_functionv()

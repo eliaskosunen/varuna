@@ -59,14 +59,14 @@ public:
     Node() = default;
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
-    Node(Node&&) = default;
-    Node& operator=(Node&&) = default;
+    Node(Node&&) noexcept = default;
+    Node& operator=(Node&&) noexcept = default;
     virtual ~Node() noexcept = default;
 
     /**
      * Get the FunctionDefinitionStmt of the node
      * Requires a ParentSolverVisitor beforehand
-     * @return Pointer to the function, or nullptr if none was found (e.g.
+     * \return Pointer to the function, or nullptr if none was found (e.g.
      * Global node without a function)
      */
     FunctionDefinitionStmt* getFunction()

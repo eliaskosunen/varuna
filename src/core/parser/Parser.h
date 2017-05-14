@@ -5,9 +5,7 @@
 #pragma once
 
 #include "ast/AST.h"
-#include "ast/DumpVisitor.h"
 #include "core/lexer/Lexer.h"
-#include "util/File.h"
 #include "util/Logger.h"
 #include <tuple>
 
@@ -28,9 +26,9 @@ namespace parser
         Parser(std::shared_ptr<util::File> f, const lexer::TokenVector& tok);
 
         Parser(const Parser&) = delete;
-        Parser(Parser&&) = default;
+        Parser(Parser&&) noexcept = default;
         Parser& operator=(const Parser&) = delete;
-        Parser& operator=(Parser&&) = default;
+        Parser& operator=(Parser&&) noexcept = delete;
         ~Parser() noexcept = default;
 
         /// Run the parser
@@ -48,6 +46,16 @@ namespace parser
         bool warningsAsErrors;
 
     private:
+        template <typename... Args>
+        std::nullptr_t parserError(util::SourceLocation loc,
+                                   const std::string& format, Args&&... args);
+        template <typename... Args>
+        void parserWarning(util::SourceLocation loc, const std::string& format,
+                           Args&&... args);
+        template <typename... Args>
+        void parserInfo(util::SourceLocation loc, const std::string& format,
+                        Args&&... args);
+
         template <typename... Args>
         std::nullptr_t parserError(lexer::TokenVector::const_iterator iter,
                                    const std::string& format, Args&&... args);
@@ -70,13 +78,9 @@ namespace parser
 
         template <typename T, typename... Args>
         std::unique_ptr<T> createNode(lexer::TokenVector::const_iterator iter,
-                                      Args&&... args)
-        {
-            auto node = std::make_unique<T>(std::forward<Args>(args)...);
-            node->loc = iter->loc;
-            node->ast = ast.get();
-            return node;
-        }
+                                      Args&&... args);
+        template <typename T, typename... Args>
+        std::unique_ptr<T> createNode(util::SourceLocation loc, Args&&... args);
 
         bool isPrefixUnaryOperator() const;
         bool isPrefixUnaryOperator(util::OperatorType op) const;
@@ -148,14 +152,7 @@ namespace parser
 
         std::unique_ptr<ast::ExprStmt>
         createExprStmt(std::unique_ptr<ast::Expr> expr);
-        std::unique_ptr<ast::EmptyStmt> emptyStatement(bool skip = true)
-        {
-            if(skip)
-            {
-                ++it;
-            }
-            return createNode<ast::EmptyStmt>(skip ? (it - 1) : it);
-        }
+        std::unique_ptr<ast::EmptyStmt> emptyStatement(bool skip = true);
 
         void _runParser();
 
@@ -169,42 +166,48 @@ namespace parser
         std::shared_ptr<util::File> file;
     };
 
-    inline bool Parser::getError() const
+    template <typename T, typename... Args>
+    inline std::unique_ptr<T>
+    Parser::createNode(lexer::TokenVector::const_iterator iter, Args&&... args)
     {
-        if(error == ERROR_NONE)
-        {
-            return false;
-        }
-        if(warningsAsErrors)
-        {
-            return true;
-        }
-        if(error == ERROR_ERROR)
-        {
-            return true;
-        }
-        return false;
+        auto node = std::make_unique<T>(std::forward<Args>(args)...);
+        node->loc = iter->loc;
+        node->ast = ast.get();
+        return node;
+    }
+    template <typename T, typename... Args>
+    inline std::unique_ptr<T> Parser::createNode(util::SourceLocation loc,
+                                                 Args&&... args)
+    {
+        auto node = std::make_unique<T>(std::forward<Args>(args)...);
+        node->loc = loc;
+        node->ast = ast.get();
+        return node;
     }
 
-    inline ErrorLevel Parser::getErrorLevel() const
+    template <typename... Args>
+    std::nullptr_t Parser::parserError(util::SourceLocation loc,
+                                       const std::string& format,
+                                       Args&&... args)
     {
-        return error;
+        error = ERROR_ERROR;
+        return util::logCompilerError(loc, format, std::forward<Args>(args)...);
     }
-
-    inline ast::AST& Parser::getAST()
+    template <typename... Args>
+    void Parser::parserWarning(util::SourceLocation loc,
+                               const std::string& format, Args&&... args)
     {
-        assert(ast && "Trying to access nullptr AST");
-        return *(ast.get());
+        if(error != ERROR_ERROR)
+        {
+            error = ERROR_WARNING;
+        }
+        util::logCompilerWarning(loc, format, std::forward<Args>(args)...);
     }
-    inline const ast::AST& Parser::getAST() const
+    template <typename... Args>
+    void Parser::parserInfo(util::SourceLocation loc, const std::string& format,
+                            Args&&... args)
     {
-        assert(ast && "Trying to access nullptr AST");
-        return *(ast.get());
-    }
-    inline std::unique_ptr<ast::AST> Parser::retrieveAST()
-    {
-        assert(ast && "Trying to access nullptr AST");
-        return std::move(ast);
+        util::logCompilerInfo(loc, format, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
@@ -212,27 +215,20 @@ namespace parser
     Parser::parserError(lexer::TokenVector::const_iterator iter,
                         const std::string& format, Args&&... args)
     {
-        error = ERROR_ERROR;
-        return util::logCompilerError(iter->loc, format,
-                                      std::forward<Args>(args)...);
+        return parserError(iter->loc, format, std::forward<Args>(args)...);
     }
     template <typename... Args>
     inline void Parser::parserWarning(lexer::TokenVector::const_iterator iter,
                                       const std::string& format, Args&&... args)
     {
-        if(error != ERROR_ERROR)
-        {
-            error = ERROR_WARNING;
-        }
-        util::logCompilerWarning(iter->loc, format,
-                                 std::forward<Args>(args)...);
+        parserWarning(iter->loc, format, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     inline void Parser::parserInfo(lexer::TokenVector::const_iterator iter,
                                    const std::string& format, Args&&... args)
     {
-        util::logCompilerInfo(iter->loc, format, std::forward<Args>(args)...);
+        parserInfo(iter->loc, format, std::forward<Args>(args)...);
     }
 
     template <typename... Args>

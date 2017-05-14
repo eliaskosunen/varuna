@@ -2,6 +2,7 @@
 // This file is distributed under the 3-Clause BSD License
 // See LICENSE for details
 
+#include "ast/OperatorExpr.h"
 #include "codegen/Type.h"
 #include "codegen/TypeTable.h"
 #include "codegen/TypedValue.h"
@@ -9,17 +10,16 @@
 namespace codegen
 {
 std::unique_ptr<TypedValue> Type::implicitCast(ast::Node* node,
-                                               llvm::IRBuilder<>& builder,
+                                               llvm::IRBuilder<>& /*builder*/,
                                                TypedValue* val, Type* to) const
 {
-    if(basicEqual(to))
+    if(equal(to))
     {
         return val->clone();
     }
     return castError(node, "Invalid implicit cast: Cannot convert from "
                            "{} to {} implicitly (kinds: {} and {})",
-                     getDecoratedName(), to->getDecoratedName(), kind,
-                     to->kind.get());
+                     getName(), to->getName(), kind, to->kind.get());
 }
 
 std::unique_ptr<TypedValue> VoidType::cast(ast::Node* node,
@@ -60,7 +60,7 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::Node* node,
         return ret(
             builder.CreateIntCast(val->value, to->type, true, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     case F32:
     case F64:
         return ret(builder.CreateSIToFP(val->value, to->type, "casttmp"));
@@ -73,12 +73,12 @@ std::unique_ptr<TypedValue> IntegralType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -104,7 +104,7 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::Node* node,
     case INT32:
     case INT64:
     case BYTE:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     case F32:
     case F64:
         return ret(builder.CreateFCmpONE(
@@ -120,12 +120,12 @@ std::unique_ptr<TypedValue> BoolType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -151,12 +151,12 @@ std::unique_ptr<TypedValue> CharacterType::cast(ast::Node* node,
         {
             return castError(node,
                              "Invalid bitcast: Cannot convert from {} to {}",
-                             getDecoratedName(), to->getDecoratedName());
+                             getName(), to->getName());
         }
         return ret(bitcast);
     }
     return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                     getDecoratedName(), to->getDecoratedName());
+                     getName(), to->getName());
 }
 
 std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
@@ -183,7 +183,7 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
         return ret(
             builder.CreateIntCast(val->value, to->type, false, "casttmp"));
     case BOOL:
-        return ret(builder.CreateICmpNE(val->value, 0, "casttmp"));
+        return ret(builder.CreateICmpNE(val->value, nullptr, "casttmp"));
     default:
         if(c == BITCAST)
         {
@@ -193,12 +193,12 @@ std::unique_ptr<TypedValue> ByteType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 
@@ -234,12 +234,12 @@ std::unique_ptr<TypedValue> FPType::cast(ast::Node* node,
             {
                 return castError(
                     node, "Invalid bitcast: Cannot convert from {} to {}",
-                    getDecoratedName(), to->getDecoratedName());
+                    getName(), to->getName());
             }
             return ret(bitcast);
         }
         return castError(node, "Invalid cast: Cannot convert from {} to {}",
-                         getDecoratedName(), to->getDecoratedName());
+                         getName(), to->getName());
     }
 }
 

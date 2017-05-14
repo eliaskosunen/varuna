@@ -6,7 +6,6 @@
 
 #include "ast/Expr.h"
 #include "ast/FwdDecl.h"
-#include "ast/OperatorExpr.h"
 #include "util/SafeEnum.h"
 #include <cereal.h>
 

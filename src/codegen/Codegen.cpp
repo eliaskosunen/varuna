@@ -14,19 +14,21 @@
 namespace codegen
 {
 Codegen::Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i)
-    : ast(a), info(i), context{},
+    : ast(std::move(a)), info(i),
       module(std::make_unique<llvm::Module>("Varuna", context)),
       codegen(std::make_unique<CodegenVisitor>(context, module.get(), i)),
       inputFile("varuna_tmp_input", "ll")
 {
-#if 0
-    auto nameparts =
-        util::stringutils::split(ast->file->getFilename(), '.');
+    auto nameparts = util::stringutils::split(ast->file->getFilename(), '.');
     if(!nameparts.empty())
     {
         module->setModuleIdentifier(nameparts.front());
     }
-#endif
+}
+
+Codegen::~Codegen() noexcept
+{
+    std::remove(inputFile.getFilename().c_str());
 }
 
 bool Codegen::run()

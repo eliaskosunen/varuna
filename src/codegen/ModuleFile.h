@@ -19,14 +19,14 @@ public:
     {
         std::string typeName;
         std::string name;
-        bool isMutable;
+        bool isMutable{false};
         util::SourceLocation loc;
 
         ModuleFileSymbol() = default;
         ModuleFileSymbol(const ModuleFileSymbol&) = delete;
         ModuleFileSymbol& operator=(const ModuleFileSymbol&) = delete;
-        ModuleFileSymbol(ModuleFileSymbol&&) = default;
-        ModuleFileSymbol& operator=(ModuleFileSymbol&&) = default;
+        ModuleFileSymbol(ModuleFileSymbol&&) noexcept = default;
+        ModuleFileSymbol& operator=(ModuleFileSymbol&&) noexcept = delete;
         virtual ~ModuleFileSymbol() = default;
 
         template <class Archive>
@@ -91,7 +91,7 @@ public:
         }
     };
 
-    ModuleFile(std::string file);
+    explicit ModuleFile(std::string file);
 
     ModuleFileSymbolTable read();
     void write(ModuleFileSymbolTable&& symbols);
@@ -100,7 +100,3 @@ private:
     std::string modulefile;
 };
 } // namespace codegen
-
-#include <cereal_archives.h>
-
-CEREAL_REGISTER_TYPE(codegen::ModuleFile::ModuleFileFunctionSymbol)

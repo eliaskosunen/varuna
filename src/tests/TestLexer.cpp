@@ -231,7 +231,7 @@ TEST_CASE("Test lexer")
         SUBCASE("String literals")
         {
             f->setContent(
-                "\"String\" \"Special\\nstring\\t\" \"Hex \\x30 Oct \\o60\"");
+                R"("String" "Special\nstring\t" "Hex \x30 Oct \o60")");
             Lexer l(f);
             v = l.run();
             CHECK(v.size() == 4);
@@ -250,7 +250,7 @@ TEST_CASE("Test lexer")
 
     SUBCASE("Identifiers")
     {
-        f->setContent("io.stdout.writeln(\"Hello World\")");
+        f->setContent(R"(io.stdout.writeln("Hello World"))");
         Lexer l(f);
         v = l.run();
         CHECK(v.size() == 9);
@@ -330,7 +330,7 @@ TEST_CASE("Test lexer")
 
         SUBCASE("Path import")
         {
-            f->setContent("import module \"path/to/module\";");
+            f->setContent(R"(import module "path/to/module";)");
             Lexer l(f);
             v = l.run();
             CHECK(v.size() == 5);

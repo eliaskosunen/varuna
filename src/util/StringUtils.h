@@ -25,9 +25,9 @@ namespace stringutils
 {
     /**
      * Replace all occurences of needle with replacement in haystack
-     * @param haystack    String to search in
-     * @param needle      String to replace
-     * @param replacement Replacement string
+     * \param haystack    String to search in
+     * \param needle      String to replace
+     * \param replacement Replacement string
      */
     inline void replaceAll(std::string& haystack, const std::string& needle,
                            const std::string& replacement)
@@ -46,10 +46,10 @@ namespace stringutils
     /**
      * Replace all occurences of needle with replacement in haystack and return
      * a copy
-     * @param  haystack    String to search in
-     * @param  needle      String to replace
-     * @param  replacement Replacement string
-     * @return             Copy of the final string
+     * \param  haystack    String to search in
+     * \param  needle      String to replace
+     * \param  replacement Replacement string
+     * \return             Copy of the final string
      */
     inline std::string replaceAllCopy(std::string haystack,
                                       const std::string& needle,
@@ -59,6 +59,12 @@ namespace stringutils
         return haystack;
     }
 
+    /**
+     * Trim a string off its whitespace.
+     * Trims from the string beginning and end
+     * \param  s String to trim
+     * \return   Trimmed string
+     */
     inline std::string trim(const std::string& s)
     {
         auto wsfront = std::find_if_not(s.begin(), s.end(),
@@ -73,7 +79,7 @@ namespace stringutils
 
     /**
      * Trim off all consecutive spaces from a string
-     * @param str String to trim
+     * \param str String to trim
      */
     inline void trimConsecutiveSpaces(std::string& str)
     {
@@ -86,8 +92,8 @@ namespace stringutils
 
     /**
      * Trim off all consecutive spaces from a string and return a copy
-     * @param  str String to trim
-     * @return     Trimmed string
+     * \param  str String to trim
+     * \return     Trimmed string
      */
     inline std::string trimConsecutiveSpacesCopy(std::string str)
     {
@@ -97,8 +103,8 @@ namespace stringutils
 
     /**
      * Convert a C string (const char*) to a C++ string (std::string)
-     * @param  cstr C string to convert
-     * @return      Equivalent C++ string
+     * \param  cstr C string to convert
+     * \return      Equivalent C++ string
      */
     inline std::string cstrToString(const char* cstr)
     {
@@ -111,9 +117,9 @@ namespace stringutils
      * Convert a C string (const char*) to a C++ string (std::string) with
      * length
      * information
-     * @param  cstr C string to convert
-     * @param  len  Length of the C string
-     * @return      Equivalent C++ string
+     * \param  cstr C string to convert
+     * \param  len  Length of the C string
+     * \return      Equivalent C++ string
      */
     inline std::string cstrToStringLen(const char* cstr, size_t len)
     {
@@ -122,8 +128,8 @@ namespace stringutils
 
     /**
      * Convert a char to C++ string
-     * @param  c Char to convert
-     * @return   Equivalent C++ string
+     * \param  c Char to convert
+     * \return   Equivalent C++ string
      */
     inline std::string charToString(const char& c)
     {
@@ -132,102 +138,105 @@ namespace stringutils
         return ss.str();
     }
 
-    inline void split(const char* str, char delim,
+    /**
+     * Split a string to a vector
+     * \param str    String to split
+     * \param delim  Delimeter to split on
+     * \param result Vector to push splitted strings in
+     */
+    inline void split(const std::string& str, char delim,
                       std::vector<std::string>& result)
     {
-        do
+        std::stringstream ss;
+        ss.str(str);
+        for(std::string line; std::getline(ss, line, delim);)
         {
-            const char* begin = str;
-
-            while(*str != delim && *str)
-            {
-                str++;
-            }
-
-            result.push_back(std::string(begin, str));
-        } while(*str++ != 0x0);
+            result.push_back(std::move(line));
+        }
     }
 
-    inline std::vector<std::string> split(const char* str, char delim)
+    /**
+     * Split a string to a vector
+     * \param str    String to split
+     * \param delim  Delimeter to split on
+     * \return       Vector with splitted strings
+     */
+    inline std::vector<std::string> split(const std::string& str, char delim)
     {
         std::vector<std::string> result;
         split(str, delim, result);
         return result;
     }
 
-    inline void split(const std::string& str, char delim,
-                      std::vector<std::string>& result)
-    {
-        split(str.c_str(), delim, result);
-    }
-
-    inline std::vector<std::string> split(const std::string& str, char delim)
-    {
-        return split(str.c_str(), delim);
-    }
-
+    /// [a-zA-Z]
     inline bool isCharAlpha(char c)
     {
         return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
     }
 
+    /// [0-9]
     inline bool isCharDigit(char c)
     {
         return (c >= '0' && c <= '9');
     }
 
+    /// [a-zA-Z0-9]
     inline bool isCharAlnum(char c)
     {
         return (isCharAlpha(c) || isCharDigit(c));
     }
 
+    /// [A-Fa-f0-9]
     inline bool isCharHexDigit(char c)
     {
         return (isCharDigit(c) || (c >= 'A' && c <= 'F') ||
                 (c >= 'a' && c <= 'f'));
     }
 
+    /// [0-7]
     inline bool isCharOctDigit(char c)
     {
         return (c >= '0' && c <= '7');
     }
 
+    /// [01]
     inline bool isCharBinDigit(char c)
     {
         return (c == '0' || c == '1');
     }
 
+    /// !"#$%&':;<=>?@[\]^_`{|}~
     inline bool isCharPunctuation(char c)
     {
         return ((c >= 0x21 && c <= 0x2F) || (c >= 0x3A && c <= 0x40) ||
                 (c >= 0x5B && c <= 0x60) || (c >= 0x7B && c <= 0x7E));
     }
 
-    /**
-     * Is char whitespace
-     * @param  c Char to check
-     * @return   true = whitespace
-     */
+    /// [\\t\\n\\v\\f\\r ]
     inline bool isCharWhitespace(char c)
     {
         return ((c >= 0x09 && c <= 0x0D) || c == 0x20);
     }
 
+    /// [\\t\\n\\v\\f\\r \\x0E-\\x1F\\x7F]
     inline bool isCharControlCharacter(char c)
     {
         return (isCharWhitespace(c) || (c >= 0x0E && c <= 0x1F) || c == 0x7F);
     }
 
+    /// [A-Za-z_]
     inline bool isValidIdentifierBeginningChar(char c)
     {
         return (isCharAlpha(c) || c == '_');
     }
 
+    /// [A-Za-z0-9_]
     inline bool isValidIdentifierChar(char c)
     {
         return (isCharAlnum(c) || c == '_');
     }
 
+    /// isCharAlnum() + isCharPunctuation() + isCharWhitespace() + c > 0x7F
     inline bool isValidStringChar(char c)
     {
         return (isCharAlnum(c) || isCharPunctuation(c) || isCharWhitespace(c) ||
@@ -238,15 +247,50 @@ namespace stringutils
 #endif
     }
 
-    inline std::string createEmptyStringWithLength(size_t len)
+    /**
+     * Create a string with a repeating string sequence with length
+     * @param  s   Sequence to repeat
+     * @param  len String length
+     * @return     Generated string
+     */
+    inline std::string createStringWithLength(const std::string& s, size_t len)
     {
-        if(len == 0)
-        {
-            return {};
-        }
-        return fmt::format("{:>" + std::to_string(len) + "}", " ");
+        auto it = s.begin();
+        std::string ret(len, '\0');
+        std::generate(ret.begin(), ret.end(), [&]() {
+            if(it == s.end())
+            {
+                it = s.begin();
+            }
+            return *it++;
+        });
+        return ret;
     }
 
+    /**
+     * Create a string with a repeating character with length
+     * @param  c   Repeating character
+     * @param  len String length
+     * @return     Generated string
+     */
+    inline std::string createStringWithLength(char c, size_t len)
+    {
+        return std::string(len, c);
+    }
+
+    /// createStringWithLength() but with spaces (' ', 0x20)
+    inline std::string createEmptyStringWithLength(size_t len)
+    {
+        return createStringWithLength(' ', len);
+    }
+
+    /**
+     * Join a container of strings into one
+     * @param  begin Iterator to the beginning of the container
+     * @param  end   End of container
+     * @param  glue  Glue to join elements with
+     * @return       Joined string
+     */
     template <typename ForwardIterator>
     std::string join(ForwardIterator begin, ForwardIterator end, char glue)
     {
@@ -261,6 +305,12 @@ namespace stringutils
         return str;
     }
 
+    /**
+     * Join a container of strings into one
+     * @param  parts Container of string
+     * @param  glue  Glue to join elements with
+     * @return       Joined string
+     */
     template <typename Container>
     std::string join(const Container& parts, char glue)
     {

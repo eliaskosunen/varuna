@@ -12,8 +12,8 @@
 
 /**
  * Run a frontend, such as `core`
- * @param  file File to run frontend on
- * @return      AST generated from file
+ * \param  file File to run frontend on
+ * \return      AST generated from file
  */
 template <class Frontend>
 inline std::shared_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
@@ -37,8 +37,8 @@ inline std::shared_ptr<ast::AST> frontend(std::shared_ptr<util::File> file)
 
 /**
  * Run code generation on AST
- * @param  ast AST to generate code of
- * @return     Codegen class
+ * \param  ast AST to generate code of
+ * \return     Codegen class
  */
 template <class Generator>
 inline std::unique_ptr<typename Generator::GeneratorClass>

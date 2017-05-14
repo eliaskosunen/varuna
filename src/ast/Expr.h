@@ -21,8 +21,8 @@ public:
     }
     Expr(const Expr&) = delete;
     Expr& operator=(const Expr&) = delete;
-    Expr(Expr&&) = default;
-    Expr& operator=(Expr&&) = default;
+    Expr(Expr&&) noexcept = default;
+    Expr& operator=(Expr&&) noexcept = default;
     ~Expr() override = default;
 
     void accept(DumpVisitor* v, size_t ind = 0) override;
@@ -78,7 +78,7 @@ public:
     }
     IdentifierExpr(const IdentifierExpr&) = delete;
     IdentifierExpr& operator=(const IdentifierExpr&) = delete;
-    IdentifierExpr(IdentifierExpr&&) = default;
+    IdentifierExpr(IdentifierExpr&&) noexcept = default;
     IdentifierExpr& operator=(IdentifierExpr&&) = default;
     ~IdentifierExpr() override = default;
 
@@ -120,7 +120,7 @@ public:
 
     VariableRefExpr(const VariableRefExpr&) = delete;
     VariableRefExpr& operator=(const VariableRefExpr&) = delete;
-    VariableRefExpr(VariableRefExpr&&) = default;
+    VariableRefExpr(VariableRefExpr&&) noexcept = default;
     VariableRefExpr& operator=(VariableRefExpr&&) = default;
     ~VariableRefExpr() override = default;
 
@@ -136,6 +136,7 @@ public:
     }
 };
 
+/// Variable definition expression
 class VariableDefinitionExpr : public Expr
 {
     friend class cereal::access;
@@ -179,6 +180,7 @@ public:
     bool isMutable{false};
 };
 
+/// Global variable definition expression
 class GlobalVariableDefinitionExpr : public Expr
 {
     friend class cereal::access;
@@ -203,7 +205,8 @@ public:
                                                        std::move(pInit)))
     {
     }
-    GlobalVariableDefinitionExpr(std::unique_ptr<VariableDefinitionExpr> pVar)
+    explicit GlobalVariableDefinitionExpr(
+        std::unique_ptr<VariableDefinitionExpr> pVar)
         : Expr(GLOBAL_VARIABLE_DEFINITION_EXPR), var(std::move(pVar))
     {
     }

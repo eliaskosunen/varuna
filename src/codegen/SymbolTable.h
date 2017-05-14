@@ -17,19 +17,19 @@ public:
 
     /**
      * Find a symbol by name and kind
-     * @param  name     Name of the symbol
-     * @param  type     Kind of the symbol
-     * @param  logError Log the error
-     * @return          Found symbol or nullptr on error
+     * \param  name     Name of the symbol
+     * \param  type     Kind of the symbol
+     * \param  logError Log the error
+     * \return          Found symbol or nullptr on error
      */
     Symbol* find(const std::string& name, Type::Kind type,
                  bool logError = false);
     /**
      * Find symbol by name and optionally by Type
-     * @param  name     Name of the symbol
-     * @param  type     Type of the symbol
-     * @param  logError Log the error
-     * @return          Found symbol or nullptr on error
+     * \param  name     Name of the symbol
+     * \param  type     Type of the symbol
+     * \param  logError Log the error
+     * \return          Found symbol or nullptr on error
      */
     Symbol* find(const std::string& name, Type* type = nullptr,
                  bool logError = false);
@@ -40,16 +40,16 @@ public:
 
     /**
      * Is symbol defined
-     * @param  name Name of the symbol
-     * @param  kind Kind of the symbol
-     * @return      isDefined
+     * \param  name Name of the symbol
+     * \param  kind Kind of the symbol
+     * \return      isDefined
      */
     bool isDefined(const std::string& name, Type::Kind kind) const;
     /**
      * Is symbol defined
-     * @param  name Name of the symbol
-     * @param  type Type of the symbol
-     * @return      isDefined
+     * \param  name Name of the symbol
+     * \param  type Type of the symbol
+     * \return      isDefined
      */
     bool isDefined(const std::string& name, Type* type = nullptr) const;
 
@@ -68,7 +68,7 @@ public:
 
     /**
      * Get the top scope
-     * @return Top scope
+     * \return Top scope
      */
     auto& getTop()
     {
@@ -83,7 +83,7 @@ public:
 
     /**
      * Get the entire symbol table
-     * @return Symbol list
+     * \return Symbol list
      */
     auto& getList()
     {
@@ -125,9 +125,7 @@ inline bool SymbolTable::isDefined(const std::string& name, Type* type) const
 
 inline void SymbolTable::addBlock()
 {
-    // Empty initializer list {} errors on some configurations
-    // Dunno why
-    list.push_back(decltype(list)::value_type{});
+    list.emplace_back();
 }
 inline void SymbolTable::removeTopBlock()
 {
@@ -212,7 +210,7 @@ inline Symbol* SymbolTable::find(const std::string& name, Type* type,
             if(type)
             {
                 util::logger->error("Symbol '{}' with type '{}' not found",
-                                    name, type->getDecoratedName());
+                                    name, type->getName());
             }
             else
             {
@@ -278,7 +276,7 @@ inline const Symbol* SymbolTable::find(const std::string& name, Type* type,
             if(type)
             {
                 util::logger->error("Symbol '{}' with type '{}' not found",
-                                    name, type->getDecoratedName());
+                                    name, type->getName());
             }
             else
             {
@@ -298,14 +296,12 @@ inline void SymbolTable::dump() const
     stlogger->trace("SymbolTable");
     for(size_t i = 0; i < list.size(); ++i)
     {
-        const std::string prefix = [i]() {
-            using namespace std::string_literals;
-
+        const auto prefix = [i]() {
+            std::string buf = "\\-";
             if(i == 0)
             {
-                return "\\-"s;
+                return buf;
             }
-            std::string buf = "\\-";
             for(size_t j = 1; j <= i; ++j)
             {
                 buf.append("--");
@@ -318,8 +314,7 @@ inline void SymbolTable::dump() const
         {
             stlogger->trace("Symbol:");
             stlogger->trace(" * Name: {}", s.second->name);
-            stlogger->trace(" * Type: {}",
-                            s.second->getType()->getDecoratedName());
+            stlogger->trace(" * Type: {}", s.second->getType()->getName());
         }
     }
     stlogger->set_pattern("DumpSymbolTable: %v");
@@ -334,11 +329,11 @@ inline bool SymbolTable::import(std::unique_ptr<SymbolTable> symbols)
         util::logger->warn(
             "Import has more than one scope, only importing the top one");
     }
-    if(slist.size() == 0)
+    if(slist.empty())
     {
         return true;
     }
-    assert(list.size() >= 1);
+    assert(!list.empty());
     for(auto& s : slist[0])
     {
         if(find(s.first))

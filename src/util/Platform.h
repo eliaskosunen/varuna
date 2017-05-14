@@ -53,7 +53,26 @@
 
 namespace util
 {
+/**
+ * Get current working directory.
+ * Calls `getcwd`/`_getcwd` behind the scenes
+ * \throw std::runtime_error on error
+ * \return Current working directory
+ */
 std::string getCurrentDirectory();
+
+/**
+ * Get executable directory.
+ * Calls:
+ *   * `GetModuleFileName` on Windows
+ *   * `_NSGetExecutablePath` on Mac
+ *   * `BinReloc` elsewhere
+ *
+ * \throw std::runtime_error On failure
+ * \throw std::length_error (Mac only) Path is more than FILENAME_MAX
+ * \return Directory that executable is located
+ */
+std::string getExecDirectory();
 
 #if VARUNA_WIN32
 #if VARUNA_MSVC_UNICODE
@@ -62,9 +81,9 @@ using WinChar = wchar_t;
 
 /**
  * Convert WinString (LPWSTR, UTF-16) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
+ * \param  winstr WinString to convert
+ * \param  size   Length of string
+ * \return        Corresponding std::string
  */
 std::string winStringToUtf8(WinString winstr, size_t size,
                             bool countLen = false);
@@ -74,9 +93,9 @@ using WinChar = char;
 
 /**
  * Convert WinString (LPSTR, UTF-8) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
+ * \param  winstr WinString to convert
+ * \param  size   Length of string
+ * \return        Corresponding std::string
  */
 std::string winStringToUtf8(WinString winstr, size_t size,
                             bool countLen = false);
@@ -84,11 +103,9 @@ std::string winStringToUtf8(WinString winstr, size_t size,
 
 /**
  * Get OS error message from error code
- * @param  msgID Error code from GetLastError()
- * @return       Formatted error message
+ * \param  msgID Error code from GetLastError()
+ * \return       Formatted error message
  */
 std::string getFormattedMessage(DWORD msgID);
 #endif // VARUNA_WIN32
-
-std::string getExecDirectory();
 } // namespace util

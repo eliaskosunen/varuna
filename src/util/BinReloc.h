@@ -11,6 +11,8 @@
 
 namespace util
 {
+/// C++ wrapper around C binreloc.
+/// Use only if not on Windows or Mac
 class BinReloc
 {
     std::string brInitErrorToString(BrInitError error) const;
@@ -18,10 +20,40 @@ class BinReloc
 public:
     BinReloc();
 
+    /**
+     * Get executable filename.
+     * Example: /usr/bin/varuna
+     * \param  fallback Fallback name if no name could be get
+     * \throw  std::runtime_error If name getting failed and no fallback was
+     * given \return          Executable filename
+     */
     std::string getExecFilename(const std::string& fallback = "") const;
+
+    /**
+     * Get executable directory.
+     * Example: /usr/bin
+     * \param  fallback Fallback name if no name could be get
+     * \throw  std::runtime_error If name getting failed and no fallback was
+     * given \return          Executable directory
+     */
     std::string getExecDirectory(const std::string& fallback = "") const;
+
+    /**
+     * Get executable prefix.
+     * Example: /usr
+     * \param  fallback Fallback name if no name could be get
+     * \throw s td::runtime_error If name getting failed and no fallback was
+     * given \return          Executable prefix
+     */
     std::string getExecPrefix(const std::string& fallback = "") const;
 
+    /**
+     * Get the directory name out of a path.
+     * Example: /usr/bin/varuna -> /usr/bin
+     * \param  path Path to extract directory from
+     * \throw  std::runtime_error On error
+     * \return      Directory
+     */
     std::string dirname(const std::string& path) const;
 };
 
@@ -40,7 +72,8 @@ inline std::string BinReloc::getExecFilename(const std::string& fallback) const
     auto name = br_find_exe(fallback.empty() ? nullptr : fallback.c_str());
     if(!name)
     {
-        return "";
+        throw std::runtime_error(
+            "Failed to get executable filename: No fallback given");
     }
     auto str = std::string(name);
     free(name);
@@ -52,7 +85,8 @@ inline std::string BinReloc::getExecDirectory(const std::string& fallback) const
     auto dir = br_find_exe_dir(fallback.empty() ? nullptr : fallback.c_str());
     if(!dir)
     {
-        return "";
+        throw std::runtime_error(
+            "Failed to get executable directory: No fallback given");
     }
     auto str = std::string(dir);
     free(dir);
@@ -64,7 +98,8 @@ inline std::string BinReloc::getExecPrefix(const std::string& fallback) const
     auto prefix = br_find_prefix(fallback.empty() ? nullptr : fallback.c_str());
     if(!prefix)
     {
-        return "";
+        throw std::runtime_error(
+            "Failed to get executable prefix: No fallback given");
     }
     auto str = std::string(prefix);
     free(prefix);
@@ -76,7 +111,7 @@ inline std::string BinReloc::dirname(const std::string& path) const
     auto dir = br_dirname(path.c_str());
     if(!dir)
     {
-        return "";
+        throw std::runtime_error("Failed to get directory from path");
     }
     auto str = std::string(dir);
     free(dir);
@@ -102,4 +137,4 @@ inline std::string BinReloc::brInitErrorToString(BrInitError error) const
     }
     return "";
 }
-}
+} // namespace util

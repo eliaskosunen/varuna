@@ -1,4 +1,4 @@
-; ModuleID = 'varuna_tmp_input_noopt-a5792f36-11b9-4938-aace-41058c8f5579.ll'
+; ModuleID = 'varuna_tmp_input_noopt-a5b5cbcf-a309-482e-b0fc-73c914040faf.ll'
 source_filename = "Varuna"
 
 @constant = internal constant i32 1

@@ -56,12 +56,24 @@ let mut b = 1.0; // Mutable variable, type float, value 1.0
 var c = true;    // Mutable variable, type bool, value true
 
 // Avoid this
-let d: i8;     // Uninitialized immutable variable, type i8
+let d: i8;       // Uninitialized immutable variable, type i8
 let mut e: f64;  // Uninitialized mutable variable, type f64
 var f: char;     // Uninitialized mutable variable, type char
 
 // Don't do this
 let g: byte = 0b01010101b; // Immutable variable, type byte, value 85
+```
+
+## Global variables
+
+Variables can be declared global.
+
+```
+let global = 1;
+
+def main() -> i32 {
+    return global;
+}
 ```
 
 # Operations
@@ -130,6 +142,7 @@ def callee() -> bool {
 // Condition must be (or evaluate to) bool
 if 1 == 1 {
     // Parenthesis are optional
+    // Sometimes not having parens gives an error
     if (false) {
 
     }
@@ -147,6 +160,7 @@ if 1 == 1 {
 // Loop variable init, condition (bool), step
 for var i = 0, i < 10, i += 1 {
     // Parenthesis are optional
+    // Sometimes not having parens gives an error
     for (var j = 0, j < 2, j += 1) {
         // Infinite loop
         for ,, {
@@ -162,6 +176,7 @@ for var i = 0, i < 10, i += 1 {
 // Condition must be (or evaluate to) bool
 while cond() {
     // Parenthesis are optional
+    // Sometimes not having parens gives an error
     while (true) {
 
     }
@@ -175,6 +190,10 @@ while cond() {
 `42 as i16`
 
 Invalid casts produce a compile-time error.
+
+### Constructor syntax
+
+`i16(42)`
 
 # Modules
 
@@ -207,4 +226,14 @@ def main() -> i32 {
     //return private(); <- error
     return func();
 }
+```
+
+# C interoperability
+
+By default, function names are mangled compatible to the platform C++ ABI.
+Currently supported ABIs are MSVC (Windows) and Itanium (other systems).
+Declare functions as `nomangle` to disable name mangling to allow calling from C code.
+
+```
+export nomangle def c_function();
 ```

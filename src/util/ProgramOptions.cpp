@@ -56,4 +56,4 @@ std::string ProgramOptions::optLevelToString() const
     }
     return "-Oz";
 }
-}
+} // namespace util

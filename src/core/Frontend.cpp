@@ -8,7 +8,7 @@
 namespace core
 {
 Frontend::Frontend(std::shared_ptr<util::File> f)
-    : file(f), tokens{}, ast{nullptr}
+    : file(std::move(f)), ast{nullptr}
 {
     assert(file);
 }

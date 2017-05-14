@@ -105,7 +105,7 @@ public:
     }
 
     FunctionDefinitionStmt(std::unique_ptr<FunctionPrototypeStmt> pProto,
-                           std::unique_ptr<EmptyStmt> pBody)
+                           std::unique_ptr<EmptyStmt> /*pBody*/)
         : Stmt(FUNCTION_DEF_STMT), proto(std::move(pProto)),
           body(std::make_unique<BlockStmt>()), isDecl(true)
     {

@@ -8,6 +8,11 @@
 #include <ostream>
 #include <type_traits>
 
+#if defined(_MSC_VER) && _MSC_VER < 1910
+#pragma push_macro("constexpr")
+#define constexpr /*constexpr*/
+#endif
+
 namespace util
 {
 /// Typesafe enum type
@@ -19,66 +24,66 @@ public:
     using EnumType = EnumT;
     using UnderlyingType = UnderlyingT;
 
-    SafeEnum() = default;
-    /*implicit*/ SafeEnum(EnumT flag) : flags(flag)
+    constexpr SafeEnum() = default;
+    constexpr /*implicit*/ SafeEnum(EnumT flag) : flags(flag)
     {
     }
 
-    SafeEnum(const SafeEnum&) = default;
-    SafeEnum(SafeEnum&&) noexcept(
+    constexpr SafeEnum(const SafeEnum&) = default;
+    constexpr SafeEnum(SafeEnum&&) noexcept(
         std::is_nothrow_move_constructible<UnderlyingT>::value) = default;
 
-    SafeEnum& operator=(const SafeEnum&) = default;
-    SafeEnum& operator=(SafeEnum&&) noexcept(
+    constexpr SafeEnum& operator=(const SafeEnum&) = default;
+    constexpr SafeEnum& operator=(SafeEnum&&) noexcept(
         std::is_nothrow_move_assignable<UnderlyingT>::value) = default;
 
     ~SafeEnum() noexcept = default;
 
     /// Get underlying value
-    UnderlyingT get() const
+    constexpr UnderlyingT& get() noexcept
     {
         return flags;
     }
-    /// Get reference to the underlying value
-    UnderlyingT& getRef()
+    /// Get underlying value
+    constexpr const UnderlyingT& get() const noexcept
     {
         return flags;
     }
 
-    SafeEnum& operator|=(EnumT add)
+    constexpr SafeEnum& operator|=(EnumT add) noexcept
     {
         flags |= static_cast<UnderlyingT>(add);
         return *this;
     }
-    SafeEnum operator|(EnumT add)
+    constexpr SafeEnum operator|(EnumT add) noexcept
     {
         SafeEnum result(*this);
         result |= static_cast<UnderlyingT>(add);
         return result;
     }
-    SafeEnum& operator&=(EnumT mask)
+    constexpr SafeEnum& operator&=(EnumT mask) noexcept
     {
         flags &= static_cast<UnderlyingT>(mask);
         return *this;
     }
-    SafeEnum operator&(EnumT mask)
+    constexpr SafeEnum operator&(EnumT mask) noexcept
     {
         SafeEnum result(*this);
         result &= static_cast<UnderlyingT>(mask);
         return result;
     }
-    SafeEnum operator~()
+    constexpr SafeEnum operator~() noexcept
     {
         SafeEnum result(*this);
         result.flags = ~result.flags;
         return result;
     }
-    SafeEnum& operator^=(EnumT mask)
+    constexpr SafeEnum& operator^=(EnumT mask) noexcept
     {
         flags ^= static_cast<UnderlyingT>(mask);
         return *this;
     }
-    SafeEnum operator^(EnumT mask)
+    constexpr SafeEnum operator^(EnumT mask) noexcept
     {
         SafeEnum result(*this);
         result ^= static_cast<UnderlyingT>(mask);
@@ -86,25 +91,27 @@ public:
     }
 
     /// Explicitly convertible to bool
-    explicit operator bool() const
+    constexpr explicit operator bool() const noexcept
     {
         return flags != 0;
     }
 
-    bool operator==(const EnumT& b) const
+    constexpr bool operator==(const EnumT& b) const noexcept
     {
         return flags == static_cast<UnderlyingT>(b);
     }
-    bool operator!=(const EnumT& b) const
+    constexpr bool operator!=(const EnumT& b) const noexcept
     {
         return !(*this == b);
     }
 
-    bool operator==(const SafeEnum<EnumT, UnderlyingT>& b) const
+    constexpr bool operator==(const SafeEnum<EnumT, UnderlyingT>& b) const
+        noexcept
     {
         return flags == b.flags;
     }
-    bool operator!=(const SafeEnum<EnumT, UnderlyingT>& b) const
+    constexpr bool operator!=(const SafeEnum<EnumT, UnderlyingT>& b) const
+        noexcept
     {
         return !(*this == b);
     }
@@ -123,23 +130,23 @@ public:
     }
 
     /// Is a flag set
-    bool isSet(EnumT flag) const
+    constexpr bool isSet(EnumT flag) const noexcept
     {
         return (static_cast<UnderlyingT>(flags) &
                 static_cast<UnderlyingT>(flag)) != static_cast<UnderlyingT>(0);
     }
     /// Is a flag not set
-    bool isNotSet(EnumT flag) const
+    constexpr bool isNotSet(EnumT flag) const noexcept
     {
         return !isSet(flag);
     }
     /// Set a flag
-    void set(EnumT flag)
+    constexpr void set(EnumT flag) noexcept
     {
         flags |= flag;
     }
     /// Reset all flags
-    void reset()
+    constexpr void reset() noexcept
     {
         flags = static_cast<EnumT>(0);
     }
@@ -149,7 +156,7 @@ public:
      * Unsafe, doesn't check if types are related
      */
     template <typename T>
-    T convert() const
+    constexpr T convert() const noexcept
     {
         return T{static_cast<typename T::EnumType>(get())};
     }
@@ -165,3 +172,8 @@ protected:
     UnderlyingT flags{static_cast<UnderlyingT>(0)};
 };
 } // namespace util
+
+#if defined(_MSC_VER) && _MSC_VER < 1910
+#undef constexpr
+#pragma pop_macro("constexpr")
+#endif

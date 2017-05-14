@@ -10,6 +10,7 @@
 #include "ast/FwdDecl.h"
 #include "ast/LiteralExpr.h"
 #include "ast/Node.h"
+#include "ast/OperatorExpr.h"
 #include "ast/Stmt.h"
 #include <string>
 

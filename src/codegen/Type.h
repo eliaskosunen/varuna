@@ -56,17 +56,37 @@ public:
 
     Type(TypeTable* list, std::unique_ptr<TypeOperationBase> op, Kind k,
          llvm::LLVMContext& c, llvm::Type* t, llvm::DIType* d, std::string n);
-    Type(const Type& t) = default;
-    Type& operator=(const Type& t) = default;
-    Type(Type&&) = default;
-    Type& operator=(Type&&) = default;
+    Type(const Type& t) = delete;
+    Type& operator=(const Type& t) = delete;
+    Type(Type&&) noexcept = delete;
+    Type& operator=(Type&&) noexcept = delete;
     virtual ~Type() noexcept;
 
+    /**
+     * Cast a value to a type
+     * \param  node    Node where the cast happens, used to create error
+     *                 messages, set to `nullptr` to disable error reporting
+     * \param  builder LLVM IRBuilder
+     * \param  c       Cast type
+     * \param  val     Value to cast
+     * \param  to      Type to cast to
+     * \return         Casted value, nullptr on failure
+     */
     virtual std::unique_ptr<TypedValue> cast(ast::Node* node,
                                              llvm::IRBuilder<>& builder,
                                              CastType c, TypedValue* val,
                                              Type* to) const = 0;
 
+    /**
+     * Is a Type the same or implicitly castable to it
+     * \param  node    Node where the implicit cast happens, used to create
+     *                 error messages, set to `nullptr` to disable error
+     * reporting
+     * \param  builder LLVM IRBuilder
+     * \param  val     Value to cast
+     * \param  to      Type to cast to
+     * \return         Is same or implicitly castable
+     */
     bool isSameOrImplicitlyCastable(ast::Node* node, llvm::IRBuilder<>& builder,
                                     TypedValue* val, Type* to) const;
 
@@ -77,15 +97,11 @@ public:
     virtual bool isIntegral() const = 0;
     virtual bool isFloatingPoint() const = 0;
 
+    /// Get a zero-initialized value of this type
     virtual std::unique_ptr<TypedValue> zeroInit() = 0;
 
-    /// Get basic name of type
+    /// Get name of type
     std::string getName() const
-    {
-        return name;
-    }
-    /// Get complete name of type
-    std::string getDecoratedName() const
     {
         return name;
     }
@@ -93,25 +109,27 @@ public:
     /// Get type operations
     virtual TypeOperationBase* getOperations() const;
 
+    /// Get the code for this function parameter name mangling
     virtual std::string getMangleEncoding() const = 0;
 
-    /// Are types completely equal
-    /// e.g. Same mutability
+    /// Are types equal
     bool equal(const Type& t) const
     {
-        return kind == t.kind && getDecoratedName() == t.getDecoratedName();
+        return kind == t.kind && getName() == t.getName();
     }
     bool inequal(const Type& t) const
     {
-        return equal(t);
+        return !equal(t);
     }
     bool equal(Type* t) const
     {
-        return kind == t->kind && getDecoratedName() == t->getDecoratedName();
+        assert(t);
+        return kind == t->kind && getName() == t->getName();
     }
     bool inequal(Type* t) const
     {
-        return equal(t);
+        assert(t);
+        return !equal(t);
     }
 
     bool operator==(const Type& t) const
@@ -123,30 +141,18 @@ public:
         return inequal(t);
     }
 
-    /// Are types equal
-    /// e.g. Mutability can differ
-    bool basicEqual(const Type& t) const
-    {
-        return kind == t.kind && getName() == t.getName();
-    }
-    bool basicInequal(const Type& t) const
-    {
-        return !basicEqual(t);
-    }
-    bool basicEqual(Type* t) const
-    {
-        return kind == t->kind && getName() == t->getName();
-    }
-    bool basicInequal(Type* t) const
-    {
-        return !basicEqual(t);
-    }
-
+    /// Type table
     TypeTable* typeTable;
+    /// LLVM context
     llvm::LLVMContext& context;
+    /// Underlying LLVM type
     llvm::Type* type;
+    /// LLVM debug type
     llvm::DIType* dtype;
+    /// Type kind
     Kind kind;
+    /// Type name
+    std::string name;
 
 protected:
     std::unique_ptr<TypedValue> implicitCast(ast::Node* node,
@@ -177,8 +183,7 @@ protected:
     }
 
 private:
-    std::string name;
-
+    /// Type operations
     std::unique_ptr<TypeOperationBase> operations;
 };
 

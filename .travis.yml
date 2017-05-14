@@ -23,7 +23,7 @@ addons:
   apt:
     sources: &apt_sources
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise
+      #- llvm-toolchain-precise
       #- llvm-toolchain-precise-3.4
       - llvm-toolchain-precise-3.5
       - llvm-toolchain-precise-3.6
@@ -56,14 +56,6 @@ matrix:
       addons: &clang40
         apt:
           packages: ["valgrind", "uuid-dev"]
-          sources: *apt_sources
-    # Clang 3.9
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
-      compiler: clang
-      addons: &clang39
-        apt:
-          packages: ["clang-3.9", "valgrind", "uuid-dev"]
           sources: *apt_sources
     # Clang 3.6
     - os: linux
@@ -111,6 +103,7 @@ matrix:
           sources: *apt_sources
 
     # Xcode 8.2 Clang
+    # Fails occasionally for some reason
     - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
       osx_image: xcode8.2
@@ -136,14 +129,6 @@ matrix:
         apt:
           packages: ["valgrind", "uuid-dev"]
           sources: *apt_sources
-    # LLVM 3.9 (Clang 3.9)
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=3.9 COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
-      compiler: clang
-      addons: &llvm39
-        apt:
-          packages: ["clang-3.9", "libllvm3.9", "llvm-3.9", "llvm-3.9-dev", "valgrind", "uuid-dev"]
-          sources: *apt_sources
 
   allow_failures:
     - os: linux
@@ -151,15 +136,25 @@ matrix:
     - os: linux
       env: TESTS=ON LLVM_VERSION=default COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
     - os: osx
+      env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=clang++ COMPILER_C=clang
+      osx_image: xcode8.2
+    - os: osx
       env: TESTS=OFF LLVM_VERSION=default COMPILER_CXX=g++ COMPILER_C=gcc
     - os: linux
       env: TESTS=ON LLVM_VERSION=5.0 COMPILER_CXX=clang++-5.0 COMPILER_C=clang-5.0
-    - os: linux
-      env: TESTS=ON LLVM_VERSION=3.9 COMPILER_CXX=clang++-3.9 COMPILER_C=clang-3.9
 
 before_install:
     - |
       if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+        sudo apt-get clean
+        sudo rm -r /var/lib/apt/lists/*
+
+        sudo apt-get --allow-unauthenticated -yq update
+
+        wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+
+        echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise main" | sudo tee -a /etc/apt/sources.list > /dev/null
+        echo "deb-src http://apt.llvm.org/precise/ llvm-toolchain-precise main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.4 main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb-src http://apt.llvm.org/precise/ llvm-toolchain-precise-3.4 main" | sudo tee -a /etc/apt/sources.list > /dev/null
         echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-4.0 main" | sudo tee -a /etc/apt/sources.list > /dev/null

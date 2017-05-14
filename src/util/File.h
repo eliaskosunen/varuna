@@ -12,7 +12,7 @@
 
 namespace util
 {
-/// Source file
+/// Varuna source file
 class File
 {
 public:
@@ -26,59 +26,40 @@ public:
     File(const File&) = delete;
     File& operator=(const File&) = delete;
 
-    File(File&&) = default;
+    File(File&&) noexcept = default;
     File& operator=(File&&) = default;
 
     ~File() noexcept = default;
 
     /**
-     * Read file contents
-     * @return Success
+     * Read file contents into class buffer.
+     * Get file contents with getContent() or consumeContent().
+     * \return Success
      */
     bool readFile();
-    /**
-     * Check for utf8 validity in the file
-     * @return Success
-     */
-    bool checkUtf8();
-    /**
-     * Calculate the checksum of the file
-     */
-    [[noreturn]] void calculateChecksum();
 
     /**
      * Get filename
-     * @return Filename
+     * \return Filename
      */
     const std::string& getFilename() const;
     /**
      * Get contents
-     * @return Contents
+     * \return Contents
      */
     const std::string& getContent() const;
 
     /**
      * Get ownership of the file contents.
-     * For testing purposes
-     * @return Contents
+     * Invalidates file contents inside this class.
+     * \return Contents
      */
     std::string&& consumeContent();
 
-    /**
-     * Get a line of contents.
-     * Throws at invalid line number
-     * @param  line Line number
-     * @return      Line contents
-     */
-    const std::string& getLine(uint32_t line);
+    /// Set contents inside this class
+    void setContent(std::string c);
 
-    /**
-     * Set content of the file
-     * @param c File contents
-     */
-    void setContent(const std::string& c);
-    void setContent(std::string&& c);
-
+    /// Are file contents valid
     bool isValid() const
     {
         return contentValid;
@@ -91,15 +72,19 @@ public:
     }
 
 private:
-    /// Actually read the file
+    /**
+     * Actually read the file.
+     * Called by readFile()
+     * \throw std::runtime_error On error
+     * \param  fname Filename to read
+     * \return       File contents
+     */
     std::string _readFile(const std::string& fname);
 
     /// Filename
     std::string filename{"[undefined]"};
     /// File contents
     std::string content{""};
-    /// Rows of the file
-    std::vector<std::string> contentRows;
     /// File checksum
     Checksum_t checksum{0};
     /// Are file contents usable
@@ -122,13 +107,7 @@ inline std::string&& File::consumeContent()
     return std::move(content);
 }
 
-inline void File::setContent(const std::string& c)
-{
-    assert(!contentValid);
-    content = c;
-    contentValid = true;
-}
-inline void File::setContent(std::string&& c)
+inline void File::setContent(std::string c)
 {
     assert(!contentValid);
     content = std::move(c);

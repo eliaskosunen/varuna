@@ -15,14 +15,14 @@ struct CodegenInfo
     CodegenInfo() = default;
     CodegenInfo(std::shared_ptr<util::File> pFile, uint8_t pOptLevel,
                 uint8_t pSizeLevel, bool pEmitDebug)
-        : file(pFile), optLevel(pOptLevel), sizeLevel(pSizeLevel),
+        : file(std::move(pFile)), optLevel(pOptLevel), sizeLevel(pSizeLevel),
           emitDebug(pEmitDebug)
     {
     }
 
     /**
      * Area any optimizations enabled
-     * @return Enabled
+     * \return Enabled
      */
     bool optEnabled() const
     {

@@ -27,4 +27,4 @@ FunctionDefinitionStmt* Node::_getFunction()
     // This node is not a function, check if the parent node is one
     return parent->_getFunction();
 }
-}
+} // namespace ast

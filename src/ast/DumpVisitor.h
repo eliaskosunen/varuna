@@ -14,7 +14,7 @@ namespace ast
 class DumpVisitor final : public Visitor
 {
 public:
-    DumpVisitor(bool pVerbose = true, bool pUseError = false)
+    explicit DumpVisitor(bool pVerbose = true, bool pUseError = false)
         : astlogger(util::createLogger(false, "dumpast_logger")),
           verbose(pVerbose), useError(pUseError)
     {
@@ -31,10 +31,10 @@ public:
 
     DumpVisitor(const DumpVisitor&) = delete;
     DumpVisitor& operator=(const DumpVisitor&) = delete;
-    DumpVisitor(DumpVisitor&&) = default;
-    DumpVisitor& operator=(DumpVisitor&&) = default;
+    DumpVisitor(DumpVisitor&&) noexcept = default;
+    DumpVisitor& operator=(DumpVisitor&&) noexcept = default;
 
-    ~DumpVisitor() noexcept
+    ~DumpVisitor() noexcept override
     {
         finish();
     }
@@ -122,7 +122,7 @@ inline void DumpVisitor::log(size_t ind, const std::string& format,
     }
     else
     {
-        std::string prefix("\\");
+        std::string prefix(R"(\)");
         size_t realind = ind * 2;
         for(size_t i = 1; i < realind; ++i)
         {

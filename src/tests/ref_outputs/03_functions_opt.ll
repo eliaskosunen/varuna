@@ -1,4 +1,4 @@
-; ModuleID = 'varuna_tmp_input_noopt-ed96e3fc-7b93-473d-9971-b34c725a1cb8.ll'
+; ModuleID = 'varuna_tmp_input_noopt-bdc41ad5-b835-4573-bf79-88128656df48.ll'
 source_filename = "Varuna"
 
 declare i32 @_Z11declarationi(i32) local_unnamed_addr

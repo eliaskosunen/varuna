@@ -36,6 +36,8 @@ that should be used for formatting the code. It can be used as follows:
 $ clang-format -style=file -i [file]
 ```
 
+There's also `format.sh` in the directory `scripts`, which can be used to format pending changes.
+
 * Indentation width is 4 spaces (LLVM: 2)
 * Allman style braces:  
 ```cpp
@@ -76,5 +78,5 @@ if(condition)
 #include "class.h"
 #include "util/StringUtils.h"
 #include <spdlog.h>
-#include <utility>
+#include <vector>
 ```

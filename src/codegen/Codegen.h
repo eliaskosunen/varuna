@@ -21,14 +21,14 @@ public:
     Codegen(std::shared_ptr<ast::AST> a, CodegenInfo i);
 
     Codegen(const Codegen&) = delete;
-    Codegen(Codegen&&) = default;
+    Codegen(Codegen&&) noexcept = delete;
     Codegen& operator=(const Codegen&) = delete;
-    Codegen& operator=(Codegen&&) = default;
-    ~Codegen() noexcept = default;
+    Codegen& operator=(Codegen&&) noexcept = delete;
+    ~Codegen() noexcept;
 
     /**
      * Run the code generator
-     * @return Success
+     * \return Success
      */
     bool run();
 
@@ -41,17 +41,17 @@ public:
 private:
     /**
      * Initialize the code generator
-     * @return Success
+     * \return Success
      */
     bool prepare();
     /**
      * Run CodegenVisitor
-     * @return Success
+     * \return Success
      */
     bool visit();
     /**
      * Optimize the generated module
-     * @return Success
+     * \return Success
      */
     bool finish();
 

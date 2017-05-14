@@ -29,7 +29,7 @@ namespace util
 std::string getCurrentDirectory()
 {
     char buf[FILENAME_MAX];
-    if(GETCWD(buf, sizeof(buf)) != 0)
+    if(GETCWD(buf, sizeof(buf)) != nullptr)
     {
         return std::string(buf);
     }
@@ -66,7 +66,7 @@ std::string getExecDirectory()
     uint32_t size = sizeof(path);
     if(_NSGetExecutablePath(path, &size) != 0)
     {
-        throw std::runtime_error(
+        throw std::length_error(
             "Unable to get current directory: Not enough space");
     }
     char buf[FILENAME_MAX];
@@ -104,9 +104,9 @@ std::string getExecDirectory()
 #if VARUNA_MSVC_UNICODE
 /**
  * Convert WinString (LPWSTR, UTF-16) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
+ * \param  winstr WinString to convert
+ * \param  size   Length of string
+ * \return        Corresponding std::string
  */
 std::string winStringToUtf8(WinString winstr, size_t size, bool countLen)
 {
@@ -130,9 +130,9 @@ std::string winStringToUtf8(WinString winstr, size_t size, bool countLen)
 #else
 /**
  * Convert WinString (LPSTR, UTF-8) to std::string (UTF-8)
- * @param  winstr WinString to convert
- * @param  size   Length of string
- * @return        Corresponding std::string
+ * \param  winstr WinString to convert
+ * \param  size   Length of string
+ * \return        Corresponding std::string
  */
 std::string winStringToUtf8(WinString winstr, size_t size, bool countLen)
 {
@@ -150,8 +150,8 @@ std::string winStringToUtf8(WinString winstr, size_t size, bool countLen)
 
 /**
  * Get OS error message from error code
- * @param  msgID Error code from GetLastError()
- * @return       Formatted error message
+ * \param  msgID Error code from GetLastError()
+ * \return       Formatted error message
  */
 std::string getFormattedMessage(DWORD msgID)
 {

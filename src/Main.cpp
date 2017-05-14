@@ -6,6 +6,7 @@
 #include "util/Logger.h"
 #include <utf8.h>
 #include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 
 /// Clean up loggers
@@ -16,7 +17,7 @@ static void cleanup()
 
 /**
  * Log an exception
- * @param msg Exception message
+ * \param msg Exception message
  */
 static void logException(const std::string& msg)
 {
@@ -38,20 +39,19 @@ static void logException(const std::string& msg)
     }
     else
     {
-        // Fallback on C stdio
-        std::fprintf(stderr,
-                     "An exception occured during program execution.\n");
-        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        std::fprintf(stderr, "Program will be terminated.\n");
-        std::fprintf(stderr, "No loggers available for message delivery.\n");
-        std::fflush(stderr);
+        // Fallback on iostreams
+        std::cerr << "An exception occured during program execution.\n"
+                  << "Exception message: '" << msg << "'\n"
+                  << "Program will be terminated.\n"
+                  << "No loggers available for message delivery.\n"
+                  << std::flush;
     }
 }
 
 /**
  * Log an exception with an additional message
- * @param msg           Exception message
- * @param additionalMsg Additional message
+ * \param msg           Exception message
+ * \param additionalMsg Additional message
  */
 static void logException(const std::string& msg,
                          const std::string& additionalMsg)
@@ -76,15 +76,13 @@ static void logException(const std::string& msg,
     }
     else
     {
-        // Fallback on C stdio
-        std::fprintf(stderr,
-                     "An exception occured during program execution.\n");
-        std::fprintf(stderr, "Exception message: '%s'\n", msg.c_str());
-        std::fprintf(stderr, "Additional message: '%s'\n",
-                     additionalMsg.c_str());
-        std::fprintf(stderr, "Program will be terminated.\n");
-        std::fprintf(stderr, "No loggers available for message delivery.\n");
-        std::fflush(stderr);
+        // Fallback on iostreams
+        std::cerr << "An exception occured during program execution.\n"
+                  << "Exception message: '" << msg << "'\n"
+                  << "Additional message: '" << additionalMsg << "'\n"
+                  << "Program will be terminated.\n"
+                  << "No loggers available for message delivery.\n"
+                  << std::flush;
     }
 }
 
@@ -102,6 +100,7 @@ static void logException(const std::string& msg,
 #define MAIN_RETURN(expr) return expr;
 #endif
 
+/// Entry point
 int main(int argc, char** argv)
 {
     try
@@ -125,7 +124,11 @@ int main(int argc, char** argv)
     // Handle various exceptions
     catch(const spdlog::spdlog_ex& e)
     {
-        logException(e.what());
+        logException(e.what(), "Spdlog exception");
+    }
+    catch(const fmt::FormatError& e)
+    {
+        logException(e.what(), "Fmt format error");
     }
 
     catch(const utf8::invalid_code_point& e)
