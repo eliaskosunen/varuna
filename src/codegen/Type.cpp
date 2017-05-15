@@ -101,9 +101,9 @@ std::unique_ptr<TypedValue> IntegralType::zeroInit()
 Int8Type::Int8Type(TypeTable* list, llvm::LLVMContext& c,
                    llvm::DIBuilder& dbuilder)
     : IntegralType(list, 8, INT8, c, llvm::Type::getInt8Ty(c),
-                   dbuilder.createBasicType("int8", BASIC_TYPE_SIZE(8),
+                   dbuilder.createBasicType("i8", BASIC_TYPE_SIZE(8),
                                             llvm::dwarf::DW_ATE_signed),
-                   "int8")
+                   "i8")
 {
 }
 
