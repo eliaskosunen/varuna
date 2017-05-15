@@ -7,9 +7,7 @@ platform: Win32
 environment:
     MSVC_DEFAULT_OPTIONS: ON
 
-configuration:
-    - Debug
-    - Release
+configuration: Release
 
 init:
     - cmd: cmake --version
@@ -23,11 +21,32 @@ install:
 
 before_build:
     - cmd: md build
+    - cmd: md deploy
     - cmd: cd build
 
-    - cmd: cmake -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR=C:\Libraries\llvm-4.0.0\lib\cmake\llvm -DBUILD_TESTS=OFF ..
+    - cmd: cmake -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=%configuration% -DLLVM_DIR=C:\Libraries\llvm-4.0.0\lib\cmake\llvm -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%APPVEYOR_BUILD_FOLDER%/deploy ..
 
 build:
     project: C:\projects\varuna\build\varuna.sln
     parallel: true
     verbosity: normal
+
+after_build:
+    - cmd: cd %APPVEYOR_BUILD_FOLDER%
+    - cmd: cd build
+    - cmd: cmake --build . --target INSTALL --config Release
+
+artifacts:
+    - path: deploy
+      name: varuna_win32
+
+deploy:
+    provider: GitHub
+    force_update: true
+    artifact: varuna_win32
+    auth_token:
+        secure: FSYud5QyaVtcBdURtkX3heRwUgiBMJ1BOlrrLMjrbComy9CJ6LnAf+HoNKFtrEds
+    description: 'Varuna release deployed by Appveyor'
+    draft: true
+    on:
+        appveyor_repo_tag: true

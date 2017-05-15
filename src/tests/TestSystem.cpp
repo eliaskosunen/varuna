@@ -198,28 +198,6 @@ TEST_CASE("Emit LLVM BC")
     CHECK(p.spawn());
     CHECK(p.getReturnValue() == 0);
     REQUIRE(p.getErrorString() == util::Process::getSuccessErrorString());
-
-    {
-        auto llvmDisProc = util::Process(
-            fmt::format("{dir}/bin/varuna-llvm-dis", "dir"_a = dir()),
-            fmt::format("{dir}/src/tests/outputs/02_main_bctest.bc -o "
-                        "{dir}/src/tests/outputs/02_main_bctest.ll",
-                        "dir"_a = dir()));
-        CHECK(llvmDisProc.spawn());
-        CHECK(llvmDisProc.getReturnValue() == 0);
-        REQUIRE(llvmDisProc.getErrorString() ==
-                util::Process::getSuccessErrorString());
-    }
-
-    util::File output(fmt::format("{dir}/src/tests/outputs/02_main_bctest.ll",
-                                  "dir"_a = dir()));
-    REQUIRE(output.readFile());
-
-    util::File refOutput(fmt::format(
-        "{dir}/src/tests/ref_outputs/02_main_opt.ll", "dir"_a = dir()));
-    REQUIRE(refOutput.readFile());
-
-    compare(output.consumeContent(), refOutput.consumeContent(), true);
 }
 
 TEST_CASE("01_empty")

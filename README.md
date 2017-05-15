@@ -125,6 +125,10 @@ $ ./a.out
 There's an AUR for the Varuna compiler, that should be used on Arch Linux:
 https://aur.archlinux.org/packages/varuna/
 
+### Windows binaries
+
+You can get Win32 binaries for every tag (release) from GitHub Releases.
+
 ### Requirements
 
 The project is developed on Arch Linux and tested on Ubuntu 12.04.
