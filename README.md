@@ -41,7 +41,7 @@ WORK IN PROGRESS. Compiler functionality and documentation is severely lacking.
 
 WORK IN PROGRESS.
 
-A quick guide can be found from quick-guide.md  
+A quick introduction and "cheatseet" for the language can be found from quick-guide.md  
 [Reference manual (WIP)](https://varuna-lang.gitbooks.io/varuna-book/content/)  
 [API Reference](https://varuna-lang.gitbooks.io/varuna-api-documentation/content/)
 
@@ -124,6 +124,10 @@ $ ./a.out
 
 There's an AUR for the Varuna compiler, that should be used on Arch Linux:
 https://aur.archlinux.org/packages/varuna/
+
+### Windows binaries
+
+You can get Win32 binaries for every tag (release) from GitHub Releases.
 
 ### Requirements
 

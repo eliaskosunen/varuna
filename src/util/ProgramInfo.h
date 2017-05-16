@@ -27,7 +27,7 @@ namespace programinfo
 
         constexpr uint8_t major = 0; ///< Major version number: X.x.x
         constexpr uint8_t minor = 1; ///< Minor version number: x.X.x
-        constexpr uint8_t patch = 0; ///< Patch number: x.x.X
+        constexpr uint8_t patch = 1; ///< Patch number: x.x.X
         constexpr uint8_t rc = 0;    ///< Release candidate number: x.x.x-rcX
         constexpr Status status = Status::STABLE; ///< Version type
 
