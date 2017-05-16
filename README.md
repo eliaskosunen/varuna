@@ -41,7 +41,7 @@ WORK IN PROGRESS. Compiler functionality and documentation is severely lacking.
 
 WORK IN PROGRESS.
 
-A quick guide can be found from quick-guide.md  
+A quick introduction and "cheatseet" for the language can be found from quick-guide.md  
 [Reference manual (WIP)](https://varuna-lang.gitbooks.io/varuna-book/content/)  
 [API Reference](https://varuna-lang.gitbooks.io/varuna-api-documentation/content/)
 

@@ -183,6 +183,12 @@ while cond() {
 }
 ```
 
+# Type aliases
+
+```
+use my_int = i32;
+```
+
 # Other expressions
 
 ## Casts
